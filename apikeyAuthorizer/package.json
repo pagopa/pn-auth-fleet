@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "aws-sdk": "^2.1060.0"
+  },
+  "name": "apikey-autorizer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "type": "module",
+  "license": "ISC",
+  "description": ""
+}
