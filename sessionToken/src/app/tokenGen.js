@@ -1,10 +1,9 @@
 const AWS = require("aws-sdk");
 const kms = new AWS.KMS();
 const base64url = require("base64url");
-const properties = require('../properties.js')
+const properties = require('./properties.js')
 
 async function sign(tokenParts, keyId) {
-    
     let message = Buffer.from(tokenParts.header + "." + tokenParts.payload)
 
     let res = await kms.sign({
@@ -53,6 +52,14 @@ Date.prototype.addMinutes= function(minutes){
     return date;
 }
 
+function getExpDate() {
+    const minutesToAdd = properties.getProperty('application.expMinutes');
+    const now = new Date();
+    const expDate = now.addMinutes(minutesToAdd);
+    console.log('Exp date', expDate);
+    return expDate;
+}
+
 module.exports = {
     async generateToken(decodedToken){
         const keyId = properties.getProperty('aws.keyid');
@@ -64,11 +71,5 @@ module.exports = {
         return res;
     }
 }
-function getExpDate() {
-    const minutesToAdd = properties.getProperty('application.expMinutes');
-    const now = new Date();
-    const expDate = now.addMinutes(minutesToAdd);
-    console.log('Exp date', expDate);
-    return expDate;
-}
+
 
