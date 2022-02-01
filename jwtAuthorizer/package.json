@@ -5,14 +5,14 @@
   "main": "index.js",
   "private": true,
   "dependencies": {
-    "axios": "^0.25.0",
     "jsonwebtoken": "^8.5.1",
-    "jwk-to-pem": "^2.0.5"
+    "jwk-to-pem": "^2.0.5",
+    "node-fetch": "^2.6.7"
   },
   "bundleDependencies": [
-    "axios",
     "jsonwebtoken",
-    "jwk-to-pem"
+    "jwk-to-pem",
+    "node-fetch"
   ],
   "scripts": {
     "test": "jest",

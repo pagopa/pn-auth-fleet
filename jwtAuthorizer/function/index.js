@@ -1,6 +1,6 @@
 const jsonwebtoken = require('jsonwebtoken');
 const jwkToPem = require('jwk-to-pem');
-const axios = require('axios');
+const fetch = require('node-fetch');
 
 const apiPermissions = [
     {
@@ -76,7 +76,7 @@ exports.handler = async (event, context) => {
     // Capture apiKey from event
     const encodedToken = event.authorizationToken;
     console.log('encodedToken', encodedToken);
-    await jwtValidator(encodedToken).then(decodedToken => {
+    return jwtValidator(encodedToken).then(decodedToken => {
         console.log('decodedToken', decodedToken);
         let contextAttrs = {};
         contextAttrs.user_id = decodedToken.uid;
@@ -85,13 +85,13 @@ exports.handler = async (event, context) => {
         console.log('contextAttrs ', contextAttrs);
         // Generate IAM Policy
         iamPolicy = generateIAMPolicy(event.methodArn, contextAttrs);
+        console.log('IAM Policy', JSON.stringify(iamPolicy));
+        return iamPolicy;
     })
     .catch(err => {
         console.log(err);
-        iamPolicy = defaultDenyAllPolicy;
+        return defaultDenyAllPolicy;
     });
-    console.log('IAM Policy', JSON.stringify(iamPolicy));
-    return iamPolicy;
 };
 
 function jwtValidator(jwtToken) {
@@ -109,7 +109,7 @@ function jwtValidator(jwtToken) {
 }
 
 function findKey(jwks, kid) {
-    console.log(jwks);
+    console.log('XXXXX', jwks);
     //console.log('len', response.data.keys.length);
     for (let index = 0; index < jwks.keys.length; index++) {
         const key = jwks.keys[index];
@@ -125,10 +125,11 @@ function getJwkByKid(iss, kid) {
     //TODO: sostituzione url cablato con check iss (vedi SELC-390)
     const jwksendpoint = 'https://uat.selfcare.pagopa.it/.well-known/jwks.json';
     console.log('jwksendpoint', jwksendpoint);
-    return axios.get(jwksendpoint).then(
-        function(response) {
-            return findKey(response.data, kid)
-        },
-        function(error) { throw error; }
-    )
+    
+    return fetch(jwksendpoint)
+        .then(res => res.json())
+        .then((json) => {
+            return findKey(json, kid)
+        })
+        .catch((error) => { throw error;});
 }
