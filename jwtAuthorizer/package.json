@@ -1,0 +1,26 @@
+{
+  "name": "jwt-autorizer",
+  "description": "",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.5",
+    "node-fetch": "^2.6.7"
+  },
+  "bundleDependencies": [
+    "jsonwebtoken",
+    "jwk-to-pem",
+    "node-fetch"
+  ],
+  "scripts": {
+    "test": "jest",
+    "pack": "npm-pack-zip --static-date-modified"
+  },
+  "devDependencies": {
+    "aws-xray-sdk-core": "^3.3.4",
+    "jest": "25.4.0",
+    "npm-pack-zip": "^1.3.0"
+  }
+}
