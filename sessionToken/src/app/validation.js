@@ -4,12 +4,9 @@ var ValidationException = require('./exception/validationException.js');
 
 module.exports = {
     async validation (event){
-        console.log('Received event:', JSON.stringify(event, null, 2));
-
         const encodedToken = event.authorizationToken;
-        console.log('encodedToken', encodedToken);
         let decodedToken = await jwtValidator(encodedToken);
-        console.log('decodedToken', decodedToken);
+        console.info('token is valid');
 
         return decodedToken;    
     }
@@ -17,25 +14,25 @@ module.exports = {
 
 async function jwtValidator(jwtToken) {
     const decodedToken = jsonwebtoken.decode(jwtToken, { complete: true });
-    console.log('token', decodedToken)
+    console.debug('Start jwtValidator');
 
     if(decodedToken != null){
         let kid = decodedToken.header.kid;
-        console.log('kid', kid)
+        console.debug('kid', kid)
 
         const keyInPemFormat = await publicKeyGetter.getPublicKey(decodedToken, kid);
-        console.log('public key ', keyInPemFormat);
         
         try{
             jsonwebtoken.verify(jwtToken, keyInPemFormat)
         }catch(err){
-            console.log('Validation error ', err)
+            console.error('Validation error ', err)
             throw new ValidationException(err.message)
         }
         
-        console.log("success!");
+        console.debug("success!");
         return decodedToken.payload;
     }else{
+        console.error('decoded token is null, token is not valid')
         throw new ValidationException('Token is not valid')
     }
 }

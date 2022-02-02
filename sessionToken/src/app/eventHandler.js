@@ -6,11 +6,12 @@ module.exports = {
     async handleEvent(event){
         try{
             let decodedToken = await validator.validation(event);
-        
+            
             let sessionToken = await tokenGen.generateToken(decodedToken);
     
             return generateOkResponse(sessionToken);
         }catch(err){
+            console.error('Error ', err);
             return generateKoResponse(err);
         }
     }
@@ -28,17 +29,19 @@ function generateOkResponse(sessionToken) {
 }
 
 function generateKoResponse(err) {
-    console.log('GenerateKoResponse err',err);
+    console.debug('GenerateKoResponse err',err);
 
     let statusCode;
-    let body;
+    let body = {
+        error:null
+    };
 
     if (err instanceof ValidationException) {
         statusCode = 400;
-        body = err.message;
+        body.error = err.message;
     } else {
         statusCode = 500;
-        body = err.message;
+        body.error = err.message;
     }
     return {
         statusCode: statusCode,

@@ -19,7 +19,7 @@ async function sign(tokenParts, keyId) {
     .replace(/=/g, '');
     
     let token = tokenParts.header + "." + tokenParts.payload + "." + tokenParts.signature;
-    console.log('token ', token);
+    console.debug('token ', token);
 
     return token;
 }
@@ -56,7 +56,7 @@ function getExpDate() {
     const minutesToAdd = properties.getProperty('application.expMinutes');
     const now = new Date();
     const expDate = now.addMinutes(minutesToAdd);
-    console.log('Exp date', expDate);
+    console.debug('Exp date', expDate);
     return expDate;
 }
 
@@ -67,7 +67,7 @@ module.exports = {
         let token_components = getTokenComponent(decodedToken);
         
         let res = await sign(token_components, keyId)
-        console.log(`JWT token: [${res}]`)
+        console.debug(`JWT token: [${res}]`)
         return res;
     }
 }

@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rm -r node_modules && npm install --production && rm -f ./build/function.zip && zip -r ./build/function.zip . -x ./src/test/*",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test-build": "npm test && npm run-script build",
+    "build": "npm prune --production && rm -f ./build-output/function.zip && zip -r ./build-output/function.zip . -x './src/test/*' -x '*.md'  -x '*.gitignore'",
+    "test": "npm install && mocha ./src/test/workflowTester.js"
   },
   "author": "",
   "license": "ISC",

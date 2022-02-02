@@ -1,6 +1,6 @@
 const workflowHandler = require('./src/app/eventHandler.js')
 
 exports.handler = async (event) => {
-    console.log("New event received ", event);
+    console.info("New event received ", event);
     return workflowHandler.handleEvent(event);
 };
