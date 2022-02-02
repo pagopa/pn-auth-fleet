@@ -6,7 +6,7 @@
   "scripts": {
     "test-build": "npm test && npm run-script build",
     "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md'  -x '*.gitignore'",
-    "test": "npm install && mocha ./src/test/workflow.test.js"
+    "test": "npm install && mocha './src/test/**/*.test.js' --recursive"
   },
   "author": "",
   "license": "ISC",
