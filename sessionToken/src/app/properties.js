@@ -1,5 +1,5 @@
 const reader = require('properties-reader');
-const prop = reader('./res/application.properties');
+const prop = reader('./config/application.properties');
 
 module.exports = {
     getProperty(property){

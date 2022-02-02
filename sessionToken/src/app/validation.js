@@ -4,11 +4,15 @@ var ValidationException = require('./exception/validationException.js');
 
 module.exports = {
     async validation (event){
-        const encodedToken = event.authorizationToken;
-        let decodedToken = await jwtValidator(encodedToken);
-        console.info('token is valid');
-
-        return decodedToken;    
+        if(event.queryStringParameters != null && event.queryStringParameters.authorizationToken != null){
+            const encodedToken = event.queryStringParameters.authorizationToken;
+            let decodedToken = await jwtValidator(encodedToken);
+            console.info('token is valid');
+    
+            return decodedToken;    
+        }else{
+            throw new ValidationException("token is not valid")
+        }
     }
 }
 
