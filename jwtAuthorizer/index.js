@@ -1,6 +1,7 @@
 const jsonwebtoken = require('jsonwebtoken');
 const jwkToPem = require('jwk-to-pem');
 const fetch = require('node-fetch');
+const fs = require('fs');
 
 const apiPermissions = [
     {
@@ -76,7 +77,9 @@ exports.handler = async (event, context) => {
     // Capture apiKey from event
     const encodedToken = event.authorizationToken;
     console.log('encodedToken', encodedToken);
-    return jwtValidator(encodedToken).then(decodedToken => {
+
+    try{
+        let decodedToken = jwtValidator(encodedToken);
         console.log('decodedToken', decodedToken);
         let contextAttrs = {};
         contextAttrs.user_id = decodedToken.uid;
@@ -87,11 +90,10 @@ exports.handler = async (event, context) => {
         iamPolicy = generateIAMPolicy(event.methodArn, contextAttrs);
         console.log('IAM Policy', JSON.stringify(iamPolicy));
         return iamPolicy;
-    })
-    .catch(err => {
-        console.log(err);
+    }catch(err) {
+        console.error('Error ',err);
         return defaultDenyAllPolicy;
-    });
+    };
 };
 
 function jwtValidator(jwtToken) {
@@ -99,15 +101,15 @@ function jwtValidator(jwtToken) {
     console.log('token', token)
     let kid = token.header.kid;
     console.log('kid', kid)
-    return getJwkByKid(token.payload.iss, token.header.kid).then((jwk) => {
-        console.log('jwk ', jwk);
-        const pem = jwkToPem(jwk);
-        jsonwebtoken.verify(jwtToken, pem);
-        console.log("success!");
-        return token.payload;
-    })
-}
 
+    const publicKey = fs.readFileSync("./res/pkey.pem", { encoding: "utf8" }); //TODO Valutare se lasciare la Public Key in file interna al progetto 
+
+    jsonwebtoken.verify(jwtToken, publicKey);
+    console.log("success!");
+    return token.payload;
+
+}
+/*
 function findKey(jwks, kid) {
     console.log('XXXXX', jwks);
     //console.log('len', response.data.keys.length);
@@ -132,4 +134,4 @@ function getJwkByKid(iss, kid) {
             return findKey(json, kid)
         })
         .catch((error) => { throw error;});
-}
+}*/

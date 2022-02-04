@@ -37,7 +37,10 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 });
 
 describe("Successful Invocation", function () {
-    
+    let name = 'Mauro';
+    let family_name = 'Galli';
+    let fiscal_number = 'GLLMRA77M43A332O';
+
     const workingToken = {
         queryStringParameters:{
             authorizationToken: 'eyJraWQiOiJqd3QtZXhjaGFuZ2VfZDQ6ZWY6NjQ6NzY6YWY6MjI6MWY6NDg6MTA6MDM6ZTQ6NjE6NmU6Y2M6Nzk6MmYiLCJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6InJhb3VsODdAbGliZXJvLml0IiwiZmFtaWx5X25hbWUiOiJHYWxsaSIsImZpc2NhbF9udW1iZXIiOiJHTExNUkE3N000M0EzMzJPIiwibmFtZSI6Ik1hdXJvIiwiZnJvbV9hYSI6ZmFsc2UsInVpZCI6IjEyZTNjNWE4LTA2NWItNDExZi1hMzY0LWYxOGQ2NjI0MmU0ZiIsImxldmVsIjoiTDIiLCJpYXQiOjE2NDM2NDMyNzcsImV4cCI6NDA3MzYyODgwMCwiaXNzIjoiYXBpLnNlbGZjYXJlLnBhZ29wYS5pdCIsImp0aSI6IjAyOTdjYTllLTRhZWMtNDRiMy04M2FkLTAwYWI5NGI0ZWU4NyIsImF1ZCI6Ind3dy5iZXRhLnBuLnBhZ29wYS5pdCIsIm9yZ2FuaXphdGlvbiI6eyJpZCI6ImNfaDI4MiIsInJvbGUiOiJyZWZlcmVudGUgYW1taW5pc3RyYXRpdm8iLCJmaXNjYWxfY29kZSI6IjAwMTAwNzAwNTc0In0sImRlc2lyZWRfZXhwIjoxNjQzNjQ2ODcwfQ.3sQwE8d9wNid_cipdIBP0ghn1gdOKvMVyEEsQugIuLYd7FXu0gLGpNEw3nk6Cc--dXXoWl6UWZzKBDOVkOmmNn92MEZksAEi2ftO9jktWZVxPridQ8GHkxT7ezhFGUQqxkd3wYZsNNsOF4fEvem_pGgUYaaN_fO3aKfa1CFNO-zlENO0NEzsg1yHAgaH7I-w7nGX-9ZYkUV85ws_TGELoj9zAOLzHT1yYF56J8q92oI63YfwBRJ4bUioH41wlIqwkEdxp2CjqOSHWdLoTGJbJeH3A3000yqysa5LqMcanMyqzzES3oazKAZRvYn84x1nBVsbxkQ0fhqCTnH0HDpzRQ'
@@ -51,12 +54,16 @@ describe("Successful Invocation", function () {
             // Check if code exist
             console.debug('the result is ', result);    
             expect(result.statusCode).to.equal(200);
-            expect(result.body.sessionToken).to.exist;
+            const body = JSON.parse(result.body);
+            expect(body.name).to.equal(name);
+            expect(body.family_name).to.equal(family_name);
+            expect(body.fiscal_number).to.equal(fiscal_number);
+
             done();
         }).catch(done); // Catch assertion errors
     });
 });
-
+ 
 
 describe("Expired token", function () {
     
@@ -66,14 +73,15 @@ describe("Expired token", function () {
         }
     }
     
-    it("with code = 200", function (done) {        
+    it("with code = 400", function (done) {        
         lambdaTester( lambda.handler )
         .event( expiredToken )
         .expectResult((result) => {
             // Check if code exist
             console.debug('the result is ', result);    
             expect(result.statusCode).to.equal(400);
-            expect(result.body.error).to.exist;
+            const body = JSON.parse(result.body);
+            expect(body.error).to.exist;
             done();
         }).catch(done); // Catch assertion errors
     });
@@ -94,7 +102,8 @@ describe("Invalid Signature", function () {
             // Check if code exist
             console.debug('the result is ', result);    
             expect(result.statusCode).to.equal(400);
-            expect(result.body.error).to.exist;
+            const body = JSON.parse(result.body);
+            expect(body.error).to.exist;
             done();
         }).catch(done); // Catch assertion errors
     });

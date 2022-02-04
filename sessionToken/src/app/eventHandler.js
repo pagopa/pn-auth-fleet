@@ -8,8 +8,8 @@ module.exports = {
             let decodedToken = await validator.validation(event);
             
             let sessionToken = await tokenGen.generateToken(decodedToken);
-    
-            return generateOkResponse(sessionToken);
+            
+            return generateOkResponse(sessionToken, decodedToken);
         }catch(err){
             console.error('Error ', err);
             return generateKoResponse(err);
@@ -17,34 +17,52 @@ module.exports = {
     }
 }
 
-function generateOkResponse(sessionToken) {
-    let body = {
+function generateOkResponse(sessionToken, decodedToken) {
+    let responseBody = {
+        name: decodedToken.name,
+        family_name: decodedToken.family_name,
+        fiscal_number: decodedToken.fiscal_number,
+        organization: {
+            id: decodedToken.organization.id,
+            role: decodedToken.organization.role,
+        },
         sessionToken: sessionToken
     };
 
-    return {
+    const response = {
         statusCode: 200,
-        body: body,
+        headers: {
+        },
+        body: JSON.stringify(responseBody),
+        isBase64Encoded: false
     };
+
+    return response;
 }
 
 function generateKoResponse(err) {
     console.debug('GenerateKoResponse err',err);
 
     let statusCode;
-    let body = {
-        error:null
+    let responseBody = {
     };
 
     if (err instanceof ValidationException) {
         statusCode = 400;
-        body.error = err.message;
+        responseBody.error = err.message;
     } else {
         statusCode = 500;
-        body.error = err.message;
+        responseBody.error = err.message;
     }
-    return {
+
+    const response = {
         statusCode: statusCode,
-        body: body,
+        headers: {
+        },
+        body: JSON.stringify(responseBody),
+        isBase64Encoded: false
     };
+
+    return response;
+    
 }

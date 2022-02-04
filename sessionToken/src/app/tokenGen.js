@@ -10,7 +10,7 @@ async function sign(tokenParts, keyId) {
         Message: message,
         KeyId: keyId,
         SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
-        MessageType: 'RAW'
+        MessageType: 'RAW' 
     }).promise()
 
     tokenParts.signature = res.Signature.toString("base64")
@@ -33,10 +33,14 @@ function getTokenComponent(decodedToken) {
     const expDate = getExpDate();
 
     let payload = {
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(expDate.getTime() / 1000),
-        uid: decodedToken.uid,
-        iss: 'pagopa.notifiche.it', //TODO Da cambiare
+        "iat": Math.floor(Date.now() / 1000),
+        "exp": Math.floor(expDate.getTime() / 1000),
+        "uid": decodedToken.uid,
+        "iss": 'pagopa.notifiche.it', //TODO Da cambiare
+        "organization": {
+            "id": decodedToken.organization.id,
+            "role": decodedToken.organization.role,
+        },
     };
 
     let token_components = {
