@@ -75,7 +75,7 @@ exports.handler = async (event, context) => {
     let iamPolicy = null;
 
     // Capture apiKey from event
-    const encodedToken = event.authorizationToken;
+    const encodedToken = event.authorizationToken.replace('Bearer ',''); ;
     console.log('encodedToken', encodedToken);
 
     try{
