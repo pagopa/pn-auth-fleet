@@ -22,3 +22,5 @@ Il comando di seguito permette di eseguire la routine dei test per poi generare 
 
 ## Handler
 L'handler della lambda è presente nel file index.js
+
+
