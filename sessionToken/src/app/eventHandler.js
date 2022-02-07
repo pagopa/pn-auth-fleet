@@ -32,6 +32,7 @@ function generateOkResponse(sessionToken, decodedToken) {
     const response = {
         statusCode: 200,
         headers: {
+            'Access-Control-Allow-Origin': '*' //TODO: modificare con PN-676
         },
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
@@ -58,6 +59,7 @@ function generateKoResponse(err) {
     const response = {
         statusCode: statusCode,
         headers: {
+            'Access-Control-Allow-Origin': '*' //TODO: modificare con PN-676
         },
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
