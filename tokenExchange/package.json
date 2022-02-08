@@ -1,10 +1,10 @@
 {
-  "name": "lambda-session-token",
+  "name": "token-exchange",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test-build": "npm test && npm run-script build",
+    "test-build": "npm run-script test && npm run-script build",
     "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md'  -x '*.gitignore'",
     "test": "npm install && mocha './src/test/**/*.test.js' --recursive"
   },

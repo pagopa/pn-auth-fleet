@@ -1,17 +1,17 @@
 {
-  "dependencies": {
-    "aws-sdk": "^2.1060.0"
-  },
-  "name": "apikey-autorizer",
+  "name": "apikey-authorizer",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
-    "test-build": "npm run-script build",
-    "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md'  -x '*.gitignore'"
+    "test-build": "npm run-script test && npm run-script build",
+    "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md'  -x '*.gitignore'",
+    "test": "npm install && mocha './src/test/**/*.test.js' --recursive"
   },
   "author": "",
-  "type": "module",
   "license": "ISC",
-  "description": ""
+  "devDependencies": {
+    "aws-sdk": "^2.1060.0",
+    "mocha": "^9.2.0"
+  }
 }
