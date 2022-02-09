@@ -1,5 +1,5 @@
-const AWS = require('aws-sdk');
 const iamPolicyGenerator = require('./iamPolicyGen.js')
+const keyTagsGetter = require('./keyTagsGetter.js')
 const PAID_TAG = 'pa_id'
 
 const defaultDenyAllPolicy = {
@@ -24,13 +24,13 @@ module.exports = {
         // Capture apiKey from event
         const apiKeyId = event.requestContext.identity.apiKeyId;
         console.log('ApiKeyId', apiKeyId);
-        await getKeyTags(apiKeyId).then(data => {
+        await keyTagsGetter.getKeyTags(apiKeyId).then(data => {
             console.log('data', data);
             // Retrieve token scopes
             const paId = data.tags[PAID_TAG];
             console.log('ApiKey paId Tags', paId);
             // Generate IAM Policy
-            iamPolicy = await iamPolicyGenerator.generateIAMPolicy(event.methodArn, paId);
+            iamPolicy = iamPolicyGenerator.generateIAMPolicy(event.methodArn, paId); //FIX event.methodArn
         })
         .catch(err => {
             console.log(err);
@@ -39,17 +39,4 @@ module.exports = {
         console.log('IAM Policy', JSON.stringify(iamPolicy));
         return iamPolicy;
     }
-}
-
-function getKeyTags(apiKeyId) {
-    const apigateway = new AWS.APIGateway();
-    const awsRegion = process.env.AWS_REGION;
-    const apiKeyArn = 'arn:aws:apigateway:' + awsRegion + '::/apikeys/' + apiKeyId;
-    console.log('Getting Tags for ', apiKeyArn);
-    
-    var params = {
-        resourceArn: apiKeyArn /* required */
-    };
-    var request = apigateway.getTags(params);
-    return request.promise();
 }

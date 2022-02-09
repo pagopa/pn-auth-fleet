@@ -20,8 +20,6 @@ module.exports = {
 async function jwtValidator(jwtToken) {
     const token = jsonwebtoken.decode(jwtToken, { complete: true });
     console.log('token', token)
-    let kid = token.header.kid;
-    console.log('kid', kid)
     
     const publicKey = fs.readFileSync("./src/test/pkey.pem", { encoding: "utf8" }); //TODO Valutare se lasciare la Public Key in file interna al progetto
     

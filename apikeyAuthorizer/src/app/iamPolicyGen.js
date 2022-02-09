@@ -1,5 +1,3 @@
-
-
 module.exports = {
     async generateIAMPolicy(resourceArn, paId) {
         // Declare empty policy statements array
