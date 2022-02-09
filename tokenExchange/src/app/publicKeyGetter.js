@@ -1,10 +1,9 @@
-
 const jwkToPem = require('jwk-to-pem');
 const axios = require('axios');
 
 module.exports = {
-    async getPublicKey (decodedToken, kid){
-        let jwKey = await getJwkByKid(decodedToken.payload.iss, kid);
+    async getPublicKey ( kid ){
+        let jwKey = await getJwkByKid( kid );
         console.debug('get jwkey ok');
         const keyInPemFormat = jwkToPem(jwKey);
         console.debug('get key in pem format ok ');
@@ -23,9 +22,9 @@ function findKey(jwks, kid) {
     }
 }
 
-async function getJwkByKid(iss, kid) {
-    //TODO: sostituzione url cablato con check iss (vedi SELC-390)
-    const jwksendpoint = 'https://uat.selfcare.pagopa.it/.well-known/jwks.json';
+async function getJwkByKid( kid ) {
+    const iss = process.env.ISSUER
+    const jwksendpoint = iss +'/.well-known/jwks.json';
     console.debug('jwksendpoint is ', jwksendpoint);
 
     try{

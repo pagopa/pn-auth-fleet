@@ -1,6 +1,6 @@
 const iamPolicyGenerator = require('./iamPolicyGen.js')
 const keyTagsGetter = require('./keyTagsGetter.js')
-const PAID_TAG = 'pa_id'
+const PA_TAG_NAME = process.env.PA_TAG_NAME
 
 const defaultDenyAllPolicy = {
     "principalId": "user",
@@ -24,19 +24,19 @@ module.exports = {
         // Capture apiKey from event
         const apiKeyId = event.requestContext.identity.apiKeyId;
         console.log('ApiKeyId', apiKeyId);
-        await keyTagsGetter.getKeyTags(apiKeyId).then(data => {
-            console.log('data', data);
+        try {
+            let response =  await keyTagsGetter.getKeyTags(apiKeyId);
+            console.log('response', response);
             // Retrieve token scopes
-            const paId = data.tags[PAID_TAG];
+            const paId = response.tags[PA_TAG_NAME];
             console.log('ApiKey paId Tags', paId);
             // Generate IAM Policy
             iamPolicy = iamPolicyGenerator.generateIAMPolicy(event.methodArn, paId); //FIX event.methodArn
-        })
-        .catch(err => {
+            console.log('IAM Policy', JSON.stringify(iamPolicy));
+            return iamPolicy;
+        } catch(err) {
             console.log(err);
             iamPolicy = defaultDenyAllPolicy;
-        });
-        console.log('IAM Policy', JSON.stringify(iamPolicy));
-        return iamPolicy;
+        }
     }
 }

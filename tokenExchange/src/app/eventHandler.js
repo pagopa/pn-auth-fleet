@@ -1,6 +1,7 @@
 const validator = require('./validation.js')
 const tokenGen = require('./tokenGen.js')
 var ValidationException = require('./exception/validationException.js');
+const allowedOrigin = process.env.ALLOWED_ORIGIN
 
 module.exports = {
     async handleEvent(event){
@@ -18,21 +19,13 @@ module.exports = {
 }
 
 function generateOkResponse(sessionToken, decodedToken) {
-    let responseBody = {
-        name: decodedToken.name,
-        family_name: decodedToken.family_name,
-        fiscal_number: decodedToken.fiscal_number,
-        organization: {
-            id: decodedToken.organization.id,
-            role: decodedToken.organization.role,
-        },
-        sessionToken: sessionToken
-    };
+    // Clone decodedToken information and add sessionToken to them
+    let responseBody = { ... decodedToken, sessionToken }
 
     const response = {
         statusCode: 200,
         headers: {
-            'Access-Control-Allow-Origin': '*' //TODO: modificare con PN-676
+            'Access-Control-Allow-Origin': allowedOrigin
         },
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
@@ -45,8 +38,7 @@ function generateKoResponse(err) {
     console.debug('GenerateKoResponse err',err);
 
     let statusCode;
-    let responseBody = {
-    };
+    let responseBody = {};
 
     if (err instanceof ValidationException) {
         statusCode = 400;
@@ -59,7 +51,7 @@ function generateKoResponse(err) {
     const response = {
         statusCode: statusCode,
         headers: {
-            'Access-Control-Allow-Origin': '*' //TODO: modificare con PN-676
+            'Access-Control-Allow-Origin': allowedOrigin
         },
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
