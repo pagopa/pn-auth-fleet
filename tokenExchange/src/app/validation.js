@@ -34,6 +34,7 @@ async function jwtValidator(jwtToken) {
         }
         
         console.debug("success!");
+        console.debug('payload', decodedToken.payload)
         return decodedToken.payload;
     }else{
         console.error('decoded token is null, token is not valid')

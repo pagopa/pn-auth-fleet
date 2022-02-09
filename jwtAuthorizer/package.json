@@ -1,23 +1,19 @@
 {
-  "name": "jwt-autorizer",
-  "description": "",
+  "name": "jwt-authorizer",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "private": true,
+  "scripts": {
+    "test-build": "npm run-script test && npm run-script build",
+    "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md'  -x '*.gitignore'",
+    "test": "npm install && mocha './src/test/**/*.test.js' --recursive"
+  },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",
     "node-fetch": "^2.6.7"
-  },
-  "bundleDependencies": [
-    "jsonwebtoken",
-    "jwk-to-pem",
-    "node-fetch"
-  ],
-  "scripts": {
-    "test-build": "npm test && npm run-script build",
-    "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md'  -x '*.gitignore'",
-    "test": ""
   },
   "devDependencies": {
     "aws-xray-sdk-core": "^3.3.4",
