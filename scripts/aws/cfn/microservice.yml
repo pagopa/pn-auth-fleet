@@ -10,6 +10,16 @@ Parameters:
   LambdasBucketName:
     Type: String
     Description: 'The S3 bucket from which to fetch the templates used by this stack.'
+  
+  LambdaZipVersionId1:
+    Type: String
+    Description: 'First lambda zip file S3 VersionId'
+  LambdaZipVersionId2:
+    Type: String
+    Description: 'Second lambda zip file S3 VersionId'
+  LambdaZipVersionId3:
+    Type: String
+    Description: 'Third lambda zip file S3 VersionId'
 
   MicroserviceNumber:
     Type: Number
@@ -37,5 +47,5 @@ Resources:
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/sqs-queue.yaml"
       Parameters:
-        QueueName: !Sub '${ProjectName}-just_a_queue'
+        QueueName: !Sub '${ProjectName}-just_a_queue-${LambdaZipVersionId3}'
         DelaySeconds: 1
