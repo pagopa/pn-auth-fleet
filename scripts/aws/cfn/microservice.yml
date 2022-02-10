@@ -44,13 +44,13 @@ Resources:
   ApiKeyAuthorizerLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda
+      FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
       Runtime: nodejs14.x
       Code: 
         S3Bucket: !Ref LambdasBucketName
         S3Key: 'pn-auth-fleet/main/apikeyAuthorizer.zip'
         S3ObjectVersion: !Ref LambdaZipVersionId1
-      Role: pippo
+      Role: !Ref ApiKeyAuthorizerLambdaRole
 
   ApiKeyAuthorizerLambdaRole:
     Type: AWS::IAM::Role
