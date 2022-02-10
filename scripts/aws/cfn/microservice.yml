@@ -41,18 +41,18 @@ Parameters:
   
 Resources:
 
-  ApiKeyAuthorizerLambda:
-    Type: AWS::Lambda::Function
-    DependsOn: ApiKeyAuthorizerLambdaPolicy
-    Properties:
-      FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
-      Runtime: nodejs14.x
-      Handler: 'index.handler'
-      Code: 
-        S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/apikeyAuthorizer.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId1
-      Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
+  # ApiKeyAuthorizerLambda:
+  #   Type: AWS::Lambda::Function
+  #   DependsOn: ApiKeyAuthorizerLambdaPolicy
+  #   Properties:
+  #     FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
+  #     Runtime: nodejs14.x
+  #     Handler: 'index.handler'
+  #     Code: 
+  #       S3Bucket: !Ref LambdasBucketName
+  #       S3Key: 'pn-auth-fleet/main/apikeyAuthorizer.zip'
+  #       S3ObjectVersion: !Ref LambdaZipVersionId1
+  #     Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
 
   ApiKeyAuthorizerLambdaRole:
     Type: AWS::IAM::Role
