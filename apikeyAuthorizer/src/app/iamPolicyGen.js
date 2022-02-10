@@ -14,11 +14,13 @@ module.exports = {
 }
 
 function generatePolicyStatement(resourceArn, action) {
+    let resources = resourceArn.split('/')
+    let resource = resources[0] + '/' + resources[1] + '/*'
     // Generate an IAM policy statement
     const statement = {};
     statement.Action = 'execute-api:Invoke';
     statement.Effect = action;
-    statement.Resource = resourceArn;
+    statement.Resource = resource;
     return statement;
 }
 
