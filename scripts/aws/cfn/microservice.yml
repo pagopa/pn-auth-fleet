@@ -82,4 +82,47 @@ Resources:
             Action:
               - '*'
             Resource: "*"
+  
+
+  JwtAuthorizerLambda:
+    Type: AWS::Lambda::Function
+    DependsOn: JwtAuthorizerLambdaPolicy
+    Properties:
+      FunctionName: !Sub '${ProjectName}-jwtAuthorizerLambda'
+      Runtime: nodejs14.x
+      Handler: 'index.handler'
+      Code: 
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: 'pn-auth-fleet/main/jwtAuthorizer.zip'
+        S3ObjectVersion: !Ref LambdaZipVersionId2
+      Role: !GetAtt JwtAuthorizerLambdaRole.Arn
+
+  JwtAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-jwtAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  JwtAuthorizerLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-jwtAuthorizerLambdaPolicy
+      Roles:
+        - !Ref JwtAuthorizerLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - '*'
+            Resource: "*"
 
