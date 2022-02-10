@@ -50,7 +50,7 @@ Resources:
         S3Bucket: !Ref LambdasBucketName
         S3Key: 'pn-auth-fleet/main/apikeyAuthorizer.zip'
         S3ObjectVersion: !Ref LambdaZipVersionId1
-      Role: !Ref ApiKeyAuthorizerLambdaRole
+      Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
 
   ApiKeyAuthorizerLambdaRole:
     Type: AWS::IAM::Role
