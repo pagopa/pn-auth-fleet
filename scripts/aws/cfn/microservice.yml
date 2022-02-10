@@ -46,6 +46,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
       Runtime: nodejs14.x
+      Handler: 'index.handler'
       Code: 
         S3Bucket: !Ref LambdasBucketName
         S3Key: 'pn-auth-fleet/main/apikeyAuthorizer.zip'
