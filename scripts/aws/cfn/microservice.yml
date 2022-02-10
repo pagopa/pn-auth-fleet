@@ -43,6 +43,7 @@ Resources:
 
   ApiKeyAuthorizerLambda:
     Type: AWS::Lambda::Function
+    DependsOn: ApiKeyAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
       Runtime: nodejs14.x
@@ -60,8 +61,7 @@ Resources:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
-          -
-            Effect: Allow
+          - Effect: Allow
             Principal:
               Service:
                 - lambda.amazonaws.com
