@@ -51,5 +51,5 @@ async function retrievePublicKey() {
     }).promise()
 
     console.log('res');
-    return res;
+    return res.PublicKey;
 }
