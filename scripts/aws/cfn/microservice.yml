@@ -41,11 +41,44 @@ Parameters:
   
 Resources:
 
-  # Internal queues
-  JustAResourceQueue:
-    Type: AWS::CloudFormation::Stack
+  ApiKeyAuthorizerLambda:
+    Type: AWS::Lambda::Function
     Properties:
-      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/sqs-queue.yaml"
-      Parameters:
-        QueueName: !Sub '${ProjectName}-just_a_queue-${LambdaZipVersionId3}'
-        DelaySeconds: 1
+      FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda
+      Runtime: nodejs14.x
+      Code: 
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: 'pn-auth-fleet/main/apikeyAuthorizer.zip'
+        S3ObjectVersion: !Ref LambdaZipVersionId1
+      Role: pippo
+
+  ApiKeyAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-apikeyAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  ApiKeyAuthorizerLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-apikeyAuthorizerLambdaPolicy
+      Roles:
+        - !Ref ApiKeyAuthorizerLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - '*'
+            Resource: "*"
+
