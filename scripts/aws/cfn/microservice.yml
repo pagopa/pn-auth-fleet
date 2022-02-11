@@ -56,6 +56,9 @@ Resources:
         S3Bucket: !Ref LambdasBucketName
         S3Key: 'pn-auth-fleet/main/apikeyAuthorizer.zip'
         S3ObjectVersion: !Ref LambdaZipVersionId1
+      Environment:
+        Variables:
+          PA_TAG_NAME: pa_id
       Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
   
   # Lambda function role
@@ -105,6 +108,9 @@ Resources:
         S3Bucket: !Ref LambdasBucketName
         S3Key: 'pn-auth-fleet/main/jwtAuthorizer.zip'
         S3ObjectVersion: !Ref LambdaZipVersionId2
+      Environment:
+        Variables:
+          KEY_ID: 4fc8121b-3304-4dca-8fd5-d3f7c2251bd6
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
 
   # Lambda function role
@@ -154,6 +160,12 @@ Resources:
         S3Bucket: !Ref LambdasBucketName
         S3Key: 'pn-auth-fleet/main/tokenExchange.zip'
         S3ObjectVersion: !Ref LambdaZipVersionId3
+      Environment:
+        Variables:  
+          TOKEN_TTL: 120
+          ISSUER: https://pn-develop.pn.pagopa.it
+          ALLOWED_ISSUER: spidhub-test.dev.pn.pagopa.it,api.selfcare.pagopa.it
+          ALLOWED_ORIGIN: https://portale-pa-develop.fe.dev.pn.pagopa.it,https://portale-pf-develop.fe.dev.pn.pagopa.it
       Role: !GetAtt TokenExchangeLambdaRole.Arn
 
   # Lambda function role
@@ -186,3 +198,55 @@ Resources:
             Action:
               - '*'
             Resource: "*"
+
+
+  ###               TOKEN EXCHANGE SERVICE               ###
+  ###########################################################
+  
+  # API definition
+  TokenExchangeRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub '${ProjectName}-token-exchange-api'
+      FailOnWarnings: true
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+  
+  # Resource session-token
+  TokenExchangeResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref TokenExchangeRestApi
+      ParentId: !GetAtt TokenExchangeRestApi.RootResourceId
+      PathPart: 'session-token'
+
+  # Session Token GET method
+  TokenExchangeGetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: 'Proxy to Session Token Lambda'
+      RestApiId: !Ref TokenExchangeRestApi
+      ResourceId: !Ref TokenExchangeResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestValidatorId: !Ref TokenExchangeGetMethodRequestValidator
+      RequestParameters: 
+        "method.request.header.Origin": true
+        "method.request.querystring.authorizationToken": true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !GetAtt TokenExchangeLambda.Arn
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  TokenExchangeGetMethodRequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      RestApiId: !Ref TokenExchangeRestApi
+      ValidateRequestBody: false
+      ValidateRequestParameters: true
+
