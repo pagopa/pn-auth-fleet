@@ -223,6 +223,7 @@ Resources:
 
   # Session Token GET method
   TokenExchangeGetMethod:
+    DependsOn: TokenExchangeLambda
     Type: AWS::ApiGateway::Method
     Properties:
       OperationName: 'Proxy to Session Token Lambda'
