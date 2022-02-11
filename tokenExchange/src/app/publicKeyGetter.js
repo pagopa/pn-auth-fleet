@@ -20,6 +20,7 @@ function getJwksEndpoint( issuer ) {
         jwksendpoint = 'https://'+ issuer + '/.well-known/jwks.json'
     }
     console.debug('jwksendpoint is ', jwksendpoint);
+    return jwksendpoint
 }
 
 async function getJwkByKid( jwksendpoint, kid ) {
