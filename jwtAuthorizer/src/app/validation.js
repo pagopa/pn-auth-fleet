@@ -22,16 +22,18 @@ module.exports = {
 async function jwtValidator(jwtToken, cachedPublicKey) {
     const token = jsonwebtoken.decode(jwtToken, { complete: true });
     console.log('token ', token)
-    let publicKey
+    let decodedPublicKey
     if (cachedPublicKey && cachedPublicKey.expiresOn > Date.now()) {
         console.log( 'Using cached public key' )
-        publicKey = cachedPublicKey.value;
+        decodedPublicKey = cachedPublicKey.value;
     } else {
-        publicKey = await retrievePublicKey();
-        setCachedData(publicKey)
+        let encodedPublicKey = await retrievePublicKey();
+        decodedPublicKey = encodedPublicKey.PublicKey.toString("base64")
+        console.debug( 'decodedPublicKey' , decodedPublicKey )
+        setCachedData( decodedPublicKey )
     }
     try{
-        let publicKeyPem = '-----BEGIN PUBLIC KEY-----\n' + publicKey.PublicKey + '\n-----END PUBLIC KEY-----'
+        let publicKeyPem = '-----BEGIN PUBLIC KEY-----\n' + decodedPublicKey + '\n-----END PUBLIC KEY-----'
         console.debug( 'publicKeyPem', publicKeyPem )
         jsonwebtoken.verify(jwtToken, publicKeyPem)
     }catch(err){
@@ -55,7 +57,5 @@ async function retrievePublicKey() {
     let res = kms.getPublicKey({
         KeyId: process.env.KEY_ID 
     }).promise()
-
-    console.debug('res', res);
     return res;
 }
