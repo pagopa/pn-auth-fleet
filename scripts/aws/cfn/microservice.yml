@@ -238,7 +238,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !GetAtt TokenExchangeLambda.Arn
+        Uri: !Sub '${TokenExchangeLambda.Arn}/invocations'
         PassthroughBehavior: WHEN_NO_MATCH
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
