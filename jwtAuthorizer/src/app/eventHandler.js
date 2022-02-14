@@ -20,7 +20,7 @@ const defaultDenyAllPolicy = {
 };
 
 module.exports = {
-    async handleEvent(event, cachedPublicKey){
+    async handleEvent(event){
         
         // Declare Policy
         let iamPolicy = null;
@@ -29,7 +29,7 @@ module.exports = {
         console.log('encodedToken', encodedToken);
 
         try{
-            let decodedToken = await validator.validation(encodedToken, cachedPublicKey);
+            let decodedToken = await validator.validation(encodedToken);
             console.log('decodedToken', decodedToken);
 
             let contextAttrs = {};

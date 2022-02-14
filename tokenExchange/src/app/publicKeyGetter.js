@@ -1,13 +1,22 @@
 const jwkToPem = require('jwk-to-pem');
 const axios = require('axios');
+let cachedKeyPem = {};
 
 module.exports = {
     async getPublicKey ( issuer, kid ){
-        jwksendpoint = getJwksEndpoint( issuer )
-        let jwKey = await getJwkByKid( jwksendpoint, kid );
-        console.debug('get jwkey ok');
-        const keyInPemFormat = jwkToPem(jwKey);
-        console.debug('get key in pem format ok ');
+        let keyInPemFormat
+        if ( cachedKeyPem && cachedKeyPem.expiresOn > Date.now() ) {
+            console.debug( 'Using cached key pem' )
+            keyInPemFormat = cachedKeyPem.value
+        } else {
+            jwksendpoint = getJwksEndpoint( issuer )
+            let jwKey = await getJwkByKid( jwksendpoint, kid );
+            console.debug('get jwkey ok');
+            keyInPemFormat = jwkToPem(jwKey);
+            console.debug('get key in pem format ok ');
+            setCachedData( keyInPemFormat )
+        }
+        
         return keyInPemFormat;
     }
 }
@@ -41,5 +50,13 @@ function findKey(jwks, kid) {
             console.debug('Found key', key.kid);
             return key;
         }
+    }
+}
+
+const setCachedData = (val) => {
+    console.debug( 'Set cached key pem' )
+    cachedKeyPem = {
+        expiresOn: Date.now() + 3600 * 1000, // Set expiry time of 1H
+        value: val
     }
 }

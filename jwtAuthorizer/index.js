@@ -1,8 +1,7 @@
 const workflowHandler = require('./src/app/eventHandler.js')
 
-const cachedPublicKey = {};
 
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
     console.info("New event received ", event);
-    return workflowHandler.handleEvent(event, cachedPublicKey);
+    return workflowHandler.handleEvent(event);
 };

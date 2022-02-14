@@ -4,12 +4,12 @@ const AWS = require("aws-sdk");
 const kms = new AWS.KMS();
 const jsonwebtoken = require('jsonwebtoken');
 const ValidationException = require('./exception/validationException.js');
-//const cachedPublicKey = {};
+let cachedPublicKey = {};
 
 module.exports = {
-    async validation (jwtToken, cachedPublicKey){
+    async validation (jwtToken){
         if(jwtToken){
-            let decodedToken = await jwtValidator(jwtToken, cachedPublicKey);
+            let decodedToken = await jwtValidator(jwtToken);
             console.log('token is valid');
             return decodedToken;    
         }else{
@@ -19,7 +19,7 @@ module.exports = {
 }
 
 
-async function jwtValidator(jwtToken, cachedPublicKey) {
+async function jwtValidator(jwtToken) {
     const token = jsonwebtoken.decode(jwtToken, { complete: true });
     console.log('token ', token)
     let decodedPublicKey
