@@ -250,4 +250,39 @@ Resources:
       RestApiId: !Ref TokenExchangeRestApi
       ValidateRequestBody: false
       ValidateRequestParameters: true
+  
+  # Session Token OPTIONS method
+  TokenExchangeOptionsMethod:
+    DependsOn: TokenExchangeLambda
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: 'Options for Session Token'
+      RestApiId: !Ref TokenExchangeRestApi
+      ResourceId: !Ref TokenExchangeResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses: 
+        - StatusCode: 200
+          ResponseParameters: 
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          ResponseModels:
+            "application/json": "Empty"
+      Integration:
+        Type: MOCK
+        RequestTemplates: 
+          "application/json": "{\"statusCode\": 200}"
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates:
+              "application/json": ""
+
 
