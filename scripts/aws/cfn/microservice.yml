@@ -21,22 +21,22 @@ Parameters:
     Type: String
     Description: 'Third lambda zip file S3 VersionId'
 
-  MicroserviceNumber:
-    Type: Number
-    Description: 'Disambiguation useful for load balancer rules'
+  #MicroserviceNumber:
+  #  Type: Number
+  #  Description: 'Disambiguation useful for load balancer rules'
 
-  TemplateBucketBaseUrl:
-    Type: String
-    Description: 'The S3 bucket from which to fetch the templates used by this stack.'
+  #TemplateBucketBaseUrl:
+  #  Type: String
+  #  Description: 'The S3 bucket from which to fetch the templates used by this stack.'
 
   
-  SubnetsIds:
-    Type: String
-    Description: 'subnets ids comma separated list. Where to deploy the microservice'
+  #SubnetsIds:
+  #  Type: String
+  #  Description: 'subnets ids comma separated list. Where to deploy the microservice'
 
-  VpcId:
-    Type: String
-    Description: 'VpcId where the microservice is going to be deployed'
+  #VpcId:
+  #  Type: String
+  #  Description: 'VpcId where the microservice is going to be deployed'
 
   
 Resources:
