@@ -202,7 +202,30 @@ Resources:
               - '*'
             Resource: "*"
 
-
+  ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
+  ###########################################################
+  SessionTokenSigningKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: RSA-2048 key to generate session token
+      KeySpec: RSA_2048
+      KeyUsage: SIGN_VERIFY
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+  
+  SessionTokenSigningKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Properties:
+      AliasName: !Sub 'alias/${ProjectName}-session-token-key' 
+      TargetKeyId: !Ref SessionTokenSigningKey
+        
   ###               TOKEN EXCHANGE SERVICE               ###
   ###########################################################
   
