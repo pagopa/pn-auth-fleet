@@ -24,9 +24,15 @@ Parameters:
   ApiKeyAuthorizerLambdaEnvironmentPaTagName:
     Type: String
     Description: Tag name used to read the Customer Id associated with an API-Key
+  JwtAuthorizerLambdaEnvironmentCacheTtl:
+    Type: String
+    Description: Cryptography keys cache entry duration in seconds
   JwtAuthorizerLambdaEnvironmentKeyId:
     Type: String
     Description: Id of the key used for access token validation
+  TokenExchangeLambdaEnvironmentCacheTtl:
+    Type: String
+    Description: Cryptography keys cache entry duration in seconds
   TokenExchangeLambdaEnvironmentTokenTtl:
     Type: String
     Description: Session token duration (in seconds) for "Piattaforman Notifiche" sessions.
@@ -134,6 +140,7 @@ Resources:
       Environment:
         Variables:
           KEY_ID: !Ref JwtAuthorizerLambdaEnvironmentKeyId
+          CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
 
   # Lambda function role
@@ -184,7 +191,8 @@ Resources:
         S3Key: 'pn-auth-fleet/main/tokenExchange.zip'
         S3ObjectVersion: !Ref LambdaZipVersionId3
       Environment:
-        Variables:  
+        Variables:
+          CACHE_TTL: !Ref TokenExchangeLambdaEnvironmentCacheTtl
           TOKEN_TTL: !Ref TokenExchangeLambdaEnvironmentTokenTtl
           ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
           ALLOWED_ISSUER: !Ref TokenExchangeLambdaEnvironmentAllowedIssuer

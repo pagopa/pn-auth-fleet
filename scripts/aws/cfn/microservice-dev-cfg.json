@@ -1,7 +1,9 @@
 {
   "Parameters" : {
     "ApiKeyAuthorizerLambdaEnvironmentPaTagName": "pa_id",
+    "JwtAuthorizerLambdaEnvironmentCacheTtl": "120",
     "JwtAuthorizerLambdaEnvironmentKeyId": "4fc8121b-3304-4dca-8fd5-d3f7c2251bd6",
+    "TokenExchangeLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentTokenTtl":"120",
     "TokenExchangeLambdaEnvironmentIssuer":"https://pn-develop.pn.pagopa.it",
     "TokenExchangeLambdaEnvironmentAllowedIssuer":"spidhub-test.dev.pn.pagopa.it,api.selfcare.pagopa.it",
