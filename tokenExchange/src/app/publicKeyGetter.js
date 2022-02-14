@@ -56,7 +56,7 @@ function findKey(jwks, kid) {
 const setCachedData = (val) => {
     console.debug( 'Set cached key pem' )
     cachedKeyPem = {
-        expiresOn: Date.now() + 3600 * 1000, // Set expiry time of 1H
+        expiresOn: Date.now() + process.env.CACHE_TTL * 1000,
         value: val
     }
 }

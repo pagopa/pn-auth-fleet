@@ -47,7 +47,7 @@ async function jwtValidator(jwtToken) {
 const setCachedData = (val) =>{
     console.debug( 'Set cached public key' )
     cachedPublicKey = {
-        expiresOn: Date.now() + 3600 * 1000, // Set expiry time of 1H
+        expiresOn: Date.now() + process.env.CACHE_TTL * 1000,
         value: val
     }
 }
