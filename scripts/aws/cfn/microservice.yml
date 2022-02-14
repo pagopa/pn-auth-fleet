@@ -242,12 +242,14 @@ Resources:
             Action: 'kms:*'
             Resource: '*'
   
+  # Application use this alias to access the public/private key pair
   SessionTokenSigningKeyAlias:
     Type: 'AWS::KMS::Alias'
     Properties:
       AliasName: !Sub 'alias/${ProjectName}-session-token-key' 
       TargetKeyId: !Ref SessionTokenSigningKey
-        
+  
+  
   ###               TOKEN EXCHANGE SERVICE               ###
   ###########################################################
   
@@ -332,5 +334,4 @@ Resources:
               "method.response.header.Access-Control-Allow-Origin": "'*'"
             ResponseTemplates:
               "application/json": ""
-
 
