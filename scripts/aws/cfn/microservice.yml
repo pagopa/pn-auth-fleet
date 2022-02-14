@@ -6,7 +6,7 @@ Parameters:
     Type: String
     Description: 'Usually pn can be pnXYZ where XYZ are the feature number, useful to create
       experimental environments without crash official development environment'
-
+  
   LambdasBucketName:
     Type: String
     Description: 'The S3 bucket from which to fetch the templates used by this stack.'
@@ -20,13 +20,33 @@ Parameters:
   LambdaZipVersionId3:
     Type: String
     Description: 'Third lambda zip file S3 VersionId'
+  
+  ApiKeyAuthorizerLambdaEnvironmentPaTagName:
+    Type: String
+    Description: Tag name used to read the Customer Id associated with an API-Key
+  JwtAuthorizerLambdaEnvironmentKeyId:
+    Type: String
+    Description: Id of the key used for access token validation
+  TokenExchangeLambdaEnvironmentTokenTtl:
+    Type: String
+    Description: Session token duration (in seconds) for "Piattaforman Notifiche" sessions.
+  TokenExchangeLambdaEnvironmentIssuer:
+    Type: String
+    Description: Session token issuer
+  TokenExchangeLambdaEnvironmentAllowedIssuer:
+    Type: String
+    Description: 'Comma separated list of external authentication token issuers 
+                  recognized by Piattaforma Notifiche (SelfCare and SpidHub)'
+  TokenExchangeLambdaEnvironmentAllowedOrigin:
+    Type: String
+    Description: 'Comma separated list of websites allowed to use "Piattaforma 
+                 Notifiche" back-ends API'
 
-  # Unused but required
+  # Unused but required by CD pipeline
   MicroserviceNumber:
     Type: Number
     Description: 'Disambiguation useful for load balancer rules'
-
-  # Unused but required
+  # Unused but required by CD pipeline
   TemplateBucketBaseUrl:
     Type: String
     Description: 'The S3 bucket from which to fetch the templates used by this stack.'
@@ -61,7 +81,7 @@ Resources:
         S3ObjectVersion: !Ref LambdaZipVersionId1
       Environment:
         Variables:
-          PA_TAG_NAME: pa_id
+          PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
       Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
   
   # Lambda function role
@@ -113,7 +133,7 @@ Resources:
         S3ObjectVersion: !Ref LambdaZipVersionId2
       Environment:
         Variables:
-          KEY_ID: 4fc8121b-3304-4dca-8fd5-d3f7c2251bd6
+          KEY_ID: !Ref JwtAuthorizerLambdaEnvironmentKeyId
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
 
   # Lambda function role
@@ -165,10 +185,10 @@ Resources:
         S3ObjectVersion: !Ref LambdaZipVersionId3
       Environment:
         Variables:  
-          TOKEN_TTL: 120
-          ISSUER: https://pn-develop.pn.pagopa.it
-          ALLOWED_ISSUER: spidhub-test.dev.pn.pagopa.it,api.selfcare.pagopa.it
-          ALLOWED_ORIGIN: https://portale-pa-develop.fe.dev.pn.pagopa.it,https://portale-pf-develop.fe.dev.pn.pagopa.it
+          TOKEN_TTL: !Ref TokenExchangeLambdaEnvironmentTokenTtl
+          ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
+          ALLOWED_ISSUER: !Ref TokenExchangeLambdaEnvironmentAllowedIssuer
+          ALLOWED_ORIGIN: !Ref TokenExchangeLambdaEnvironmentAllowedOrigin
       Role: !GetAtt TokenExchangeLambdaRole.Arn
 
   # Lambda function role

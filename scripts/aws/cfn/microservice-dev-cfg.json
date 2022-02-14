@@ -1,5 +1,10 @@
 {
   "Parameters" : {
-    
+    "ApiKeyAuthorizerLambdaEnvironmentPaTagName": "pa_id",
+    "JwtAuthorizerLambdaEnvironmentKeyId": "4fc8121b-3304-4dca-8fd5-d3f7c2251bd6",
+    "TokenExchangeLambdaEnvironmentTokenTtl":"120",
+    "TokenExchangeLambdaEnvironmentIssuer":"https://pn-develop.pn.pagopa.it",
+    "TokenExchangeLambdaEnvironmentAllowedIssuer":"spidhub-test.dev.pn.pagopa.it,api.selfcare.pagopa.it",
+    "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa-develop.fe.dev.pn.pagopa.it,https://portale-pf-develop.fe.dev.pn.pagopa.it"
   }
 }

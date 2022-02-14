@@ -1,5 +1,10 @@
 {
   "Parameters" : {
-    
+    "ApiKeyAuthorizerLambdaEnvironmentPaTagName": "pa_id",
+    "JwtAuthorizerLambdaEnvironmentKeyId": "TBD",
+    "TokenExchangeLambdaEnvironmentTokenTtl":"120",
+    "TokenExchangeLambdaEnvironmentIssuer":"TBD",
+    "TokenExchangeLambdaEnvironmentAllowedIssuer":"TBD",
+    "TokenExchangeLambdaEnvironmentAllowedOrigin":"TBD"
   }
 }
