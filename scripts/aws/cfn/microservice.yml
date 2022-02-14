@@ -206,6 +206,8 @@ Resources:
   ###########################################################
   SessionTokenSigningKey:
     Type: 'AWS::KMS::Key'
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Description: RSA-2048 key to generate session token
       KeySpec: RSA_2048
