@@ -1,8 +1,5 @@
-const jwkToPem = require('jwk-to-pem');
-const fetch = require('node-fetch');
 const validator = require('./validation.js')
 const iamPolicyGenerator = require('./iamPolicyGen.js')
-
 
 
 const defaultDenyAllPolicy = {
@@ -48,31 +45,3 @@ module.exports = {
         }
     }
 }
-
-
-/*
-function findKey(jwks, kid) {
-    console.log('XXXXX', jwks);
-    //console.log('len', response.data.keys.length);
-    for (let index = 0; index < jwks.keys.length; index++) {
-        const key = jwks.keys[index];
-        console.log('keyID', key.kid, key.kid === kid);
-        if (key.kid === kid) {
-            console.log('Found key', key.kid);
-            return key;
-        }
-    }
-}
-
-function getJwkByKid(iss, kid) {
-    //TODO: sostituzione url cablato con check iss (vedi SELC-390)
-    const jwksendpoint = 'https://uat.selfcare.pagopa.it/.well-known/jwks.json';
-    console.log('jwksendpoint', jwksendpoint);
-    
-    return fetch(jwksendpoint)
-    .then(res => res.json())
-    .then((json) => {
-        return findKey(json, kid)
-    })
-    .catch((error) => { throw error;});
-}*/

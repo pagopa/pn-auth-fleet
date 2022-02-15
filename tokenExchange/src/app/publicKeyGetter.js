@@ -15,8 +15,7 @@ module.exports = {
             keyInPemFormat = jwkToPem(jwKey);
             console.debug('get key in pem format ok ');
             setCachedData( keyInPemFormat )
-        }
-        
+        } 
         return keyInPemFormat;
     }
 }

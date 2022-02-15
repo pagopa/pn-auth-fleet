@@ -75,7 +75,5 @@ function generateKoResponse(err, allowedOrigin) {
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
     };
-    
     return response;
-    
 }

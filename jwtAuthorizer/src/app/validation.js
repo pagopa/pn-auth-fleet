@@ -1,5 +1,3 @@
-const jwkToPem = require('jwk-to-pem');
-const fetch = require('node-fetch');
 const AWS = require("aws-sdk");
 const kms = new AWS.KMS();
 const jsonwebtoken = require('jsonwebtoken');

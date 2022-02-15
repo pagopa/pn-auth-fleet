@@ -65,4 +65,3 @@ function checkIssuer( iss ) {
 function getLocalPublicKey() {
     return publicKey = fs.readFileSync("./resources/spidhub-test.dev.pn.pagopa.it_public.pem", { encoding: "utf8" });
 }
-
