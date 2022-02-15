@@ -1,7 +1,6 @@
 const jsonwebtoken = require('jsonwebtoken');
 const publicKeyGetter = require('./publicKeyGetter.js')
 var ValidationException = require('./exception/validationException.js');
-const fs = require('fs');
 
 module.exports = {
     async validation (authorizationToken){
@@ -20,15 +19,10 @@ async function jwtValidator(jwtToken) {
         const tokenPayload = decodedToken.payload
         const issuer = tokenPayload.iss
         
-        if ( checkIssuer( issuer ) ){
-            let keyInPemFormat
-            if( issuer.startsWith('spidhub') ) {
-                keyInPemFormat = getLocalPublicKey();
-            } else {
-                let kid = decodedToken.header.kid;
-                console.debug('kid', kid)
-                keyInPemFormat = await publicKeyGetter.getPublicKey( issuer, kid );
-            }
+        if ( checkIssuer( issuer ) !== -1 ){
+            let kid = decodedToken.header.kid;
+            console.debug('kid', kid)
+            let keyInPemFormat = await publicKeyGetter.getPublicKey( issuer, kid );
             try{
                 jsonwebtoken.verify(jwtToken, keyInPemFormat)
             }catch(err){
@@ -51,17 +45,12 @@ async function jwtValidator(jwtToken) {
 }
 
 function checkIssuer( iss ) {
-    let result = false;
     //verifica iss nel decoded token fa parte dei ALLOWED_ISSUER
     let allowedIssuers = process.env.ALLOWED_ISSUER.split( ',' );
-    allowedIssuers.forEach( issuer => {
-        if (iss === issuer)
-        return result = true;
-    });
-    return result;
-}
-
-
-function getLocalPublicKey() {
-    return publicKey = fs.readFileSync("./resources/spidhub-test.dev.pn.pagopa.it_public.pem", { encoding: "utf8" });
+    if ( allowedIssuers !== 0) {
+        return allowedIssuers.indexOf( iss )
+    } else {
+        console.error( 'Invalid env vars ALLOWED_ISSUER ', process.env.ALLOWED_ISSUER )
+        return -1;
+    }
 }

@@ -5,36 +5,39 @@ const allowedOrigins = process.env.ALLOWED_ORIGIN.split( ',' )
 
 module.exports = {
     async handleEvent(event){
-        let eventOrigin = event.headers.origin
-        if ( checkOrigin( eventOrigin ) ){
-            let encodedToken = event.queryStringParameters.authorizationToken;
-            if (encodedToken) {
-                try{
-                    let decodedToken = await validator.validation(encodedToken);
-                    let sessionToken = await tokenGen.generateToken(decodedToken);
-                    return generateOkResponse(sessionToken, decodedToken, eventOrigin);
-                }catch(err){
-                    console.error('Error ', err);
-                    return generateKoResponse(err, eventOrigin);
+        let eventOrigin = event?.headers?.origin
+        if ( eventOrigin ) {
+            if ( checkOrigin( eventOrigin ) !== -1 ){
+                console.info('Origin successful checked')
+                let encodedToken = event?.queryStringParameters?.authorizationToken;
+                if (encodedToken) {
+                    try{
+                        let decodedToken = await validator.validation(encodedToken);
+                        let sessionToken = await tokenGen.generateToken(decodedToken);
+                        console.info('Token successful generated')
+                        return generateOkResponse(sessionToken, decodedToken, eventOrigin);
+                    } catch (err){
+                        console.error('Error generating token ', err);
+                        return generateKoResponse(err, eventOrigin);
+                    }
+                } else {
+                    console.error('Authorization Token not present')
+                    return generateKoResponse('AuthorizationToken not present', eventOrigin);
                 }
             } else {
-                console.error('Authorization Token not present')
-                return generateKoResponse('AuthorizationToken not present', eventOrigin);
+                console.error('Origin=%s not allowed', eventOrigin)
+                return generateKoResponse('Origin not allowed', eventOrigin);
             }
         } else {
-            console.error('Origin=%s not allowed', eventOrigin)
-            return generateKoResponse('Origin not allowed', eventOrigin);
+            console.error('eventOrigin is null')
+            return generateKoResponse('eventOrigin is null', '*');
         }
+        
     }
 }
 
 function checkOrigin( origin ) {
-    let result = false;
-    allowedOrigins.forEach(element => {
-        if (element === origin)
-        return result = true;
-    });
-    return result;
+    return allowedOrigins.indexOf( origin )
 }
 
 function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {

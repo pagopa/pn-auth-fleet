@@ -22,21 +22,29 @@ module.exports = {
         let iamPolicy = null;
         
         // Capture apiKey from event
-        const apiKeyId = event.requestContext.identity.apiKeyId;
-        console.log('ApiKeyId', apiKeyId);
-        try {
-            let response =  await keyTagsGetter.getKeyTags(apiKeyId);
-            console.log('response', response);
-            // Retrieve token scopes
-            const paId = response.tags[PA_TAG_NAME];
-            console.log('ApiKey paId Tags', paId);
-            // Generate IAM Policy
-            iamPolicy = iamPolicyGenerator.generateIAMPolicy(event.methodArn, paId); //FIX event.methodArn
-            console.log('IAM Policy', JSON.stringify(iamPolicy));
-            return iamPolicy;
-        } catch(err) {
-            console.log(err);
+        const apiKeyId = event?.requestContext?.identity?.apiKeyId;
+        if( apiKeyId )
+        {
+            console.info('ApiKeyId', apiKeyId);
+            try {
+                let response =  await keyTagsGetter.getKeyTags(apiKeyId);
+                console.log('Get key tags response', response);
+                // Retrieve token scopes
+                const paId = response.tags[PA_TAG_NAME];
+                console.log('ApiKey paId Tags', paId);
+                // Generate IAM Policy
+                iamPolicy = await iamPolicyGenerator.generateIAMPolicy(event.methodArn, paId);
+                console.log('IAM Policy', JSON.stringify(iamPolicy));
+                return iamPolicy;
+            } catch(err) {
+                console.error('Error generating IAM policy with error ',err);
+                iamPolicy = defaultDenyAllPolicy;     
+            }
+            
+        } else {
+            console.error('ApiKeyID is null')
             iamPolicy = defaultDenyAllPolicy;
         }
+        
     }
 }

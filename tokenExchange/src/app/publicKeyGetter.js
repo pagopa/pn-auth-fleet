@@ -20,11 +20,14 @@ module.exports = {
     }
 }
 
+const issuersUrl = {
+    'api.selfcare.pagopa.it': 'https://uat.selfcare.pagopa.it/.well-known/jwks.json', //TODO vedi stato issue SELC-390
+    'spidhub-test.dev.pn.pagopa.it':'http://spidhub-test.dev.pn.pagopa.it:9090/.well-known/jwks.json'
+}
+
 function getJwksEndpoint( issuer ) {
-    let jwksendpoint;
-    if( issuer === 'api.selfcare.pagopa.it' ) { //TODO vedi stato issue SELC-390
-        jwksendpoint = 'https://uat.selfcare.pagopa.it/.well-known/jwks.json'
-    } else {
+    let jwksendpoint = issuersUrl[ issuer ];
+    if( !jwksendpoint  ) { 
         jwksendpoint = 'https://'+ issuer + '/.well-known/jwks.json'
     }
     console.debug('jwksendpoint is ', jwksendpoint);
