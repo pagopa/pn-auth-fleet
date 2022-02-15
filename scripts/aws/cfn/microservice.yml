@@ -10,7 +10,10 @@ Parameters:
   LambdasBucketName:
     Type: String
     Description: 'The S3 bucket from which to fetch the templates used by this stack.'
-  
+  WebApiDnsName:
+    Type: String
+    Description: 'DNS custom domain to export token-exchange api'
+
   LambdaZipVersionId1:
     Type: String
     Description: 'First lambda zip file S3 VersionId'
@@ -258,7 +261,7 @@ Resources:
       TargetKeyId: !Ref SessionTokenSigningKey
   
   
-  ###               TOKEN EXCHANGE SERVICE               ###
+  ###               TOKEN EXCHANGE SERVICE                ###
   ###########################################################
   
   # API definition
@@ -270,14 +273,46 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
-  
-  # Resource session-token
-  TokenExchangeResource:
-    Type: AWS::ApiGateway::Resource
+  # Deployment
+  TokenExchangeRestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - TokenExchangeGetMethod
+      - TokenExchangeOptionsMethod
     Properties:
       RestApiId: !Ref TokenExchangeRestApi
-      ParentId: !GetAtt TokenExchangeRestApi.RootResourceId
-      PathPart: 'session-token'
+
+  # Stage
+  TokenExchangeRestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref TokenExchangeRestApi
+      StageName: unique
+      TracingEnabled: true
+      DeploymentId: !Ref TokenExchangeRestApiDeployment
+      AccessLogSetting:
+        DestinationArn: !GetAtt "TokenExchangeApiLogGroup.Arn"
+        Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","routeKey":"$context.routeKey","status":$context.status,"responseLatency":$context.responseLatency}'
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          MetricsEnabled: 'true'
+          DataTraceEnabled: 'false'
+
+  # Log Group
+  TokenExchangeApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 1
+
+  # Expose API to custom domain
+  APIMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: 'token-exchange'
+      DomainName: !Ref WebApiDnsName
+      RestApiId: !Ref TokenExchangeRestApi
+      Stage: !Ref TokenExchangeRestApiStage
 
   # Session Token GET method
   TokenExchangeGetMethod:
@@ -286,7 +321,7 @@ Resources:
     Properties:
       OperationName: 'Proxy to Session Token Lambda'
       RestApiId: !Ref TokenExchangeRestApi
-      ResourceId: !Ref TokenExchangeResource
+      ResourceId: !GetAtt TokenExchangeRestApi.RootResourceId
       HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
@@ -316,7 +351,7 @@ Resources:
     Properties:
       OperationName: 'Options for Session Token'
       RestApiId: !Ref TokenExchangeRestApi
-      ResourceId: !Ref TokenExchangeResource
+      ResourceId: !GetAtt TokenExchangeRestApi.RootResourceId
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       ApiKeyRequired: false
@@ -342,4 +377,3 @@ Resources:
               "method.response.header.Access-Control-Allow-Origin": "'*'"
             ResponseTemplates:
               "application/json": ""
-
