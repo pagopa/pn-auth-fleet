@@ -1,7 +1,6 @@
 const validator = require('./validation.js')
 const tokenGen = require('./tokenGen.js')
 var ValidationException = require('./exception/validationException.js');
-const allowedOrigins = process.env.ALLOWED_ORIGIN.split( ',' )
 
 module.exports = {
     async handleEvent(event){
@@ -37,7 +36,13 @@ module.exports = {
 }
 
 function checkOrigin( origin ) {
-    return allowedOrigins.indexOf( origin )
+    const allowedOrigins = process.env.ALLOWED_ORIGIN.split( ',' )
+    if ( allowedOrigins !== 0) {
+        return allowedOrigins.indexOf( origin )
+    } else {
+        console.error( 'Invalid env vars ALLOWED_ORIGIN ', process.env.ALLOWED_ORIGIN )
+        return -1;
+    }
 }
 
 function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {

@@ -1,22 +1,13 @@
-const apiPermissions = [
-    {
-        "arn": `arn:aws:execute-api:${process.env.AWS_REGION}:${process.env.ACCOUNT_ID}:${process.env.API_ID}`,
-        "resource": "*",
-        "stage": "*",
-        "httpVerb": "*"
-    }
-];
+const ValidationException = require('./exception/validationException.js');
 
 module.exports = {
     async generateIAMPolicy(resourceArn, contextAttr) {
-        // Declare empty policy statements array
         let policyStatement = generatePolicyStatement(resourceArn, "Allow");
-        // Iterate over API Permissions
         // Check if no policy statements are generated, if so, create default deny all policy statement
         if (policyStatement) {
             return generatePolicy('user', contextAttr, policyStatement);
         } else {
-            throw "Unable to generate policy statement" ; //TODO Exception
+            throw new ValidationException("Unable to generate policy statement")
         }
     }
 }

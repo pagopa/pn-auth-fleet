@@ -1,3 +1,5 @@
+const ValidationException = require('./exception/validationException.js');
+
 module.exports = {
     async generateIAMPolicy(resourceArn, paId) {
         let policyStatement = generatePolicyStatement(resourceArn, "Allow");
@@ -5,7 +7,7 @@ module.exports = {
             console.debug( 'Policy statement generated', policyStatement )
             return generatePolicy('user', paId, policyStatement);
         } else {
-            throw "Unable to generate policy statement" ; //TODO Exception
+            throw new ValidationException("Unable to generate policy statement")
         }
     }
 }
