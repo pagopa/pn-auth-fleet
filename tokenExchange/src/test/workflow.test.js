@@ -66,6 +66,37 @@ describe("Successful Invocation", function () {
         }).catch(done); // Catch assertion errors
     });
 });
+
+describe("Successful Invocation from SpidHub", function () {
+    let name = 'Mauro';
+    let family_name = 'Galli';
+    let fiscal_number = 'GLLMRA77M43A332O';
+
+    const workingToken = {
+        headers:{
+            origin: 'https://portale-pf-develop.fe.dev.pn.pagopa.it'
+        },
+        queryStringParameters:{
+            authorizationToken: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InNwaWQifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEYiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0NTAxMDcxOSwiZXhwIjoxNjQ1MDE0MzE5LCJpc3MiOiJzcGlkaHViLXRlc3QuZGV2LnBuLnBhZ29wYS5pdCIsImp0aSI6IjAxRlcxNEY1NkdYVDVWVzhSTkE3Q1RaRDBaIn0.gXZH16Xt4v1-jDYnHCTb_KRQpb_XP0_V2a5fycp_AvMlKhlvnB8Zo8uTwLz21r1cDpdYeS7VKpTKhecF_4JgSWaHMuAa3ODUj_Gp-kkxPwIE8qwzrr5US2DKhavoyIGN1Q3qa9AXrxtivCImGtdTlTTcXwgl_fTSLTudgB5eu9tHoL7yEbfpZyDJZAxg2xxxFutxJmqUdZT6nQzRgNR17ds4aBYv6n2mKshc9NPY8iWSI8X67Q9I9VZnqsRp6OCPdD6v5MpUQPEKuNx6vhMqWa8OeHC4dbuSNatL1u0go38_jsGFsOUtYcLfBXmGtgvFj3k1QP9F5VOiY6Cm7zar8g'
+        }
+    }
+    
+    it("with code = 200", function (done) {        
+        lambdaTester( lambda.handler )
+        .event( workingToken )
+        .expectResult((result) => {
+            // Check if code exist
+            console.debug('the result is ', result);    
+            expect(result.statusCode).to.equal(200);
+            const body = JSON.parse(result.body);
+            expect(body.name).to.equal(name);
+            expect(body.family_name).to.equal(family_name);
+            expect(body.fiscal_number).to.equal(fiscal_number);
+
+            done();
+        }).catch(done); // Catch assertion errors
+    });
+});
  
 
 describe("Expired token", function () {
