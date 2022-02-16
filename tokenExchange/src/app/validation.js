@@ -22,8 +22,8 @@ async function jwtValidator(jwtToken) {
         if ( checkIssuer( issuer ) !== -1 ){
             let kid = decodedToken.header.kid;
             console.debug('kid', kid)
-            let keyInPemFormat = await publicKeyGetter.getPublicKey( issuer, kid );
             try{
+                let keyInPemFormat = await publicKeyGetter.getPublicKey( issuer, kid );
                 jsonwebtoken.verify(jwtToken, keyInPemFormat)
             }catch(err){
                 console.error('Validation error ', err)
