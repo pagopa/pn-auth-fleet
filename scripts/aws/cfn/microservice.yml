@@ -1,0 +1,393 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Example microservice deploy'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: 'Usually pn can be pnXYZ where XYZ are the feature number, useful to create
+      experimental environments without crash official development environment'
+  
+  LambdasBucketName:
+    Type: String
+    Description: 'The S3 bucket from which to fetch the templates used by this stack.'
+  WebApiDnsName:
+    Type: String
+    Description: 'DNS custom domain to export token-exchange api'
+
+  LambdaZipVersionId1:
+    Type: String
+    Description: 'First lambda zip file S3 VersionId'
+  LambdaZipVersionId2:
+    Type: String
+    Description: 'Second lambda zip file S3 VersionId'
+  LambdaZipVersionId3:
+    Type: String
+    Description: 'Third lambda zip file S3 VersionId'
+  
+  ApiKeyAuthorizerLambdaEnvironmentPaTagName:
+    Type: String
+    Description: Tag name used to read the Customer Id associated with an API-Key
+  JwtAuthorizerLambdaEnvironmentCacheTtl:
+    Type: String
+    Description: Cryptography keys cache entry duration in seconds
+  JwtAuthorizerLambdaEnvironmentKeyId:
+    Type: String
+    Description: Id of the key used for access token validation
+  TokenExchangeLambdaEnvironmentCacheTtl:
+    Type: String
+    Description: Cryptography keys cache entry duration in seconds
+  TokenExchangeLambdaEnvironmentTokenTtl:
+    Type: String
+    Description: Session token duration (in seconds) for "Piattaforman Notifiche" sessions.
+  TokenExchangeLambdaEnvironmentIssuer:
+    Type: String
+    Description: Session token issuer
+  TokenExchangeLambdaEnvironmentAllowedIssuer:
+    Type: String
+    Description: 'Comma separated list of external authentication token issuers 
+                  recognized by Piattaforma Notifiche (SelfCare and SpidHub)'
+  TokenExchangeLambdaEnvironmentAllowedOrigin:
+    Type: String
+    Description: 'Comma separated list of websites allowed to use "Piattaforma 
+                 Notifiche" back-ends API'
+
+  # Unused but required by CD pipeline
+  MicroserviceNumber:
+    Type: Number
+    Description: 'Disambiguation useful for load balancer rules'
+  # Unused but required by CD pipeline
+  TemplateBucketBaseUrl:
+    Type: String
+    Description: 'The S3 bucket from which to fetch the templates used by this stack.'
+
+  
+  # TODO: deploy lambda into ours VPC
+  #SubnetsIds:
+  #  Type: String
+  #  Description: 'subnets ids comma separated list. Where to deploy the microservice'
+
+  #VpcId:
+  #  Type: String
+  #  Description: 'VpcId where the microservice is going to be deployed'
+
+  
+Resources:
+
+  ###             API GEY AUTHORIZER LAMBDA             ###
+  #########################################################
+  
+  # Lambda function
+  ApiKeyAuthorizerLambda:
+    Type: AWS::Lambda::Function
+    DependsOn: ApiKeyAuthorizerLambdaPolicy
+    Properties:
+      FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
+      Runtime: nodejs14.x
+      Handler: 'index.handler'
+      Code: 
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: 'pn-auth-fleet/main/apikeyAuthorizer.zip'
+        S3ObjectVersion: !Ref LambdaZipVersionId1
+      Environment:
+        Variables:
+          PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
+      Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
+  
+  # Lambda function role
+  ApiKeyAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-apikeyAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  # Lambda function IAM policy
+  ApiKeyAuthorizerLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-apikeyAuthorizerLambdaPolicy
+      Roles:
+        - !Ref ApiKeyAuthorizerLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - '*'
+            Resource: "*"
+  
+
+  ###               JWT AUTHORIZER LAMBDA               ###
+  #########################################################
+  
+  # Lambda function
+  JwtAuthorizerLambda:
+    Type: AWS::Lambda::Function
+    DependsOn: JwtAuthorizerLambdaPolicy
+    Properties:
+      FunctionName: !Sub '${ProjectName}-jwtAuthorizerLambda'
+      Runtime: nodejs14.x
+      Handler: 'index.handler'
+      Code: 
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: 'pn-auth-fleet/main/jwtAuthorizer.zip'
+        S3ObjectVersion: !Ref LambdaZipVersionId2
+      Environment:
+        Variables:
+          KEY_ID: !Ref JwtAuthorizerLambdaEnvironmentKeyId
+          CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
+      Role: !GetAtt JwtAuthorizerLambdaRole.Arn
+
+  # Lambda function role
+  JwtAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-jwtAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  # Lambda function IAM policy
+  JwtAuthorizerLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-jwtAuthorizerLambdaPolicy
+      Roles:
+        - !Ref JwtAuthorizerLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - '*'
+            Resource: "*"
+
+
+  ###               TOKEN EXCHANGE LAMBDA               ###
+  ##########################################################
+  
+  # Lambda function
+  TokenExchangeLambda:
+    Type: AWS::Lambda::Function
+    DependsOn: TokenExchangeLambdaPolicy
+    Properties:
+      FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
+      Runtime: nodejs14.x
+      Handler: 'index.handler'
+      Code: 
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: 'pn-auth-fleet/main/tokenExchange.zip'
+        S3ObjectVersion: !Ref LambdaZipVersionId3
+      Environment:
+        Variables:
+          CACHE_TTL: !Ref TokenExchangeLambdaEnvironmentCacheTtl
+          TOKEN_TTL: !Ref TokenExchangeLambdaEnvironmentTokenTtl
+          ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
+          ALLOWED_ISSUER: !Ref TokenExchangeLambdaEnvironmentAllowedIssuer
+          ALLOWED_ORIGIN: !Ref TokenExchangeLambdaEnvironmentAllowedOrigin
+      Role: !GetAtt TokenExchangeLambdaRole.Arn
+
+  # Lambda function role
+  TokenExchangeLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-tokenExchangeLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  # Lambda function IAM policy
+  TokenExchangeLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-tokenExchangeLambdaPolicy
+      Roles:
+        - !Ref TokenExchangeLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - '*'
+            Resource: "*"
+
+  ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
+  ###########################################################
+  SessionTokenSigningKey:
+    Type: 'AWS::KMS::Key'
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: RSA-2048 key to generate session token
+      KeySpec: RSA_2048
+      KeyUsage: SIGN_VERIFY
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+  
+  # Application use this alias to access the public/private key pair
+  SessionTokenSigningKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Properties:
+      AliasName: !Sub 'alias/${ProjectName}-session-token-key' 
+      TargetKeyId: !Ref SessionTokenSigningKey
+  
+  
+  ###               TOKEN EXCHANGE SERVICE                ###
+  ###########################################################
+  
+  # API definition
+  TokenExchangeRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub '${ProjectName}-token-exchange-api'
+      FailOnWarnings: true
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+  # Deployment
+  TokenExchangeRestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - TokenExchangeGetMethod
+      - TokenExchangeOptionsMethod
+    Properties:
+      RestApiId: !Ref TokenExchangeRestApi
+
+  # Stage
+  TokenExchangeRestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref TokenExchangeRestApi
+      StageName: unique
+      TracingEnabled: true
+      DeploymentId: !Ref TokenExchangeRestApiDeployment
+      AccessLogSetting:
+        DestinationArn: !GetAtt "TokenExchangeApiLogGroup.Arn"
+        Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","routeKey":"$context.routeKey","status":$context.status,"responseLatency":$context.responseLatency}'
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          MetricsEnabled: 'true'
+          DataTraceEnabled: 'false'
+
+  # Log Group
+  TokenExchangeApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 1
+
+  # Expose API to custom domain
+  APIMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: 'token-exchange'
+      DomainName: !Ref WebApiDnsName
+      RestApiId: !Ref TokenExchangeRestApi
+      Stage: !Ref TokenExchangeRestApiStage
+
+  # Session Token GET method
+  TokenExchangeGetMethod:
+    DependsOn: TokenExchangeLambda
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: 'Proxy to Session Token Lambda'
+      RestApiId: !Ref TokenExchangeRestApi
+      ResourceId: !GetAtt TokenExchangeRestApi.RootResourceId
+      HttpMethod: GET
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestValidatorId: !Ref TokenExchangeGetMethodRequestValidator
+      RequestParameters: 
+        "method.request.header.Origin": true
+        "method.request.querystring.authorizationToken": true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-tokenExchangeLambda/invocations'
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  TokenExchangeGetMethodRequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      RestApiId: !Ref TokenExchangeRestApi
+      ValidateRequestBody: false
+      ValidateRequestParameters: true
+  
+  # Lambda access right for GET method
+  TokenExchangeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: 
+      - TokenExchangeLambda
+      - TokenExchangeRestApi
+    Properties:
+      FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      # note: if route *not* at API Gateway root, `SourceArn` would take the form of:
+      #               arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/GET/PATH_PART
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/GET/'
+  
+  # Session Token OPTIONS method
+  TokenExchangeOptionsMethod:
+    DependsOn: TokenExchangeLambda
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: 'Options for Session Token'
+      RestApiId: !Ref TokenExchangeRestApi
+      ResourceId: !GetAtt TokenExchangeRestApi.RootResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses: 
+        - StatusCode: 200
+          ResponseParameters: 
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          ResponseModels:
+            "application/json": "Empty"
+      Integration:
+        Type: MOCK
+        RequestTemplates: 
+          "application/json": "{\"statusCode\": 200}"
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates:
+              "application/json": ""
