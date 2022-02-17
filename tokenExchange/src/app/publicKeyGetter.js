@@ -1,6 +1,7 @@
 const jwkToPem = require('jwk-to-pem');
 const axios = require('axios');
 let cachedKeyPemMap = new Map();
+const KEY_SEPARATOR='&'
 
 module.exports = {
     async getPublicKey ( issuer, kid ){
@@ -55,7 +56,7 @@ function findKey(jwks, kid) {
 }
 
 function searchInCache( issuer, kid ) {
-    let result = cachedKeyPemMap.get( issuer+kid )
+    let result = cachedKeyPemMap.get( issuer+KEY_SEPARATOR+kid )
     console.debug( 'Value in cache ', result )
     if ( result && result.expiresOn > Date.now() ) {
         return result.value;
@@ -66,7 +67,7 @@ function searchInCache( issuer, kid ) {
 
 const setCachedData = (issuer, kid, val) => {
     console.info( 'Set cached key pem' )
-    var key = issuer+kid;
+    var key = issuer+KEY_SEPARATOR+kid;
     cachedKeyPemMap.set(key, { expiresOn: Date.now() + process.env.CACHE_TTL * 1000, value: val });
     console.debug( 'cachedKeyPemMap', cachedKeyPemMap )
 }
