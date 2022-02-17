@@ -1,20 +1,19 @@
 const jwkToPem = require('jwk-to-pem');
 const axios = require('axios');
-let cachedKeyPem = {};
+let cachedKeyPemMap = new Map();
 
 module.exports = {
     async getPublicKey ( issuer, kid ){
-        let keyInPemFormat
-        if ( cachedKeyPem && cachedKeyPem.expiresOn > Date.now() ) {
-            console.debug( 'Using cached key pem' )
-            keyInPemFormat = cachedKeyPem.value
+        let keyInPemFormat = searchInCache( issuer, kid )
+        if ( keyInPemFormat ) {
+            console.info( 'Using cached key pem' )
         } else {
             jwksendpoint = getJwksEndpoint( issuer )
             let jwKey = await getJwkByKid( jwksendpoint, kid );
-            console.debug('get jwkey ok');
+            console.info('get jwkey ok');
             keyInPemFormat = jwkToPem(jwKey);
-            console.debug('get key in pem format ok ');
-            setCachedData( keyInPemFormat )
+            console.info('get key in pem format ok ');
+            setCachedData(issuer, kid, keyInPemFormat )
         } 
         return keyInPemFormat;
     }
@@ -30,7 +29,7 @@ function getJwksEndpoint( issuer ) {
     if( !jwksendpoint  ) { 
         jwksendpoint = 'https://'+ issuer + '/.well-known/jwks.json'
     }
-    console.debug('jwksendpoint is ', jwksendpoint);
+    console.info('jwksendpoint is ', jwksendpoint);
     return jwksendpoint
 }
 
@@ -55,10 +54,19 @@ function findKey(jwks, kid) {
     }
 }
 
-const setCachedData = (val) => {
-    console.debug( 'Set cached key pem' )
-    cachedKeyPem = {
-        expiresOn: Date.now() + process.env.CACHE_TTL * 1000,
-        value: val
+function searchInCache( issuer, kid ) {
+    let result = cachedKeyPemMap.get( issuer+kid )
+    console.debug( 'Value in cache ', result )
+    if ( result && result.expiresOn > Date.now() ) {
+        return result.value;
+    }else {
+        return null
     }
+}
+
+const setCachedData = (issuer, kid, val) => {
+    console.info( 'Set cached key pem' )
+    var key = issuer+kid;
+    cachedKeyPemMap.set(key, { expiresOn: Date.now() + process.env.CACHE_TTL * 1000, value: val });
+    console.debug( 'cachedKeyPemMap', cachedKeyPemMap )
 }

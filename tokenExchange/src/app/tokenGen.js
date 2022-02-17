@@ -7,7 +7,7 @@ module.exports = {
     async generateToken(decodedToken){
         const keyId = process.env.KEY_ID;
         let token_components = getTokenComponent(decodedToken);
-        console.info( 'token_components', token_components )
+        console.debug( 'token_components', token_components )
         let res = await sign(token_components, keyId)
         console.debug(`JWT token: [${res}]`)
         return res;
@@ -26,8 +26,8 @@ function getTokenComponent(decodedToken) {
         "uid": decodedToken.uid,
         "iss": process.env.ISSUER,
         "organization": {
-            "id": decodedToken.organization.id,
-            "role": decodedToken.organization.role,
+            "id": decodedToken.organization?.id,
+            "role": decodedToken.organization?.role,
         },
     };
     let token_components = {
