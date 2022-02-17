@@ -45,6 +45,5 @@ module.exports = {
             console.error('ApiKeyID is null')
             iamPolicy = defaultDenyAllPolicy;
         }
-        
     }
 }

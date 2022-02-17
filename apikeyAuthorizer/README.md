@@ -4,7 +4,7 @@ Creare il file _.env_ nella root del progetto settando le seguenti variabili d'a
 
 Esempio file .env:
 ```
-    PA_TAG_NAME=pa_id
+    PA_TAG_NAME=cx_id
 ```
 
 ## Esecuzione build

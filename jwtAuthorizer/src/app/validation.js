@@ -4,11 +4,12 @@ const jsonwebtoken = require('jsonwebtoken');
 const ValidationException = require('./exception/validationException.js');
 let cachedPublicKey = {};
 
+
 module.exports = {
     async validation (jwtToken){
         if(jwtToken){
             let decodedToken = await jwtValidator(jwtToken);
-            console.log('token is valid');
+            console.info('token is valid');
             return decodedToken;    
         }else{
             throw new ValidationException("token is not valid")

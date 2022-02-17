@@ -1,7 +1,6 @@
 const validator = require('./validation.js')
 const iamPolicyGenerator = require('./iamPolicyGen.js')
 
-
 const defaultDenyAllPolicy = {
     "principalId": "user",
     "policyDocument": {
