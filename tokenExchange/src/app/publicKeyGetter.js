@@ -11,7 +11,7 @@ module.exports = {
         } else {
             const jwksendpoint = getJwksEndpoint( issuer )
             let jwKey = await getJwkByKid( jwksendpoint, kid );
-            console.info('get jwkey ok');
+            console.info('get jwkey': jwKey);
             keyInPemFormat = jwkToPem(jwKey);
             console.info('get key in pem format ok ');
             setCachedData(issuer, kid, keyInPemFormat )
