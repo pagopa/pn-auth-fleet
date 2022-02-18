@@ -2,13 +2,14 @@
   "Parameters" : {
     "ApiKeyAuthorizerLambdaEnvironmentPaTagName": "cx_id",
 
+    "JwtEnvironmentKeyId": "e1b39309-a75f-4930-9086-00c8b51c2635",
+
     "JwtAuthorizerLambdaEnvironmentCacheTtl": "120",
-    "JwtAuthorizerLambdaEnvironmentKeyId": "TBD",
 
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentTokenTtl":"3200",
     "TokenExchangeLambdaEnvironmentIssuer":"https://webapi.uat.pn.pagopa.it",
-    "TokenExchangeLambdaEnvironmentAllowedIssuer":"spidhub-test.uat.pn.pagopa.it,api.selfcare.pagopa.it",
+    "TokenExchangeLambdaEnvironmentAllowedIssuer":"spid-hub-test.uat.pn.pagopa.it,api.selfcare.pagopa.it",
     "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa-uat.fe.dev.pn.pagopa.it,https://portale-pf-uat.fe.dev.pn.pagopa.it"
   }
 }

@@ -30,7 +30,7 @@ Parameters:
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
-  JwtAuthorizerLambdaEnvironmentKeyId:
+  JwtEnvironmentKeyId:
     Type: String
     Description: Id of the key used for access token validation
   TokenExchangeLambdaEnvironmentCacheTtl:
@@ -142,7 +142,7 @@ Resources:
         S3ObjectVersion: !Ref LambdaZipVersionId2
       Environment:
         Variables:
-          KEY_ID: !Ref JwtAuthorizerLambdaEnvironmentKeyId
+          KEY_ID: !Ref JwtEnvironmentKeyId
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
 
@@ -200,6 +200,7 @@ Resources:
           ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
           ALLOWED_ISSUER: !Ref TokenExchangeLambdaEnvironmentAllowedIssuer
           ALLOWED_ORIGIN: !Ref TokenExchangeLambdaEnvironmentAllowedOrigin
+          KEY_ID: !Ref JwtEnvironmentKeyId
       Role: !GetAtt TokenExchangeLambdaRole.Arn
 
   # Lambda function role
