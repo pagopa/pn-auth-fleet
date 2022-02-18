@@ -1,0 +1,8 @@
+{"keys": [{
+  "kty": "RSA",
+  "e": "AQAB",
+  "alg": "RS256",
+  "use": "sig",
+  "n": "2oNUTLmcYVOrr3D-DBd5ijtHK2FicpkYDy3Riz6jSQbGLtXUW1ySCOejpjNcm2UNHuS9ZMmxlyVBbhNFBFFormnu2ew02K-PGHgQZDbxggB-G9jOUtEy4WVG9s0vZA3dUxW5v0Ei5PHzDiscooHsXNnNrcNiC_cRdkDKygdoua8fhHpZA5IAOPZoHjfERmkq_xwRRIAozNC1BFhOqKA1vQKGxizSO_jXWKtAB69yTC9rJKKcbMvq-UvkCQd6eEtZcybSxaFtJygfZniarl5UEMUxxLZ6Cls_iWvx93cfynnQIIRK-XxbNtLYCPbchDQoggwPFVclKY-4C3r_OsPxtQ",
+  "kid": "hub-spid-login-test"
+}]}

@@ -9,8 +9,8 @@ module.exports = {
         if ( keyInPemFormat ) {
             console.info( 'Using cached key pem' )
         } else {
-            const jwksendpoint = getJwksEndpoint( issuer )
-            let jwKey = await getJwkByKid( jwksendpoint, kid );
+            const jwks = await getJwks(issuer);
+            let jwKey = findKey(jwks, kid);
             console.info('get jwkey: ', jwKey);
             keyInPemFormat = jwkToPem(jwKey);
             console.info('get key in pem format ok ');
@@ -27,20 +27,15 @@ const issuersUrl = (process.env.JWKS_MAPPING) ? JSON.parse(process.env.JWKS_MAPP
     'spid-hub-test.aut.pn.pagopa.it':'http://spid-hub-test.aut.pn.pagopa.it:8080/.well-known/jwks.json'
 }
 
-function getJwksEndpoint( issuer ) {
+async function getJwks(issuer) {
     let jwksendpoint = issuersUrl[ issuer ];
-    if( !jwksendpoint  ) { 
+    if( !jwksendpoint  ) {
         jwksendpoint = 'https://'+ issuer + '/.well-known/jwks.json'
     }
     console.info('jwksendpoint is ', jwksendpoint);
-    return jwksendpoint
-}
-
-async function getJwkByKid( jwksendpoint, kid ) {
-    try{
-        let response = await axios.get(jwksendpoint);
-        return findKey(response.data, kid);
-    }catch(err){
+    try {
+        return await axios.get(jwksendpoint);
+    } catch(err){
         console.error('Error in get key ', err);
         throw new Error('Error in get pb key');
     }
