@@ -48,7 +48,7 @@ async function getJwkByKid( jwksendpoint, kid ) {
 
 function findKey(jwks, kid) {
     console.debug(jwks);
-    for (let key of jwks.keys)
+    for (let key of jwks.keys) {
         if (key.kid === kid) {
             console.debug('Found key', key.kid);
             return key;
