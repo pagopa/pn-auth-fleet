@@ -4,9 +4,9 @@ const proxyquire = require("proxyquire");
 const fs = require('fs')
 const AWSXRay = require('aws-xray-sdk-core');
 const iamPolicyGen = require("../app/iamPolicyGen");
-AWSXRay.setContextMissingStrategy('LOG_ERROR')
 
-var ValidationException = require('../app/exception/validationException.js');
+const ValidationException = require('../app/exception/validationException.js');
+AWSXRay.setContextMissingStrategy('LOG_ERROR')
 
 let tokenPayload = {
   email: 'raoul87@libero.it',
@@ -35,8 +35,14 @@ const validatorMock = {
   }
 }
 
+const AWS = require('aws-sdk-mock');
+AWS.mock('KMS', 'getPublicKey', function (params, callback) {
+    callback(null, {PublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwJUk0b4JfB3LKgq//1npQKt95cW43Xd9PlypW57YeMma+M4dWkbwA5n2w2YfYotZhnpxhW97UoPTNotGUgChVse+jogngtI7oBSIssuCv44qwVrrUMXrKRTESvhvSU0j5ntjXuQ3LC1x0cMM5tFgiXbIoGvBuxnQJZf01DK+BC7HaC7gmn3/p+Au7hGdUgao28J2j06LzFkez2eqa+Ll/Kiwwk/FeZHVLZZnfUoaSF/dejssjBW4p052ZEVzYRmre0EM74ZV9Wi0zDhsgrQvtZss96DxZij8Y368c8ABrVhWRX5qfSK7Z7YkwdL9+qCp5eNYrKmSpHp1FxLIZ9m/SQIDAQAB" });
+});
+const validator = require("../app/validation.js");
+
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
-  "./validation.js": validatorMock,
+  "./validation.js": validator,
   "./iamPolicyGenerator.js": iamPolicyGen,
   "./exception/validationException.js": ValidationException,
 });
@@ -46,7 +52,7 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 });
 
 
-describe("Success", function () {
+describe("JWT Expired", function () {
   let eventFile = fs.readFileSync('event.json')
   let event = JSON.parse(eventFile)
   
@@ -55,12 +61,7 @@ describe("Success", function () {
     .event( event )
     .expectResult((result) => {
       // Check if code exist
-      console.debug('the result is ', result);    
-      expect(result.principalId).to.equal('user');
-      let statement = result.policyDocument.Statement;
-      console.debug('statement ', statement);
-      expect(statement[0].Action).to.equal('execute-api:Invoke');
-      expect(statement[0].Effect).to.equal('Allow');
+      console.debug('the result is ', result);
       done();
     }).catch(done); // Catch assertion errors
   });

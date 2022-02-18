@@ -1,27 +1,17 @@
 const AWS = require("aws-sdk");
 const kms = new AWS.KMS();
 const base64url = require("base64url");
-const properties = require('./properties.js')
 
-async function sign(tokenParts, keyId) {
-    let message = Buffer.from(tokenParts.header + "." + tokenParts.payload)
 
-    let res = await kms.sign({
-        Message: message,
-        KeyId: keyId,
-        SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
-        MessageType: 'RAW' 
-    }).promise()
-
-    tokenParts.signature = res.Signature.toString("base64")
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-    
-    let token = tokenParts.header + "." + tokenParts.payload + "." + tokenParts.signature;
-    console.debug('token ', token);
-
-    return token;
+module.exports = {
+    async generateToken(decodedToken){
+        const keyId = process.env.KEY_ID;
+        let token_components = getTokenComponent(decodedToken);
+        console.debug( 'token_components', token_components )
+        let res = await sign(token_components, keyId)
+        console.debug(`JWT token: [${res}]`)
+        return res;
+    }
 }
 
 function getTokenComponent(decodedToken) {
@@ -29,20 +19,17 @@ function getTokenComponent(decodedToken) {
         "alg": "RS256",
         "typ": "JWT"
     };
-    
     const expDate = getExpDate();
-
     let payload = {
         "iat": Math.floor(Date.now() / 1000),
         "exp": Math.floor(expDate.getTime() / 1000),
         "uid": decodedToken.uid,
-        "iss": 'pagopa.notifiche.it', //TODO Da cambiare
+        "iss": process.env.ISSUER,
         "organization": {
-            "id": decodedToken.organization.id,
-            "role": decodedToken.organization.role,
+            "id": decodedToken.organization?.id,
+            "role": decodedToken.organization?.role,
         },
     };
-
     let token_components = {
         header: base64url(JSON.stringify(header)),
         payload: base64url(JSON.stringify(payload)),
@@ -50,30 +37,26 @@ function getTokenComponent(decodedToken) {
     return token_components;
 }
 
-Date.prototype.addMinutes= function(minutes){
-    var date = new Date(this.getTime());
-    date.setMinutes(date.getMinutes() + minutes);
-    return date;
-}
-
 function getExpDate() {
-    const minutesToAdd = properties.getProperty('application.expMinutes');
-    const now = new Date();
-    const expDate = now.addMinutes(minutesToAdd);
-    console.debug('Exp date', expDate);
-    return expDate;
+    const secondsToAdd = process.env.TOKEN_TTL;
+    const expDate = Date.now() + secondsToAdd * 1000
+    console.debug('Exp date', new Date(expDate));
+    return new Date(expDate);
 }
 
-module.exports = {
-    async generateToken(decodedToken){
-        const keyId = properties.getProperty('aws.keyid');
-
-        let token_components = getTokenComponent(decodedToken);
-        
-        let res = await sign(token_components, keyId)
-        console.debug(`JWT token: [${res}]`)
-        return res;
-    }
+async function sign(tokenParts, keyId) {
+    let message = Buffer.from(tokenParts.header + "." + tokenParts.payload)
+    let res = await kms.sign({
+        Message: message,
+        KeyId: keyId,
+        SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
+        MessageType: 'RAW' 
+    }).promise()
+    tokenParts.signature = res.Signature.toString("base64")
+                                        .replace(/\+/g, '-')
+                                        .replace(/\//g, '_')
+                                        .replace(/=/g, '');
+    let token = tokenParts.header + "." + tokenParts.payload + "." + tokenParts.signature;
+    console.debug('token ', token);
+    return token;
 }
-
-

@@ -28,7 +28,7 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 describe( "Success", function () {
     let event = {
         type: 'TOKEN',
-        methodArn: 'arn:aws:execute-api:us-east-1:123456789012:example/prod/POST/{proxy+}',
+        methodArn: 'arn:aws:execute-api:us-east-1:123456789012:swz6w548va/beta/POST/delivery/notifications/sent',
         requestContext: {
             identity: {
                 apiKeyId: '4dlrwkp7a8'
@@ -49,4 +49,26 @@ describe( "Success", function () {
             done();
         }).catch(done);
     });
+});
+
+describe( "Error", function () {
+    let event = {
+        type: 'TOKEN',
+        methodArn: 'arn:aws:execute-api:us-east-1:123456789012:swz6w548va/',
+        requestContext: {
+            identity: {
+                apiKeyId: '4dlrwkp7a8'
+            }
+        }
+    }
+
+    it("Error method arn", function (done) {
+        lambdaTester( lambda.handler )
+        .event( event )
+        .expectResult(( result ) => {
+            console.debug('the result is ', result);
+            done();
+        }).catch(done);
+    });
+
 });

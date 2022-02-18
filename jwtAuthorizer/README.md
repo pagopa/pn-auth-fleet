@@ -2,15 +2,10 @@
 Creare il file _.env_ nella root del progetto settando le seguenti variabili d'ambiente:
 - KEY_ID
 - CACHE_TTL
-- TOKEN_TTL
-- ISSUER
-- ALLOWED_ISSUER
-- ALLOWED_ORIGIN
 
 Esempio file .env:
 ```
     CACHE_TTL=3600
-    TOKEN_TTL=7200
 ```
 
 ## Esecuzione build

@@ -1,5 +1,5 @@
 {
     "type":"TOKEN",
     "authorizationToken":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NDM4ODIzNTksImV4cCI6MTY0Mzg4OTU1OSwidWlkIjoiMTJlM2M1YTgtMDY1Yi00MTFmLWEzNjQtZjE4ZDY2MjQyZTRmIiwiaXNzIjoicGFnb3BhLm5vdGlmaWNoZS5pdCIsIm9yZ2FuaXphdGlvbiI6eyJpZCI6ImNfaDI4MiIsInJvbGUiOiJyZWZlcmVudGUgYW1taW5pc3RyYXRpdm8ifX0.pbs5RuuIQ42es_WCZO42VgQ2CEW_WjzISInAdpye69D1KMPXeY6yrr9LlXhiw3ZInAzFp1H-CjT70dfZP9r_vCuWjlwTY4uTMJzKoHLkpA5hOe0iAlz-5femYdujTeoMT7u4SiVWQwVAROf1q5LUGJqpnEdV4g3qm68ZUizDO60wLaTrizdcLisguV7yYlNWJYpC-2vMkruNmIV16RTNPMkGiYvAZ5aOieBQaTQCJXN4g4ubQRJf9ywbLbjvCJMNyaftAJTTxSk8qltHJUbOmNJt8c-9blQtzxPVGam9_xUbU182nlpjwoPG5xAO45sCksoC-yr8cAJftM2zN1GWlQ",
-    "methodArn":"arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/*/GET/"
+    "methodArn":"arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/sent"
 }
