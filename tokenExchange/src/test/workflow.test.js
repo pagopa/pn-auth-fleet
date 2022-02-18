@@ -1,7 +1,22 @@
 const expect = require("chai").expect;
 const lambdaTester = require("lambda-tester");
 const proxyquire = require("proxyquire");
+const jsonwebtoken = require('jsonwebtoken');
+const fs = require("fs");
+
 var ValidationException = require('../app/exception/validationException.js');
+
+const publicKeyGetterMock = {
+    getJwks: async function (issuer) {
+      return fs.readFileSync("./src/test/jwks-mock/" + issuer + ".jwks.json", { encoding: "utf8" });
+    }
+};
+
+const validator = proxyquire.noCallThru().load("../app/validation.js", {
+    "./publicKeyGetter.js": publicKeyGetterMock,
+    "jsonwebtoken": jsonwebtoken,
+    "./exception/validationException.js": ValidationException,
+});
 
 const AWS = require('aws-sdk-mock');
 AWS.mock('KMS', 'sign', function (params, callback) {
@@ -9,10 +24,9 @@ AWS.mock('KMS', 'sign', function (params, callback) {
 });
 
 const tokenGen = require('../app/tokenGen.js')
-const validation = require('../app/validation.js')
 
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
-    "./validation.js": validation,
+    "./validation.js": validator,
     "./tokenGen.js": tokenGen,
     "./exception/validationException.js": ValidationException,
 });
