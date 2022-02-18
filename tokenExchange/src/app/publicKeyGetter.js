@@ -34,7 +34,8 @@ async function getJwks(issuer) {
     }
     console.info('jwksendpoint is ', jwksendpoint);
     try {
-        return await axios.get(jwksendpoint);
+        let response = await axios.get(jwksendpoint);
+        return response.data;
     } catch(err){
         console.error('Error in get key ', err);
         throw new Error('Error in get pb key');
