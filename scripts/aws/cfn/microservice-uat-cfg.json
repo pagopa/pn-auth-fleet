@@ -2,7 +2,7 @@
   "Parameters" : {
     "ApiKeyAuthorizerLambdaEnvironmentPaTagName": "cx_id",
 
-    "JwtEnvironmentKeyId": "e1b39309-a75f-4930-9086-00c8b51c2635",
+    "JwtEnvironmentKeyId": "478ee976-d475-4775-86cb-a16ab69005c4",
 
     "JwtAuthorizerLambdaEnvironmentCacheTtl": "120",
 
