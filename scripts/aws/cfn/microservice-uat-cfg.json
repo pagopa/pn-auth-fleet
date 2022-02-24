@@ -10,7 +10,7 @@
     "TokenExchangeLambdaEnvironmentTokenTtl":"3200",
     "TokenExchangeLambdaEnvironmentIssuer":"https://webapi.uat.pn.pagopa.it",
     "TokenExchangeLambdaEnvironmentAllowedIssuer":"spid-hub-test.uat.pn.pagopa.it,api.selfcare.pagopa.it",
-    "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa-uat.fe.dev.pn.pagopa.it,https://portale-pf-uat.fe.dev.pn.pagopa.it",
+    "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa-main.fe.dev.pn.pagopa.it,https://portale-pf-main.fe.dev.pn.pagopa.it",
     "TokenExchangeLambdaEnvironmentJwksMapping": "{ \"api.selfcare.pagopa.it\": \"https://uat.selfcare.pagopa.it/.well-known/jwks.json\", \"spid-hub-test.uat.pn.pagopa.it\":\"http://spid-hub-test.uat.pn.pagopa.it:8080/.well-known/jwks.json\" }"
   }
 }
