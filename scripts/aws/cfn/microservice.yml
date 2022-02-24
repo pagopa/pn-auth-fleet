@@ -50,6 +50,11 @@ Parameters:
     Type: String
     Description: 'Comma separated list of websites allowed to use "Piattaforma 
                  Notifiche" back-ends API'
+                 
+  TokenExchangeLambdaEnvironmentJwksMapping:
+    Type: String
+    Description: 'Mapping tra issuer e jwks url non standard in formato json'
+  
 
   # Unused but required by CD pipeline
   MicroserviceNumber:
@@ -201,6 +206,7 @@ Resources:
           ALLOWED_ISSUER: !Ref TokenExchangeLambdaEnvironmentAllowedIssuer
           ALLOWED_ORIGIN: !Ref TokenExchangeLambdaEnvironmentAllowedOrigin
           KEY_ID: !Ref JwtEnvironmentKeyId
+          JWKS_MAPPING: !Ref TokenExchangeLambdaEnvironmentJwksMapping
       Role: !GetAtt TokenExchangeLambdaRole.Arn
 
   # Lambda function role
