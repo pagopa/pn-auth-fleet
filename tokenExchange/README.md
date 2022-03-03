@@ -27,12 +27,20 @@ Il comando di seguito permette di eseguire tutti i test previsti
     npm test
 ```
 
-## Esecuzione test e build
+## Esecuzione codecoverage
+Il comando di seguito permette di eseguire la code coverga dopo l'esecuizione dei test
+
+```
+    npm run-script coverage
+```
+
+## Esecuzione test, coverage, sonar e build
 Il comando di seguito permette di eseguire la routine dei test per poi generare lo zip di build
 
 ```
     npm run-script test-build
 ```
+
 
 ## Handler
 L'handler della lambda è presente nel file index.js

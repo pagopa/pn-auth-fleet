@@ -2,11 +2,9 @@ const expect = require("chai").expect;
 const lambdaTester = require("lambda-tester");
 const proxyquire = require("proxyquire");
 const fs = require('fs')
-const AWSXRay = require('aws-xray-sdk-core');
 const iamPolicyGen = require("../app/iamPolicyGen");
 
 const ValidationException = require('../app/exception/validationException.js');
-AWSXRay.setContextMissingStrategy('LOG_ERROR')
 
 let tokenPayload = {
   email: 'raoul87@libero.it',
