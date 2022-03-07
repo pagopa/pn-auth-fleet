@@ -9,6 +9,8 @@ if (process.env.PR_NUM != null) {
     options["sonar.pullrequest.key"] = process.env.PR_NUN;
 }
 
+console.log("options ", options);
+
 const scanner = require("sonarqube-scanner");
 
 scanner(
