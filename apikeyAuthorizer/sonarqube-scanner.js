@@ -1,6 +1,3 @@
-
-const scanner = require("sonarqube-scanner");
-
 let options = {
     "sonar.organization": "pagopa",
     "sonar.projectKey": "pagopa_pn-auth-fleet_apikeyAuthorizer"
@@ -12,10 +9,12 @@ if (process.env.PR_NUM != null) {
     options["sonar.pullrequest.key"] = process.env.PR_NUN;
 }
 
+const scanner = require("sonarqube-scanner");
+
 scanner(
   {
     serverUrl: "https://sonarcloud.io",
-    options
+    options: options
   },
   () => process.exit()
 );
