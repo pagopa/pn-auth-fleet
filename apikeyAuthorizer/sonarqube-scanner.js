@@ -1,15 +1,18 @@
 
 const scanner = require("sonarqube-scanner");
+
+let options = {}
+
+if (process.env.PR_NUM) {
+    options["sonar.pullrequest.base"] = process.env.BRANCH_TARGET;
+    options["sonar.pullrequest.branch"] = process.env.BRANCH_NAME,
+    options["sonar.pullrequest.key"] = process.env.PR_NUM
+}
+
 scanner(
   {
     serverUrl: "https://sonarcloud.io",
-    options: {
-      "sonar.organization": "pagopa",
-      "sonar.projectKey": "pagopa_pn-auth-fleet_apikeyAuthorizer",
-      "sonar.pullrequest.base": process.env.BRANCH_TARGET,
-      "sonar.pullrequest.branch": process.env.BRANCH_NAME,
-      "sonar.pullrequest.key": process.env.PR_NUM
-    },
+    options
   },
   () => process.exit()
 );
