@@ -30,7 +30,7 @@ const issuersUrl = (process.env.JWKS_MAPPING) ? JSON.parse(process.env.JWKS_MAPP
 async function getJwks(issuer) {
     let jwksendpoint = issuersUrl[ issuer ];
     if( !jwksendpoint  ) {
-        jwksendpoint = 'https://'+ issuer + '/.well-known/jwks.json'
+        jwksendpoint = issuer + '/.well-known/jwks.json'
     }
     console.info('jwksendpoint is ', jwksendpoint);
     try {
@@ -38,7 +38,7 @@ async function getJwks(issuer) {
         return response.data;
     } catch(err){
         console.error('Error in get key ', err);
-        throw new Error('Error in get pb key');
+        throw new Error('Error in get pub key');
     }
 }
 
