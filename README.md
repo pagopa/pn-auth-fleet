@@ -2,4 +2,4 @@
 
 Auth fleet is the authentication layer for PN infrastructure.
 
-See documentation
+See project documentation on Confluence
