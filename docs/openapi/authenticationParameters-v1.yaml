@@ -4,24 +4,28 @@ components:
       name: x-pagopa-pn-uid
       in: header
       description: User Identifier
+      required: true
       schema:
         type: string
     cxTypeAuthFleet:
       name: x-pagopa-pn-cx-type
       in: header
       description: Customer/Receiver Type
+      required: true
       schema:
         $ref: '#/components/schemas/CxTypeAuthFleet'
     cxIdAuthFleet:
       name: x-pagopa-pn-cx-id
       in: header
       description: Customer/Receiver Identifier
+      required: true
       schema:
         type: string
     cxGroups:
       name: x-pagopa-pn-cx-groups
       in: header
       description: Customer Groups
+      required: true
       schema:
         type: array
         items:
