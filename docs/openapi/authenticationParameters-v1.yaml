@@ -1,0 +1,35 @@
+components:
+  parameters:
+    uidAuthFleet:
+      name: x-pagopa-pn-uid
+      in: header
+      description: User Identifier
+      schema:
+        type: string
+    cxTypeAuthFleet:
+      name: x-pagopa-pn-cx-type
+      in: header
+      description: Customer/Receiver Type
+      schema:
+        $ref: '#/components/schemas/CxTypeAuthFleet'
+    cxIdAuthFleet:
+      name: x-pagopa-pn-cx-id
+      in: header
+      description: Customer/Receiver Identifier
+      schema:
+        type: string
+    cxGroups:
+      name: x-pagopa-pn-cx-groups
+      in: header
+      description: Customer Groups
+      schema:
+        type: array
+        items:
+          type: string
+  schemas:
+    CxTypeAuthFleet:
+      type: string
+      enum:
+        - 'PA'
+        - 'PF'
+        - 'PG'
