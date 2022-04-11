@@ -25,6 +25,7 @@ function getTokenComponent(decodedToken) {
         "exp": Math.floor(expDate.getTime() / 1000),
         "uid": decodedToken.uid,
         "iss": process.env.ISSUER,
+        "aud": process.env.AUDIENCE,
         "organization": {
             "id": decodedToken.organization?.id,
             "role": decodedToken.organization?.role,

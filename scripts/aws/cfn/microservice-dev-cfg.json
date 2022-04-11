@@ -11,6 +11,8 @@
     "TokenExchangeLambdaEnvironmentIssuer":"https://webapi.dev.pn.pagopa.it",
     "TokenExchangeLambdaEnvironmentAllowedIssuer":"https://spid-hub-test.dev.pn.pagopa.it,https://dev.selfcare.pagopa.it ",
     "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa-develop.fe.dev.pn.pagopa.it,https://portale-pf-develop.fe.dev.pn.pagopa.it",
-    "TokenExchangeLambdaEnvironmentJwksMapping": "{ \"https://spid-hub-test.dev.pn.pagopa.it\":\"http://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json\" }"
+    "TokenExchangeLambdaEnvironmentJwksMapping": "{ \"https://spid-hub-test.dev.pn.pagopa.it\":\"http://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json\" }",
+    "TokenExchangeLambdaEnvironmentAcceptedAudience":"portale-pa-develop.fe.dev.pn.pagopa.it,portale-pf-develop.fe.dev.pn.pagopa.it",
+    "TokenExchangeLambdaEnvironmentAudience":"webapi.dev.pn.pagopa.it"
   }
 }

@@ -54,6 +54,14 @@ Parameters:
   TokenExchangeLambdaEnvironmentJwksMapping:
     Type: String
     Description: 'Mapping tra issuer e jwks url non standard in formato json'
+
+  TokenExchangeLambdaEnvironmentAcceptedAudience:
+    Type: String
+    Description: Comma separated list of token audience accepted
+
+  TokenExchangeLambdaEnvironmentAudience:
+    Type: String
+    Description: Audience value for token generation
   
 
   # Unused but required by CD pipeline
@@ -207,6 +215,8 @@ Resources:
           ALLOWED_ORIGIN: !Ref TokenExchangeLambdaEnvironmentAllowedOrigin
           KEY_ID: !Ref JwtEnvironmentKeyId
           JWKS_MAPPING: !Ref TokenExchangeLambdaEnvironmentJwksMapping
+          ACCEPTED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAcceptedAudience
+          AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
       Role: !GetAtt TokenExchangeLambdaRole.Arn
 
   # Lambda function role
