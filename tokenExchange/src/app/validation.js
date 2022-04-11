@@ -69,12 +69,12 @@ function checkIssuer( iss ) {
 }
 
 function checkAudience( aud ) {
-    //verifica aud nel decoded token fa parte dei ALLOWED_AUDIENCE
-    let allowedAudiences = process.env.ALLOWED_AUDIENCE.split( ',' );
+    //verifica aud nel decoded token fa parte dei ACCEPTED_AUDIENCE
+    let allowedAudiences = process.env.ACCEPTED_AUDIENCE.split( ',' );
     if ( allowedAudiences !== 0 ) {
         return allowedAudiences.indexOf( aud )
     } else {
-        console.error( 'Invalid env vars ALLOWED_AUDIENCE', process.env.ALLOWED_AUDIENCE )
+        console.error( 'Invalid env vars ACCEPTED_AUDIENCE', process.env.ACCEPTED_AUDIENCE )
         return -1;
     }
 }

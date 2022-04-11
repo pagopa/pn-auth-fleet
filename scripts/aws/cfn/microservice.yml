@@ -55,9 +55,9 @@ Parameters:
     Type: String
     Description: 'Mapping tra issuer e jwks url non standard in formato json'
 
-  TokenExchangeLambdaEnvironmentAllowedAudience:
+  TokenExchangeLambdaEnvironmentAcceptedAudience:
     Type: String
-    Description: Comma separated list of audience allowed to request token
+    Description: Comma separated list of token audience accepted
 
   TokenExchangeLambdaEnvironmentAudience:
     Type: String
@@ -215,7 +215,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref TokenExchangeLambdaEnvironmentAllowedOrigin
           KEY_ID: !Ref JwtEnvironmentKeyId
           JWKS_MAPPING: !Ref TokenExchangeLambdaEnvironmentJwksMapping
-          ALLOWED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAllowedAudience
+          ACCEPTED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAcceptedAudience
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
       Role: !GetAtt TokenExchangeLambdaRole.Arn
 
