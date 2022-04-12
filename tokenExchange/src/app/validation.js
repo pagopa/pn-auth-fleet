@@ -29,7 +29,7 @@ async function jwtValidator(jwtToken) {
         if ( checkAudience( aud ) !== -1 ) {
             if ( checkIssuer( issuer ) !== -1 ){
                 let kid = decodedToken.header.kid;
-                console.debug('kid', kid)
+                console.debug('kid from header', kid)
                 try{
                     let keyInPemFormat = await publicKeyGetter.getPublicKey( issuer, kid );
                     jsonwebtoken.verify(jwtToken, keyInPemFormat)
