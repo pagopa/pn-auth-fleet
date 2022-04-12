@@ -6,18 +6,30 @@ const base64url = require("base64url");
 module.exports = {
     async generateToken(decodedToken){
         const keyAlias = process.env.KEY_ALIAS;
-        let token_components = getTokenComponent(decodedToken);
+        let keyId = await getKeyId(keyAlias);
+        console.debug( 'keyId ', keyId )
+        let token_components = getTokenComponent(decodedToken, keyId);
         console.debug( 'token_components', token_components )
-        let res = await sign(token_components, keyAlias)
+        let res = await sign(token_components, keyId)
         console.debug(`JWT token: [${res}]`)
         return res;
     }
 }
 
-function getTokenComponent(decodedToken) {
+async function getKeyId(keyAlias) {
+    console.info( 'Retrieving keyId from alias: ', keyAlias )
+    const params = {
+        KeyId: keyAlias
+    }
+    const key = await kms.describeKey(params);
+    return key.KeyId;
+}
+
+function getTokenComponent(decodedToken,keyId) {
     let header = {
         "alg": "RS256",
-        "typ": "JWT"
+        "typ": "JWT",
+        "kid": keyId
     };
     const expDate = getExpDate();
     let payload = {
@@ -45,11 +57,11 @@ function getExpDate() {
     return new Date(expDate);
 }
 
-async function sign(tokenParts, keyAlias) {
+async function sign(tokenParts, keyId) {
     let message = Buffer.from(tokenParts.header + "." + tokenParts.payload)
     let res = await kms.sign({
         Message: message,
-        KeyId: keyAlias,
+        KeyId: keyId,
         SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
         MessageType: 'RAW' 
     }).promise()
