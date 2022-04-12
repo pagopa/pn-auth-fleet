@@ -54,7 +54,7 @@ const setCachedData = (val) =>{
 async function retrievePublicKey() {
     console.debug( 'Retrieving public key from KMS' )
     let res = kms.getPublicKey({
-        KeyId: process.env.KEY_ID 
+        KeyId: process.env.KEY_ALIAS 
     }).promise()
     return res;
 }

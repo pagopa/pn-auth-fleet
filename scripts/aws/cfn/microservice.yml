@@ -30,9 +30,6 @@ Parameters:
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
-  JwtEnvironmentKeyId:
-    Type: String
-    Description: Id of the key used for access token validation
   TokenExchangeLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
@@ -155,7 +152,7 @@ Resources:
         S3ObjectVersion: !Ref LambdaZipVersionId2
       Environment:
         Variables:
-          KEY_ID: !Ref JwtEnvironmentKeyId
+          KEY_ALIAS: !Ref SessionTokenSigningKeyAlias
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
 
@@ -213,7 +210,7 @@ Resources:
           ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
           ALLOWED_ISSUER: !Ref TokenExchangeLambdaEnvironmentAllowedIssuer
           ALLOWED_ORIGIN: !Ref TokenExchangeLambdaEnvironmentAllowedOrigin
-          KEY_ID: !Ref JwtEnvironmentKeyId
+          KEY_ALIAS: !Ref SessionTokenSigningKeyAlias
           JWKS_MAPPING: !Ref TokenExchangeLambdaEnvironmentJwksMapping
           ACCEPTED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAcceptedAudience
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
@@ -260,6 +257,7 @@ Resources:
       Description: RSA-2048 key to generate session token
       KeySpec: RSA_2048
       KeyUsage: SIGN_VERIFY
+      PendingWindowInDays: 7
       KeyPolicy:
         Version: 2012-10-17
         Statement:

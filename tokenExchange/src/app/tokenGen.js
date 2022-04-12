@@ -5,10 +5,10 @@ const base64url = require("base64url");
 
 module.exports = {
     async generateToken(decodedToken){
-        const keyId = process.env.KEY_ID;
+        const keyAlias = process.env.KEY_ALIAS;
         let token_components = getTokenComponent(decodedToken);
         console.debug( 'token_components', token_components )
-        let res = await sign(token_components, keyId)
+        let res = await sign(token_components, keyAlias)
         console.debug(`JWT token: [${res}]`)
         return res;
     }
@@ -45,11 +45,11 @@ function getExpDate() {
     return new Date(expDate);
 }
 
-async function sign(tokenParts, keyId) {
+async function sign(tokenParts, keyAlias) {
     let message = Buffer.from(tokenParts.header + "." + tokenParts.payload)
     let res = await kms.sign({
         Message: message,
-        KeyId: keyId,
+        KeyId: keyAlias,
         SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
         MessageType: 'RAW' 
     }).promise()
