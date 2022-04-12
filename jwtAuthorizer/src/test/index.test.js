@@ -52,11 +52,26 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 
 describe("JWT Expired", function () {
   let eventFile = fs.readFileSync('event.json')
-  let event = JSON.parse(eventFile)
+  let events = JSON.parse(eventFile)
   
   it("with IAM Policy", function (done) {        
     lambdaTester( lambda.handler )
-    .event( event )
+    .event( events[0] )
+    .expectResult((result) => {
+      // Check if code exist
+      console.debug('the result is ', result);
+      done();
+    }).catch(done); // Catch assertion errors
+  });
+});
+
+describe("JWT Expired Using cache", function () {
+  let eventFile = fs.readFileSync('event.json')
+  let events = JSON.parse(eventFile)
+  
+  it("with IAM Policy", function (done) {        
+    lambdaTester( lambda.handler )
+    .event( events[1] )
     .expectResult((result) => {
       // Check if code exist
       console.debug('the result is ', result);
