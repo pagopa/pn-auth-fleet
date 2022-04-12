@@ -271,7 +271,7 @@ Resources:
   PnAuthFleetJwtSignKeyAlias:
     Type: 'AWS::KMS::Alias'
     Properties:
-      AliasName: !Sub 'alias/${ProjectName}-jwt-sign-key' 
+      AliasName: !Sub '${ProjectName}-jwt-sign-key' 
       TargetKeyId: !Ref PnAuthFleetJwtSignKey
   
   
