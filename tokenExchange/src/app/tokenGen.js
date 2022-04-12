@@ -7,7 +7,7 @@ module.exports = {
     async generateToken(decodedToken){
         const keyAlias = process.env.KEY_ALIAS;
         let keyId = await getKeyId(keyAlias);
-        console.debug( 'keyId ', keyId )
+        console.debug( 'keyId from alias', keyId )
         let token_components = getTokenComponent(decodedToken, keyId);
         console.debug( 'token_components', token_components )
         let res = await sign(token_components, keyId)
@@ -21,8 +21,8 @@ async function getKeyId(keyAlias) {
     const params = {
         KeyId: keyAlias
     }
-    const key = await kms.describeKey(params);
-    return key.KeyId;
+    const key = await kms.describeKey(params).promise();
+    return key.KeyMetadata.KeyId;
 }
 
 function getTokenComponent(decodedToken,keyId) {
