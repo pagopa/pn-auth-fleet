@@ -4,9 +4,9 @@ module.exports = {
     async getJwks(issuer) {
         const issuersUrl = (process.env.JWKS_MAPPING) ? JSON.parse(process.env.JWKS_MAPPING) : {
             'api.selfcare.pagopa.it': 'https://uat.selfcare.pagopa.it/.well-known/jwks.json', //TODO vedi stato issue SELC-390
-            'spidhub-test.dev.pn.pagopa.it':'http://spidhub-test.dev.pn.pagopa.it:9090/.well-known/jwks.json',
-            'spid-hub-test.dev.pn.pagopa.it':'http://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json',
-            'spid-hub-test.uat.pn.pagopa.it':'http://spid-hub-test.uat.pn.pagopa.it:8080/.well-known/jwks.json'
+            'spidhub-test.dev.pn.pagopa.it':'https://spidhub-test.dev.pn.pagopa.it:9090/.well-known/jwks.json',
+            'spid-hub-test.dev.pn.pagopa.it':'https://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json',
+            'spid-hub-test.uat.pn.pagopa.it':'https://spid-hub-test.uat.pn.pagopa.it:8080/.well-known/jwks.json'
         }
 
         let jwksendpoint = issuersUrl[ issuer ];
