@@ -6,14 +6,19 @@ const fs = require("fs");
 
 var ValidationException = require('../app/exception/validationException.js');
 
-const publicKeyGetterMock = {
+const retrieverJwksMock = {
     getJwks: async function (issuer) {
-      return fs.readFileSync("./src/test/jwks-mock/" + issuer + ".jwks.json", { encoding: "utf8" });
+        let result = fs.readFileSync("./src/test/jwks-mock/" + issuer.replace('https://','') + ".jwks.json", { encoding: "utf8" });
+        return JSON.parse(result);
     }
 };
 
+const publicKeyGetter = proxyquire.noCallThru().load("../app/publicKeyGetter.js", {
+    "./retrieverJwks.js": retrieverJwksMock
+});
+
 const validator = proxyquire.noCallThru().load("../app/validation.js", {
-    "./publicKeyGetter.js": publicKeyGetterMock,
+    "./publicKeyGetter.js": publicKeyGetter,
     "jsonwebtoken": jsonwebtoken,
     "./exception/validationException.js": ValidationException,
 });
@@ -22,8 +27,11 @@ const AWS = require('aws-sdk-mock');
 AWS.mock('KMS', 'sign', function (params, callback) {
     callback(null, {Signature:'signature'});
 });
+AWS.mock('KMS', 'describeKey', function (params, callback) {
+    callback(null, {KeyId:'keyid'})
+});
 
-const tokenGen = require('../app/tokenGen.js')
+const tokenGen = require('../app/tokenGen.js');
 
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
     "./validation.js": validator,
@@ -80,6 +88,31 @@ describe("Invalid Audience from spidhub", function () {
             expect(result.statusCode).to.equal(400);
             const body = JSON.parse(result.body);
             expect(body.error).to.exist;
+            done();
+        }).catch(done); // Catch assertion errors
+    });
+});
+
+describe("Token from spidhub", function () {
+    
+    const expiredToken = {
+        headers:{
+            origin: 'https://portale-pf-develop.fe.dev.pn.pagopa.it'
+        },
+        queryStringParameters:{
+            authorizationToken: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEYiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTkyNDYyOCwiZXhwIjoxNjQ5OTI4MjI4LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMEtKUVIxQ1YzWlE2N0NSWlRNUjJFVDAifQ.icFOts7WOu_Kz3TP1n6IRwC4uQv4ENHyMpLOaf6TMTFirXBRV2KyyqMnsZdUkzHZN-DfeeIOotN08lRTdKXZ7XXUq8lfafSQPERgNFOnsLjTYh19LyNi8h7fa36PE9Wv6nwnLws7qv_pJB5vKOVOYQf9ZXc-DTmZ_b2l-sagtwFJ5LW6tW80ph3Vl-XBZvqu1egZJRLH4pfpNq0NWyT9_gJz06SqYZSeY19orhKhaEi1tw3Uzf0jaOWhx5pw7TOF5IiXNEAeZ3e2mQn5rnAoPNVzMWiYgtmAPa74liQHrNRFEeBBApkVLT4eExxtcYuqz85FUAknj5qB5MN99qp62Q'    
+        }
+    }
+    
+    it("with code = 200", function (done) {        
+        lambdaTester( lambda.handler )
+        .event( expiredToken )
+        .expectResult((result) => {
+            // Check if code exist
+            console.debug('the result is ', result);    
+            //expect(result.statusCode).to.equal(400);
+            const body = JSON.parse(result.body);
+            //expect(body.error).to.exist;
             done();
         }).catch(done); // Catch assertion errors
     });
