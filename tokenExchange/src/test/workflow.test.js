@@ -27,9 +27,6 @@ const AWS = require('aws-sdk-mock');
 AWS.mock('KMS', 'sign', function (params, callback) {
     callback(null, {Signature:'signature'});
 });
-AWS.mock('KMS', 'describeKey', function (params, callback) {
-    callback(null, {KeyId:'keyid'})
-});
 
 const tokenGen = require('../app/tokenGen.js');
 
@@ -104,15 +101,15 @@ describe("Token from spidhub", function () {
         }
     }
     
-    it("with code = 200", function (done) {        
+    it("with code = 400", function (done) {        
         lambdaTester( lambda.handler )
         .event( expiredToken )
         .expectResult((result) => {
             // Check if code exist
             console.debug('the result is ', result);    
-            //expect(result.statusCode).to.equal(400);
+            expect(result.statusCode).to.equal(400);
             const body = JSON.parse(result.body);
-            //expect(body.error).to.exist;
+            expect(body.error).to.exist;
             done();
         }).catch(done); // Catch assertion errors
     });
