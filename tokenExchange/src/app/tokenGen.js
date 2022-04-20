@@ -41,6 +41,8 @@ function getTokenComponent(decodedToken,keyId) {
         "organization": {
             "id": decodedToken.organization?.id,
             "role": decodedToken.organization?.role,
+            "fiscal_code": decodedToken.organization?.fiscal_code,
+            "groups": decodedToken.groups
         },
     };
     let token_components = {
