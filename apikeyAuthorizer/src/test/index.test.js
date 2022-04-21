@@ -45,7 +45,7 @@ describe( "Success", function () {
             console.debug('statement ', statement);
             expect(statement[0].Action).to.equal('execute-api:Invoke');
             expect(statement[0].Effect).to.equal('Allow');
-            expect(result.context.pa_id).to.equal('fake_pa_id')
+            expect(result.context.cx_id).to.equal('fake_pa_id')
             done();
         }).catch(done);
     });

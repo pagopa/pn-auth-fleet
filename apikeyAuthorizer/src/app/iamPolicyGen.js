@@ -37,7 +37,10 @@ function generatePolicy(principalId, paId, policyStatement) {
             Version: '2012-10-17',
             Statement: [policyStatement]
         },
-        context: { "pa_id": paId }
+        context: { 
+            "cx_id": paId,
+            "cx_type": 'PA' 
+        }
     };
     return authResponse;
 }

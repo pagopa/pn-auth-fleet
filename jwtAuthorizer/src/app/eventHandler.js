@@ -29,9 +29,10 @@ module.exports = {
                 console.log('decodedToken', decodedToken);
                 
                 let contextAttrs = {};
-                contextAttrs.user_id = decodedToken.uid;
-                contextAttrs.user_role = decodedToken.organization.role;
-                contextAttrs.pa_id = decodedToken.organization.id;
+                contextAttrs.uid = decodedToken.uid;
+                contextAttrs.cx_id = decodedToken.organization? decodedToken.organization.id : decodedToken.uid;
+                contextAttrs.cx_type = decodedToken.organization? 'PA' : 'PF';
+                contextAttrs.cx_groups = decodedToken.organization?.groups; 
                 console.log('contextAttrs ', contextAttrs);
                 
                 // Generate IAM Policy
