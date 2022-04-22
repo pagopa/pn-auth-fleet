@@ -32,7 +32,7 @@ module.exports = {
                 contextAttrs.uid = decodedToken.uid;
                 contextAttrs.cx_id = decodedToken.organization? decodedToken.organization.id : decodedToken.uid;
                 contextAttrs.cx_type = decodedToken.organization? 'PA' : 'PF';
-                contextAttrs.cx_groups = decodedToken.organization?.groups; 
+                contextAttrs.cx_groups = decodedToken.organization?.groups.join(); 
                 console.log('contextAttrs ', contextAttrs);
                 
                 // Generate IAM Policy
