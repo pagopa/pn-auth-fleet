@@ -32,19 +32,24 @@ function getTokenComponent(decodedToken,keyId) {
         "kid": keyId
     };
     const expDate = getExpDate();
+    
     let payload = {
         "iat": Math.floor(Date.now() / 1000),
         "exp": Math.floor(expDate.getTime() / 1000),
         "uid": decodedToken.uid,
         "iss": process.env.ISSUER,
         "aud": process.env.AUDIENCE,
-        "organization": {
-            "id": decodedToken.organization?.id,
-            "role": decodedToken.organization?.role,
-            "fiscal_code": decodedToken.organization?.fiscal_code
-        },
         "groups": decodedToken.groups?.join()
     };
+
+    let organization = {};
+    if (decodedToken.organization){
+        organization.id = decodedToken.organization.id
+        organization.role = decodedToken.organization.role
+        organization.fiscal_code = decodedToken.organization.fiscal_code
+        payload.organization = organization;
+    }
+
     let token_components = {
         header: base64url(JSON.stringify(header)),
         payload: base64url(JSON.stringify(payload)),
