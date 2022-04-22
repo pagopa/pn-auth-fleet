@@ -42,7 +42,7 @@ function getTokenComponent(decodedToken,keyId) {
             "id": decodedToken.organization?.id,
             "role": decodedToken.organization?.role,
             "fiscal_code": decodedToken.organization?.fiscal_code,
-            "groups": decodedToken.groups.join()
+            "groups": decodedToken.groups?.join()
         },
     };
     let token_components = {
