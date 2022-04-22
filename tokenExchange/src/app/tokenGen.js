@@ -41,9 +41,9 @@ function getTokenComponent(decodedToken,keyId) {
         "organization": {
             "id": decodedToken.organization?.id,
             "role": decodedToken.organization?.role,
-            "fiscal_code": decodedToken.organization?.fiscal_code,
-            "groups": decodedToken.groups?.join()
+            "fiscal_code": decodedToken.organization?.fiscal_code
         },
+        "groups": decodedToken.groups?.join()
     };
     let token_components = {
         header: base64url(JSON.stringify(header)),
