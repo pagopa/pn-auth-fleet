@@ -35,7 +35,7 @@ const validatorMock = {
 
 const AWS = require('aws-sdk-mock');
 AWS.mock('KMS', 'getPublicKey', function (params, callback) {
-    callback(null, {PublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwJUk0b4JfB3LKgq//1npQKt95cW43Xd9PlypW57YeMma+M4dWkbwA5n2w2YfYotZhnpxhW97UoPTNotGUgChVse+jogngtI7oBSIssuCv44qwVrrUMXrKRTESvhvSU0j5ntjXuQ3LC1x0cMM5tFgiXbIoGvBuxnQJZf01DK+BC7HaC7gmn3/p+Au7hGdUgao28J2j06LzFkez2eqa+Ll/Kiwwk/FeZHVLZZnfUoaSF/dejssjBW4p052ZEVzYRmre0EM74ZV9Wi0zDhsgrQvtZss96DxZij8Y368c8ABrVhWRX5qfSK7Z7YkwdL9+qCp5eNYrKmSpHp1FxLIZ9m/SQIDAQAB" });
+    callback(null, {PublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnSJhulApg/rNAFjIQnBibzfaP4OGPaZtNuqLdiQmOEz14ghuwmLQ/HcOe6xX4iYHv9vHJ7tvZm0wG0Q/pPEdh+nagJLnjfbkuiRUOA3mLMeiiYu4GltJVzjEx5p/YaUdGXLbTn5I/qymAH7+avrlDr9lv8R6yspNp7y2YPe95OjsHHOFcgSWmCDlVcvkiBHcoTnl6j5kUUClMXzXquxpW45ivUpQbI3/dztt6TMSIDXsYPyNOj1xHrjgI8234yXCUhCRv+jtAX7f+2SR/Dfh/b1WKMEOtUo1KvXH1Kb5s9s5VadizNN2khK5CjairbsmWO1kJZcCSro68eXebcb7HQIDAQAB" });
 });
 const validator = require("../app/validation.js");
 
@@ -50,13 +50,13 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 });
 
 
-describe("JWT Expired", function () {
+describe("JWT Ok from spid-hub", function () {
   let eventFile = fs.readFileSync('event.json')
   let events = JSON.parse(eventFile)
   
   it("with IAM Policy", function (done) {        
     lambdaTester( lambda.handler )
-    .event( events[0] )
+    .event( events[1] )
     .expectResult((result) => {
       // Check if code exist
       console.debug('the result is ', result);
@@ -65,13 +65,28 @@ describe("JWT Expired", function () {
   });
 });
 
-describe("JWT Expired Using cache", function () {
+describe("JWT Ok from spid-hub Using cache", function () {
   let eventFile = fs.readFileSync('event.json')
   let events = JSON.parse(eventFile)
   
   it("with IAM Policy", function (done) {        
     lambdaTester( lambda.handler )
-    .event( events[1] )
+    .event( events[2] )
+    .expectResult((result) => {
+      // Check if code exist
+      console.debug('the result is ', result);
+      done();
+    }).catch(done); // Catch assertion errors
+  });
+});
+
+describe("JWT expired from spid-hub", function () {
+  let eventFile = fs.readFileSync('event.json')
+  let events = JSON.parse(eventFile)
+  
+  it("with IAM Policy", function (done) {        
+    lambdaTester( lambda.handler )
+    .event( events[0] )
     .expectResult((result) => {
       // Check if code exist
       console.debug('the result is ', result);
