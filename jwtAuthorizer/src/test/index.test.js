@@ -50,7 +50,7 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 });
 
 
-describe("JWT Ok from spid-hub", function () {
+describe("JWT Ok from spid-hub with cx_id verify", function () {
   let eventFile = fs.readFileSync('event.json')
   let events = JSON.parse(eventFile)
   
@@ -60,6 +60,8 @@ describe("JWT Ok from spid-hub", function () {
     .expectResult((result) => {
       // Check if code exist
       console.debug('the result is ', result);
+      let uid = result.context.uid;
+      expect(result.context.cx_id).to.equal('PF-'+ uid);
       done();
     }).catch(done); // Catch assertion errors
   });
