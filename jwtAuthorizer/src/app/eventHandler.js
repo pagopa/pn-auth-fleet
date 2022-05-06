@@ -30,7 +30,7 @@ module.exports = {
                 
                 let contextAttrs = {};
                 contextAttrs.uid = decodedToken.uid;
-                contextAttrs.cx_id = decodedToken.organization? decodedToken.organization.id : decodedToken.uid;
+                contextAttrs.cx_id = decodedToken.organization? decodedToken.organization.id : ('PF-' + decodedToken.uid);
                 contextAttrs.cx_type = decodedToken.organization? 'PA' : 'PF';
                 contextAttrs.cx_groups = decodedToken.groups; 
                 console.log('contextAttrs ', contextAttrs);
