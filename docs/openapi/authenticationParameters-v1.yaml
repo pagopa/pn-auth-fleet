@@ -30,7 +30,7 @@ components:
         type: array
         items:
           type: string
-    cxTaxId:
+    cxTaxIdAuthFleet:
       name: x-pagopa-cx-taxid
       in: header
       description: Customer taxId, used in B2B AppIO.
