@@ -11,7 +11,7 @@ const awsMockResult = {
 }
 
 const AWS = require('aws-sdk-mock');
-AWS.mock('APIGateway', 'getTags', function (params, callback) {
+AWS.mock('APIGateway', 'getTags', function (_params, callback) {
     callback(null, awsMockResult);
 });
 
@@ -47,7 +47,7 @@ describe( "Success", function () {
             expect(statement[0].Effect).to.equal('Allow');
             expect(result.context.cx_id).to.equal('fake_pa_id')
             expect(result.context.cx_type).to.equal('PA')
-            expect(result.context.cx_uid).to.equal('APIKEY-4dlrwkp7a8')
+            expect(result.context.uid).to.equal('APIKEY-4dlrwkp7a8')
             done();
         }).catch(done);
     });

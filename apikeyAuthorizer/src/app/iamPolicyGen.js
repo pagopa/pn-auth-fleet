@@ -31,7 +31,7 @@ function generatePolicyStatement(resourceArn, action) {
 
 function generatePolicy(principalId, paId, apiKeyId, policyStatement) {
     // Generate a fully formed IAM policy
-    const authResponse = {
+   return {
         principalId: principalId,
         policyDocument: {
             Version: '2012-10-17',
@@ -40,8 +40,7 @@ function generatePolicy(principalId, paId, apiKeyId, policyStatement) {
         context: { 
             "cx_id": paId,
             "cx_type": 'PA',
-            "cx_uid" : 'APIKEY-' + apiKeyId
+            "uid" : 'APIKEY-' + apiKeyId
         }
     };
-    return authResponse;
 }
