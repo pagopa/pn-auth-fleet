@@ -27,6 +27,9 @@ Parameters:
   ApiKeyAuthorizerLambdaEnvironmentPaTagName:
     Type: String
     Description: Tag name used to read the Customer Id associated with an API-Key
+  ApiKeyAuthorizerLambdaEnvironmentGroupsTagName:
+    Type: String
+    Description: Tag name used to read the Customer groups associated with an API-Key
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
@@ -101,6 +104,7 @@ Resources:
       Environment:
         Variables:
           PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
+          GROUPS_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentGroupsTagName
       Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
   
   # Lambda function role

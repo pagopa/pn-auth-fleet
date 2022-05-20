@@ -1,7 +1,7 @@
 {
   "Parameters" : {
     "ApiKeyAuthorizerLambdaEnvironmentPaTagName": "cx_id",
-
+    "ApiKeyAuthorizerLambdaEnvironmentGroupsTagName": "cx_groups",
     "JwtAuthorizerLambdaEnvironmentCacheTtl": "120",
 
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
