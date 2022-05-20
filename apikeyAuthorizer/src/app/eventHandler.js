@@ -33,7 +33,7 @@ module.exports = {
                 const paId = response.tags[PA_TAG_NAME];
                 console.log('ApiKey paId Tags', paId);
                 // Generate IAM Policy
-                iamPolicy = await iamPolicyGenerator.generateIAMPolicy(event.methodArn, paId);
+                iamPolicy = await iamPolicyGenerator.generateIAMPolicy(event.methodArn, paId, apiKeyId);
                 console.log('IAM Policy', JSON.stringify(iamPolicy));
                 return iamPolicy;
             } catch(err) {
