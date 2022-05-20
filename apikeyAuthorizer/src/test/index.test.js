@@ -46,6 +46,8 @@ describe( "Success", function () {
             expect(statement[0].Action).to.equal('execute-api:Invoke');
             expect(statement[0].Effect).to.equal('Allow');
             expect(result.context.cx_id).to.equal('fake_pa_id')
+            expect(result.context.cx_type).to.equal('PA')
+            expect(result.context.cx_uid).to.equal('APIKEY-4dlrwkp7a8')
             done();
         }).catch(done);
     });
