@@ -40,7 +40,7 @@ function generatePolicy(principalId, paId, apiKeyId, groups, policyStatement) {
         context: { 
             "cx_id": paId,
             "cx_type": 'PA',
-            "cx_groups": groups,
+            "cx_groups": groups||' ',
             "uid" : 'APIKEY-' + apiKeyId
         }
     };
