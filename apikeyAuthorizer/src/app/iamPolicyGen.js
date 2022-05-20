@@ -1,11 +1,11 @@
 const ValidationException = require('./exception/validationException.js');
 
 module.exports = {
-    async generateIAMPolicy(resourceArn, paId, apiKeyId) {
+    async generateIAMPolicy(resourceArn, paId, apiKeyId, groups) {
         let policyStatement = generatePolicyStatement(resourceArn, "Allow");
         if (policyStatement) {
             console.debug( 'Policy statement generated', policyStatement )
-            return generatePolicy('user', paId, apiKeyId, policyStatement);
+            return generatePolicy('user', paId, apiKeyId, groups, policyStatement);
         } else {
             throw new ValidationException("Unable to generate policy statement")
         }
@@ -29,7 +29,7 @@ function generatePolicyStatement(resourceArn, action) {
     }
 }
 
-function generatePolicy(principalId, paId, apiKeyId, policyStatement) {
+function generatePolicy(principalId, paId, apiKeyId, groups, policyStatement) {
     // Generate a fully formed IAM policy
    return {
         principalId: principalId,
@@ -40,6 +40,7 @@ function generatePolicy(principalId, paId, apiKeyId, policyStatement) {
         context: { 
             "cx_id": paId,
             "cx_type": 'PA',
+            "cx_groups": groups,
             "uid" : 'APIKEY-' + apiKeyId
         }
     };

@@ -6,7 +6,8 @@ const keyTagsGetter = require("../app/keyTagsGetter");
 
 const awsMockResult = {
     tags: {
-        pa_id: 'fake_pa_id'
+        pa_id: 'fake_pa_id',
+        cx_groups: 'foo,bar'
     }
 }
 
@@ -48,6 +49,7 @@ describe( "Success", function () {
             expect(result.context.cx_id).to.equal('fake_pa_id')
             expect(result.context.cx_type).to.equal('PA')
             expect(result.context.uid).to.equal('APIKEY-4dlrwkp7a8')
+            expect(result.context.cx_groups).to.equal('foo,bar')
             done();
         }).catch(done);
     });

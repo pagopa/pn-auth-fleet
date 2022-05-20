@@ -1,6 +1,7 @@
 const iamPolicyGenerator = require('./iamPolicyGen.js')
 const keyTagsGetter = require('./keyTagsGetter.js')
 const PA_TAG_NAME = process.env.PA_TAG_NAME
+const GROUPS_TAG_NAME = process.env.GROUPS_TAG_NAME
 
 const defaultDenyAllPolicy = {
     "principalId": "user",
@@ -32,18 +33,20 @@ module.exports = {
                 // Retrieve token scopes
                 const paId = response.tags[PA_TAG_NAME];
                 console.log('ApiKey paId Tags', paId);
+                const groups = response.tags[GROUPS_TAG_NAME];
+                console.log('ApiKey groups Tags', groups);
                 // Generate IAM Policy
-                iamPolicy = await iamPolicyGenerator.generateIAMPolicy(event.methodArn, paId, apiKeyId);
+                iamPolicy = await iamPolicyGenerator.generateIAMPolicy(event.methodArn, paId, apiKeyId, groups);
                 console.log('IAM Policy', JSON.stringify(iamPolicy));
                 return iamPolicy;
             } catch(err) {
                 console.error('Error generating IAM policy with error ',err);
-                iamPolicy = defaultDenyAllPolicy;     
+                return defaultDenyAllPolicy;
             }
             
         } else {
             console.error('ApiKeyID is null')
-            iamPolicy = defaultDenyAllPolicy;
+            return defaultDenyAllPolicy;
         }
     }
 }
