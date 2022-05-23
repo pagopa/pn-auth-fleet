@@ -25,7 +25,7 @@ components:
       name: x-pagopa-pn-cx-groups
       in: header
       description: Customer Groups
-      required: true
+      required: false
       schema:
         type: array
         items:
