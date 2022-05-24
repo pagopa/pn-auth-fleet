@@ -5,7 +5,7 @@
     "JwtAuthorizerLambdaEnvironmentCacheTtl": "120",
 
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
-    "TokenExchangeLambdaEnvironmentTokenTtl":"3200",
+    "TokenExchangeLambdaEnvironmentTokenTtl": "3200",
     "TokenExchangeLambdaEnvironmentIssuer":"https://webapi.dev.pn.pagopa.it",
     "TokenExchangeLambdaEnvironmentAllowedIssuer":"https://hub-login.ecs.dev.pn.pagopa.it,https://spid-hub-test.dev.pn.pagopa.it,https://dev.selfcare.pagopa.it ",
     "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa-develop.fe.dev.pn.pagopa.it,https://portale-pf-develop.fe.dev.pn.pagopa.it",
