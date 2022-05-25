@@ -14,7 +14,7 @@ const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
 const lambda = proxyquire.noCallThru().load("../../index.js", {
     "./src/app/eventHandler.js": eventHandler,
 });
-/**
+/** Non funziona il Mock
 describe( "Success", function () {
     var mock = new MockAdapter(axios);
     mock.onGet("http://${ApplicationLoadBalancerDomain}:8080/datavault-private/v1/recipients/external/PF/CGNNMO01T10A944Q").reply(200, "123e4567-e89b-12d3-a456-426655440000");
