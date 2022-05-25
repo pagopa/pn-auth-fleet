@@ -1,6 +1,7 @@
 ## Creazione file .env
 Creare il file _.env_ nella root del progetto settando le seguenti variabili d'ambiente:
-- CX_TAXID_HEADER
+- CX_TAXID_HEADER: header utilizzato per inviare l'identificativo utente
+- PN_DATA_VAULT_BASEURL: url del servizio pn-data-vault
 
 Esempio file .env:
 ```
