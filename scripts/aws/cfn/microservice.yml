@@ -158,7 +158,7 @@ Resources:
         S3ObjectVersion: !Ref LambdaZipVersionId1
       Environment:
         Variables:
-          CX_TAXID_HEADER: 'x-pagopa-pn-cx-taxid'
+          CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
           PN_DATA_VAULT_BASEURL: !Sub http://${ApplicationLoadBalancerDomain}:8080
       Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
 
