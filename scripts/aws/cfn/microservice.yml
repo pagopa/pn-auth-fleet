@@ -62,7 +62,10 @@ Parameters:
   TokenExchangeLambdaEnvironmentAudience:
     Type: String
     Description: Audience value for token generation
-  
+
+  ApplicationLoadBalancerDomain:
+    Type: String
+    Description: application loadbalancer used from ioAuthorizer to call pn-data-vault
 
   # Unused but required by CD pipeline
   MicroserviceNumber:
@@ -86,7 +89,7 @@ Parameters:
   
 Resources:
 
-  ###             API GEY AUTHORIZER LAMBDA             ###
+  ###             API kEY AUTHORIZER LAMBDA             ###
   #########################################################
   
   # Lambda function
@@ -137,7 +140,58 @@ Resources:
             Action:
               - '*'
             Resource: "*"
-  
+
+  ###               IO AUTHORIZER LAMBDA                ###
+  #########################################################
+
+  # Lambda function
+  IoAuthorizerLambda:
+    Type: AWS::Lambda::Function
+    DependsOn: IoAuthorizerLambdaPolicy
+    Properties:
+      FunctionName: !Sub '${ProjectName}-ioAuthorizerLambda'
+      Runtime: nodejs14.x
+      Handler: 'index.handler'
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: 'pn-auth-fleet/main/ioAuthorizer.zip'
+        S3ObjectVersion: !Ref LambdaZipVersionId1
+      Environment:
+        Variables:
+          CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
+          PN_DATA_VAULT_BASEURL: !Sub http://${ApplicationLoadBalancerDomain}:8080
+      Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
+
+  # Lambda function role
+  IoAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-ioAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  # Lambda function IAM policy
+  IoAuthorizerLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-ioAuthorizerLambdaPolicy
+      Roles:
+        - !Ref IoAuthorizerLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - '*'
+            Resource: "*"
 
   ###               JWT AUTHORIZER LAMBDA               ###
   #########################################################
