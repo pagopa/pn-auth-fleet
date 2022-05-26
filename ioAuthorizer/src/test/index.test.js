@@ -2,22 +2,26 @@ const expect = require("chai").expect;
 const lambdaTester = require("lambda-tester");
 const proxyquire = require("proxyquire");
 const iamPolicyGen = require("../app/iamPolicyGen");
-const keyTagsGetter = require("../app/dataVaultClient");
-const axios = require("axios");
-var MockAdapter = require('axios-mock-adapter');
+
+
+const dataVaultClientMock = {
+    getCxId: async function (taxId) {
+        return '123e4567-e89b-12d3-a456-426655440000';
+    }
+}
 
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
     "./iamPolicyGenerator.js": iamPolicyGen,
-    "./keyTagsGetter.js": keyTagsGetter,
+    "./dataVaultClient.js": dataVaultClientMock,
 });
 
 const lambda = proxyquire.noCallThru().load("../../index.js", {
     "./src/app/eventHandler.js": eventHandler,
 });
-/** Non funziona il Mock
+
 describe( "Success", function () {
-    var mock = new MockAdapter(axios);
-    mock.onGet("http://${ApplicationLoadBalancerDomain}:8080/datavault-private/v1/recipients/external/PF/CGNNMO01T10A944Q").reply(200, "123e4567-e89b-12d3-a456-426655440000");
+    //var mock = new MockAdapter(axios);
+    //mock.onGet("http://${ApplicationLoadBalancerDomain}:8080/datavault-private/v1/recipients/external/PF/CGNNMO01T10A944Q").reply(200, "123e4567-e89b-12d3-a456-426655440000");
 
     let event = {
       "type": "REQUEST",
@@ -52,12 +56,12 @@ describe( "Success", function () {
             expect(statement[0].Effect).to.equal('Allow');
             expect(result.context.cx_id).to.equal('123e4567-e89b-12d3-a456-426655440000')
             expect(result.context.cx_type).to.equal('PF')
-            expect(result.context.uid).to.equal('IO-4dlrwkp7a8')
+            expect(result.context.uid).to.equal('IO-123e4567-e89b-12d3-a456-426655440000')
             done();
         }).catch(done);
     });
 });
-***/
+
 describe( "Error", function () {
     let event = {
         "type": "REQUEST",

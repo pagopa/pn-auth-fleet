@@ -1,7 +1,5 @@
 const iamPolicyGenerator = require('./iamPolicyGen.js')
 const dataVaultClient = require('./dataVaultClient.js')
-const PA_TAG_NAME = process.env.PA_TAG_NAME
-const GROUPS_TAG_NAME = process.env.GROUPS_TAG_NAME
 
 const defaultDenyAllPolicy = {
     "principalId": "user",
@@ -24,7 +22,6 @@ module.exports = {
 
         // Capture taxId from event
         const taxId = event?.requestContext?.identity['x-pagopa-cx-taxid'];
-        const ioUid = event?.headers?.uid;
         if( taxId )
         {
             // console.info('taxId', taxId); non si può loggare il codice fiscale, magari mettiamo solo un pezzo!
@@ -32,7 +29,7 @@ module.exports = {
                 let cxId = await dataVaultClient.getCxId(taxId);
 
                 // Generate IAM Policy
-                iamPolicy = await iamPolicyGenerator.generateIAMPolicy("user", cxId, ioUid, policyStatement);
+                iamPolicy = await iamPolicyGenerator.generateIAMPolicy(event.methodArn, cxId);
                 console.log('IAM Policy', JSON.stringify(iamPolicy));
                 return iamPolicy;
             } catch(err) {
