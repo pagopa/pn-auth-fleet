@@ -20,9 +20,6 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 });
 
 describe( "Success", function () {
-    //var mock = new MockAdapter(axios);
-    //mock.onGet("http://${ApplicationLoadBalancerDomain}:8080/datavault-private/v1/recipients/external/PF/CGNNMO01T10A944Q").reply(200, "123e4567-e89b-12d3-a456-426655440000");
-
     let event = {
       "type": "REQUEST",
       "methodArn": "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request",
@@ -75,6 +72,28 @@ describe( "Error", function () {
     }
 
     it("Error method arn", function (done) {
+        lambdaTester( lambda.handler )
+        .event( event )
+        .expectResult(( result ) => {
+            console.debug('the result is ', result);
+            done();
+        }).catch(done);
+    });
+
+});
+
+describe( "Error", function () {
+    let event = {
+        "type": "REQUEST",
+        "methodArn": 'arn:aws:execute-api:us-east-1:123456789012:swz6w548va/',
+        "requestContext": {
+            "identity": {
+                      "x-api-key": "123456789"
+            }
+        }
+    }
+
+    it("Error taxId", function (done) {
         lambdaTester( lambda.handler )
         .event( event )
         .expectResult(( result ) => {
