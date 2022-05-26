@@ -103,3 +103,26 @@ describe( "Error", function () {
     });
 
 });
+
+describe( "Error", function () {
+    let event = {
+        "type": "REQUEST",
+        "methodArn": 'fake.method.arn',
+        "requestContext": {
+            "identity": {
+                      "x-api-key": "123456789",
+                      "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
+            }
+        }
+    }
+
+    it("Error iamPolicy", function (done) {
+        lambdaTester( lambda.handler )
+        .event( event )
+        .expectResult(( result ) => {
+            console.debug('the result is ', result);
+            done();
+        }).catch(done);
+    });
+
+});
