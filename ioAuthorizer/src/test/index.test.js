@@ -26,6 +26,9 @@ describe( "Success", function () {
       "resource": "/request",
       "path": "/request",
       "httpMethod": "GET",
+      "headers": {
+          "x-pagopa-cx-taxid": "CGNNMO01T10A944Q"
+      },
       "requestContext": {
         "path": "/request",
         "accountId": "123456789012",
@@ -33,8 +36,7 @@ describe( "Success", function () {
         "stage": "test",
         "requestId": "123456789123456789",
         "identity": {
-          "x-api-key": "123456789",
-          "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
+          "apiKey": "123456789",
           }
       },
       "resourcePath": "/request",
@@ -63,10 +65,12 @@ describe( "Error", function () {
     let event = {
         "type": "REQUEST",
         "methodArn": 'arn:aws:execute-api:us-east-1:123456789012:swz6w548va/',
+        "headers": {
+            "x-pagopa-cx-taxid": "NOTEXISTS"
+        },
         "requestContext": {
             "identity": {
-                      "x-api-key": "123456789",
-                      "x-pagopa-cx-taxid": "NOTEXISTS",
+              "apiKey": "123456789"
             }
         }
     }
@@ -82,18 +86,18 @@ describe( "Error", function () {
 
 });
 
-describe( "Error", function () {
+describe( "Error No TaxId", function () {
     let event = {
         "type": "REQUEST",
         "methodArn": 'arn:aws:execute-api:us-east-1:123456789012:swz6w548va/',
         "requestContext": {
             "identity": {
-                      "x-api-key": "123456789"
+                "apiKey": "123456789"
             }
         }
     }
 
-    it("Error taxId", function (done) {
+    it("Error Not taxId", function (done) {
         lambdaTester( lambda.handler )
         .event( event )
         .expectResult(( result ) => {
@@ -104,14 +108,16 @@ describe( "Error", function () {
 
 });
 
-describe( "Error", function () {
+describe( "Error iamPolicy", function () {
     let event = {
         "type": "REQUEST",
         "methodArn": 'fake.method.arn',
+        "headers": {
+            "x-pagopa-cx-taxid": "CGNNMO01T10A944Q"
+        },
         "requestContext": {
             "identity": {
-                      "x-api-key": "123456789",
-                      "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
+              "apiKey": "123456789"
             }
         }
     }
