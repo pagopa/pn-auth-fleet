@@ -21,7 +21,7 @@ module.exports = {
         let iamPolicy = null;
 
         // Capture taxId from event
-        const taxId = event?.requestContext?.identity['x-pagopa-cx-taxid'];
+        const taxId = event?.headers?.['x-pagopa-cx-taxid'];
         if( taxId )
         {
             // console.info('taxId', taxId); non si può loggare il codice fiscale, magari mettiamo solo un pezzo!
