@@ -23,6 +23,9 @@ Parameters:
   LambdaZipVersionId3:
     Type: String
     Description: 'Third lambda zip file S3 VersionId'
+  LambdaZipVersionId4:
+    Type: String
+    Description: 'Fourth lambda zip file S3 VersionId'
   
   ApiKeyAuthorizerLambdaEnvironmentPaTagName:
     Type: String
@@ -155,7 +158,7 @@ Resources:
       Code:
         S3Bucket: !Ref LambdasBucketName
         S3Key: 'pn-auth-fleet/main/ioAuthorizer.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId1
+        S3ObjectVersion: !Ref LambdaZipVersionId4
       Environment:
         Variables:
           CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
