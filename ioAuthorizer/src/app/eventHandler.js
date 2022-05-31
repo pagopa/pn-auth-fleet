@@ -27,7 +27,7 @@ module.exports = {
             // console.info('taxId', taxId); non si può loggare il codice fiscale, magari mettiamo solo un pezzo!
             try {
                 let cxId = await dataVaultClient.getCxId(taxId);
-
+                console.info('cxId', cxId);
                 // Generate IAM Policy
                 iamPolicy = await iamPolicyGenerator.generateIAMPolicy(event.methodArn, cxId);
                 console.log('IAM Policy', JSON.stringify(iamPolicy));
