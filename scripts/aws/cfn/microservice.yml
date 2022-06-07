@@ -223,7 +223,7 @@ Resources:
       Role: !GetAtt IoAuthorizerLambdaRole.Arn
       VpcConfig:
         SecurityGroupIds:
-          - DataVaultServiceSecurityGroup
+          - !GetAtt DataVaultServiceSecurityGroup.GroupId
         SubnetIds: !Ref SubnetsIds
 
   # Lambda function role
