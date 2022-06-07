@@ -79,6 +79,10 @@ Parameters:
     Type: String
     Description: 'The S3 bucket from which to fetch the templates used by this stack.'
 
+  #SNS Topic Alarm Arn and Name
+  AlarmSNSTopicArn:
+    Type: String
+    Description: "An ARN of an SNS topic where to send alarm when log line includes ERROR or FATAL" 
   
   # TODO: deploy lambda into ours VPC
   #SubnetsIds:
@@ -143,6 +147,59 @@ Resources:
             Action:
               - '*'
             Resource: "*"
+          - Sid: AllowLambdaToCreateLogs
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Effect: Allow
+            Resource: !GetAtt ApiKeyAuthorizedLambdaLogGroup.Arn
+          - Sid: AllowLambdaToCreateLogGroup
+            Action:
+            - logs:CreateLogGroup
+            Effect: Allow
+            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+
+  # lambda function Log Group
+  ApiKeyAuthorizedLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-apikeyAuthorizerLambda"
+      RetentionInDays: 3
+
+  # Lambda function CloudWatch Logs Metric Filter
+  ApiKeyErrorFatalLogsMetricFilter: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: 
+        !Ref ApiKeyAuthorizedLambdaLogGroup
+      FilterPattern: '?ERROR ?FATAL ?CRITICAL'
+      MetricTransformations: 
+        - MetricValue: 1
+          MetricNamespace: "ErrorFatalLogs"
+          MetricName: !Sub ${ProjectName}-authFleet-ApiKeyErrorFatalMetric
+  
+  # Lambda function CloudWatch alarm 
+  APIKeyErrorFatalLogsMetricAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: ApiKeyErrorFatalLogsMetricFilter
+    Properties:
+      AlarmName: !Sub ${ProjectName}-authFleet-ApiKeyErrorFatalLogsMetricAlarm
+      AlarmDescription: "CloudWatch alarm for API Key Authorizer Lambda logs with ERROR or FATAL line."
+      AlarmActions: 
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      MetricName: !Sub ${ProjectName}-authFleet-ApiKeyErrorFatalMetric
+      Namespace: ErrorFatalLogs
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 60
+      Period: 60
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
 
   ###               IO AUTHORIZER LAMBDA                ###
   #########################################################
@@ -163,7 +220,7 @@ Resources:
         Variables:
           CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
           PN_DATA_VAULT_BASEURL: !Sub http://${ApplicationLoadBalancerDomain}:8080
-      Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
+      Role: !GetAtt IoAuthorizerLambdaRole.Arn
 
   # Lambda function role
   IoAuthorizerLambdaRole:
@@ -195,6 +252,59 @@ Resources:
             Action:
               - '*'
             Resource: "*"
+          - Sid: AllowLambdaToCreateLogs
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Effect: Allow
+            Resource: !GetAtt IoAuthorizerLambdaLogGroup.Arn
+          - Sid: AllowLambdaToCreateLogGroup
+            Action:
+            - logs:CreateLogGroup
+            Effect: Allow
+            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+
+  # lambda function Log Group
+  IoAuthorizerLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-ioAuthorizerLambda"
+      RetentionInDays: 3
+
+  # Lambda function CloudWatch Logs Metric Filter
+  IoAuthorizerErrorFatalLogsMetricFilter: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: 
+        !Ref IoAuthorizerLambdaLogGroup
+      FilterPattern: '?ERROR ?FATAL ?CRITICAL'
+      MetricTransformations: 
+        - MetricValue: 1
+          MetricNamespace: "ErrorFatalLogs"
+          MetricName: !Sub ${ProjectName}-authFleet-IoAuthorizerErrorFatalMetric
+  
+  # Lambda function CloudWatch alarm 
+  IoAuthorizerErrorFatalLogsMetricAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: IoAuthorizerErrorFatalLogsMetricFilter
+    Properties:
+      AlarmName: !Sub ${ProjectName}-authFleet-IoAuthorizerErrorFatalLogsMetricAlarm
+      AlarmDescription: "CloudWatch alarm for IO Authorizer Lambda logs with ERROR or FATAL line."
+      AlarmActions: 
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      MetricName: !Sub ${ProjectName}-authFleet-IoAuthorizerErrorFatalMetric
+      Namespace: ErrorFatalLogs
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 60
+      Period: 60
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
 
   ###               JWT AUTHORIZER LAMBDA               ###
   #########################################################
@@ -246,6 +356,59 @@ Resources:
             Action:
               - '*'
             Resource: "*"
+          - Sid: AllowLambdaToCreateLogs
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Effect: Allow
+            Resource: !GetAtt JwtAuthorizerLambdaLogGroup.Arn
+          - Sid: AllowLambdaToCreateLogGroup
+            Action:
+            - logs:CreateLogGroup
+            Effect: Allow
+            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+
+  # lambda function Log Group
+  JwtAuthorizerLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-jwtAuthorizerLambda"
+      RetentionInDays: 3
+
+  # Lambda function CloudWatch Logs Metric Filter
+  JwtAuthorizerErrorFatalLogsMetricFilter: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: 
+        !Ref JwtAuthorizerLambdaLogGroup
+      FilterPattern: '?ERROR ?FATAL ?CRITICAL'
+      MetricTransformations: 
+        - MetricValue: 1
+          MetricNamespace: "ErrorFatalLogs"
+          MetricName: !Sub ${ProjectName}-authFleet-JwtAuthorizerErrorFatalMetric
+  
+  # Lambda function CloudWatch alarm 
+  JwtAuthorizerErrorFatalLogsMetricAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: JwtAuthorizerErrorFatalLogsMetricFilter
+    Properties:
+      AlarmName: !Sub ${ProjectName}-authFleet-JwtAuthorizerErrorFatalLogsMetricAlarm
+      AlarmDescription: "CloudWatch alarm for JWT Authorizer Lambda logs with ERROR or FATAL line."
+      AlarmActions: 
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      MetricName: !Sub ${ProjectName}-authFleet-JwtAuthorizerErrorFatalMetric
+      Namespace: ErrorFatalLogs
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 60
+      Period: 60
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
 
 
   ###               TOKEN EXCHANGE LAMBDA               ###
@@ -306,9 +469,62 @@ Resources:
             Action:
               - '*'
             Resource: "*"
+          - Sid: AllowLambdaToCreateLogs
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Effect: Allow
+            Resource: !GetAtt TokenExchangeLambdaLogGroup.Arn
+          - Sid: AllowLambdaToCreateLogGroup
+            Action:
+            - logs:CreateLogGroup
+            Effect: Allow
+            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
-  ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
-  ###########################################################
+  # lambda function Log Group
+  TokenExchangeLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-tokenExchangeLambda"
+      RetentionInDays: 3
+
+  # Lambda function CloudWatch Logs Metric Filter
+  TokenExchangeErrorFatalLogsMetricFilter: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: 
+        !Ref TokenExchangeLambdaLogGroup
+      FilterPattern: '?ERROR ?FATAL ?CRITICAL'
+      MetricTransformations: 
+        - MetricValue: 1
+          MetricNamespace: "ErrorFatalLogs"
+          MetricName: !Sub ${ProjectName}-authFleet-TokenExchangeErrorFatalMetric
+  
+  # Lambda function CloudWatch alarm 
+  TokenExchangeErrorFatalLogsMetricAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: TokenExchangeErrorFatalLogsMetricFilter
+    Properties:
+      AlarmName: !Sub ${ProjectName}-authFleet-TokenExchangeErrorFatalLogsMetricAlarm
+      AlarmDescription: "CloudWatch alarm for Token exchange Lambda logs with ERROR or FATAL line."
+      AlarmActions: 
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      MetricName: !Sub ${ProjectName}-authFleet-TokenExchangeErrorFatalMetric
+      Namespace: ErrorFatalLogs
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 60
+      Period: 60
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+
+  # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
+  # ###########################################################
   PnAuthFleetJwtSignKey:
     Type: 'AWS::KMS::Key'
     DeletionPolicy: Retain
