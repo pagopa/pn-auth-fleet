@@ -85,13 +85,13 @@ Parameters:
     Description: "An ARN of an SNS topic where to send alarm when log line includes ERROR or FATAL" 
   
   # TODO: deploy lambda into ours VPC
-  #SubnetsIds:
-  #  Type: String
-  #  Description: 'subnets ids comma separated list. Where to deploy the microservice'
+  SubnetsIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 'subnets ids comma separated list. Where to deploy the microservice'
 
-  #VpcId:
-  #  Type: String
-  #  Description: 'VpcId where the microservice is going to be deployed'
+  VpcId:
+    Type: String
+    Description: 'VpcId where the microservice is going to be deployed'
 
   
 Resources:
@@ -221,6 +221,10 @@ Resources:
           CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
           PN_DATA_VAULT_BASEURL: !Sub http://${ApplicationLoadBalancerDomain}:8080
       Role: !GetAtt IoAuthorizerLambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - DataVaultServiceSecurityGroup
+        SubnetIds: !Ref SubnetsIds
 
   # Lambda function role
   IoAuthorizerLambdaRole:
@@ -237,6 +241,18 @@ Resources:
             Action:
               - sts:AssumeRole
       Path: /
+
+  # Data vault Service security group
+  DataVaultServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-data-vault-ioAuthorizer-DecGrp
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
 
   # Lambda function IAM policy
   IoAuthorizerLambdaPolicy:
