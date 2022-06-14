@@ -21,7 +21,7 @@ components:
       required: true
       schema:
         type: string
-    cxGroups:
+    cxGroupsAuthFleet:
       name: x-pagopa-pn-cx-groups
       in: header
       description: Customer Groups
