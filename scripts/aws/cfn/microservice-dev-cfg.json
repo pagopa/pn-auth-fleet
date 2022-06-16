@@ -6,11 +6,11 @@
 
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentTokenTtl": "3200",
-    "TokenExchangeLambdaEnvironmentIssuer":"https://webapi.dev.pn.pagopa.it",
-    "TokenExchangeLambdaEnvironmentAllowedIssuer":"https://hub-login.ecs.dev.pn.pagopa.it,https://spid-hub-test.dev.pn.pagopa.it,https://dev.selfcare.pagopa.it ",
-    "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa-develop.fe.dev.pn.pagopa.it,https://portale-pf-develop.fe.dev.pn.pagopa.it",
+    "TokenExchangeLambdaEnvironmentIssuer":"https://webapi.svil.pn.pagopa.it",
+    "TokenExchangeLambdaEnvironmentAllowedIssuer":"https://hub-login.ecs.svil.pn.pagopa.it,https://dev.selfcare.pagopa.it ",
+    "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa.svil.pn.pagopa.it,https://portale.svil.pn.pagopa.it",
     "TokenExchangeLambdaEnvironmentJwksMapping": "{ \"https://spid-hub-test.dev.pn.pagopa.it\":\"http://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json\" }",
-    "TokenExchangeLambdaEnvironmentAcceptedAudience":"portale-pa-develop.fe.dev.pn.pagopa.it,portale-pf-develop.fe.dev.pn.pagopa.it",
-    "TokenExchangeLambdaEnvironmentAudience":"webapi.dev.pn.pagopa.it"
+    "TokenExchangeLambdaEnvironmentAcceptedAudience":"portale-pa.svil.pn.pagopa.it,portale.svil.pn.pagopa.it",
+    "TokenExchangeLambdaEnvironmentAudience":"webapi.svil.pn.pagopa.it"
   }
 }
