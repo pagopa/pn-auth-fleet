@@ -7,7 +7,7 @@
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentTokenTtl": "3200",
     "TokenExchangeLambdaEnvironmentIssuer":"https://webapi.svil.pn.pagopa.it",
-    "TokenExchangeLambdaEnvironmentAllowedIssuer":"https://hub-login.ecs.svil.pn.pagopa.it,https://dev.selfcare.pagopa.it ",
+    "TokenExchangeLambdaEnvironmentAllowedIssuer":"https://hub-login.ecs.svil.pn.pagopa.it,https://uat.selfcare.pagopa.it ",
     "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa.svil.pn.pagopa.it,https://portale.svil.pn.pagopa.it",
     "TokenExchangeLambdaEnvironmentJwksMapping": "{ }",
     "TokenExchangeLambdaEnvironmentAcceptedAudience":"portale-pa.svil.pn.pagopa.it,portale.svil.pn.pagopa.it",
