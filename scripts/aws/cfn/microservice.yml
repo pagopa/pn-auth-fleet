@@ -84,6 +84,10 @@ Parameters:
     Type: String
     Description: "An ARN of an SNS topic where to send alarm when log line includes ERROR or FATAL" 
   
+  Version:
+    Type: String
+    Description: "Keep versioning of commitIds used for cloudformation templates"
+  
   # TODO: deploy lambda into ours VPC
   SubnetsIds:
     Type: List<AWS::EC2::Subnet::Id>
