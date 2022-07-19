@@ -10,7 +10,11 @@ module.exports = {
         if ( eventOrigin ) {
             const auditLog = bunyan.createLogger({
                 name: 'AUD_ACC_LOGIN',
-                eventOrigin: eventOrigin
+                message: '[AUD_ACC_LOGIN] - LOGIN',
+                aud_type: 'AUD_ACC_LOGIN',
+                aud_orig: eventOrigin,
+                level: 'INFO',
+                logger_name: 'bunyan',
             });
             if ( checkOrigin( eventOrigin ) !== -1 ){
                 console.info('Origin successful checked')
@@ -21,16 +25,23 @@ module.exports = {
                         let sessionToken = await tokenGen.generateToken(decodedToken);
                         const auditLogTokenSuccess = bunyan.createLogger({
                             name: 'AUD_ACC_LOGIN',
-                            encodedToken: encodedToken,
-                            eventOrigin: eventOrigin
+                            message: '[AUD_ACC_LOGIN] - SUCCESS - OK Token successful generated',
+                            aud_type: 'AUD_ACC_LOGIN',
+                            aud_orig: eventOrigin,
+                            level: 'INFO',
+                            logger_name: 'bunyan',
+                            encodedToken: encodedToken
                         });
                         auditLogTokenSuccess.info('Token successful generated');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
                     } catch (err){
                         const auditLogTokenError = bunyan.createLogger({
                             name: 'AUD_ACC_LOGIN',
-                            error: err,
-                            eventOrigin: eventOrigin
+                            message: 'AUD_ACC_LOGIN - ERROR - KO Error generating token ' + err.message,
+                            aud_type: 'AUD_ACC_LOGIN',
+                            aud_orig: eventOrigin,
+                            level: 'INFO',
+                            logger_name: 'bunyan'
                         });
                         auditLogTokenError.error('Error generating token');
                         return generateKoResponse(err, eventOrigin);
