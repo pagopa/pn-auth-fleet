@@ -28,6 +28,7 @@
   "dependencies": {
     "axios": "^0.25.0",
     "base64url": "^3.0.1",
+    "bunyan": "^1.8.15",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",
     "properties-reader": "^2.2.0"

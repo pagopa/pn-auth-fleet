@@ -1,10 +1,12 @@
 const validator = require('./validation.js')
 const tokenGen = require('./tokenGen.js')
 var ValidationException = require('./exception/validationException.js');
+const bunyan = require("bunyan");
 
 module.exports = {
     async handleEvent(event){
         let eventOrigin = event?.headers?.origin
+        const bunyan = require('bunyan');
         if ( eventOrigin ) {
             if ( checkOrigin( eventOrigin ) !== -1 ){
                 console.info('Origin successful checked')
@@ -13,10 +15,20 @@ module.exports = {
                     try{
                         let decodedToken = await validator.validation(encodedToken);
                         let sessionToken = await tokenGen.generateToken(decodedToken);
-                        console.info('Token successful generated')
+                        const auditLog = bunyan.createLogger({
+                            name: 'AUD_ACC_LOGIN',
+                            encodedToken: encodedToken,
+                            eventOrigin: eventOrigin
+                        });
+                        auditLog.info('Token successful generated');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
                     } catch (err){
-                        console.error('Error generating token ', err);
+                        const auditLog = bunyan.createLogger({
+                            name: 'AUD_ACC_LOGIN',
+                            error: err,
+                            eventOrigin: eventOrigin
+                        });
+                        auditLog.error('Error generating token');
                         return generateKoResponse(err, eventOrigin);
                     }
                 } else {
