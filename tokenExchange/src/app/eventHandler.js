@@ -1,21 +1,13 @@
 const validator = require('./validation.js')
 const tokenGen = require('./tokenGen.js')
 var ValidationException = require('./exception/validationException.js');
-const bunyan = require("bunyan");
+const auditLog = require("./log.js");
 
 module.exports = {
     async handleEvent(event){
         let eventOrigin = event?.headers?.origin
-        const bunyan = require('bunyan');
         if ( eventOrigin ) {
-            const auditLog = bunyan.createLogger({
-                name: 'AUD_ACC_LOGIN',
-                message: '[AUD_ACC_LOGIN] - LOGIN',
-                aud_type: 'AUD_ACC_LOGIN',
-                aud_orig: eventOrigin,
-                level: 'INFO',
-                logger_name: 'bunyan',
-            });
+            auditLog('', 'AUD_ACC_LOGIN', eventOrigin);
             if ( checkOrigin( eventOrigin ) !== -1 ){
                 console.info('Origin successful checked')
                 let encodedToken = event?.queryStringParameters?.authorizationToken;
@@ -23,39 +15,22 @@ module.exports = {
                     try{
                         let decodedToken = await validator.validation(encodedToken);
                         let sessionToken = await tokenGen.generateToken(decodedToken);
-                        const auditLogTokenSuccess = bunyan.createLogger({
-                            name: 'AUD_ACC_LOGIN',
-                            message: '[AUD_ACC_LOGIN] - SUCCESS - OK Token successful generated',
-                            aud_type: 'AUD_ACC_LOGIN',
-                            aud_orig: eventOrigin,
-                            level: 'INFO',
-                            logger_name: 'bunyan',
-                            encodedToken: encodedToken
-                        });
-                        auditLogTokenSuccess.info('Token successful generated');
+                        auditLog('Token successful generated', 'AUD_ACC_LOGIN', eventOrigin, 'OK');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
                     } catch (err){
-                        const auditLogTokenError = bunyan.createLogger({
-                            name: 'AUD_ACC_LOGIN',
-                            message: 'AUD_ACC_LOGIN - ERROR - KO Error generating token ' + err.message,
-                            aud_type: 'AUD_ACC_LOGIN',
-                            aud_orig: eventOrigin,
-                            level: 'INFO',
-                            logger_name: 'bunyan'
-                        });
-                        auditLogTokenError.error('Error generating token');
+                        auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO');
                         return generateKoResponse(err, eventOrigin);
                     }
                 } else {
-                    auditLog.error('Authorization Token not present');
+                    auditLog('Authorization Token not present','AUD_ACC_LOGIN', eventOrigin, 'KO');
                     return generateKoResponse('AuthorizationToken not present', eventOrigin);
                 }
             } else {
-                auditLog.error("Origin=%s not allowed", eventOrigin);
+                auditLog('Origin not allowed','AUD_ACC_LOGIN', eventOrigin, 'KO');
                 return generateKoResponse('Origin not allowed', eventOrigin);
             }
         } else {
-            console.error('eventOrigin is null')
+            auditLog('eventOrigin is null','AUD_ACC_LOGIN', eventOrigin, 'KO');
             return generateKoResponse('eventOrigin is null', '*');
         }
         
