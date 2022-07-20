@@ -15,7 +15,10 @@ module.exports = {
                     try{
                         let decodedToken = await validator.validation(encodedToken);
                         let sessionToken = await tokenGen.generateToken(decodedToken);
-                        auditLog('Token successful generated', 'AUD_ACC_LOGIN', eventOrigin, 'OK');
+                        let uid = decodedToken.uid;
+                        let cx_id = decodedToken.organization? decodedToken.organization.id : ('PF-' + decodedToken.uid);
+                        let cx_type = decodedToken.organization? 'PA' : 'PF';
+                        auditLog('Token successful generated', 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, uid);
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
                     } catch (err){
                         auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO');

@@ -6,6 +6,9 @@ module.exports =
         aud_type,
         aud_orig,
         status = '',
+        cx_type,
+        cx_id,
+        uid
     ) {
     let statusMessage = 'INFO';
     if (status === 'OK') {
@@ -20,7 +23,10 @@ module.exports =
         aud_type: aud_type,
         aud_orig: aud_orig,
         level: 'INFO',
-        logger_name: 'bunyan'
+        logger_name: 'bunyan',
+        uid: uid,
+        cx_type: cx_type,
+        cx_id: cx_id
     })
     if (status === 'KO') {
         return log.error(message);
