@@ -7,7 +7,7 @@ module.exports = {
     async handleEvent(event){
         let eventOrigin = event?.headers?.origin
         if ( eventOrigin ) {
-            auditLog('', 'AUD_ACC_LOGIN', eventOrigin);
+            auditLog('', 'AUD_ACC_LOGIN', eventOrigin).info('info');
             if ( checkOrigin( eventOrigin ) !== -1 ){
                 console.info('Origin successful checked')
                 let encodedToken = event?.queryStringParameters?.authorizationToken;
@@ -18,22 +18,22 @@ module.exports = {
                         let uid = decodedToken.uid;
                         let cx_id = decodedToken.organization? decodedToken.organization.id : ('PF-' + decodedToken.uid);
                         let cx_type = decodedToken.organization? 'PA' : 'PF';
-                        auditLog('Token successful generated', 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, uid);
+                        auditLog('Token successful generated', 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, uid).info('success');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
                     } catch (err){
-                        auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO');
+                        auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
                         return generateKoResponse(err, eventOrigin);
                     }
                 } else {
-                    auditLog('Authorization Token not present','AUD_ACC_LOGIN', eventOrigin, 'KO');
+                    auditLog('Authorization Token not present','AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
                     return generateKoResponse('AuthorizationToken not present', eventOrigin);
                 }
             } else {
-                auditLog('Origin not allowed','AUD_ACC_LOGIN', eventOrigin, 'KO');
+                auditLog('Origin not allowed','AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
                 return generateKoResponse('Origin not allowed', eventOrigin);
             }
         } else {
-            auditLog('eventOrigin is null','AUD_ACC_LOGIN', eventOrigin, 'KO');
+            auditLog('eventOrigin is null','AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
             return generateKoResponse('eventOrigin is null', '*');
         }
         

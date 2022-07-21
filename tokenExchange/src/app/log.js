@@ -10,7 +10,7 @@ module.exports =
         cx_id,
         uid
     ) {
-    let statusMessage = 'INFO';
+    let statusMessage = `INFO - ${message}`;
     if (status === 'OK') {
         statusMessage = `OK - SUCCESS - ${message}`;
     }
@@ -28,8 +28,5 @@ module.exports =
         cx_type: cx_type,
         cx_id: cx_id
     })
-    if (status === 'KO') {
-        return log.error(message);
-    }
-    return log.info(message);
+    return log;
 }
