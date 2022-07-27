@@ -156,7 +156,7 @@ Resources:
             - logs:CreateLogStream
             - logs:PutLogEvents
             Effect: Allow
-            Resource: !GetAtt ApiKeyAuthorizedLambdaLogGroup.Arn
+            Resource: !GetAtt ApiKeyAuthorizerLambdaLogGroup.Arn
           - Sid: AllowLambdaToCreateLogGroup
             Action:
             - logs:CreateLogGroup
@@ -164,8 +164,9 @@ Resources:
             Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # lambda function Log Group
-  ApiKeyAuthorizedLambdaLogGroup:
+  ApiKeyAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: ApiKeyAuthorizerLambda
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ProjectName}-apikeyAuthorizerLambda"
       RetentionInDays: 3
@@ -175,7 +176,7 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties: 
       LogGroupName: 
-        !Ref ApiKeyAuthorizedLambdaLogGroup
+        !Ref ApiKeyAuthorizerLambdaLogGroup
       FilterPattern: '?ERROR ?FATAL ?CRITICAL'
       MetricTransformations: 
         - MetricValue: 1
@@ -287,6 +288,7 @@ Resources:
   # lambda function Log Group
   IoAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: IoAuthorizerLambda
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ProjectName}-ioAuthorizerLambda"
       RetentionInDays: 3
@@ -391,6 +393,7 @@ Resources:
   # lambda function Log Group
   JwtAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: JwtAuthorizerLambda
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ProjectName}-jwtAuthorizerLambda"
       RetentionInDays: 3
@@ -504,6 +507,7 @@ Resources:
   # lambda function Log Group
   TokenExchangeLambdaLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: TokenExchangeLambda
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ProjectName}-tokenExchangeLambda"
       RetentionInDays: 3
@@ -613,6 +617,7 @@ Resources:
   # Log Group
   TokenExchangeApiLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: TokenExchangeRestApi
     Properties:
       RetentionInDays: 1
 
