@@ -109,8 +109,6 @@ Resources:
     DependsOn: ApiKeyAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
-      TracingConfig:
-        Mode: Active
       Runtime: nodejs14.x
       Handler: 'index.handler'
       Code: 
@@ -168,6 +166,7 @@ Resources:
   # lambda function Log Group
   ApiKeyAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: ApiKeyAuthorizerLambda
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ProjectName}-apikeyAuthorizerLambda"
       RetentionInDays: 3
@@ -216,8 +215,6 @@ Resources:
     DependsOn: IoAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-ioAuthorizerLambda'
-      TracingConfig:
-        Mode: Active
       Runtime: nodejs14.x
       Handler: 'index.handler'
       Code:
@@ -291,6 +288,7 @@ Resources:
   # lambda function Log Group
   IoAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: IoAuthorizerLambda
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ProjectName}-ioAuthorizerLambda"
       RetentionInDays: 3
@@ -339,8 +337,6 @@ Resources:
     DependsOn: JwtAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-jwtAuthorizerLambda'
-      TracingConfig:
-        Mode: Active
       Runtime: nodejs14.x
       Handler: 'index.handler'
       Code: 
@@ -397,6 +393,7 @@ Resources:
   # lambda function Log Group
   JwtAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: JwtAuthorizerLambda
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ProjectName}-jwtAuthorizerLambda"
       RetentionInDays: 3
@@ -446,8 +443,6 @@ Resources:
     DependsOn: TokenExchangeLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
-      TracingConfig:
-        Mode: Active
       Runtime: nodejs14.x
       Handler: 'index.handler'
       Code: 
@@ -512,6 +507,7 @@ Resources:
   # lambda function Log Group
   TokenExchangeLambdaLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: TokenExchangeLambda
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ProjectName}-tokenExchangeLambda"
       RetentionInDays: 3
@@ -621,6 +617,7 @@ Resources:
   # Log Group
   TokenExchangeApiLogGroup:
     Type: AWS::Logs::LogGroup
+    DependsOn: TokenExchangeRestApi
     Properties:
       RetentionInDays: 1
 
