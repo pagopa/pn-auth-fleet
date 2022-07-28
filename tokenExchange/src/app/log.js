@@ -17,16 +17,19 @@ module.exports =
     if (status === 'KO') {
         statusMessage = `KO - FAILURE - ${message}`;
     }
-    const log = bunyan.createLogger({
+    return bunyan.createLogger({
         name: 'AUDIT_LOG',
         message: `[${aud_type}] - ${statusMessage}`,
         aud_type: aud_type,
         aud_orig: aud_orig,
-        level: 'INFO',
-        logger_name: 'bunyan',
+        level: status === 'KO' ? 'ERROR' : 'INFO',
+        level_value: status === 'KO' ? 40000 : 20000,
+        logger_name: 'tokenExchange',
         uid: uid,
         cx_type: cx_type,
-        cx_id: cx_id
+        cx_id: cx_id,
+        tags: [
+            "AUDIT5Y"
+        ]
     })
-    return log;
 }
