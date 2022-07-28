@@ -206,7 +206,7 @@ Resources:
   # Lambda function
   IoAuthorizerLambda:
     Type: AWS::Lambda::Function
-    DependsOn: [ IoAuthorizerLambdaPolicy, IoAuthorizerLambdaLogGroup ]
+    DependsOn: IoAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-ioAuthorizerLambda'
       Runtime: nodejs14.x
@@ -256,6 +256,7 @@ Resources:
   # Lambda function IAM policy
   IoAuthorizerLambdaPolicy:
     Type: AWS::IAM::Policy
+    DependsOn: IoAuthorizerLambdaLogGroup
     Properties:
       PolicyName: !Sub ${ProjectName}-ioAuthorizerLambdaPolicy
       Roles:
@@ -322,7 +323,7 @@ Resources:
   # Lambda function
   JwtAuthorizerLambda:
     Type: AWS::Lambda::Function
-    DependsOn: [ JwtAuthorizerLambdaPolicy, JwtAuthorizerLambdaLogGroup ]
+    DependsOn: JwtAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-jwtAuthorizerLambda'
       Runtime: nodejs14.x
@@ -355,6 +356,7 @@ Resources:
   # Lambda function IAM policy
   JwtAuthorizerLambdaPolicy:
     Type: AWS::IAM::Policy
+    DependsOn: JwtAuthorizerLambdaLogGroup
     Properties:
       PolicyName: !Sub ${ProjectName}-jwtAuthorizerLambdaPolicy
       Roles:
@@ -422,7 +424,7 @@ Resources:
   # Lambda function
   TokenExchangeLambda:
     Type: AWS::Lambda::Function
-    DependsOn: [ TokenExchangeLambdaPolicy, TokenExchangeLambdaLogGroup ]
+    DependsOn: TokenExchangeLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
       Runtime: nodejs14.x
@@ -463,6 +465,7 @@ Resources:
   # Lambda function IAM policy
   TokenExchangeLambdaPolicy:
     Type: AWS::IAM::Policy
+    DependsOn: TokenExchangeLambdaLogGroup
     Properties:
       PolicyName: !Sub ${ProjectName}-tokenExchangeLambdaPolicy
       Roles:
