@@ -157,11 +157,6 @@ Resources:
             - logs:PutLogEvents
             Effect: Allow
             Resource: !GetAtt ApiKeyAuthorizerLambdaLogGroup.Arn
-          - Sid: AllowLambdaToCreateLogGroup
-            Action:
-            - logs:CreateLogGroup
-            Effect: Allow
-            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # lambda function Log Group
   ApiKeyAuthorizerLambdaLogGroup:
@@ -278,11 +273,6 @@ Resources:
             - logs:PutLogEvents
             Effect: Allow
             Resource: !GetAtt IoAuthorizerLambdaLogGroup.Arn
-          - Sid: AllowLambdaToCreateLogGroup
-            Action:
-            - logs:CreateLogGroup
-            Effect: Allow
-            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # lambda function Log Group
   IoAuthorizerLambdaLogGroup:
@@ -382,11 +372,6 @@ Resources:
             - logs:PutLogEvents
             Effect: Allow
             Resource: !GetAtt JwtAuthorizerLambdaLogGroup.Arn
-          - Sid: AllowLambdaToCreateLogGroup
-            Action:
-            - logs:CreateLogGroup
-            Effect: Allow
-            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # lambda function Log Group
   JwtAuthorizerLambdaLogGroup:
@@ -495,11 +480,6 @@ Resources:
             - logs:PutLogEvents
             Effect: Allow
             Resource: !GetAtt TokenExchangeLambdaLogGroup.Arn
-          - Sid: AllowLambdaToCreateLogGroup
-            Action:
-            - logs:CreateLogGroup
-            Effect: Allow
-            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # lambda function Log Group
   TokenExchangeLambdaLogGroup:
