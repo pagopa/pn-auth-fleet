@@ -106,7 +106,7 @@ Resources:
   # Lambda function
   ApiKeyAuthorizerLambda:
     Type: AWS::Lambda::Function
-    DependsOn: [ ApiKeyAuthorizerLambdaPolicy, ApiKeyAuthorizerLambdaLogGroup ]
+    DependsOn: ApiKeyAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
       Runtime: nodejs14.x
@@ -167,7 +167,7 @@ Resources:
   ApiKeyAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ProjectName}-apikeyAuthorizerLambda"
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-apikeyAuthorizerLambdaFIXME"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
@@ -289,7 +289,7 @@ Resources:
   IoAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ProjectName}-ioAuthorizerLambdaFake"
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-ioAuthorizerLambdaFIXME"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
@@ -394,7 +394,7 @@ Resources:
   JwtAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ProjectName}-jwtAuthorizerLambdaFake"
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-jwtAuthorizerLambdaFIXME"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
@@ -508,7 +508,7 @@ Resources:
   TokenExchangeLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ProjectName}-tokenExchangeLambdaFake"
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-tokenExchangeLambdaFIXME"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
