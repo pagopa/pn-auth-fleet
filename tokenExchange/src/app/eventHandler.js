@@ -12,7 +12,7 @@ module.exports = {
                 console.info('Origin successful checked')
                 let encodedToken = event?.queryStringParameters?.authorizationToken;
                 if (encodedToken) {
-                    try{
+                    try {
                         let decodedToken = await validator.validation(encodedToken);
                         let sessionToken = await tokenGen.generateToken(decodedToken);
                         let uid = decodedToken.uid;
@@ -54,7 +54,7 @@ function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {
     // Clone decodedToken information and add sessionToken to them
     let responseBody = { ... decodedToken, sessionToken }
     
-    const response = {
+    return {
         statusCode: 200,
         headers: {
             'Access-Control-Allow-Origin': allowedOrigin
@@ -62,8 +62,6 @@ function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
     };
-    
-    return response;
 }
 
 function generateKoResponse(err, allowedOrigin) {
@@ -80,7 +78,7 @@ function generateKoResponse(err, allowedOrigin) {
         responseBody.error = err;
     }
     
-    const response = {
+    return {
         statusCode: statusCode,
         headers: {
             'Access-Control-Allow-Origin': allowedOrigin
@@ -88,5 +86,4 @@ function generateKoResponse(err, allowedOrigin) {
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
     };
-    return response;
 }
