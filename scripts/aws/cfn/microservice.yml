@@ -106,7 +106,6 @@ Resources:
   # Lambda function
   ApiKeyAuthorizerLambda:
     Type: AWS::Lambda::Function
-    DependsOn: ApiKeyAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
       Runtime: nodejs14.x
@@ -203,7 +202,6 @@ Resources:
   # Lambda function
   IoAuthorizerLambda:
     Type: AWS::Lambda::Function
-    DependsOn: IoAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-ioAuthorizerLambda'
       Runtime: nodejs14.x
@@ -324,7 +322,6 @@ Resources:
   # Lambda function
   JwtAuthorizerLambda:
     Type: AWS::Lambda::Function
-    DependsOn: JwtAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-jwtAuthorizerLambda'
       Runtime: nodejs14.x
@@ -429,7 +426,6 @@ Resources:
   # Lambda function
   TokenExchangeLambda:
     Type: AWS::Lambda::Function
-    DependsOn: TokenExchangeLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
       Runtime: nodejs14.x
