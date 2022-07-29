@@ -1,4 +1,5 @@
-const AWS = require('aws-sdk');
+const AWSXRay = require('aws-xray-sdk-core');
+const AWS = AWSXRay.captureAWS(require('aws-sdk'));
 
 module.exports = {
     async getKeyTags(apiKeyId) {
@@ -7,10 +8,10 @@ module.exports = {
         const apiKeyArn = 'arn:aws:apigateway:' + awsRegion + '::/apikeys/' + apiKeyId;
         console.log('Getting Tags for ', apiKeyArn);
         
-        var params = {
+        const params = {
             resourceArn: apiKeyArn /* required */
         };
-        var request = apigateway.getTags(params);
+        const request = apigateway.getTags(params);
         return request.promise();
     }
 }

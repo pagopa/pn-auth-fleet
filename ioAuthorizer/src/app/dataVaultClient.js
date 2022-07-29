@@ -1,3 +1,10 @@
+const AWSXRay = require('aws-xray-sdk-core');
+const http = require('http');
+const https = require('https');
+
+AWSXRay.captureHTTPsGlobal(http);
+AWSXRay.captureHTTPsGlobal(https);
+
 const axios = require('axios');
 
 module.exports = {
@@ -7,7 +14,7 @@ module.exports = {
         try {
             let response = await axios.post(pnDataVaultUrl, taxId, { headers: { 'Content-Type':'text/plain' } });
             return response.data;
-        } catch(err){
+        } catch(err) {
             console.error('Error in get external Id ', err);
             throw new Error('Error in get external Id');
         }
