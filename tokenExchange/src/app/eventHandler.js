@@ -1,64 +1,39 @@
 const validator = require('./validation.js')
 const tokenGen = require('./tokenGen.js')
-const ValidationException = require('./exception/validationException.js');
-const bunyan = require("bunyan");
+var ValidationException = require('./exception/validationException.js');
+const auditLog = require("./log.js");
 
 module.exports = {
     async handleEvent(event){
         let eventOrigin = event?.headers?.origin
         if ( eventOrigin ) {
-            const traceId = process.env._X_AMZN_TRACE_ID
-            const auditLog = bunyan.createLogger({
-                name: 'AUD_ACC_LOGIN',
-                message: '[AUD_ACC_LOGIN] - LOGIN',
-                aud_type: 'AUD_ACC_LOGIN',
-                aud_orig: eventOrigin,
-                level: 'INFO',
-                logger_name: 'bunyan',
-                trace_id: traceId
-            });
+            auditLog('', 'AUD_ACC_LOGIN', eventOrigin).info('info');
             if ( checkOrigin( eventOrigin ) !== -1 ){
                 console.info('Origin successful checked')
                 let encodedToken = event?.queryStringParameters?.authorizationToken;
                 if (encodedToken) {
-                    try{
+                    try {
                         let decodedToken = await validator.validation(encodedToken);
                         let sessionToken = await tokenGen.generateToken(decodedToken);
-                        const auditLogTokenSuccess = bunyan.createLogger({
-                            name: 'AUD_ACC_LOGIN',
-                            message: '[AUD_ACC_LOGIN] - SUCCESS - OK Token successful generated',
-                            aud_type: 'AUD_ACC_LOGIN',
-                            aud_orig: eventOrigin,
-                            level: 'INFO',
-                            logger_name: 'bunyan',
-                            encodedToken: encodedToken,
-                            trace_id: traceId
-                        });
-                        auditLogTokenSuccess.info('Token successful generated');
+                        let uid = decodedToken.uid;
+                        let cx_id = decodedToken.organization? decodedToken.organization.id : ('PF-' + decodedToken.uid);
+                        let cx_type = decodedToken.organization? 'PA' : 'PF';
+                        auditLog('Token successful generated', 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, uid).info('success');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
                     } catch (err){
-                        const auditLogTokenError = bunyan.createLogger({
-                            name: 'AUD_ACC_LOGIN',
-                            message: 'AUD_ACC_LOGIN - ERROR - KO Error generating token ' + err.message,
-                            aud_type: 'AUD_ACC_LOGIN',
-                            aud_orig: eventOrigin,
-                            level: 'INFO',
-                            logger_name: 'bunyan',
-                            trace_id: traceId
-                        });
-                        auditLogTokenError.error('Error generating token');
+                        auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
                         return generateKoResponse(err, eventOrigin);
                     }
                 } else {
-                    auditLog.error('Authorization Token not present');
+                    auditLog('Authorization Token not present','AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
                     return generateKoResponse('AuthorizationToken not present', eventOrigin);
                 }
             } else {
-                auditLog.error("Origin=%s not allowed", eventOrigin);
+                auditLog('Origin not allowed','AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
                 return generateKoResponse('Origin not allowed', eventOrigin);
             }
         } else {
-            console.error('eventOrigin is null')
+            auditLog('eventOrigin is null','AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
             return generateKoResponse('eventOrigin is null', '*');
         }
         
