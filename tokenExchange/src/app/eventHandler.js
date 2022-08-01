@@ -1,13 +1,13 @@
 const validator = require('./validation.js')
 const tokenGen = require('./tokenGen.js')
-var ValidationException = require('./exception/validationException.js');
+const ValidationException = require('./exception/validationException.js');
 const bunyan = require("bunyan");
 
 module.exports = {
     async handleEvent(event){
         let eventOrigin = event?.headers?.origin
-        const bunyan = require('bunyan');
         if ( eventOrigin ) {
+            const traceId = Environment.GetEnvironmentVariable("_X_AMZN_TRACE_ID")
             const auditLog = bunyan.createLogger({
                 name: 'AUD_ACC_LOGIN',
                 message: '[AUD_ACC_LOGIN] - LOGIN',
@@ -15,6 +15,7 @@ module.exports = {
                 aud_orig: eventOrigin,
                 level: 'INFO',
                 logger_name: 'bunyan',
+                trace_id: traceId
             });
             if ( checkOrigin( eventOrigin ) !== -1 ){
                 console.info('Origin successful checked')
@@ -30,7 +31,8 @@ module.exports = {
                             aud_orig: eventOrigin,
                             level: 'INFO',
                             logger_name: 'bunyan',
-                            encodedToken: encodedToken
+                            encodedToken: encodedToken,
+                            trace_id: traceId
                         });
                         auditLogTokenSuccess.info('Token successful generated');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
@@ -41,7 +43,8 @@ module.exports = {
                             aud_type: 'AUD_ACC_LOGIN',
                             aud_orig: eventOrigin,
                             level: 'INFO',
-                            logger_name: 'bunyan'
+                            logger_name: 'bunyan',
+                            trace_id: traceId
                         });
                         auditLogTokenError.error('Error generating token');
                         return generateKoResponse(err, eventOrigin);
@@ -76,7 +79,7 @@ function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {
     // Clone decodedToken information and add sessionToken to them
     let responseBody = { ... decodedToken, sessionToken }
     
-    const response = {
+    return {
         statusCode: 200,
         headers: {
             'Access-Control-Allow-Origin': allowedOrigin
@@ -84,8 +87,6 @@ function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
     };
-    
-    return response;
 }
 
 function generateKoResponse(err, allowedOrigin) {
@@ -102,7 +103,7 @@ function generateKoResponse(err, allowedOrigin) {
         responseBody.error = err;
     }
     
-    const response = {
+    return {
         statusCode: statusCode,
         headers: {
             'Access-Control-Allow-Origin': allowedOrigin
@@ -110,5 +111,4 @@ function generateKoResponse(err, allowedOrigin) {
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
     };
-    return response;
 }
