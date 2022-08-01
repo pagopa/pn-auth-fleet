@@ -7,7 +7,7 @@ module.exports = {
     async handleEvent(event){
         let eventOrigin = event?.headers?.origin
         if ( eventOrigin ) {
-            const traceId = Environment.GetEnvironmentVariable("_X_AMZN_TRACE_ID")
+            const traceId = process.env._X_AMZN_TRACE_ID
             const auditLog = bunyan.createLogger({
                 name: 'AUD_ACC_LOGIN',
                 message: '[AUD_ACC_LOGIN] - LOGIN',
