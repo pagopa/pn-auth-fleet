@@ -106,7 +106,6 @@ Resources:
   # Lambda function
   ApiKeyAuthorizerLambda:
     Type: AWS::Lambda::Function
-    DependsOn: ApiKeyAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
       Runtime: nodejs14.x
@@ -120,7 +119,8 @@ Resources:
           PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
           GROUPS_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentGroupsTagName
       Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
-  
+      TracingConfig:
+        Mode: Active
   # Lambda function role
   ApiKeyAuthorizerLambdaRole:
     Type: AWS::IAM::Role
@@ -135,6 +135,8 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Path: /
 
   # Lambda function IAM policy
@@ -149,25 +151,15 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - '*'
+              - 'apigateway:*'
+              - 'tag:GetTagValues'
             Resource: "*"
-          - Sid: AllowLambdaToCreateLogs
-            Action:
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            Effect: Allow
-            Resource: !GetAtt ApiKeyAuthorizerLambdaLogGroup.Arn
-          - Sid: AllowLambdaToCreateLogGroup
-            Action:
-            - logs:CreateLogGroup
-            Effect: Allow
-            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # lambda function Log Group
   ApiKeyAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ProjectName}-apikeyAuthorizerLambdaFIXME"
+      LogGroupName: !Sub "/aws/lambda/${ApiKeyAuthorizerLambda}"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
@@ -211,7 +203,6 @@ Resources:
   # Lambda function
   IoAuthorizerLambda:
     Type: AWS::Lambda::Function
-    DependsOn: IoAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-ioAuthorizerLambda'
       Runtime: nodejs14.x
@@ -223,13 +214,14 @@ Resources:
       Environment:
         Variables:
           CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
-          PN_DATA_VAULT_BASEURL: !Sub http://${ApplicationLoadBalancerDomain}:8080
+          PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
       Role: !GetAtt IoAuthorizerLambdaRole.Arn
       VpcConfig:
         SecurityGroupIds:
           - !GetAtt DataVaultServiceSecurityGroup.GroupId
         SubnetIds: !Ref SubnetsIds
-
+      TracingConfig:
+        Mode: Active
   # Lambda function role
   IoAuthorizerLambdaRole:
     Type: AWS::IAM::Role
@@ -261,7 +253,6 @@ Resources:
   # Lambda function IAM policy
   IoAuthorizerLambdaPolicy:
     Type: AWS::IAM::Policy
-    DependsOn: IoAuthorizerLambdaLogGroup
     Properties:
       PolicyName: !Sub ${ProjectName}-ioAuthorizerLambdaPolicy
       Roles:
@@ -289,7 +280,7 @@ Resources:
   IoAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ProjectName}-ioAuthorizerLambdaFIXME"
+      LogGroupName: !Sub "/aws/lambda/${IoAuthorizerLambda}"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
@@ -333,7 +324,6 @@ Resources:
   # Lambda function
   JwtAuthorizerLambda:
     Type: AWS::Lambda::Function
-    DependsOn: JwtAuthorizerLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-jwtAuthorizerLambda'
       Runtime: nodejs14.x
@@ -346,6 +336,8 @@ Resources:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
+      TracingConfig:
+        Mode: Active
 
   # Lambda function role
   JwtAuthorizerLambdaRole:
@@ -366,7 +358,6 @@ Resources:
   # Lambda function IAM policy
   JwtAuthorizerLambdaPolicy:
     Type: AWS::IAM::Policy
-    DependsOn: JwtAuthorizerLambdaLogGroup
     Properties:
       PolicyName: !Sub ${ProjectName}-jwtAuthorizerLambdaPolicy
       Roles:
@@ -394,7 +385,7 @@ Resources:
   JwtAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ProjectName}-jwtAuthorizerLambdaFIXME"
+      LogGroupName: !Sub "/aws/lambda/${JwtAuthorizerLambda}"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
@@ -439,7 +430,6 @@ Resources:
   # Lambda function
   TokenExchangeLambda:
     Type: AWS::Lambda::Function
-    DependsOn: TokenExchangeLambdaPolicy
     Properties:
       FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
       Runtime: nodejs14.x
@@ -460,7 +450,8 @@ Resources:
           ACCEPTED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAcceptedAudience
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
       Role: !GetAtt TokenExchangeLambdaRole.Arn
-
+      TracingConfig:
+        Mode: Active
   # Lambda function role
   TokenExchangeLambdaRole:
     Type: AWS::IAM::Role
@@ -480,7 +471,6 @@ Resources:
   # Lambda function IAM policy
   TokenExchangeLambdaPolicy:
     Type: AWS::IAM::Policy
-    DependsOn: TokenExchangeLambdaLogGroup
     Properties:
       PolicyName: !Sub ${ProjectName}-tokenExchangeLambdaPolicy
       Roles:
@@ -498,17 +488,12 @@ Resources:
             - logs:PutLogEvents
             Effect: Allow
             Resource: !GetAtt TokenExchangeLambdaLogGroup.Arn
-          - Sid: AllowLambdaToCreateLogGroup
-            Action:
-            - logs:CreateLogGroup
-            Effect: Allow
-            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # lambda function Log Group
   TokenExchangeLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ProjectName}-tokenExchangeLambdaFIXME"
+      LogGroupName: !Sub "/aws/lambda/${TokenExchangeLambda}"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
