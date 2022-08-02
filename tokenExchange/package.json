@@ -13,8 +13,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "aws-sdk": "^2.1066.0",
-    "aws-sdk-mock": "^5.6.2",
+    "aws-sdk": "^2.1184.0",
+    "aws-sdk-mock": "^5.7.0",
+    "aws-xray-sdk-core": "^3.3.6",
     "axios-mock-adapter": "^1.20.0",
     "chai": "^4.3.6",
     "coveralls": "^3.1.1",

@@ -17,6 +17,7 @@ module.exports =
     if (status === 'KO') {
         statusMessage = `KO - FAILURE - ${message}`;
     }
+    const traceId = process.env._X_AMZN_TRACE_ID
     return bunyan.createLogger({
         name: 'AUDIT_LOG',
         message: `[${aud_type}] - ${statusMessage}`,
@@ -28,6 +29,7 @@ module.exports =
         uid: uid,
         cx_type: cx_type,
         cx_id: cx_id,
+        trace_id: traceId,
         tags: [
             "AUDIT5Y"
         ]

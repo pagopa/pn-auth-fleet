@@ -40,7 +40,6 @@ describe( "Success", function () {
           }
       },
       "resourcePath": "/request",
-      "httpMethod": "GET",
       "apiId": "abcdef123"
     };
     

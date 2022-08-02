@@ -1,4 +1,5 @@
-const AWS = require("aws-sdk");
+const AWSXRay = require('aws-xray-sdk-core');
+const AWS = AWSXRay.captureAWS(require('aws-sdk'));
 const kms = new AWS.KMS();
 const base64url = require("base64url");
 
@@ -50,11 +51,10 @@ function getTokenComponent(decodedToken,keyId) {
         payload.organization = organization;
     }
 
-    let token_components = {
+    return {
         header: base64url(JSON.stringify(header)),
         payload: base64url(JSON.stringify(payload)),
     };
-    return token_components;
 }
 
 function getExpDate() {
@@ -76,7 +76,7 @@ async function sign(tokenParts, keyId) {
                                         .replace(/\+/g, '-')
                                         .replace(/\//g, '_')
                                         .replace(/=/g, '');
-    let token = tokenParts.header + "." + tokenParts.payload + "." + tokenParts.signature;
+    const token = tokenParts.header + "." + tokenParts.payload + "." + tokenParts.signature;
     console.debug('token ', token);
     return token;
 }

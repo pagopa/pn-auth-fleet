@@ -1,6 +1,6 @@
 const jsonwebtoken = require('jsonwebtoken');
 const publicKeyGetter = require('./publicKeyGetter.js')
-var ValidationException = require('./exception/validationException.js');
+const ValidationException = require('./exception/validationException.js');
 
 module.exports = {
     async validation (authorizationToken){
@@ -60,7 +60,7 @@ async function jwtValidator(jwtToken) {
 function checkIssuer( iss ) {
     //verifica iss nel decoded token fa parte dei ALLOWED_ISSUER
     let allowedIssuers = process.env.ALLOWED_ISSUER.split( ',' );
-    if ( allowedIssuers !== 0) {
+    if ( allowedIssuers != 0) {
         return allowedIssuers.indexOf( iss )
     } else {
         console.error( 'Invalid env vars ALLOWED_ISSUER ', process.env.ALLOWED_ISSUER )
@@ -71,7 +71,7 @@ function checkIssuer( iss ) {
 function checkAudience( aud ) {
     //verifica aud nel decoded token fa parte dei ACCEPTED_AUDIENCE
     let allowedAudiences = process.env.ACCEPTED_AUDIENCE.split( ',' );
-    if ( allowedAudiences !== 0 ) {
+    if ( allowedAudiences != 0 ) {
         return allowedAudiences.indexOf( aud )
     } else {
         console.error( 'Invalid env vars ACCEPTED_AUDIENCE', process.env.ACCEPTED_AUDIENCE )
