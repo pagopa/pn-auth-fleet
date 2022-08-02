@@ -119,7 +119,8 @@ Resources:
           PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
           GROUPS_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentGroupsTagName
       Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
-  
+      TracingConfig:
+        Mode: Active
   # Lambda function role
   ApiKeyAuthorizerLambdaRole:
     Type: AWS::IAM::Role
@@ -219,7 +220,8 @@ Resources:
         SecurityGroupIds:
           - !GetAtt DataVaultServiceSecurityGroup.GroupId
         SubnetIds: !Ref SubnetsIds
-
+      TracingConfig:
+        Mode: Active
   # Lambda function role
   IoAuthorizerLambdaRole:
     Type: AWS::IAM::Role
@@ -334,6 +336,8 @@ Resources:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
+      TracingConfig:
+        Mode: Active
 
   # Lambda function role
   JwtAuthorizerLambdaRole:
@@ -446,7 +450,8 @@ Resources:
           ACCEPTED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAcceptedAudience
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
       Role: !GetAtt TokenExchangeLambdaRole.Arn
-
+      TracingConfig:
+        Mode: Active
   # Lambda function role
   TokenExchangeLambdaRole:
     Type: AWS::IAM::Role
@@ -483,11 +488,6 @@ Resources:
             - logs:PutLogEvents
             Effect: Allow
             Resource: !GetAtt TokenExchangeLambdaLogGroup.Arn
-          - Sid: AllowLambdaToCreateLogGroup
-            Action:
-            - logs:CreateLogGroup
-            Effect: Allow
-            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # lambda function Log Group
   TokenExchangeLambdaLogGroup:
