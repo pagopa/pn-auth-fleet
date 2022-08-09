@@ -1,5 +1,4 @@
 const AWSXRay = require('aws-xray-sdk-core');
-AWSXRay.setContextMissingStrategy("LOG_ERROR");
 const AWS = AWSXRay.captureAWS(require('aws-sdk'));
 const kms = new AWS.KMS();
 const base64url = require("base64url");
@@ -32,10 +31,11 @@ function getTokenComponent(decodedToken,keyId) {
         "typ": "JWT",
         "kid": keyId
     };
+    const expDate = getExpDate();
     
     let payload = {
         "iat": Math.floor(Date.now() / 1000),
-        "exp": decodedToken.desired_exp,
+        "exp": decodedToken.desired_exp ?? Math.floor(expDate.getTime() / 1000),
         "uid": decodedToken.uid,
         "iss": process.env.ISSUER,
         "aud": process.env.AUDIENCE,
@@ -54,6 +54,13 @@ function getTokenComponent(decodedToken,keyId) {
         header: base64url(JSON.stringify(header)),
         payload: base64url(JSON.stringify(payload)),
     };
+}
+
+function getExpDate() {
+    const secondsToAdd = process.env.TOKEN_TTL;
+    const expDate = Date.now() + secondsToAdd * 1000
+    console.debug('Exp date', new Date(expDate));
+    return new Date(expDate);
 }
 
 async function sign(tokenParts, keyId) {
