@@ -3,7 +3,6 @@ const AWS = AWSXRay.captureAWS(require('aws-sdk'));
 const kms = new AWS.KMS();
 const base64url = require("base64url");
 
-
 module.exports = {
     async generateToken(decodedToken){
         const keyAlias = process.env.KEY_ALIAS;
@@ -36,7 +35,7 @@ function getTokenComponent(decodedToken,keyId) {
     
     let payload = {
         "iat": Math.floor(Date.now() / 1000),
-        "exp": Math.floor(expDate.getTime() / 1000),
+        "exp": decodedToken.desired_exp ?? Math.floor(expDate.getTime() / 1000),
         "uid": decodedToken.uid,
         "iss": process.env.ISSUER,
         "aud": process.env.AUDIENCE,
