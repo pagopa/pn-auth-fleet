@@ -16,13 +16,13 @@ module.exports = {
             'spid-hub-test.uat.pn.pagopa.it':'https://spid-hub-test.uat.pn.pagopa.it:8080/.well-known/jwks.json'
         }
 
-        let jwksendpoint = issuersUrl[ issuer ];
+        let jwksendpoint = issuersUrl[issuer];
         if( !jwksendpoint  ) {
             jwksendpoint = issuer + '/.well-known/jwks.json'
         }
         console.info('jwksendpoint is ', jwksendpoint);
         try {
-            let response = await axios.get(jwksendpoint);
+            const response = await axios.get(jwksendpoint);
             return response.data;
         } catch(err){
             console.error('Error in get key ', err);

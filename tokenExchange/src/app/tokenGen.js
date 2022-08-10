@@ -33,19 +33,20 @@ function getTokenComponent(decodedToken,keyId) {
     };
     const expDate = getExpDate();
     
-    let payload = {
+    const payload = {
         "iat": Math.floor(Date.now() / 1000),
         "exp": decodedToken.desired_exp ?? Math.floor(expDate.getTime() / 1000),
         "uid": decodedToken.uid,
         "iss": process.env.ISSUER,
         "aud": process.env.AUDIENCE,
-        "groups": decodedToken.groups?.join()
+        "groups": decodedToken.groups?.join(),
+        "role": decodedToken.organization?.roles[0]?.role
     };
 
     let organization = {};
-    if (decodedToken.organization){
+    if (decodedToken.organization) {
         organization.id = decodedToken.organization.id
-        organization.role = decodedToken.organization.role
+        organization.role = decodedToken.organization.roles[0].role
         organization.fiscal_code = decodedToken.organization.fiscal_code
         payload.organization = organization;
     }
@@ -63,14 +64,18 @@ function getExpDate() {
     return new Date(expDate);
 }
 
-async function sign(tokenParts, keyId) {
-    let message = Buffer.from(tokenParts.header + "." + tokenParts.payload)
-    let res = await kms.sign({
+async function getSignature(message, keyId) {
+    return await kms.sign({
         Message: message,
         KeyId: keyId,
         SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
-        MessageType: 'RAW' 
+        MessageType: 'RAW'
     }).promise()
+}
+
+async function sign(tokenParts, keyId) {
+    const message = Buffer.from(tokenParts.header + "." + tokenParts.payload);
+    const res = getSignature(message, keyId);
     tokenParts.signature = res.Signature.toString("base64")
                                         .replace(/\+/g, '-')
                                         .replace(/\//g, '_')
