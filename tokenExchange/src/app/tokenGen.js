@@ -39,7 +39,7 @@ function getTokenComponent(decodedToken,keyId) {
         "uid": decodedToken.uid,
         "iss": process.env.ISSUER,
         "aud": process.env.AUDIENCE,
-        "groups": decodedToken.groups?.join(),
+        "groups": decodedToken.organization ? decodedToken.organization.groups?.join() : "",
         "role": decodedToken.organization?.roles[0]?.role
     };
 

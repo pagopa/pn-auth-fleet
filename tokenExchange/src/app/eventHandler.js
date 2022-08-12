@@ -70,6 +70,7 @@ function generateKoResponse(err, allowedOrigin) {
     
     let statusCode;
     let responseBody = {};
+    const traceId = process.env._X_AMZN_TRACE_ID;
     
     if (err instanceof ValidationException) {
         if (err.message === 'Role not allowed') {
@@ -81,9 +82,11 @@ function generateKoResponse(err, allowedOrigin) {
     } else {
         statusCode = 500;
         responseBody.error = err;
-        responseBody.status = statusCode
     }
-    
+
+    responseBody.status = statusCode;
+    responseBody.traceId = traceId;
+
     return {
         statusCode: statusCode,
         headers: {

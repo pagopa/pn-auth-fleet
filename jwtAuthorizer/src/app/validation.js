@@ -6,12 +6,12 @@ let cachedPublicKeyMap = new Map();
 
 
 module.exports = {
-    async validation (jwtToken){
-        if(jwtToken){
+    async validation(jwtToken) {
+        if (jwtToken) {
             let decodedToken = await jwtValidator(jwtToken);
             console.info('token is valid');
             return decodedToken;    
-        }else{
+        } else {
             throw new ValidationException("token is not valid")
         }
     }
