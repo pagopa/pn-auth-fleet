@@ -8,6 +8,7 @@ module.exports =
         status = '',
         cx_type,
         cx_id,
+        cx_role,
         uid
     ) {
     let statusMessage = `INFO - ${message}`;

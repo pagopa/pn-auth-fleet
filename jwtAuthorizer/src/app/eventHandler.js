@@ -24,7 +24,7 @@ module.exports = {
         const encodedToken = event?.authorizationToken?.replace('Bearer ','');
         if (encodedToken) {
             console.log('encodedToken', encodedToken);
-            try{
+            try {
                 let decodedToken = await validator.validation(encodedToken);
                 console.log('decodedToken', decodedToken);
                 
@@ -32,14 +32,14 @@ module.exports = {
                 contextAttrs.uid = decodedToken.uid;
                 contextAttrs.cx_id = decodedToken.organization? decodedToken.organization.id : ('PF-' + decodedToken.uid);
                 contextAttrs.cx_type = decodedToken.organization? 'PA' : 'PF';
-                contextAttrs.cx_groups = decodedToken.groups; 
+                contextAttrs.cx_groups = decodedToken.organization?.groups;
                 console.log('contextAttrs ', contextAttrs);
                 
                 // Generate IAM Policy
                 iamPolicy = await iamPolicyGenerator.generateIAMPolicy(event.methodArn, contextAttrs);
                 console.log('IAM Policy', JSON.stringify(iamPolicy));
                 return iamPolicy;
-            }catch(err){
+            } catch(err) {
                 console.error('Error generating IAM policy ',err);
                 return defaultDenyAllPolicy;
             }
