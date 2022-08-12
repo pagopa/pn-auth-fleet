@@ -27,7 +27,6 @@ async function jwtValidator(jwtToken) {
             console.error( 'Invalid algorithm=%s', alg )
             throw new ValidationException('Invalid algorithm')
         }
-
         if (checkAudience(aud) !== -1) {
             if (checkIssuer(issuer) !== -1) {
                 if (organization === undefined || checkRoles(role) !== -1) {
