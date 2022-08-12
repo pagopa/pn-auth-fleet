@@ -81,6 +81,7 @@ function generateKoResponse(err, allowedOrigin) {
     } else {
         statusCode = 500;
         responseBody.error = err;
+        responseBody.status = statusCode
     }
     
     return {
