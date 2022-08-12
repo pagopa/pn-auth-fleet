@@ -84,7 +84,8 @@ function checkAudience(aud) {
 }
 
 function checkRoles(role) {
-    const allowedRoles = process.env.ALLOWED_ROLES.split(',');
+    const allowedRoles = ['admin', 'operator'];
+
     if (allowedRoles != 0) {
         return allowedRoles.indexOf(role)
     } else {
