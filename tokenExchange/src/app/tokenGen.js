@@ -64,18 +64,20 @@ function getExpDate() {
     return new Date(expDate);
 }
 
-async function getSignature(message, keyId) {
-    return await kms.sign({
+function getSignature(message, keyId) {
+    const signature = kms.sign({
         Message: message,
         KeyId: keyId,
         SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
         MessageType: 'RAW'
     }).promise()
+
+    return signature;
 }
 
 async function sign(tokenParts, keyId) {
     const message = Buffer.from(tokenParts.header + "." + tokenParts.payload);
-    const res = getSignature(message, keyId);
+    const res = await getSignature(message, keyId);
     tokenParts.signature = res.Signature.toString("base64")
                                         .replace(/\+/g, '-')
                                         .replace(/\//g, '_')
