@@ -39,14 +39,14 @@ function getTokenComponent(decodedToken,keyId) {
         "uid": decodedToken.uid,
         "iss": process.env.ISSUER,
         "aud": process.env.AUDIENCE,
-        "groups": decodedToken.organization ? decodedToken.organization.groups?.join() : "",
-        "role": decodedToken.organization?.roles[0]?.role
+
     };
 
     let organization = {};
     if (decodedToken.organization) {
         organization.id = decodedToken.organization.id
         organization.role = decodedToken.organization.roles[0].role
+        organization.groups = decodedToken.organization.groups?.join()
         organization.fiscal_code = decodedToken.organization.fiscal_code
         payload.organization = organization;
     }
@@ -64,8 +64,8 @@ function getExpDate() {
     return new Date(expDate);
 }
 
-async function getSignature(message, keyId) {
-    return await kms.sign({
+function getSignature(message, keyId) {
+    return kms.sign({
         Message: message,
         KeyId: keyId,
         SigningAlgorithm: 'RSASSA_PKCS1_V1_5_SHA_256',
@@ -75,7 +75,7 @@ async function getSignature(message, keyId) {
 
 async function sign(tokenParts, keyId) {
     const message = Buffer.from(tokenParts.header + "." + tokenParts.payload);
-    const res = getSignature(message, keyId);
+    const res = await getSignature(message, keyId);
     tokenParts.signature = res.Signature.toString("base64")
                                         .replace(/\+/g, '-')
                                         .replace(/\//g, '_')
