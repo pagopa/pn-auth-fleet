@@ -39,6 +39,7 @@ function getTokenComponent(decodedToken,keyId) {
         "uid": decodedToken.uid,
         "iss": process.env.ISSUER,
         "aud": process.env.AUDIENCE,
+
     };
 
     let organization = {};
