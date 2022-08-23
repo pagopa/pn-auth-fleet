@@ -22,6 +22,7 @@ module.exports = {
                         auditLog('Token successful generated', 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, cx_role, uid).info('success');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
                     } catch (err) {
+                        console.log('test')
                         auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
                         return generateKoResponse(err, eventOrigin);
                     }
