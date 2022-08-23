@@ -9,7 +9,6 @@
     "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
-    "postbuild": "dependency-check package.json --no-dev --missing ./dist/**/*.js"
   },
   "author": "",
   "license": "ISC",
