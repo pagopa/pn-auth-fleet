@@ -8,8 +8,7 @@
     "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
     "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit",
     "coverage": "nyc report --reporter=lcov",
-    "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
-    "postbuild": "dependency-check package.json --no-dev --missing ./dist/**/*.js"
+    "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
   },
   "author": "",
   "license": "ISC",
@@ -25,7 +24,6 @@
   },
   "dependencies": {
     "aws-xray-sdk-core": "^3.3.6",
-    "axios": "^0.25.0",
-    "dependency-check": "^4.1.0"
+    "axios": "^0.25.0"
   }
 }
