@@ -46,7 +46,7 @@ function getTokenComponent(decodedToken,keyId) {
     if (decodedToken.organization) {
         organization.id = decodedToken.organization.id
         organization.role = decodedToken.organization.roles[0].role
-        organization.groups = decodedToken.organization.groups?.join()
+        organization.groups = decodedToken.organization.groups?
         organization.fiscal_code = decodedToken.organization.fiscal_code
         payload.organization = organization;
     }
