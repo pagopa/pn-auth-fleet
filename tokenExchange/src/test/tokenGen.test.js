@@ -1,13 +1,6 @@
 const expect = require('chai').expect
-const sinon = require('sinon');
 const rewire = require('rewire');
 const tokenGen = rewire('../app/tokenGen');
-
-const tokenGenObject = { getSignature: tokenGen.__get__('getSignature'), getKeyId: tokenGen.__get__('getKeyId') };
-const stubGetSignature = sinon.stub(tokenGenObject, 'getSignature').returns({Signature:'signature'});
-const stubGetKeyId = sinon.stub(tokenGenObject, 'getKeyId').returns('keyId');
-tokenGen.__set__('getSignature', stubGetSignature);
-tokenGen.__set__('getKeyId', stubGetKeyId);
 
 const decodedToken = {
   email: 'info@agid.gov.it',
@@ -37,9 +30,13 @@ const decodedToken = {
 describe("test tokenGen", () => {
 
   it("test the token generation", async () => {
+    const revert = tokenGen.__set__({
+      getSignature: () => ({Signature:'signature'}),
+      getKeyId: () => Promise.resolve('keyId')
+    })
     const token = await tokenGen.generateToken(decodedToken);
-
     console.debug("my token", decodedToken, token);
     expect(token).to.match(/.*\..*\.signature/i);
+    revert();
   })
 })

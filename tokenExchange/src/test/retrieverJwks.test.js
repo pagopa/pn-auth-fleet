@@ -16,7 +16,7 @@ describe('retrieverJwks success', () => {
 });
 
 describe('retrieverJwks error', () => {
-    const result = fs.readFileSync("./src/test/jwks-mock/spid-hub-test.dev.pn.pagopa.it.jwks.json", { encoding: "utf8" });
+    fs.readFileSync("./src/test/jwks-mock/spid-hub-test.dev.pn.pagopa.it.jwks.json", { encoding: "utf8" });
     const mock = new MockAdapter(axios);
     mock.onGet("https://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json").reply(500);
     

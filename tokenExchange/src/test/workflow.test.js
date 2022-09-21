@@ -233,17 +233,12 @@ describe("Executes the token exchange successfully", function () {
     }
 
     it("with code = 200", function (done) {
-        const tokenGenObject = { getSignature: tokenGen.__get__('getSignature'), getKeyId: tokenGen.__get__('getKeyId') };
-        const stubGetSignature = sinon
-          .stub(tokenGenObject, 'getSignature')
-          .returns({Signature:'signature'});
-        const stubGetKeyId = sinon
-          .stub(tokenGenObject, 'getKeyId')
-          .returns('keyId');
-        tokenGen.__set__('getSignature', stubGetSignature);
-        tokenGen.__set__('getKeyId', stubGetKeyId);
+        const revert = tokenGen.__set__({
+            getSignature: () => ({Signature:'signature'}),
+            getKeyId: () => Promise.resolve('keyId')
+        })
         const verifyStub = sinon.stub(jsonwebtoken, 'verify');
-        verifyStub.returns('token.token.token')
+        verifyStub.returns('token.token.token');
         lambdaTester( lambda.handler )
           .event( expiredToken )
           .expectResult((result) => {
@@ -253,6 +248,7 @@ describe("Executes the token exchange successfully", function () {
               const body = JSON.parse(result.body);
               expect(body.error).to.be.undefined;
               done();
+              revert();
           }).catch(done); // Catch assertion errors
     });
 });

@@ -16,7 +16,6 @@ AWS.mock('APIGateway', 'getTags', function (_params, callback) {
     callback(null, awsMockResult);
 });
 
-
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
     "./iamPolicyGenerator.js": iamPolicyGen,
     "./keyTagsGetter.js": keyTagsGetter,
@@ -27,7 +26,7 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 });
 
 describe( "Success", function () {
-    let event = {
+    const event = {
         type: 'TOKEN',
         methodArn: 'arn:aws:execute-api:us-east-1:123456789012:swz6w548va/beta/POST/delivery/notifications/sent',
         requestContext: {
@@ -56,7 +55,7 @@ describe( "Success", function () {
 });
 
 describe( "Error", function () {
-    let event = {
+    const event = {
         type: 'TOKEN',
         methodArn: 'arn:aws:execute-api:us-east-1:123456789012:swz6w548va/',
         requestContext: {
