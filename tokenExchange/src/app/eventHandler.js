@@ -12,10 +12,8 @@ module.exports = {
                 console.info('Origin successful checked');
                 // retrieve token
                 const httpMethod = event?.httpMethod;
-                let encodedToken;
-                if (httpMethod === 'GET') {
-                    encodedToken = event?.queryStringParameters?.authorizationToken;
-                } else if (httpMethod === 'POST') {
+                let encodedToken;                    
+                if (httpMethod === 'POST') {
                     try {
                         const requestBody = JSON.parse(event?.body);
                         encodedToken = requestBody?.authorizationToken;
@@ -23,6 +21,8 @@ module.exports = {
                         auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
                         return generateKoResponse(err, eventOrigin);
                     }
+                } else {
+                    encodedToken = event?.queryStringParameters?.authorizationToken;
                 }
                 if (encodedToken) {
                     try {

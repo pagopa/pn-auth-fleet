@@ -1,6 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: 'Example microservice deploy'
 
+Transform:
+  - UpdateDeploymentTransform
+
 Parameters:
   ProjectName:
     Type: String
