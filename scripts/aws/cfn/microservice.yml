@@ -697,8 +697,6 @@ Resources:
         PassthroughBehavior: WHEN_NO_MATCH
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
-        RequestParameters:
-          integration.request.querystring.authorizationToken: $input.json('$.authorizationToken')
 
   TokenExchangePostMethodRequestValidator:
     Type: AWS::ApiGateway::RequestValidator
@@ -706,20 +704,6 @@ Resources:
       RestApiId: !Ref TokenExchangeRestApi
       ValidateRequestBody: true
       ValidateRequestParameters: true
-
-  # Lambda access right for POST method
-  TokenExchangePostLambdaPermission:
-    Type: AWS::Lambda::Permission
-    DependsOn: 
-      - TokenExchangeLambda
-      - TokenExchangeRestApi
-    Properties:
-      FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      # note: if route *not* at API Gateway root, `SourceArn` would take the form of:
-      #               arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/POST/PATH_PART
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/POST/'
 
   # Session Token OPTIONS method
   TokenExchangeOptionsMethod:
@@ -750,7 +734,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'"
               "method.response.header.Access-Control-Allow-Origin": "'*'"
             ResponseTemplates:
               "application/json": ""
