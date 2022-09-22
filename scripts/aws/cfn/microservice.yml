@@ -1,6 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: 'Example microservice deploy'
 
+Transform:
+  - UpdateDeploymentTransform
+
 Parameters:
   ProjectName:
     Type: String
@@ -577,6 +580,7 @@ Resources:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - TokenExchangeGetMethod
+      - TokenExchangePostMethod
       - TokenExchangeOptionsMethod
     Properties:
       RestApiId: !Ref TokenExchangeRestApi
@@ -642,7 +646,7 @@ Resources:
       RestApiId: !Ref TokenExchangeRestApi
       ValidateRequestBody: false
       ValidateRequestParameters: true
-  
+
   # Lambda access right for GET method
   TokenExchangeLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -656,7 +660,54 @@ Resources:
       # note: if route *not* at API Gateway root, `SourceArn` would take the form of:
       #               arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/GET/PATH_PART
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/GET/'
-  
+
+  # Session Token Body model
+  TokenExchangeModel:
+    Type: 'AWS::ApiGateway::Model'
+    Properties:
+      RestApiId: !Ref TokenExchangeRestApi
+      ContentType: application/json
+      Description: Schema for Token Exchange body
+      Name: TokenExchangeModel
+      Schema:
+        type: object
+        required:
+          - authorizationToken
+        properties:
+          authorizationToken:
+            type: string
+
+  # Session Token POST method
+  TokenExchangePostMethod:
+    DependsOn: TokenExchangeLambda
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: 'Proxy to Session Token Lambda'
+      RestApiId: !Ref TokenExchangeRestApi
+      ResourceId: !GetAtt TokenExchangeRestApi.RootResourceId
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestValidatorId: !Ref TokenExchangePostMethodRequestValidator
+      RequestParameters: 
+        "method.request.header.Origin": true
+      RequestModels:
+         "application/json": !Ref TokenExchangeModel 
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-tokenExchangeLambda/invocations'
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  TokenExchangePostMethodRequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      RestApiId: !Ref TokenExchangeRestApi
+      ValidateRequestBody: true
+      ValidateRequestParameters: true
+
   # Session Token OPTIONS method
   TokenExchangeOptionsMethod:
     DependsOn: TokenExchangeLambda
@@ -686,10 +737,11 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'"
               "method.response.header.Access-Control-Allow-Origin": "'*'"
             ResponseTemplates:
               "application/json": ""
+
 # DashBoard
   LambdaDashboard:
     Type: AWS::CloudWatch::Dashboard
