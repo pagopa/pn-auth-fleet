@@ -647,7 +647,7 @@ Resources:
       ValidateRequestBody: false
       ValidateRequestParameters: true
 
-  # Lambda access right for GET method
+  # Lambda access right for POST method
   TokenExchangeLambdaPermission:
     Type: AWS::Lambda::Permission
     DependsOn: 
@@ -657,9 +657,7 @@ Resources:
       FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      # note: if route *not* at API Gateway root, `SourceArn` would take the form of:
-      #               arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/GET/PATH_PART
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/GET/'
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/POST'
 
   # Session Token Body model
   TokenExchangeModel:
