@@ -219,10 +219,10 @@ Resources:
           CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
       Role: !GetAtt IoAuthorizerLambdaRole.Arn
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-05496aea288f2417e
-        SubnetIds: !Ref SubnetsIds
+      #VpcConfig:
+      #  SecurityGroupIds:
+      #    - sg-05496aea288f2417e
+      #  SubnetIds: !Ref SubnetsIds
       TracingConfig:
         Mode: Active
   # Lambda function role
