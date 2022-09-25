@@ -220,8 +220,8 @@ Resources:
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
       Role: !GetAtt IoAuthorizerLambdaRole.Arn
       VpcConfig:
-        SecurityGroupIds:
-          - !GetAtt DataVaultServiceSecurityGroup.GroupId
+        #SecurityGroupIds:
+        #  - !GetAtt DataVaultServiceSecurityGroup.GroupId
         SubnetIds: !Ref SubnetsIds
       TracingConfig:
         Mode: Active
@@ -242,16 +242,16 @@ Resources:
       Path: /
 
   # Data vault Service security group
-  DataVaultServiceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub ${ProjectName}-data-vault-ioAuthorizer-DecGrp
-      VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: 0.0.0.0/0
+  # DataVaultServiceSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupDescription: !Sub ${ProjectName}-data-vault-ioAuthorizer-DecGrp
+  #     VpcId: !Ref VpcId
+  #     SecurityGroupIngress:
+  #       - IpProtocol: tcp
+  #         FromPort: 8080
+  #         ToPort: 8080
+  #         CidrIp: 0.0.0.0/0
 
   # Lambda function IAM policy
   IoAuthorizerLambdaPolicy:
