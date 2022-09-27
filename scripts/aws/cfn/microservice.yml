@@ -657,7 +657,7 @@ Resources:
       FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/unique/POST'
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/*/POST/'
 
   # Session Token Body model
   TokenExchangeModel:
