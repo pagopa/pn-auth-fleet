@@ -100,7 +100,13 @@ Parameters:
     Type: String
     Description: 'VpcId where the microservice is going to be deployed'
 
-  
+  PutIntoVpc:
+    Type: String
+    Default: 'false'
+
+Conditions:
+  HaveToDefineVpcs: !Equals [ 'true', !Ref PutIntoVpc ]
+
 Resources:
 
   ###             API kEY AUTHORIZER LAMBDA             ###
@@ -219,10 +225,13 @@ Resources:
           CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
       Role: !GetAtt IoAuthorizerLambdaRole.Arn
-      #VpcConfig:
-      #  SecurityGroupIds:
-      #    - sg-05496aea288f2417e
-      #  SubnetIds: !Ref SubnetsIds
+      VpcConfig:
+        Fn::If:
+          - HaveToDefineVpcs
+          - SecurityGroupIds:
+            - !GetAtt DataVaultServiceSecurityGroup.GroupId
+            SubnetIds: !Ref SubnetsIds
+          - AWS::NoValue
       TracingConfig:
         Mode: Active
   # Lambda function role
@@ -242,16 +251,17 @@ Resources:
       Path: /
 
   # Data vault Service security group
-  # DataVaultServiceSecurityGroup:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties:
-  #     GroupDescription: !Sub ${ProjectName}-data-vault-ioAuthorizer-DecGrp
-  #     VpcId: !Ref VpcId
-  #     SecurityGroupIngress:
-  #       - IpProtocol: tcp
-  #         FromPort: 8080
-  #         ToPort: 8080
-  #         CidrIp: 0.0.0.0/0
+  DataVaultServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: HaveToDefineVpcs
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-data-vault-ioAuthorizer-DecGrp
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
 
   # Lambda function IAM policy
   IoAuthorizerLambdaPolicy:
