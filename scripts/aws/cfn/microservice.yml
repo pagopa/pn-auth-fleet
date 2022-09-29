@@ -102,7 +102,7 @@ Parameters:
 
   PutIntoVpc:
     Type: String
-    Default: 'false'
+    Default: 'true'
 
 Conditions:
   HaveToDefineVpcs: !Equals [ 'true', !Ref PutIntoVpc ]
