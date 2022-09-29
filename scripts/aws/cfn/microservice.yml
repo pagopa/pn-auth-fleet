@@ -231,7 +231,7 @@ Resources:
           - SecurityGroupIds:
             - !GetAtt DataVaultServiceSecurityGroup.GroupId
             SubnetIds: !Ref SubnetsIds
-          - AWS::NoValue
+          - !Ref AWS::NoValue
       TracingConfig:
         Mode: Active
   # Lambda function role
