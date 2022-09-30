@@ -100,7 +100,14 @@ Parameters:
     Type: String
     Description: 'VpcId where the microservice is going to be deployed'
 
-  
+  PutIntoVpc:
+    Type: String
+    Default: 'true'
+
+Conditions:
+  HaveToDefineVpcs: !Equals [ 'true', !Ref PutIntoVpc ]
+
+
 Resources:
 
   ###             API kEY AUTHORIZER LAMBDA             ###
@@ -244,6 +251,7 @@ Resources:
   # Data vault Service security group
   DataVaultServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    Condition: HaveToDefineVpcs
     Properties:
       GroupDescription: !Sub ${ProjectName}-data-vault-ioAuthorizer-DecGrp
       VpcId: !Ref VpcId
