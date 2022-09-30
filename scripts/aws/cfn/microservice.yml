@@ -250,6 +250,26 @@ Resources:
             Action:
               - sts:AssumeRole
       Path: /
+      Policies:
+        - PolicyName: !Sub ${ProjectName}-ioAuthorizerLambdaRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - '*'
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # Data vault Service security group
   DataVaultServiceSecurityGroup:
@@ -262,33 +282,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 8080
           ToPort: 8080
-          CidrIp: 0.0.0.0/0
-
-  # Lambda function IAM policy
-  IoAuthorizerLambdaPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub ${ProjectName}-ioAuthorizerLambdaPolicy
-      Roles:
-        - !Ref IoAuthorizerLambdaRole
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - '*'
-            Resource: "*"
-          - Sid: AllowLambdaToCreateLogs
-            Action:
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            Effect: Allow
-            Resource: !GetAtt IoAuthorizerLambdaLogGroup.Arn
-          - Sid: AllowLambdaToCreateLogGroup
-            Action:
-            - logs:CreateLogGroup
-            Effect: Allow
-            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+          CidrIp: 0.0.0.0/0    
 
   # lambda function Log Group
   IoAuthorizerLambdaLogGroup:
