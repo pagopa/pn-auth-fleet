@@ -368,32 +368,26 @@ Resources:
             Action:
               - sts:AssumeRole
       Path: /
-
-  # Lambda function IAM policy
-  JwtAuthorizerLambdaPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub ${ProjectName}-jwtAuthorizerLambdaPolicy
-      Roles:
-        - !Ref JwtAuthorizerLambdaRole
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - '*'
-            Resource: "*"
-          - Sid: AllowLambdaToCreateLogs
-            Action:
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            Effect: Allow
-            Resource: !GetAtt JwtAuthorizerLambdaLogGroup.Arn
-          - Sid: AllowLambdaToCreateLogGroup
-            Action:
-            - logs:CreateLogGroup
-            Effect: Allow
-            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - '*'
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
   # lambda function Log Group
   JwtAuthorizerLambdaLogGroup:
