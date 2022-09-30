@@ -227,9 +227,12 @@ Resources:
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
       Role: !GetAtt IoAuthorizerLambdaRole.Arn
       VpcConfig:
-        SecurityGroupIds:
-          - !GetAtt DataVaultServiceSecurityGroup.GroupId
-        SubnetIds: !Ref SubnetsIds
+        Fn::If:
+          - HaveToDefineVpcs
+          - SecurityGroupIds:
+            - !GetAtt DataVaultServiceSecurityGroup.GroupId
+            SubnetIds: !Ref SubnetsIds
+          - !Ref AWS::NoValue
       TracingConfig:
         Mode: Active
   # Lambda function role
