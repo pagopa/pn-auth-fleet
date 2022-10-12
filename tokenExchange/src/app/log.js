@@ -9,7 +9,8 @@ module.exports =
         cx_type,
         cx_id,
         cx_role,
-        uid
+        uid,
+        jti
     ) {
     let statusMessage = `INFO - ${message}`;
     if (status === 'OK') {
@@ -33,6 +34,7 @@ module.exports =
         trace_id: traceId,
         tags: [
             "AUDIT5Y"
-        ]
+        ],
+        jti
     })
 }

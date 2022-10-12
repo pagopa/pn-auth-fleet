@@ -27,7 +27,6 @@ module.exports = {
             try {
                 let decodedToken = await validator.validation(encodedToken);
                 console.log('decodedToken', decodedToken);
-                console.log('Input token ID', decodedToken.jti);
                 let contextAttrs = {};
                 contextAttrs.uid = decodedToken.uid;
                 contextAttrs.cx_id = decodedToken.organization? decodedToken.organization.id : ('PF-' + decodedToken.uid);
