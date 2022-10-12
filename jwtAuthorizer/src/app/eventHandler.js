@@ -1,5 +1,6 @@
-const validator = require('./validation.js')
-const iamPolicyGenerator = require('./iamPolicyGen.js')
+const validator = require('./validation.js');
+const iamPolicyGenerator = require('./iamPolicyGen.js');
+const auditLog = require('./log.js')
 
 const defaultDenyAllPolicy = {
     "principalId": "user",
@@ -27,7 +28,7 @@ module.exports = {
             try {
                 let decodedToken = await validator.validation(encodedToken);
                 console.log('decodedToken', decodedToken);
-                
+                auditLog(`Input token ID: ${decodedToken.jti}`, 'AUD_ACC_LOGIN', event?.headers?.origin, 'OK').info('info');
                 let contextAttrs = {};
                 contextAttrs.uid = decodedToken.uid;
                 contextAttrs.cx_id = decodedToken.organization? decodedToken.organization.id : ('PF-' + decodedToken.uid);

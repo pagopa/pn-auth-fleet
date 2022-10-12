@@ -27,12 +27,14 @@ module.exports = {
                 if (encodedToken) {
                     try {
                         const decodedToken = await validator.validation(encodedToken);
+                        auditLog(`Input token ID: ${decodedToken.jti}`, 'AUD_ACC_LOGIN', eventOrigin, 'OK').info('info');
                         const sessionToken = await tokenGen.generateToken(decodedToken);
                         const uid = decodedToken.uid;
                         const cx_id = decodedToken.organization ? decodedToken.organization.id : ('PF-' + decodedToken.uid);
                         const cx_type = decodedToken.organization ? 'PA' : 'PF';
                         const cx_role = decodedToken.organization?.roles[0]?.role
                         auditLog('Token successful generated', 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, cx_role, uid).info('success');
+                        auditLog(`Generated token ID: ${decodedToken.jti}`, 'AUD_ACC_LOGIN', eventOrigin, 'OK').info('info');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
                     } catch (err) {
                         auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
