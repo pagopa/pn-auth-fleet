@@ -32,7 +32,7 @@ module.exports = {
                         const cx_id = decodedToken.organization ? decodedToken.organization.id : ('PF-' + decodedToken.uid);
                         const cx_type = decodedToken.organization ? 'PA' : 'PF';
                         const cx_role = decodedToken.organization?.roles[0]?.role
-                        auditLog('Token successful generated', 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, cx_role, uid).info('success');
+                        auditLog(`Token successful generated with id ${decodedToken.jti}`, 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, cx_role, uid, decodedToken.jti).info('success');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
                     } catch (err) {
                         auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
