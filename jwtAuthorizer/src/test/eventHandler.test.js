@@ -58,7 +58,8 @@ describe('test eventHandler', () => {
             cx_id: 'PF-ed84b8c9-444e-410d-80d7-cfad6aa12070',
             cx_type: 'PF',
             cx_groups: undefined,
-            cx_role: undefined
+            cx_role: undefined,
+            cx_jti: '01G2A6V0B13BHNCPEZ32S7KQ3Y'
         });
     })
 });

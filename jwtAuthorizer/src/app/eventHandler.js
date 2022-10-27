@@ -33,6 +33,7 @@ module.exports = {
                 contextAttrs.cx_type = decodedToken.organization? 'PA' : 'PF';
                 contextAttrs.cx_groups = decodedToken.organization?.groups?.join();
                 contextAttrs.cx_role = decodedToken.organization?.role;
+                contextAttrs.cx_jti = decodedToken.jti;
                 console.log('contextAttrs ', contextAttrs);
                 
                 // Generate IAM Policy
