@@ -207,6 +207,104 @@ Resources:
       Threshold: 1
       TreatMissingData: notBreaching
 
+  ###             API KEY AUTHORIZER2 LAMBDA             ###
+  #########################################################
+  
+  # Lambda function
+  ApiKeyAuthorizer2Lambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-apikeyAuthorizer2Lambda'
+      Runtime: nodejs14.x
+      Handler: 'index.handler'
+      Code: 
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: 'pn-auth-fleet/main/apikeyAuthorizer2.zip'
+        S3ObjectVersion: !Ref LambdaZipVersionId1
+      # Environment:
+      #   Variables:
+      #     PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
+      #     GROUPS_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentGroupsTagName
+      Role: !GetAtt ApiKeyAuthorizer2LambdaRole.Arn
+      TracingConfig:
+        Mode: Active
+  # Lambda function role
+  ApiKeyAuthorizer2LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-apikeyAuthorizer2LambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+
+  # Lambda function IAM policy
+  ApiKeyAuthorizer2LambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-apikeyAuthorizer2LambdaPolicy
+      Roles:
+        - !Ref ApiKeyAuthorizer2LambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'apigateway:*'
+              - 'dynamodb:GetItem'
+              - 'dynamodb:Query'
+            Resource: "*"
+
+  # lambda function Log Group
+  ApiKeyAuthorizer2LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ApiKeyAuthorizer2Lambda}"
+      RetentionInDays: 3
+
+  # Lambda function CloudWatch Logs Metric Filter
+  ApiKey2ErrorFatalLogsMetricFilter: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: 
+        !Ref ApiKeyAuthorizer2LambdaLogGroup
+      FilterPattern: '?ERROR ?FATAL ?CRITICAL'
+      MetricTransformations: 
+        - MetricValue: 1
+          MetricNamespace: "ErrorFatalLogs"
+          MetricName: !Sub ${ProjectName}-authFleet-ApiKey2ErrorFatalMetric
+  
+  # Lambda function CloudWatch alarm 
+  APIKey2ErrorFatalLogsMetricAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: ApiKey2ErrorFatalLogsMetricFilter
+    Properties:
+      AlarmName: !Sub ${ProjectName}-authFleet-ApiKey2ErrorFatalLogsMetricAlarm
+      AlarmDescription: "CloudWatch alarm for API Key Authorizer Lambda logs with ERROR or FATAL line."
+      AlarmActions: 
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      MetricName: !Sub ${ProjectName}-authFleet-ApiKey2ErrorFatalMetric
+      Namespace: ErrorFatalLogs
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 60
+      Period: 60
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+
   ###               IO AUTHORIZER LAMBDA                ###
   #########################################################
 
