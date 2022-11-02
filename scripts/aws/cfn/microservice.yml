@@ -811,7 +811,7 @@ Resources:
       Path: /
       Policies:
         -
-          PolicyName: !Sub '${ProjectName}-${AppName}-auth-fleet-logs-subscription-role'
+          PolicyName: !Sub '${ProjectName}-auth-fleet-logs-subscription-role'
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
