@@ -104,8 +104,19 @@ Parameters:
     Type: String
     Default: 'true'
 
+  LogsKinesisSourceStreamArn:
+    Type: String
+    Description: 'Kinesis stream that receive logs'
+
+  # - Log exports parameters
+  CloudwatchFilterPattern:
+    Default: ''
+    Type: String
+    Description: filter expression for exported logs
+
 Conditions:
   HaveToDefineVpcs: !Equals [ 'true', !Ref PutIntoVpc ]
+  SendLogToKinesis: !Not [ !Equals [ !Ref LogsKinesisSourceStreamArn, '' ] ]
 
 
 Resources:
@@ -170,7 +181,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ApiKeyAuthorizerLambda}"
-      RetentionInDays: 3
+      RetentionInDays: 14
 
   # Lambda function CloudWatch Logs Metric Filter
   ApiKeyErrorFatalLogsMetricFilter: 
@@ -289,7 +300,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${IoAuthorizerLambda}"
-      RetentionInDays: 3
+      RetentionInDays: 14
 
   # Lambda function CloudWatch Logs Metric Filter
   IoAuthorizerErrorFatalLogsMetricFilter: 
@@ -388,7 +399,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${JwtAuthorizerLambda}"
-      RetentionInDays: 3
+      RetentionInDays: 14
 
   # Lambda function CloudWatch Logs Metric Filter
   JwtAuthorizerErrorFatalLogsMetricFilter: 
@@ -496,7 +507,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${TokenExchangeLambda}"
-      RetentionInDays: 3
+      RetentionInDays: 14
 
   # Lambda function CloudWatch Logs Metric Filter
   TokenExchangeErrorFatalLogsMetricFilter: 
@@ -605,7 +616,7 @@ Resources:
   TokenExchangeApiLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      RetentionInDays: 1
+      RetentionInDays: 14
 
   # Expose API to custom domain
   APIMapping:
@@ -738,6 +749,82 @@ Resources:
               "method.response.header.Access-Control-Allow-Origin": "'*'"
             ResponseTemplates:
               "application/json": ""
+
+  ### Subscription filters with Kinesis  https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#DestinationKinesisExample
+  ApiKeyAuthorizerSubscriptionFilter:
+    Condition: SendLogToKinesis
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
+      LogGroupName: !Ref ApiKeyAuthorizerLambdaLogGroup
+      FilterPattern: !Ref CloudwatchFilterPattern
+      DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  IoAuthorizerSubscriptionFilter:
+    Condition: SendLogToKinesis
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
+      LogGroupName: !Ref IoAuthorizerLambdaLogGroup
+      FilterPattern: !Ref CloudwatchFilterPattern
+      DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  JwtAuthorizerSubscriptionFilter:
+    Condition: SendLogToKinesis
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
+      LogGroupName: !Ref JwtAuthorizerLambdaLogGroup
+      FilterPattern: !Ref CloudwatchFilterPattern
+      DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  TokenExchangeSubscriptionFilter:
+    Condition: SendLogToKinesis
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
+      LogGroupName: !Ref TokenExchangeLambdaLogGroup
+      FilterPattern: !Ref CloudwatchFilterPattern
+      DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  TokenExchangeApiSubscriptionFilter:
+    Condition: SendLogToKinesis
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
+      LogGroupName: !Ref TokenExchangeApiLogGroup
+      FilterPattern: !Ref CloudwatchFilterPattern
+      DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  ### IAM Role used by Subscription filters to allow read logs from Cloudwatch and send logs to Kinesis Firehose
+  SubscriptionFilterServiceRole:
+    Condition: SendLogToKinesis
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: logs.amazonaws.com
+        Version: "2012-10-17"
+      Path: /
+      Policies:
+        -
+          PolicyName: !Sub '${ProjectName}-auth-fleet-logs-subscription-role'
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - kinesis:PutRecord
+                Effect: Allow
+                Resource: "*"
+              - Action:
+                  - "kms:Encrypt"
+                  - "kms:GenerateDataKey"
+                  - "kms:Decrypt"
+                Effect: Allow
+                Resource: "*"
 
 # DashBoard
   LambdaDashboard:
