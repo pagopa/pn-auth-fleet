@@ -27,9 +27,9 @@ module.exports.eventHandler = async (event, context) => {
         }
 
         const paAggregationDynamo = await dynamo.getPaAggregationById(apiKeyDynamo.cxId);
+        console.log("Aggregate ID found -> ", paAggregationDynamo.aggregateId)
 
         const aggregateDynamo = await dynamo.getPaAggregateById(paAggregationDynamo.aggregateId);
-
         console.log("AWS ApiKey Found -> ", aggregateDynamo.AWSApiKey);
 
         const contextAuth = {
