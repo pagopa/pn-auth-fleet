@@ -2,13 +2,6 @@ const { ItemNotFoundException, TooManyItemsFoundException } = require("./excepti
 const AWSXRay = require('aws-xray-sdk-core');
 const AWS = AWSXRay.captureAWS(require('aws-sdk'));
 
-class DynamoKey {
-    constructor(keyName, keyValue){
-        this.keyName = keyName;
-        this.keyValue = keyValue;
-    }
-}
-
 module.exports.getApiKeyByIndex = async (virtualKey) => {
     const docClient = new AWS.DynamoDB.DocumentClient();
     const TableName = "pn-apiKey";
@@ -46,20 +39,17 @@ module.exports.getApiKeyByIndex = async (virtualKey) => {
 }
 
 module.exports.getPaAggregationById = async (cxId) => {
-    const key = new DynamoKey("x-pagopa-pn-cx-id", cxId);
     const tableName = "pn-paAggregations";
-    return getItemById(tableName, key);
+    return getItemById(tableName, "x-pagopa-pn-cx-id", cxId);
 }
 
 module.exports.getPaAggregateById = async (aggregateId) => {
-    const key = new DynamoKey("aggregateId", aggregateId);
     const tableName = "pn-aggregates";
-    return getItemById(tableName, key);
+    return getItemById(tableName, "aggregateId", aggregateId);
 };
 
-const getItemById = async (TableName, key) => {
+const getItemById = async (TableName, keyName, keyValue) => {
     const docClient = new AWS.DynamoDB.DocumentClient();
-    const {keyName, keyValue} = key;
 
     const dynamoItem = await docClient.get({
         TableName,

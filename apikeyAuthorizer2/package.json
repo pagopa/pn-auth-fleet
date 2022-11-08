@@ -1,7 +1,7 @@
 {
-  "name": "apikeyauthorizer2",
+  "name": "apikey-authorizer2",
   "version": "1.0.0",
-  "description": "",
+  "description": "lambda utilizzata per autorizzare i client tramite le apikey virtuali",
   "main": "index.js",
   "scripts": {
     "test-build": "npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
