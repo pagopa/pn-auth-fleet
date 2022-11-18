@@ -32,7 +32,7 @@ Parameters:
   LambdaZipVersionId5:
     Type: String
     Description: 'Fifth lambda zip file S3 VersionId'
-  
+
   ApiKeyAuthorizerLambdaEnvironmentPaTagName:
     Type: String
     Description: Tag name used to read the Customer Id associated with an API-Key
@@ -223,30 +223,30 @@ Resources:
 
   ###             API KEY AUTHORIZER2 LAMBDA             ###
   #########################################################
-  
+
   # Lambda function
-  ApiKeyAuthorizerV2Lambda:
+  ApiKeyAuthorizer2Lambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-apikeyAuthorizerV2Lambda'
+      FunctionName: !Sub '${ProjectName}-apikeyAuthorizer2Lambda'
       Runtime: nodejs14.x
       Handler: 'index.handler'
-      Code: 
+      Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/apikeyAuthorizerV2.zip'
+        S3Key: 'pn-auth-fleet/main/apikeyAuthorizer2.zip'
         S3ObjectVersion: !Ref LambdaZipVersionId5
       # Environment:
       #   Variables:
       #     PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
       #     GROUPS_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentGroupsTagName
-      Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
+      Role: !GetAtt ApiKeyAuthorizer2LambdaRole.Arn
       TracingConfig:
         Mode: Active
   # Lambda function role
-  ApiKeyAuthorizerV2LambdaRole:
+  ApiKeyAuthorizer2LambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${ProjectName}-apikeyAuthorizerV2LambdaRole
+      RoleName: !Sub ${ProjectName}-apikeyAuthorizer2LambdaRole
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -261,12 +261,12 @@ Resources:
       Path: /
 
   # Lambda function IAM policy
-  ApiKeyAuthorizerV2LambdaPolicy:
+  ApiKeyAuthorizer2LambdaPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub ${ProjectName}-apikeyAuthorizerV2LambdaPolicy
+      PolicyName: !Sub ${ProjectName}-apikeyAuthorizer2LambdaPolicy
       Roles:
-        - !Ref ApiKeyAuthorizerV2LambdaRole
+        - !Ref ApiKeyAuthorizer2LambdaRole
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -278,32 +278,32 @@ Resources:
             Resource: "*"
 
   # lambda function Log Group
-  ApiKeyAuthorizerV2LambdaLogGroup:
+  ApiKeyAuthorizer2LambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ApiKeyAuthorizerV2Lambda}"
+      LogGroupName: !Sub "/aws/lambda/${ApiKeyAuthorizer2Lambda}"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
-  ApiKey2ErrorFatalLogsMetricFilter: 
+  ApiKey2ErrorFatalLogsMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Properties: 
-      LogGroupName: 
-        !Ref ApiKeyAuthorizerV2LambdaLogGroup
+    Properties:
+      LogGroupName:
+        !Ref ApiKeyAuthorizer2LambdaLogGroup
       FilterPattern: '?ERROR ?FATAL ?CRITICAL'
-      MetricTransformations: 
+      MetricTransformations:
         - MetricValue: 1
           MetricNamespace: "ErrorFatalLogs"
           MetricName: !Sub ${ProjectName}-authFleet-ApiKey2ErrorFatalMetric
-  
-  # Lambda function CloudWatch alarm 
+
+  # Lambda function CloudWatch alarm
   APIKey2ErrorFatalLogsMetricAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn: ApiKey2ErrorFatalLogsMetricFilter
     Properties:
       AlarmName: !Sub ${ProjectName}-authFleet-ApiKey2ErrorFatalLogsMetricAlarm
       AlarmDescription: "CloudWatch alarm for API Key Authorizer Lambda logs with ERROR or FATAL line."
-      AlarmActions: 
+      AlarmActions:
         - !Ref AlarmSNSTopicArn
       InsufficientDataActions:
         - !Ref AlarmSNSTopicArn
@@ -860,13 +860,13 @@ Resources:
       LogGroupName: !Ref ApiKeyAuthorizerLambdaLogGroup
       FilterPattern: !Ref CloudwatchFilterPattern
       DestinationArn: !Ref LogsKinesisSourceStreamArn
-  
-   ApiKeyAuthorizerV2SubscriptionFilter:
+
+   ApiKeyAuthorizer2SubscriptionFilter:
     Condition: SendLogToKinesis
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
-      LogGroupName: !Ref ApiKeyAuthorizerV2LambdaLogGroup
+      LogGroupName: !Ref ApiKeyAuthorizer2LambdaLogGroup
       FilterPattern: !Ref CloudwatchFilterPattern
       DestinationArn: !Ref LogsKinesisSourceStreamArn
 
@@ -987,7 +987,7 @@ Resources:
                         "region": "${AWS::Region}",
                         "title": "API Key Authorizer 2 Lambda Errors",
                         "metrics": [
-                            ["AWS/Lambda", "Errors", "FunctionName", "${ApiKeyAuthorizerV2Lambda}"]
+                            ["AWS/Lambda", "Errors", "FunctionName", "${ApiKeyAuthorizer2Lambda}"]
                         ]
                     }
                 },
@@ -1161,7 +1161,7 @@ Resources:
                         "region": "${AWS::Region}",
                         "title": "API Key Authorizer2 Lambda Performance Throttles",
                         "metrics": [
-                            ["AWS/Lambda", "Throttles", "FunctionName", "${ApiKeyAuthorizerV2Lambda}"]
+                            ["AWS/Lambda", "Throttles", "FunctionName", "${ApiKeyAuthorizer2Lambda}"]
                         ],
                         "view": "timeSeries"
                     }
