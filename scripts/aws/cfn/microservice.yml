@@ -225,28 +225,28 @@ Resources:
   #########################################################
 
   # Lambda function
-  ApiKeyAuthorizer2Lambda:
+  ApiKeyAuthorizerV2Lambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-apikeyAuthorizer2Lambda'
+      FunctionName: !Sub '${ProjectName}-ApiKeyAuthorizerV2Lambda'
       Runtime: nodejs14.x
       Handler: 'index.handler'
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/apikeyAuthorizer2.zip'
+        S3Key: 'pn-auth-fleet/main/ApiKeyAuthorizerV2.zip'
         S3ObjectVersion: !Ref LambdaZipVersionId5
       # Environment:
       #   Variables:
       #     PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
       #     GROUPS_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentGroupsTagName
-      Role: !GetAtt ApiKeyAuthorizer2LambdaRole.Arn
+      Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
       TracingConfig:
         Mode: Active
   # Lambda function role
-  ApiKeyAuthorizer2LambdaRole:
+  ApiKeyAuthorizerV2LambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${ProjectName}-apikeyAuthorizer2LambdaRole
+      RoleName: !Sub ${ProjectName}-ApiKeyAuthorizerV2LambdaRole
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -261,12 +261,12 @@ Resources:
       Path: /
 
   # Lambda function IAM policy
-  ApiKeyAuthorizer2LambdaPolicy:
+  ApiKeyAuthorizerV2LambdaPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub ${ProjectName}-apikeyAuthorizer2LambdaPolicy
+      PolicyName: !Sub ${ProjectName}-ApiKeyAuthorizerV2LambdaPolicy
       Roles:
-        - !Ref ApiKeyAuthorizer2LambdaRole
+        - !Ref ApiKeyAuthorizerV2LambdaRole
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -278,10 +278,10 @@ Resources:
             Resource: "*"
 
   # lambda function Log Group
-  ApiKeyAuthorizer2LambdaLogGroup:
+  ApiKeyAuthorizerV2LambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ApiKeyAuthorizer2Lambda}"
+      LogGroupName: !Sub "/aws/lambda/${ApiKeyAuthorizerV2Lambda}"
       RetentionInDays: 3
 
   # Lambda function CloudWatch Logs Metric Filter
@@ -289,7 +289,7 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName:
-        !Ref ApiKeyAuthorizer2LambdaLogGroup
+        !Ref ApiKeyAuthorizerV2LambdaLogGroup
       FilterPattern: '?ERROR ?FATAL ?CRITICAL'
       MetricTransformations:
         - MetricValue: 1
@@ -861,12 +861,12 @@ Resources:
       FilterPattern: !Ref CloudwatchFilterPattern
       DestinationArn: !Ref LogsKinesisSourceStreamArn
 
-   ApiKeyAuthorizer2SubscriptionFilter:
+   ApiKeyAuthorizerV2SubscriptionFilter:
     Condition: SendLogToKinesis
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
-      LogGroupName: !Ref ApiKeyAuthorizer2LambdaLogGroup
+      LogGroupName: !Ref ApiKeyAuthorizerV2LambdaLogGroup
       FilterPattern: !Ref CloudwatchFilterPattern
       DestinationArn: !Ref LogsKinesisSourceStreamArn
 
@@ -987,7 +987,7 @@ Resources:
                         "region": "${AWS::Region}",
                         "title": "API Key Authorizer 2 Lambda Errors",
                         "metrics": [
-                            ["AWS/Lambda", "Errors", "FunctionName", "${ApiKeyAuthorizer2Lambda}"]
+                            ["AWS/Lambda", "Errors", "FunctionName", "${ApiKeyAuthorizerV2Lambda}"]
                         ]
                     }
                 },
@@ -1161,7 +1161,7 @@ Resources:
                         "region": "${AWS::Region}",
                         "title": "API Key Authorizer2 Lambda Performance Throttles",
                         "metrics": [
-                            ["AWS/Lambda", "Throttles", "FunctionName", "${ApiKeyAuthorizer2Lambda}"]
+                            ["AWS/Lambda", "Throttles", "FunctionName", "${ApiKeyAuthorizerV2Lambda}"]
                         ],
                         "view": "timeSeries"
                     }
