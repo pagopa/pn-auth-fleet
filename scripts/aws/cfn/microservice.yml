@@ -221,7 +221,7 @@ Resources:
       Threshold: 1
       TreatMissingData: notBreaching
 
-  ###             API KEY AUTHORIZER2 LAMBDA             ###
+  ###             API KEY AUTHORIZERV2 LAMBDA             ###
   #########################################################
 
   # Lambda function
@@ -1159,7 +1159,7 @@ Resources:
                     "properties": {
                         "stacked": false,
                         "region": "${AWS::Region}",
-                        "title": "API Key Authorizer2 Lambda Performance Throttles",
+                        "title": "API Key AuthorizerV2 Lambda Performance Throttles",
                         "metrics": [
                             ["AWS/Lambda", "Throttles", "FunctionName", "${ApiKeyAuthorizerV2Lambda}"]
                         ],
