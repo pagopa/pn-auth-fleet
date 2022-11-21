@@ -282,7 +282,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ApiKeyAuthorizerV2Lambda}"
-      RetentionInDays: 3
+      RetentionInDays: 14
 
   # Lambda function CloudWatch Logs Metric Filter
   ApiKey2ErrorFatalLogsMetricFilter:
@@ -861,7 +861,7 @@ Resources:
       FilterPattern: !Ref CloudwatchFilterPattern
       DestinationArn: !Ref LogsKinesisSourceStreamArn
 
-   ApiKeyAuthorizerV2SubscriptionFilter:
+  ApiKeyAuthorizerV2SubscriptionFilter:
     Condition: SendLogToKinesis
     Type: AWS::Logs::SubscriptionFilter
     Properties:
@@ -947,7 +947,7 @@ Resources:
                     "type": "metric",
                     "x": 0,
                     "y": 0,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -961,9 +961,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 6,
+                    "x": 4.8,
                     "y": 0,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -977,9 +977,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 6,
+                    "x": 9.6,
                     "y": 0,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -993,9 +993,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 12,
+                    "x": 14.4,
                     "y": 0,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -1008,8 +1008,8 @@ Resources:
                     }
                 },
                 {
-                    "height": 6,
-                    "width": 6,
+                    "height": 19.2,
+                    "width": 4.8,
                     "y": 0,
                     "x": 18,
                     "type": "metric",
@@ -1027,7 +1027,7 @@ Resources:
                     "type": "metric",
                     "x": 0,
                     "y": 6,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1044,9 +1044,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 6,
+                    "x": 4.8,
                     "y": 6,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1063,9 +1063,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 6,
+                    "x": 9.6,
                     "y": 6,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1082,9 +1082,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 12,
+                    "x": 14.4,
                     "y": 6,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1101,9 +1101,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 18,
+                    "x": 19.2,
                     "y": 6,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1122,7 +1122,7 @@ Resources:
                     "type": "metric",
                     "x": 0,
                     "y": 12,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1136,9 +1136,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 6,
+                    "x": 4.8,
                     "y": 12,
-                    "width": 6,
+                    "width": 4,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1152,9 +1152,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 6,
+                    "x": 9.6,
                     "y": 12,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1168,9 +1168,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 12,
+                    "x": 14.4,
                     "y": 12,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1184,9 +1184,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 18,
+                    "x": 19.2,
                     "y": 12,
-                    "width": 6,
+                    "width": 4.8,
                     "height": 6,
                     "properties": {
                         "stacked": false,
