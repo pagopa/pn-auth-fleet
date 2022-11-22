@@ -85,14 +85,15 @@ describe("getApiKeyByIndex", function() {
     AWSMock.mock('DynamoDB.DocumentClient', 'query', (params, callback) => {
       callback(null, {Items: []});
     });
-    let id = "fake";
+    let id = "fakekey";
     let table = "pn-apiKey";
+    let anonymizedId = "fa***ey";
     try {
       await getApiKeyByIndex(id);
     } catch (error) {
       expect(error).to.not.be.null;
       expect(error).to.not.be.undefined;
-      expect(error.message).to.equal(errorMessageDynamo(id, table));
+      expect(error.message).to.equal(errorMessageDynamo(anonymizedId, table));
     }
     AWSMock.restore('DynamoDB.DocumentClient');
   });

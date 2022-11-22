@@ -1,6 +1,7 @@
 const { ItemNotFoundException, TooManyItemsFoundException } = require("./exceptions.js");
 const AWSXRay = require('aws-xray-sdk-core');
 const AWS = AWSXRay.captureAWS(require('aws-sdk'));
+const utils = require("./utils");
 
 module.exports.getApiKeyByIndex = async (virtualKey) => {
     const docClient = new AWS.DynamoDB.DocumentClient();
@@ -21,7 +22,7 @@ module.exports.getApiKeyByIndex = async (virtualKey) => {
     const apiKeyItems = await docClient.query(params).promise();
 
     if(!apiKeyItems.Items || apiKeyItems.Items.length === 0){
-        throw new ItemNotFoundException(virtualKey, TableName);
+        throw new ItemNotFoundException(utils.anonymizeKey(virtualKey), TableName);
     }
         
     if(apiKeyItems.Items.length > 1) {

@@ -1,6 +1,7 @@
 const dynamo = require('./dynamoFunctions.js');
 const { KeyStatusException } = require('./exceptions.js');
 const iam = require('./iamPolicyGenerator.js');
+const utils = require("./utils");
 
 const defaultDenyAllPolicy = {
     "principalId": "user",
@@ -30,7 +31,7 @@ module.exports.eventHandler = async (event, context) => {
         console.log("Aggregate ID found -> ", paAggregationDynamo.aggregateId)
 
         const aggregateDynamo = await dynamo.getPaAggregateById(paAggregationDynamo.aggregateId);
-        console.log("AWS ApiKey Found -> ", aggregateDynamo.AWSApiKey);
+        console.log("AWS ApiKey Found -> ", utils.anonymizeKey(aggregateDynamo.AWSApiKey));
 
         const contextAuth = {
             "x-pagopa-pn-uid": "apiKey-" + aggregateDynamo.AWSApiKey,
