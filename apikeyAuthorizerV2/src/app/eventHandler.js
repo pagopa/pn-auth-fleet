@@ -41,7 +41,10 @@ module.exports.eventHandler = async (event, context) => {
         };
 
         const iamPolicy = iam.generateIAMPolicy(event.methodArn, contextAuth, aggregateDynamo.AWSApiKey);
-        console.log("IAM Policy:", iamPolicy);
+        
+        //merge the iamPolicy retrieved object, with the anonymized apikey to prevent display in log.
+        const loggedIamPolicy = {...iamPolicy, usageIdentifierKey: utils.anonymizeKey(iamPolicy.usageIdentifierKey)}
+        console.log("IAM Policy:", loggedIamPolicy);
 
         return iamPolicy;
     } catch (error) {
