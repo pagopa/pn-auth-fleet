@@ -825,7 +825,7 @@ Resources:
                     "type": "metric",
                     "x": 0,
                     "y": 0,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -839,9 +839,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 9.6,
+                    "x": 6,
                     "y": 0,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -855,9 +855,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 14.4,
+                    "x": 12,
                     "y": 0,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -871,7 +871,7 @@ Resources:
                 },
                 {
                     "height": 19.2,
-                    "width": 4.8,
+                    "width": 6,
                     "y": 0,
                     "x": 18,
                     "type": "metric",
@@ -889,7 +889,7 @@ Resources:
                     "type": "metric",
                     "x": 0,
                     "y": 6,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -906,9 +906,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 9.6,
+                    "x": 6,
                     "y": 6,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -925,9 +925,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 14.4,
+                    "x": 12,
                     "y": 6,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -944,9 +944,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 19.2,
+                    "x": 18,
                     "y": 6,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -965,7 +965,7 @@ Resources:
                     "type": "metric",
                     "x": 0,
                     "y": 12,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -979,9 +979,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 9.6,
+                    "x": 6,
                     "y": 12,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -995,9 +995,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 14.4,
+                    "x": 12,
                     "y": 12,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1011,9 +1011,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 19.2,
+                    "x": 18,
                     "y": 12,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
