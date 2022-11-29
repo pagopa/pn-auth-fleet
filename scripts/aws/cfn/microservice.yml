@@ -815,215 +815,215 @@ Resources:
                 Resource: "*"
 
 # DashBoard
-#  LambdaDashboard:
-#    Type: AWS::CloudWatch::Dashboard
-#    Properties:
-#      DashboardName: !Sub ${ProjectName}-auth-fleet
-#      DashboardBody: !Sub '{
-#            "widgets": [
-#                {
-#                    "type": "metric",
-#                    "x": 0,
-#                    "y": 0,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "view": "timeSeries",
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "IO Authorizer Lambda Errors",
-#                        "metrics": [
-#                            ["AWS/Lambda", "Errors", "FunctionName", "${IoAuthorizerLambda}"]
-#                        ]
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 6,
-#                    "y": 0,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "view": "timeSeries",
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "API Key Authorizer 2 Lambda Errors",
-#                        "metrics": [
-#                            ["AWS/Lambda", "Errors", "FunctionName", "${ApiKeyAuthorizerV2Lambda}"]
-#                        ]
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 12,
-#                    "y": 0,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "view": "timeSeries",
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "JWT Authorizer Lambda Errors",
-#                        "metrics": [
-#                            ["AWS/Lambda", "Errors", "FunctionName", "${JwtAuthorizerLambda}"]
-#                        ]
-#                    }
-#                },
-#                {
-#                    "height": 6,
-#                    "width": 6,
-#                    "y": 0,
-#                    "x": 18,
-#                    "type": "metric",
-#                    "properties": {
-#                        "view": "timeSeries",
-#                        "stacked": false,
-#                        "metrics": [
-#                            ["AWS/Lambda", "Errors", "FunctionName", "${TokenExchangeLambda}"]
-#                        ],
-#                        "region": "${AWS::Region}",
-#                        "title": "Token Exchange Lambda Errors"
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 0,
-#                    "y": 6,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "IO Authorizer Lambda Error Alarm",
-#                        "annotations": {
-#                            "alarms": [
-#                                "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${IoAuthorizerErrorFatalLogsMetricAlarm}"
-#                            ]
-#                        },
-#                        "liveData": false,
-#                        "view": "timeSeries"
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 6,
-#                    "y": 6,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "API Key Authorizer 2 Lambda Error Alarm",
-#                        "annotations": {
-#                            "alarms": [
-#                                "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${APIKey2ErrorFatalLogsMetricAlarm}"
-#                            ]
-#                        },
-#                        "liveData": false,
-#                        "view": "timeSeries"
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 12,
-#                    "y": 6,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "JWT Authorizer Lambda Error Alarm",
-#                        "annotations": {
-#                            "alarms": [
-#                                "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${JwtAuthorizerErrorFatalLogsMetricAlarm}"
-#                            ]
-#                        },
-#                        "liveData": false,
-#                        "view": "timeSeries"
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 18,
-#                    "y": 6,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "Token exchange Lambda Error Alarm",
-#                        "annotations": {
-#                            "alarms": [
-#                                "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${TokenExchangeErrorFatalLogsMetricAlarm}"
-#                            ]
-#                        },
-#                        "liveData": false,
-#                        "view": "timeSeries"
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 0,
-#                    "y": 12,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "IO Authorizer Lambda Performance Throttles",
-#                        "metrics": [
-#                            ["AWS/Lambda", "Throttles", "FunctionName", "${IoAuthorizerLambda}"]
-#                        ],
-#                        "view": "timeSeries"
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 6,
-#                    "y": 12,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "API Key AuthorizerV2 Lambda Performance Throttles",
-#                        "metrics": [
-#                            ["AWS/Lambda", "Throttles", "FunctionName", "${ApiKeyAuthorizerV2Lambda}"]
-#                        ],
-#                        "view": "timeSeries"
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 12,
-#                    "y": 12,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "JWT Authorizer Lambda Performance Throttles",
-#                        "metrics": [
-#                            ["AWS/Lambda", "Throttles", "FunctionName", "${JwtAuthorizerLambda}"]
-#                        ],
-#                        "view": "timeSeries"
-#                    }
-#                },
-#                {
-#                    "type": "metric",
-#                    "x": 18,
-#                    "y": 12,
-#                    "width": 6,
-#                    "height": 6,
-#                    "properties": {
-#                        "stacked": false,
-#                        "region": "${AWS::Region}",
-#                        "title": "Token exchange Lambda Performance Throttles",
-#                        "metrics": [
-#                            ["AWS/Lambda", "Throttles", "FunctionName", "${TokenExchangeLambda}"]
-#                        ],
-#                        "view": "timeSeries"
-#                    }
-#                }
-#            ]
-#        }'
+  LambdaDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub ${ProjectName}-auth-fleet
+      DashboardBody: !Sub '{
+            "widgets": [
+                {
+                    "type": "metric",
+                    "x": 0,
+                    "y": 0,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "IO Authorizer Lambda Errors",
+                        "metrics": [
+                            ["AWS/Lambda", "Errors", "FunctionName", "${IoAuthorizerLambda}"]
+                        ]
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 6,
+                    "y": 0,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "API Key Authorizer 2 Lambda Errors",
+                        "metrics": [
+                            ["AWS/Lambda", "Errors", "FunctionName", "${ApiKeyAuthorizerV2Lambda}"]
+                        ]
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 12,
+                    "y": 0,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "JWT Authorizer Lambda Errors",
+                        "metrics": [
+                            ["AWS/Lambda", "Errors", "FunctionName", "${JwtAuthorizerLambda}"]
+                        ]
+                    }
+                },
+                {
+                    "height": 6,
+                    "width": 6,
+                    "y": 0,
+                    "x": 18,
+                    "type": "metric",
+                    "properties": {
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "metrics": [
+                            ["AWS/Lambda", "Errors", "FunctionName", "${TokenExchangeLambda}"]
+                        ],
+                        "region": "${AWS::Region}",
+                        "title": "Token Exchange Lambda Errors"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 0,
+                    "y": 6,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "IO Authorizer Lambda Error Alarm",
+                        "annotations": {
+                            "alarms": [
+                                "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${IoAuthorizerErrorFatalLogsMetricAlarm}"
+                            ]
+                        },
+                        "liveData": false,
+                        "view": "timeSeries"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 6,
+                    "y": 6,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "API Key Authorizer 2 Lambda Error Alarm",
+                        "annotations": {
+                            "alarms": [
+                                "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${APIKey2ErrorFatalLogsMetricAlarm}"
+                            ]
+                        },
+                        "liveData": false,
+                        "view": "timeSeries"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 12,
+                    "y": 6,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "JWT Authorizer Lambda Error Alarm",
+                        "annotations": {
+                            "alarms": [
+                                "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${JwtAuthorizerErrorFatalLogsMetricAlarm}"
+                            ]
+                        },
+                        "liveData": false,
+                        "view": "timeSeries"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 18,
+                    "y": 6,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "Token exchange Lambda Error Alarm",
+                        "annotations": {
+                            "alarms": [
+                                "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${TokenExchangeErrorFatalLogsMetricAlarm}"
+                            ]
+                        },
+                        "liveData": false,
+                        "view": "timeSeries"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 0,
+                    "y": 12,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "IO Authorizer Lambda Performance Throttles",
+                        "metrics": [
+                            ["AWS/Lambda", "Throttles", "FunctionName", "${IoAuthorizerLambda}"]
+                        ],
+                        "view": "timeSeries"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 6,
+                    "y": 12,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "API Key AuthorizerV2 Lambda Performance Throttles",
+                        "metrics": [
+                            ["AWS/Lambda", "Throttles", "FunctionName", "${ApiKeyAuthorizerV2Lambda}"]
+                        ],
+                        "view": "timeSeries"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 12,
+                    "y": 12,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "JWT Authorizer Lambda Performance Throttles",
+                        "metrics": [
+                            ["AWS/Lambda", "Throttles", "FunctionName", "${JwtAuthorizerLambda}"]
+                        ],
+                        "view": "timeSeries"
+                    }
+                },
+                {
+                    "type": "metric",
+                    "x": 18,
+                    "y": 12,
+                    "width": 6,
+                    "height": 6,
+                    "properties": {
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "Token exchange Lambda Performance Throttles",
+                        "metrics": [
+                            ["AWS/Lambda", "Throttles", "FunctionName", "${TokenExchangeLambda}"]
+                        ],
+                        "view": "timeSeries"
+                    }
+                }
+            ]
+        }'
