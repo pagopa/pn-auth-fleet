@@ -29,16 +29,6 @@ Parameters:
   LambdaZipVersionId4:
     Type: String
     Description: 'Fourth lambda zip file S3 VersionId'
-  LambdaZipVersionId5:
-    Type: String
-    Description: 'Fifth lambda zip file S3 VersionId'
-
-  ApiKeyAuthorizerLambdaEnvironmentPaTagName:
-    Type: String
-    Description: Tag name used to read the Customer Id associated with an API-Key
-  ApiKeyAuthorizerLambdaEnvironmentGroupsTagName:
-    Type: String
-    Description: Tag name used to read the Customer groups associated with an API-Key
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
@@ -123,104 +113,6 @@ Conditions:
 
 
 Resources:
-
-  ###             API kEY AUTHORIZER LAMBDA             ###
-  #########################################################
-  
-  # Lambda function
-  ApiKeyAuthorizerLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub '${ProjectName}-apikeyAuthorizerLambda'
-      Runtime: nodejs14.x
-      Handler: 'index.handler'
-      Code: 
-        S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/apikeyAuthorizer.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId1
-      Environment:
-        Variables:
-          PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
-          GROUPS_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentGroupsTagName
-      Role: !GetAtt ApiKeyAuthorizerLambdaRole.Arn
-      TracingConfig:
-        Mode: Active
-  # Lambda function role
-  ApiKeyAuthorizerLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${ProjectName}-apikeyAuthorizerLambdaRole
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Path: /
-
-  # Lambda function IAM policy
-  ApiKeyAuthorizerLambdaPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub ${ProjectName}-apikeyAuthorizerLambdaPolicy
-      Roles:
-        - !Ref ApiKeyAuthorizerLambdaRole
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - 'apigateway:*'
-              - 'tag:GetTagValues'
-            Resource: "*"
-
-  # lambda function Log Group
-  ApiKeyAuthorizerLambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${ApiKeyAuthorizerLambda}"
-      RetentionInDays: 14
-
-  # Lambda function CloudWatch Logs Metric Filter
-  ApiKeyErrorFatalLogsMetricFilter: 
-    Type: AWS::Logs::MetricFilter
-    Properties: 
-      LogGroupName: 
-        !Ref ApiKeyAuthorizerLambdaLogGroup
-      FilterPattern: '?ERROR ?FATAL ?CRITICAL'
-      MetricTransformations: 
-        - MetricValue: 1
-          MetricNamespace: "ErrorFatalLogs"
-          MetricName: !Sub ${ProjectName}-authFleet-ApiKeyErrorFatalMetric
-  
-  # Lambda function CloudWatch alarm 
-  APIKeyErrorFatalLogsMetricAlarm:
-    Type: AWS::CloudWatch::Alarm
-    DependsOn: ApiKeyErrorFatalLogsMetricFilter
-    Properties:
-      AlarmName: !Sub ${ProjectName}-authFleet-ApiKeyErrorFatalLogsMetricAlarm
-      AlarmDescription: "CloudWatch alarm for API Key Authorizer Lambda logs with ERROR or FATAL line."
-      AlarmActions: 
-        - !Ref AlarmSNSTopicArn
-      InsufficientDataActions:
-        - !Ref AlarmSNSTopicArn
-      OKActions:
-        - !Ref AlarmSNSTopicArn
-      DatapointsToAlarm: 1
-      MetricName: !Sub ${ProjectName}-authFleet-ApiKeyErrorFatalMetric
-      Namespace: ErrorFatalLogs
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 60
-      Period: 60
-      Statistic: Sum
-      Threshold: 1
-      TreatMissingData: notBreaching
-
   ###             API KEY AUTHORIZERV2 LAMBDA             ###
   #########################################################
 
@@ -234,11 +126,7 @@ Resources:
       Code:
         S3Bucket: !Ref LambdasBucketName
         S3Key: 'pn-auth-fleet/main/ApiKeyAuthorizerV2.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId5
-      # Environment:
-      #   Variables:
-      #     PA_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentPaTagName
-      #     GROUPS_TAG_NAME: !Ref ApiKeyAuthorizerLambdaEnvironmentGroupsTagName
+        S3ObjectVersion: !Ref LambdaZipVersionId1
       Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
       TracingConfig:
         Mode: Active
@@ -851,16 +739,6 @@ Resources:
             ResponseTemplates:
               "application/json": ""
 
-  ### Subscription filters with Kinesis  https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#DestinationKinesisExample
-  ApiKeyAuthorizerSubscriptionFilter:
-    Condition: SendLogToKinesis
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
-      LogGroupName: !Ref ApiKeyAuthorizerLambdaLogGroup
-      FilterPattern: !Ref CloudwatchFilterPattern
-      DestinationArn: !Ref LogsKinesisSourceStreamArn
-
   ApiKeyAuthorizerV2SubscriptionFilter:
     Condition: SendLogToKinesis
     Type: AWS::Logs::SubscriptionFilter
@@ -947,7 +825,7 @@ Resources:
                     "type": "metric",
                     "x": 0,
                     "y": 0,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -961,25 +839,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 4.8,
+                    "x": 6,
                     "y": 0,
-                    "width": 4.8,
-                    "height": 6,
-                    "properties": {
-                        "view": "timeSeries",
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "title": "API Key Authorizer Lambda Errors",
-                        "metrics": [
-                            ["AWS/Lambda", "Errors", "FunctionName", "${ApiKeyAuthorizerLambda}"]
-                        ]
-                    }
-                },
-                {
-                    "type": "metric",
-                    "x": 9.6,
-                    "y": 0,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -993,9 +855,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 14.4,
+                    "x": 12,
                     "y": 0,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "view": "timeSeries",
@@ -1009,7 +871,7 @@ Resources:
                 },
                 {
                     "height": 19.2,
-                    "width": 4.8,
+                    "width": 6,
                     "y": 0,
                     "x": 18,
                     "type": "metric",
@@ -1027,7 +889,7 @@ Resources:
                     "type": "metric",
                     "x": 0,
                     "y": 6,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1044,28 +906,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 4.8,
+                    "x": 6,
                     "y": 6,
-                    "width": 4.8,
-                    "height": 6,
-                    "properties": {
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "title": "API Key Authorizer Lambda Error Alarm",
-                        "annotations": {
-                            "alarms": [
-                                "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${APIKeyErrorFatalLogsMetricAlarm}"
-                            ]
-                        },
-                        "liveData": false,
-                        "view": "timeSeries"
-                    }
-                },
-                {
-                    "type": "metric",
-                    "x": 9.6,
-                    "y": 6,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1082,9 +925,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 14.4,
+                    "x": 12,
                     "y": 6,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1101,9 +944,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 19.2,
+                    "x": 18,
                     "y": 6,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1122,7 +965,7 @@ Resources:
                     "type": "metric",
                     "x": 0,
                     "y": 12,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1136,25 +979,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 4.8,
+                    "x": 6,
                     "y": 12,
-                    "width": 4,
-                    "height": 6,
-                    "properties": {
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "title": "API Key Authorizer Lambda Performance Throttles",
-                        "metrics": [
-                            ["AWS/Lambda", "Throttles", "FunctionName", "${ApiKeyAuthorizerLambda}"]
-                        ],
-                        "view": "timeSeries"
-                    }
-                },
-                {
-                    "type": "metric",
-                    "x": 9.6,
-                    "y": 12,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1168,9 +995,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 14.4,
+                    "x": 12,
                     "y": 12,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
@@ -1184,9 +1011,9 @@ Resources:
                 },
                 {
                     "type": "metric",
-                    "x": 19.2,
+                    "x": 18,
                     "y": 12,
-                    "width": 4.8,
+                    "width": 6,
                     "height": 6,
                     "properties": {
                         "stacked": false,
