@@ -125,7 +125,7 @@ Resources:
       Handler: 'index.handler'
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/ApiKeyAuthorizerV2.zip'
+        S3Key: 'pn-auth-fleet/main/apikeyAuthorizerV2.zip'
         S3ObjectVersion: !Ref LambdaZipVersionId1
       Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
       TracingConfig:
