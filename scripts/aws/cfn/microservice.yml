@@ -62,6 +62,11 @@ Parameters:
     Type: String
     Description: Audience value for token generation
 
+  TokenExchangeLatencyLimit: 
+    Type: Number
+    Default: 1000
+    Description: Default latency limit for token exchange api
+
   ApplicationLoadBalancerDomain:
     Type: String
     Description: application loadbalancer used from ioAuthorizer to call pn-data-vault
@@ -813,6 +818,72 @@ Resources:
                   - "kms:Decrypt"
                 Effect: Allow
                 Resource: "*"
+
+  TokenExchangeAPIGatewayApiLatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ProjectName}-token-exchange-api-LatencyAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway latency exceeds the limit."
+      AlarmActions: 
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      Threshold: !Ref TokenExchangeLatencyLimit
+      TreatMissingData: notBreaching
+      Namespace: "AWS/ApiGateway"
+      MetricName: "Latency"
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub '${ProjectName}-token-exchange-api'
+      Statistic: "Maximum"
+
+  TokenExchangeAPIGatewayApiErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ProjectName}-token-exchange-api-LatencyAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway has 4xx or 5xx error."
+      AlarmActions: 
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-token-exchange-api
+              MetricName: 4XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m2
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-token-exchange-api
+              MetricName: 5XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: e1
+          Expression: SUM([m1,m2])
+          Label: !Sub "${ProjectName}-token-exchange-api-ErrorMetric"
 
 # DashBoard
   LambdaDashboard:
