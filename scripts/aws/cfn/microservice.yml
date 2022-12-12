@@ -130,6 +130,9 @@ Resources:
       Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
       TracingConfig:
         Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+
   # Lambda function role
   ApiKeyAuthorizerV2LambdaRole:
     Type: AWS::IAM::Role
@@ -235,6 +238,9 @@ Resources:
           - !Ref AWS::NoValue
       TracingConfig:
         Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+      
   # Lambda function role
   IoAuthorizerLambdaRole:
     Type: AWS::IAM::Role
@@ -346,6 +352,8 @@ Resources:
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
 
   # Lambda function role
   JwtAuthorizerLambdaRole:
@@ -454,6 +462,9 @@ Resources:
       Role: !GetAtt TokenExchangeLambdaRole.Arn
       TracingConfig:
         Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+
   # Lambda function role
   TokenExchangeLambdaRole:
     Type: AWS::IAM::Role
