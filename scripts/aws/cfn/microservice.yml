@@ -857,7 +857,7 @@ Resources:
   TokenExchangeAPIGatewayApiErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub "${ProjectName}-token-exchange-api-LatencyAlarm"
+      AlarmName: !Sub "${ProjectName}-token-exchange-api-ErrorAlarm"
       AlarmDescription: "CloudWatch alarm for when API Gateway has 4xx or 5xx error."
       AlarmActions: 
         - !Ref AlarmSNSTopicArn
