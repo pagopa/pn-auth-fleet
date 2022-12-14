@@ -844,6 +844,7 @@ Resources:
       DatapointsToAlarm: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
+      Period: 300
       Threshold: !Ref TokenExchangeLatencyLimit
       TreatMissingData: notBreaching
       Namespace: "AWS/ApiGateway"
