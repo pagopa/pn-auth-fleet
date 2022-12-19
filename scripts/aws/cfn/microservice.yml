@@ -587,6 +587,7 @@ Resources:
     Properties:
       Name: !Sub '${ProjectName}-token-exchange-api'
       FailOnWarnings: true
+      DisableExecuteApiEndpoint: true
       EndpointConfiguration:
         Types:
           - REGIONAL
