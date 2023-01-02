@@ -842,10 +842,10 @@ Resources:
         - !Ref AlarmSNSTopicArn
       OKActions:
         - !Ref AlarmSNSTopicArn
-      DatapointsToAlarm: 1
+      DatapointsToAlarm: 3
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 5
-      Period: 300
+      Period: 60
       Threshold: !Ref TokenExchangeLatencyLimit
       TreatMissingData: notBreaching
       Namespace: "AWS/ApiGateway"
@@ -853,7 +853,7 @@ Resources:
       Dimensions:
         - Name: ApiName
           Value: !Sub '${ProjectName}-token-exchange-api'
-      Statistic: "Maximum"
+      ExtendedStatistic: "p95"
 
   TokenExchangeAPIGatewayApiErrorAlarm:
     Type: AWS::CloudWatch::Alarm
