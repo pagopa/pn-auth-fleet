@@ -34,7 +34,7 @@ module.exports.eventHandler = async (event, context) => {
         console.log("AWS ApiKey Found -> ", utils.anonymizeKey(aggregateDynamo.AWSApiKey));
 
         const contextAuth = {
-            "uid": "apiKey-" + aggregateDynamo.AWSApiKey,
+            "uid": "APIKEY-" + aggregateDynamo.AWSApiKey,
             "cx_id": apiKeyDynamo.cxId,
             "cx_groups": apiKeyDynamo?.groups?.join(),
             "cx_type": "PA"
