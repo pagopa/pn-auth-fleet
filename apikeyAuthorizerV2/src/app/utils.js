@@ -1,24 +1,28 @@
+module.exports.logEvent = (event) => {
+	console.info("New event received", extractLoggableInfo(event));
+}
+
+const extractLoggableInfo = (event) => {
+	let loggableObject = {
+		"path": event["path"],
+		"httpMethod": event["httpMethod"],
+		"X-Amzn-Trace-Id": event["headers"]["X-Amzn-Trace-Id"],
+		"x-api-key": this.anonymizeKey(event["headers"]["x-api-key"])
+	}
+
+	return loggableObject;
+}
+
 module.exports.anonymizeKey = (cleanString) => {
 	if(cleanString.length < 6)
 		return "".padStart(cleanString.length,"*")
-		
+	
+	let firstTwoChars = cleanString.substring(0, 2);
+	let lastTwoChars = cleanString.substring(cleanString.length - 2, cleanString.length);
+
     let hiddenStringLength = cleanString.length - 4;
-	let offset = "".padStart(hiddenStringLength,"*");
+	let hiddenString = "".padStart(hiddenStringLength,"*");
 
-	return cleanString.substring(0, 2) + offset + cleanString.substring(cleanString.length - 2, cleanString.length);
-}
-
-module.exports.anonymizeEvent = (event) => {
-	let anonymizedEvent = {...event};
-
-	if(anonymizedEvent["headers"] && anonymizedEvent["headers"]["x-api-key"])
-		anonymizedEvent["headers"]["x-api-key"] = this.anonymizeKey(anonymizedEvent["headers"]["x-api-key"]);
-	if(anonymizedEvent["multiValueHeaders"] && anonymizedEvent["multiValueHeaders"]["x-api-key"] && anonymizedEvent["multiValueHeaders"]["x-api-key"].length) {
-		let apiKeys = anonymizedEvent["multiValueHeaders"]["x-api-key"];
-		for(let i = 0; i < apiKeys.length; i++) {
-			apiKeys[i] = this.anonymizeKey(apiKeys[i]);
-		}
-	}
-	return anonymizedEvent;
+	return firstTwoChars + hiddenString + lastTwoChars;
 }
 

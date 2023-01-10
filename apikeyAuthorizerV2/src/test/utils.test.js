@@ -1,5 +1,6 @@
-const { expect, assert } = require("chai");
+const { expect } = require("chai");
 const utils = require("../app/utils");
+const sinon = require("sinon");
 
 describe("Test anonymize function", () => {
     it("anonymize with length > 6", () => {
@@ -15,52 +16,28 @@ describe("Test anonymize function", () => {
     });
 })
 
-
-
-describe('Test anonymizeEvent', () => {
-    it("anonymize when apikey is provided", () => {
+describe('Test logEvent', () => {
+    it("", () => {
+        let spy = sinon.spy(console, 'info');
         let mockedEvent = {
+            path: "/request",
+            httpMethod: "GET",
             headers: {
-                "x-api-key": "datatohide"
-            },
-            multiValueHeaders: {
-                "x-api-key": ["firstapitohide", "secondapitohide"]
+                "x-api-key": "datatohide",
+		        "X-Amzn-Trace-Id": "test"
             }
         }
     
-        let anonymizedEvent = utils.anonymizeEvent(mockedEvent);
-        let expectedEvent = {
-            headers: {
-                "x-api-key": "da******de"
-            },
-            multiValueHeaders: {
-                "x-api-key": ["fi**********de", "se***********de"]
-            }
-        };
-        assert.deepEqual(anonymizedEvent, expectedEvent);
-        
-    })
+        utils.logEvent(mockedEvent);
 
-    it("anonymize when apikey is not provided", () => {
-        let mockedEvent = {
-            headers: {
-                "x-api-key": ""
-            },
-            multiValueHeaders: {
-                "x-api-key": []
-            }
-        }
-    
-        let anonymizedEvent = utils.anonymizeEvent(mockedEvent);
-        let expectedEvent = {
-            headers: {
-                "x-api-key": ""
-            },
-            multiValueHeaders: {
-                "x-api-key": []
-            }
+        let = expectedEvent = {
+            "httpMethod": "GET",
+            "path": "/request",
+            "X-Amzn-Trace-Id": "test",
+            "x-api-key": "da******de"
         };
-        assert.deepEqual(anonymizedEvent, expectedEvent);
-        
+
+        expect(spy.getCall(0).calledWith("New event received", sinon.match(expectedEvent))).to.be.true;
+        spy.restore();
     })
 })
