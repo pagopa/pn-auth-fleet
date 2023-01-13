@@ -17,18 +17,10 @@ Parameters:
     Type: String
     Description: 'DNS custom domain to export token-exchange api'
 
-  LambdaZipVersionId1:
+  BucketBasePath:
     Type: String
-    Description: 'First lambda zip file S3 VersionId'
-  LambdaZipVersionId2:
-    Type: String
-    Description: 'Second lambda zip file S3 VersionId'
-  LambdaZipVersionId3:
-    Type: String
-    Description: 'Third lambda zip file S3 VersionId'
-  LambdaZipVersionId4:
-    Type: String
-    Description: 'Fourth lambda zip file S3 VersionId'
+    Description: 'The S3 bucket base path where lambda functions are stored'
+
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
@@ -130,8 +122,7 @@ Resources:
       Handler: 'index.handler'
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/apikeyAuthorizerV2.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId1
+        S3Key: !Sub '${BucketBasePath}/apikeyAuthorizerV2.zip'
       Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
       TracingConfig:
         Mode: Active
@@ -227,8 +218,7 @@ Resources:
       Handler: 'index.handler'
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/ioAuthorizer.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId4
+        S3Key: !Sub '${BucketBasePath}/ioAuthorizer.zip'
       Environment:
         Variables:
           CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
@@ -349,8 +339,7 @@ Resources:
       Handler: 'index.handler'
       Code: 
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/jwtAuthorizer.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId2
+        S3Key: !Sub '${BucketBasePath}/jwtAuthorizer.zip'
       Environment:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
@@ -451,8 +440,7 @@ Resources:
       Handler: 'index.handler'
       Code: 
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/tokenExchange.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId3
+        S3Key: !Sub '${BucketBasePath}/tokenExchange.zip'
       Environment:
         Variables:
           CACHE_TTL: !Ref TokenExchangeLambdaEnvironmentCacheTtl
