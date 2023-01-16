@@ -24,6 +24,10 @@ Parameters:
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
+  HelpdeskAuthorizerLambdaEnvironmentCacheTtl:
+    Type: String
+    Default: "120"
+    Description: Cryptography keys cache entry duration in seconds
   TokenExchangeLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
