@@ -9,8 +9,8 @@ export const getOpenAPIS3Location = async (apiOptions) => {
     const response = apigwClient.send(command)
         .then((data) => {
             // $metadata is also returned, we need to select tags
-            const bucketName = data.tags.BucketName;
-            const bucketKey = data.tags.BucketKey;
+            const bucketName = data.tags.PN_OPENAPI_BUCKET_NAME;
+            const bucketKey = data.tags.PN_OPENAPI_BUCKET_KEY;
             if (bucketName === undefined || bucketKey === undefined) {
                 throw 'OpenAPI file location is not defined';
             } else {
