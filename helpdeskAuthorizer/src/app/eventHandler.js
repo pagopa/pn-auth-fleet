@@ -1,8 +1,8 @@
-import AuthPolicy from "./authPolicy";
-import { arraysOverlap } from "./utils";
-import { getMethodTagsFromS3 } from "./s3Utils";
-import { getOpenAPIS3Location } from "./apiGatewayUtils";
-import { getCognitoUserAttributes, verifyAccessToken } from "./cognitoUtils";
+import AuthPolicy from "./authPolicy.js";
+import { arraysOverlap } from "./utils.js";
+import { getMethodTagsFromS3 } from "./s3Utils.js";
+import { getOpenAPIS3Location } from "./apiGatewayUtils.js";
+import { getCognitoUserAttributes, verifyAccessToken } from "./cognitoUtils.js";
 
 export const handleEvent = async function (event) {
     console.log('Method ARN: ' + event.methodArn);

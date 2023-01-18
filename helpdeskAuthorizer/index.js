@@ -1,6 +1,6 @@
-const eventHandler = require('./src/app/eventHandler.js');
+import { handleEvent } from './src/app/eventHandler.js';
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
     console.info("New event received ", event);
-    return eventHandler.handleEvent(event);
+    return handleEvent(event);
 };

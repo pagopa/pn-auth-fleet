@@ -1,6 +1,6 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import yaml from 'js-yaml';
-import { parseTagFromOpenAPIYAML } from "./yamlUtils";
+import { parseTagFromOpenAPIYAML } from "./yamlUtils.js";
 
 export const getMethodTagsFromS3 = async (event, bucket, key) => {
     // Function that collects the S3 object containing the openAPI document and extract
