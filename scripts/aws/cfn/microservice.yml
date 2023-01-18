@@ -34,7 +34,7 @@ Parameters:
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
-  HelpdeskAuthorizerLambdaEnvironmentCacheTtl:
+  BackofficeAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Default: "120"
     Description: Cryptography keys cache entry duration in seconds
@@ -441,35 +441,35 @@ Resources:
       Threshold: 1
       TreatMissingData: notBreaching
 
-  ###             HELPDESK AUTHORIZER LAMBDA            ###
+  ###             BACKOFFICE AUTHORIZER LAMBDA            ###
   #########################################################
   
   # Lambda function
-  HelpdeskAuthorizerLambda:
+  BackofficeAuthorizerLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-helpdeskAuthorizerLambda'
+      FunctionName: !Sub '${ProjectName}-backofficeAuthorizerLambda'
       Runtime: nodejs18.x
       Handler: 'index.handler'
       Code: 
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub '${BucketBasePath}/helpdeskAuthorizer.zip'
+        S3Key: !Sub '${BucketBasePath}/backofficeAuthorizer.zip'
       Environment:
         Variables:
-          CACHE_TTL: !Ref HelpdeskAuthorizerLambdaEnvironmentCacheTtl
+          CACHE_TTL: !Ref BackofficeAuthorizerLambdaEnvironmentCacheTtl
           CLIENT_ID: !Ref CognitoClientId
           USER_POOL_ARN: !Ref CognitoUserPoolArn
-      Role: !GetAtt HelpdeskAuthorizerLambdaRole.Arn
+      Role: !GetAtt BackofficeAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
 
   # Lambda function role
-  HelpdeskAuthorizerLambdaRole:
+  BackofficeAuthorizerLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${ProjectName}-helpdeskAuthorizerLambdaRole
+      RoleName: !Sub ${ProjectName}-backofficeAuthorizerLambdaRole
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -514,31 +514,31 @@ Resources:
                 Resource: "arn:aws:s3:::*/*"    
 
   # lambda function Log Group
-  HelpdeskAuthorizerLambdaLogGroup:
+  BackofficeAuthorizerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${HelpdeskAuthorizerLambda}"
+      LogGroupName: !Sub "/aws/lambda/${BackofficeAuthorizerLambda}"
       RetentionInDays: 14
 
   # Lambda function CloudWatch Logs Metric Filter
-  HelpdeskAuthorizerErrorFatalLogsMetricFilter: 
+  BackofficeAuthorizerErrorFatalLogsMetricFilter: 
     Type: AWS::Logs::MetricFilter
     Properties: 
       LogGroupName: 
-        !Ref HelpdeskAuthorizerLambdaLogGroup
+        !Ref BackofficeAuthorizerLambdaLogGroup
       FilterPattern: '?ERROR ?FATAL ?CRITICAL'
       MetricTransformations: 
         - MetricValue: 1
           MetricNamespace: "ErrorFatalLogs"
-          MetricName: !Sub ${ProjectName}-authFleet-HelpdeskAuthorizerErrorFatalMetric
+          MetricName: !Sub ${ProjectName}-authFleet-BackofficeAuthorizerErrorFatalMetric
   
   # Lambda function CloudWatch alarm 
-  HelpdeskAuthorizerErrorFatalLogsMetricAlarm:
+  BackofficeAuthorizerErrorFatalLogsMetricAlarm:
     Type: AWS::CloudWatch::Alarm
-    DependsOn: HelpdeskAuthorizerErrorFatalLogsMetricFilter
+    DependsOn: BackofficeAuthorizerErrorFatalLogsMetricFilter
     Properties:
-      AlarmName: !Sub ${ProjectName}-authFleet-HelpdeskAuthorizerErrorFatalLogsMetricAlarm
-      AlarmDescription: "CloudWatch alarm for Helpdesk Cognito Authorizer Lambda logs with ERROR or FATAL line."
+      AlarmName: !Sub ${ProjectName}-authFleet-BackofficeAuthorizerErrorFatalLogsMetricAlarm
+      AlarmDescription: "CloudWatch alarm for Backoffice Cognito Authorizer Lambda logs with ERROR or FATAL line."
       AlarmActions: 
         - !Ref AlarmSNSTopicArn
       InsufficientDataActions:
@@ -546,7 +546,7 @@ Resources:
       OKActions:
         - !Ref AlarmSNSTopicArn
       DatapointsToAlarm: 1
-      MetricName: !Sub ${ProjectName}-authFleet-HelpdeskAuthorizerErrorFatalMetric
+      MetricName: !Sub ${ProjectName}-authFleet-BackofficeAuthorizerErrorFatalMetric
       Namespace: ErrorFatalLogs
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 60

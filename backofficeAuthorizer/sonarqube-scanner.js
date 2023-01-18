@@ -1,6 +1,6 @@
 let options = {
     "sonar.organization": "pagopa",
-    "sonar.projectKey": "pagopa_pn-auth-fleet_helpdeskAuthorizer"
+    "sonar.projectKey": "pagopa_pn-auth-fleet_backofficeAuthorizer"
 }
 
 if (typeof process.env.PR_NUM !== 'undefined' ) {

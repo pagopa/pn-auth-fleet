@@ -1,5 +1,5 @@
 {
-  "name": "apikey-helpdesk-authorizer",
+  "name": "apikey-backoffice-authorizer",
   "type": "module",
   "version": "1.0.0",
   "description": "lambda utilizzata per autorizzare i client tramite lo userpool cognito di Helpdesk",
