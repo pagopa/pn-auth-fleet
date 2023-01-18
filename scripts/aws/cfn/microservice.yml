@@ -21,6 +21,16 @@ Parameters:
     Type: String
     Description: 'The S3 bucket base path where lambda functions are stored'
 
+  CognitoUserPoolArn:
+    Type: String
+    Default: ''
+    Description: 'Cognito user pool arn'
+
+  CognitoClientId:
+    Type: String
+    Default: ''
+    Description: 'Cognito CognitoClientId'
+
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
@@ -447,6 +457,8 @@ Resources:
       Environment:
         Variables:
           CACHE_TTL: !Ref HelpdeskAuthorizerLambdaEnvironmentCacheTtl
+          CLIENT_ID: !Ref CognitoClientId
+          USER_POOL_ARN: !Ref CognitoUserPoolArn
       Role: !GetAtt HelpdeskAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active

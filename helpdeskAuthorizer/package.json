@@ -24,6 +24,7 @@
     "sonarqube-scanner": "^2.8.2"
   },
   "dependencies": {
+    "aws-jwt-verify": "^3.3.0",
     "js-yaml": "^4.1.0",
     "sinon": "^14.0.0"
   }

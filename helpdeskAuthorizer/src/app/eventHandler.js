@@ -2,7 +2,7 @@ import AuthPolicy from "./authPolicy";
 import { arraysOverlap } from "./utils";
 import { getMethodTagsFromS3 } from "./s3Utils";
 import { getOpenAPIS3Location } from "./apiGatewayUtils";
-import { getCognitoUserAttributes } from "./cognitoUtils";
+import { getCognitoUserAttributes, verifyAccessToken } from "./cognitoUtils";
 
 export const handleEvent = async function (event) {
     console.log('Method ARN: ' + event.methodArn);
@@ -62,7 +62,7 @@ const authorizeWithCognito = async (event, accessToken, apiOptions, principalId,
     let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
 
     // Check valdity of the bearer token
-    const tokenValid = isTokenValid(accessToken);
+    const tokenValid = await isTokenValid(accessToken);
     if (!tokenValid) {
         console.log(`Token ${accessToken} is invalid`);
         policy.denyMethod(event.httpMethod, event.path);
@@ -86,14 +86,14 @@ const authorizeWithCognito = async (event, accessToken, apiOptions, principalId,
     return authResponse;
 };
 
-const isTokenValid = (accessToken) => {
+const isTokenValid = async (accessToken) => {
     // Token must be a Bearer Token and must be valid
     const isBearerToken = accessToken.startsWith('Bearer');
     if (!isBearerToken) {
         console.log(`Token is not a Bearer Token`);
         return false;
-    } else {
-        return true;
     }
+
+    return await verifyAccessToken(accessToken)
 };
 
