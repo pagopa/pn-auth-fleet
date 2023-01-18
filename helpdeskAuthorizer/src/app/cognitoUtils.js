@@ -1,7 +1,10 @@
 import { CognitoIdentityProviderClient, GetUserCommand } from "@aws-sdk/client-cognito-identity-provider";
+import { CognitoJwtVerifier } from "aws-jwt-verify";
 
 export const getCognitoUserAttributes = (accessToken) => {
-    const cognitoClient = new CognitoIdentityProviderClient();
+    const userPoolArn = process.env.USER_POOL_ARN;
+    const region = userPoolArn.split(':')[3];
+    const cognitoClient = new CognitoIdentityProviderClient({ region: region});
 
     const command = new GetUserCommand({ AccessToken: accessToken });
     const response = cognitoClient.send(command)
@@ -43,7 +46,7 @@ export const verifyAccessToken = async (accessToken) => {
     }
 
     const verifier = CognitoJwtVerifier.create({
-        userPoolId: userPoolId,
+        userPoolId: userPoolArnTokens[1],
         tokenUse: "access",
         clientId: clientId,
     });
