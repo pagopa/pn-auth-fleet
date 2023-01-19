@@ -142,6 +142,7 @@ AuthPolicy.prototype = (function () {
             verb + "/" +
             cleanedResource;
 
+        /* istanbul ignore else */
         if (effect.toLowerCase() == "allow") {
             this.allowMethods.push({
                 resourceArn: resourceArn,
@@ -323,4 +324,4 @@ AuthPolicy.prototype = (function () {
 
 })();
 
-export default AuthPolicy;
+module.exports = AuthPolicy;

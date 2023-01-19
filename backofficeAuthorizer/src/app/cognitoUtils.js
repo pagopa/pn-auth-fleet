@@ -1,7 +1,7 @@
-import { CognitoIdentityProviderClient, GetUserCommand } from "@aws-sdk/client-cognito-identity-provider";
-import { CognitoJwtVerifier } from "aws-jwt-verify";
+const { CognitoIdentityProviderClient, GetUserCommand } = require("@aws-sdk/client-cognito-identity-provider");
+const { CognitoJwtVerifier } = require("aws-jwt-verify");
 
-export const getCognitoUserAttributes = (accessToken) => {
+const getCognitoUserAttributes = (accessToken) => {
     const userPoolArn = process.env.USER_POOL_ARN;
     const region = userPoolArn.split(':')[3];
     const cognitoClient = new CognitoIdentityProviderClient({ region: region});
@@ -11,14 +11,12 @@ export const getCognitoUserAttributes = (accessToken) => {
         .then((data) => {
             let userAttributesTags;
             const attributeKeys = data.UserAttributes;
-            console.log("Attribute keys: ", attributeKeys);
             const filteredKey = attributeKeys.filter((obj) => obj.Name.includes("custom:openapi-tags"));
             if (filteredKey.length === 0) {
                 userAttributesTags = [];
             } else {
                 userAttributesTags = filteredKey[0]['Value'].split(',').map((value) => value.trim());
             }
-            console.log(`UserAttributes:${userAttributesTags}`);
             return userAttributesTags;
         })
         .catch((err) => {
@@ -27,11 +25,12 @@ export const getCognitoUserAttributes = (accessToken) => {
     return response;
 };
 
-export const verifyAccessToken = async (accessToken) => {
+const verifyAccessToken = async (accessToken) => {
     // Verify validity of JWT
     const userPoolArn = process.env.USER_POOL_ARN;
     if(!userPoolArn){
-        console.log(`Missing env variable USER_POOL_ARN`)
+        console.log(`Missing env variable USER_POOL_ARN`);
+        return false;
     }
     const clientId = process.env.CLIENT_ID;
     if(!clientId){
@@ -40,7 +39,7 @@ export const verifyAccessToken = async (accessToken) => {
     }
     
     const userPoolArnTokens = userPoolArn.split("/")
-    if(userPoolArnTokens.lenght<1){
+    if(userPoolArnTokens.length<=1){
         console.log(`Invalid UserPoolArn format`);
         return false;
     }
@@ -62,4 +61,9 @@ export const verifyAccessToken = async (accessToken) => {
         console.log("Token not valid!");
         return false
     }
+}
+
+module.exports = {
+    getCognitoUserAttributes,
+    verifyAccessToken
 }

@@ -1,6 +1,6 @@
-import { APIGatewayClient, GetTagsCommand } from "@aws-sdk/client-api-gateway";
+const { APIGatewayClient, GetTagsCommand } = require("@aws-sdk/client-api-gateway");
 
-export const getOpenAPIS3Location = async (apiOptions) => {
+const getOpenAPIS3Location = async (apiOptions) => {
     const apigwClient = new APIGatewayClient();
     const input = {
         resourceArn: `arn:aws:apigateway:${apiOptions.region}::/restapis/${apiOptions.restApiId}`
@@ -12,10 +12,14 @@ export const getOpenAPIS3Location = async (apiOptions) => {
             const bucketName = data.tags.PN_OPENAPI_BUCKET_NAME;
             const bucketKey = data.tags.PN_OPENAPI_BUCKET_KEY;
             if (bucketName === undefined || bucketKey === undefined) {
-                throw 'OpenAPI file location is not defined';
+                throw new Error('OpenAPI file location is not defined');
             } else {
                 return [bucketName, bucketKey];
             }
         });
     return response;
 };
+
+module.exports = {
+    getOpenAPIS3Location
+} 

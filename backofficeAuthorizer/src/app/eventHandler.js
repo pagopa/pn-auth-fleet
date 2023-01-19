@@ -1,10 +1,10 @@
-import AuthPolicy from "./authPolicy.js";
-import { arraysOverlap } from "./utils.js";
-import { getMethodTagsFromS3 } from "./s3Utils.js";
-import { getOpenAPIS3Location } from "./apiGatewayUtils.js";
-import { getCognitoUserAttributes, verifyAccessToken } from "./cognitoUtils.js";
+const AuthPolicy = require("./authPolicy.js");
+const { arraysOverlap } = require("./utils.js");
+const { getMethodTagsFromS3 } = require("./s3Utils.js");
+const { getOpenAPIS3Location } = require("./apiGatewayUtils.js");
+const { getCognitoUserAttributes, verifyAccessToken } = require("./cognitoUtils.js");
 
-export const handleEvent = async function (event) {
+const handleEvent = async function (event) {
     console.log('Method ARN: ' + event.methodArn);
     console.log(JSON.stringify(event));
     // Parameters
@@ -29,7 +29,6 @@ export const handleEvent = async function (event) {
 
     // Get the openAPI file location from the tags of the Rest API
     const locationValues = await getOpenAPIS3Location(apiOptions);
-    console.log(locationValues);
     const bucketName = locationValues[0];
     const bucketKey = locationValues[1];
 
@@ -97,3 +96,6 @@ const isTokenValid = async (accessToken) => {
     return await verifyAccessToken(accessToken)
 };
 
+module.exports = {
+    handleEvent
+}
