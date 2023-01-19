@@ -17,20 +17,26 @@ Parameters:
     Type: String
     Description: 'DNS custom domain to export token-exchange api'
 
-  LambdaZipVersionId1:
+  BucketBasePath:
     Type: String
-    Description: 'First lambda zip file S3 VersionId'
-  LambdaZipVersionId2:
+    Description: 'The S3 bucket base path where lambda functions are stored'
+
+  CognitoUserPoolArn:
     Type: String
-    Description: 'Second lambda zip file S3 VersionId'
-  LambdaZipVersionId3:
+    Default: ''
+    Description: 'Cognito user pool arn'
+
+  CognitoClientId:
     Type: String
-    Description: 'Third lambda zip file S3 VersionId'
-  LambdaZipVersionId4:
-    Type: String
-    Description: 'Fourth lambda zip file S3 VersionId'
+    Default: ''
+    Description: 'Cognito CognitoClientId'
+
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
+    Description: Cryptography keys cache entry duration in seconds
+  BackofficeAuthorizerLambdaEnvironmentCacheTtl:
+    Type: String
+    Default: "120"
     Description: Cryptography keys cache entry duration in seconds
   TokenExchangeLambdaEnvironmentCacheTtl:
     Type: String
@@ -130,8 +136,7 @@ Resources:
       Handler: 'index.handler'
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/apikeyAuthorizerV2.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId1
+        S3Key: !Sub '${BucketBasePath}/apikeyAuthorizerV2.zip'
       Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
       TracingConfig:
         Mode: Active
@@ -227,8 +232,7 @@ Resources:
       Handler: 'index.handler'
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/ioAuthorizer.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId4
+        S3Key: !Sub '${BucketBasePath}/ioAuthorizer.zip'
       Environment:
         Variables:
           CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
@@ -349,8 +353,7 @@ Resources:
       Handler: 'index.handler'
       Code: 
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/jwtAuthorizer.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId2
+        S3Key: !Sub '${BucketBasePath}/jwtAuthorizer.zip'
       Environment:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
@@ -438,6 +441,119 @@ Resources:
       Threshold: 1
       TreatMissingData: notBreaching
 
+  ###             BACKOFFICE AUTHORIZER LAMBDA            ###
+  #########################################################
+  
+  # Lambda function
+  BackofficeAuthorizerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-backofficeAuthorizerLambda'
+      Runtime: nodejs18.x
+      Handler: 'index.handler'
+      Code: 
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub '${BucketBasePath}/backofficeAuthorizer.zip'
+      Environment:
+        Variables:
+          CACHE_TTL: !Ref BackofficeAuthorizerLambdaEnvironmentCacheTtl
+          CLIENT_ID: !Ref CognitoClientId
+          USER_POOL_ARN: !Ref CognitoUserPoolArn
+      Role: !GetAtt BackofficeAuthorizerLambdaRole.Arn
+      TracingConfig:
+        Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+
+  # Lambda function role
+  BackofficeAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-backofficeAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+        - PolicyName: "get-tags-from-api-key"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "apigateway:GET"
+                Resource: !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
+        - PolicyName: "lambda-s3-read-permission"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 
+                  -  "s3:GetObject"
+                Resource: "arn:aws:s3:::*/*"    
+
+  # lambda function Log Group
+  BackofficeAuthorizerLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${BackofficeAuthorizerLambda}"
+      RetentionInDays: 14
+
+  # Lambda function CloudWatch Logs Metric Filter
+  BackofficeAuthorizerErrorFatalLogsMetricFilter: 
+    Type: AWS::Logs::MetricFilter
+    Properties: 
+      LogGroupName: 
+        !Ref BackofficeAuthorizerLambdaLogGroup
+      FilterPattern: '?ERROR ?FATAL ?CRITICAL'
+      MetricTransformations: 
+        - MetricValue: 1
+          MetricNamespace: "ErrorFatalLogs"
+          MetricName: !Sub ${ProjectName}-authFleet-BackofficeAuthorizerErrorFatalMetric
+  
+  # Lambda function CloudWatch alarm 
+  BackofficeAuthorizerErrorFatalLogsMetricAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: BackofficeAuthorizerErrorFatalLogsMetricFilter
+    Properties:
+      AlarmName: !Sub ${ProjectName}-authFleet-BackofficeAuthorizerErrorFatalLogsMetricAlarm
+      AlarmDescription: "CloudWatch alarm for Backoffice Cognito Authorizer Lambda logs with ERROR or FATAL line."
+      AlarmActions: 
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      MetricName: !Sub ${ProjectName}-authFleet-BackofficeAuthorizerErrorFatalMetric
+      Namespace: ErrorFatalLogs
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 60
+      Period: 60
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
 
   ###               TOKEN EXCHANGE LAMBDA               ###
   ##########################################################
@@ -451,8 +567,7 @@ Resources:
       Handler: 'index.handler'
       Code: 
         S3Bucket: !Ref LambdasBucketName
-        S3Key: 'pn-auth-fleet/main/tokenExchange.zip'
-        S3ObjectVersion: !Ref LambdaZipVersionId3
+        S3Key: !Sub '${BucketBasePath}/tokenExchange.zip'
       Environment:
         Variables:
           CACHE_TTL: !Ref TokenExchangeLambdaEnvironmentCacheTtl

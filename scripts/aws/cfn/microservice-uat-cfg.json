@@ -1,7 +1,7 @@
 {
   "Parameters" : {
     "JwtAuthorizerLambdaEnvironmentCacheTtl": "120",
-
+    "HelpdeskAuthorizerLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentTokenTtl": "3200",
     "TokenExchangeLambdaEnvironmentIssuer":"https://webapi.uat.pn.pagopa.it",
