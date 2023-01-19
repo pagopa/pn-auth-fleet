@@ -63,7 +63,7 @@ describe('eventHandler test ', function() {
     });
   
     const res = await eventHandler(event, null);
-    expect(res.usageIdentifierKey).equal('testApiKey');
+    expect(res.usageIdentifierKey).equal(mockIamPolicyOk.usageIdentifierKey);
   })
 });
 

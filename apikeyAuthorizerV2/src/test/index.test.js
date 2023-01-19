@@ -15,7 +15,7 @@ describe('index tests', function() {
         });
 
         const res = await lambda.handler(event, null);
-        expect(res.usageIdentifierKey).equal('testApiKey');
+        expect(res.usageIdentifierKey).equal(mockIamPolicyOk.usageIdentifierKey);
     });
 
     it("test fail", async () => {

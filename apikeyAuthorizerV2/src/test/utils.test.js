@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const utils = require("../app/utils");
 const sinon = require("sinon");
+const { mockIamPolicyOk } = require("./mocks");
 
 describe("Test anonymize function", () => {
     it("anonymize with length > 6", () => {
@@ -38,6 +39,38 @@ describe('Test logEvent', () => {
         };
 
         expect(spy.getCall(0).calledWith("New event received", sinon.match(expectedEvent))).to.be.true;
+        spy.restore();
+    })
+})
+
+describe('Test logIamPolicy', () => {
+    it("", () => {
+        let spy = sinon.spy(console, 'log');
+    
+        utils.logIamPolicy(mockIamPolicyOk);
+
+        let expectedIamPolicy = {
+            principalId: "testPrincipal",
+            policyDocument: {
+                Version: '2012-10-17',
+                Statement: [
+                    {
+                        Action: 'execute-api:Invoke',
+                        Effect: "Allow",
+                        Resource: "arn"
+                    }
+                ]
+            },
+            context: {
+                "uid": "APIKEY-te******ey",
+                "cx_id": "cxId",
+                "cx_groups": '',
+                "cx_type": "PA"
+            },
+            usageIdentifierKey: "te******ey"
+        }
+
+        expect(spy.getCall(0).calledWith("IAM Policy:", sinon.match(expectedIamPolicy))).to.be.true;
         spy.restore();
     })
 })
