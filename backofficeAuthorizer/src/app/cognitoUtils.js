@@ -11,7 +11,7 @@ const getCognitoUserAttributes = (accessToken) => {
         .then((data) => {
             let userAttributesTags;
             const attributeKeys = data.UserAttributes;
-            const filteredKey = attributeKeys.filter((obj) => obj.Name.includes("custom:openapi-tags"));
+            const filteredKey = attributeKeys.filter((obj) => obj.Name.includes("custom:backoffice_tags"));
             if (filteredKey.length === 0) {
                 userAttributesTags = [];
             } else {

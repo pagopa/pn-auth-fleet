@@ -20,7 +20,7 @@ describe('cognito tests', function() {
                 Value: 'TEST'
             },
             {
-                Name: 'custom:openapi-tags',
+                Name: 'custom:backoffice_tags',
                 Value: 'tag1, tag2'
             }
         ]
