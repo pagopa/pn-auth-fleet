@@ -34,10 +34,10 @@ module.exports.eventHandler = async (event, context) => {
         console.log("AWS ApiKey Found -> ", utils.anonymizeKey(aggregateDynamo.AWSApiKey));
 
         const contextAuth = {
-            "x-pagopa-pn-uid": "apiKey-" + aggregateDynamo.AWSApiKey,
-            "x-pagopa-pn-cx-id": apiKeyDynamo.cxId,
-            "x-pagopa-pn-cx-groups": apiKeyDynamo?.groups?.join(),
-            "x-pagopa-pn-cxtype": "PA"
+            "uid": "APIKEY-" + aggregateDynamo.AWSApiKey,
+            "cx_id": apiKeyDynamo.cxId,
+            "cx_groups": apiKeyDynamo?.groups?.join(),
+            "cx_type": "PA"
         };
 
         const iamPolicy = iam.generateIAMPolicy(event.methodArn, contextAuth, aggregateDynamo.AWSApiKey);

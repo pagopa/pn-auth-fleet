@@ -5,6 +5,7 @@ const auditLog = require("./log.js");
 
 module.exports = {
     async handleEvent(event){
+        event.headers = makeLower(event.headers);
         const eventOrigin = event?.headers?.origin;
         if (eventOrigin) {
             auditLog('', 'AUD_ACC_LOGIN', eventOrigin).info('info');
@@ -104,4 +105,15 @@ function generateKoResponse(err, allowedOrigin) {
         body: JSON.stringify(responseBody),
         isBase64Encoded: false
     };
+}
+
+function makeLower(headers) {
+    let head = {}
+    for(const key in headers) {
+        if (headers.hasOwnProperty(key)) {
+            head[key.toLowerCase()] = headers[key]
+        }
+    }
+
+    return head
 }
