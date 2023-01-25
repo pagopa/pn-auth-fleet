@@ -33,7 +33,7 @@ module.exports =
         cx_id: cx_id,
         trace_id: traceId,
         tags: [
-            "AUDIT5Y"
+            "AUDIT10Y"
         ],
         jti
     })
