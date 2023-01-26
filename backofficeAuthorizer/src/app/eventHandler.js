@@ -31,6 +31,9 @@ const handleEvent = async function (event) {
     const locationValues = await getOpenAPIS3Location(apiOptions);
     const bucketName = locationValues[0];
     const bucketKey = locationValues[1];
+    const servicePath = locationValues[2]
+
+    event.path = '/'+servicePath+event.path
 
     // Authorize
     const authorizeWithCognitoDecorated = denyIfErrorDecorator(authorizeWithCognito, event, principalId, awsAccountId, apiOptions);

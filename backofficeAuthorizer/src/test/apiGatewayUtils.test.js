@@ -14,7 +14,8 @@ describe('api gateway tests', function() {
     ddbMock.on(GetTagsCommand).resolves({
         tags: {
             PN_OPENAPI_BUCKET_NAME: '1231',
-            PN_OPENAPI_BUCKET_KEY: 'abcd'
+            PN_OPENAPI_BUCKET_KEY: 'abcd',
+            PN_SERVICE_PATH: 'api-key-bo'
         }
     });
 
@@ -24,7 +25,7 @@ describe('api gateway tests', function() {
     });
 
     expect(tags).deep.equal([
-        '1231', 'abcd'
+        '1231', 'abcd', 'api-key-bo'
     ]);
   });
 

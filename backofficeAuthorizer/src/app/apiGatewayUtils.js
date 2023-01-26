@@ -11,10 +11,11 @@ const getOpenAPIS3Location = async (apiOptions) => {
             // $metadata is also returned, we need to select tags
             const bucketName = data.tags.PN_OPENAPI_BUCKET_NAME;
             const bucketKey = data.tags.PN_OPENAPI_BUCKET_KEY;
+            const servicePath = data.tags.PN_SERVICE_PATH
             if (bucketName === undefined || bucketKey === undefined) {
                 throw new Error('OpenAPI file location is not defined');
             } else {
-                return [bucketName, bucketKey];
+                return [bucketName, bucketKey, servicePath];
             }
         });
     return response;
