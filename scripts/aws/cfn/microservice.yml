@@ -710,7 +710,6 @@ Resources:
   TokenExchangeRestApiDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
-      - TokenExchangeGetMethod
       - TokenExchangePostMethod
       - TokenExchangeOptionsMethod
     Properties:
@@ -747,36 +746,6 @@ Resources:
       DomainName: !Ref WebApiDnsName
       RestApiId: !Ref TokenExchangeRestApi
       Stage: !Ref TokenExchangeRestApiStage
-
-  # Session Token GET method
-  TokenExchangeGetMethod:
-    DependsOn: TokenExchangeLambda
-    Type: AWS::ApiGateway::Method
-    Properties:
-      OperationName: 'Proxy to Session Token Lambda'
-      RestApiId: !Ref TokenExchangeRestApi
-      ResourceId: !GetAtt TokenExchangeRestApi.RootResourceId
-      HttpMethod: GET
-      AuthorizationType: NONE
-      ApiKeyRequired: false
-      RequestValidatorId: !Ref TokenExchangeGetMethodRequestValidator
-      RequestParameters: 
-        "method.request.header.Origin": true
-        "method.request.querystring.authorizationToken": true
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-tokenExchangeLambda/invocations'
-        PassthroughBehavior: WHEN_NO_MATCH
-        ContentHandling: CONVERT_TO_TEXT
-        TimeoutInMillis: 29000
-
-  TokenExchangeGetMethodRequestValidator:
-    Type: AWS::ApiGateway::RequestValidator
-    Properties:
-      RestApiId: !Ref TokenExchangeRestApi
-      ValidateRequestBody: false
-      ValidateRequestParameters: true
 
   # Lambda access right for POST method
   TokenExchangeLambdaPermission:

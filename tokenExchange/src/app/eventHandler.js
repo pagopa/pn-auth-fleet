@@ -13,17 +13,13 @@ module.exports = {
                 console.info('Origin successful checked');
                 // retrieve token
                 const httpMethod = event?.httpMethod;
-                let encodedToken;                    
-                if (httpMethod === 'POST') {
-                    try {
-                        const requestBody = JSON.parse(event?.body);
-                        encodedToken = requestBody?.authorizationToken;
-                    } catch (err) {
-                        auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
-                        return generateKoResponse(err, eventOrigin);
-                    }
-                } else {
-                    encodedToken = event?.queryStringParameters?.authorizationToken;
+                let encodedToken;
+                try {
+                    const requestBody = JSON.parse(event?.body);
+                    encodedToken = requestBody?.authorizationToken;
+                } catch (err) {
+                    auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
+                    return generateKoResponse(err, eventOrigin);
                 }
                 if (encodedToken) {
                     try {
