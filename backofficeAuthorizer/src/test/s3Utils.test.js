@@ -14,16 +14,17 @@ describe('s3 tests', function() {
   it("test tags extraction", async () => {
     const yamlDocument = fs.readFileSync('./src/test/mock.yaml');
     ddbMock.on(GetObjectCommand).resolves({
-        Body: {
-            transformToString: function(){
-                return yamlDocument
-            }
+      Body: {
+        transformToString: function(){
+            return yamlDocument
         }
+      }
     });
 
     const event = {
-        path: '/api-key-bo/aggregate',
-        httpMethod: 'POST'
+      path: '/aggregate',
+      openApiPath: '/api-key-bo/aggregate',
+      httpMethod: 'POST'
     }
     const bucket = 'buck'
     const key = 'key'
@@ -38,8 +39,9 @@ describe('s3 tests', function() {
     ddbMock.on(GetObjectCommand).rejects(new Error('TEST ERROR'))
 
     const event = {
-        path: '/api-key-bo/aggregate',
-        httpMethod: 'POST'
+      path: '/aggregate',
+      openApiPath: '/api-key-bo/aggregate',
+      httpMethod: 'POST'
     }
     const bucket = 'buck'
     const key = 'key'

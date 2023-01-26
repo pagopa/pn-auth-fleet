@@ -5,8 +5,6 @@ const { getOpenAPIS3Location } = require("./apiGatewayUtils.js");
 const { getCognitoUserAttributes, verifyAccessToken } = require("./cognitoUtils.js");
 
 const handleEvent = async function (event) {
-    console.log('Method ARN: ' + event.methodArn);
-    console.log(JSON.stringify(event));
     // Parameters
     let apiOptions = {};
     const tmp = event.methodArn.split(':');
@@ -25,13 +23,15 @@ const handleEvent = async function (event) {
             path += '/';
     } 
     event.path = path;
-    console.log(`event path : ${event.path}`);
 
     // Get the openAPI file location from the tags of the Rest API
     const locationValues = await getOpenAPIS3Location(apiOptions);
     const bucketName = locationValues[0];
     const bucketKey = locationValues[1];
+    const servicePath = locationValues[2]
 
+    event.openApiPath = '/'+servicePath+event.path
+    console.log('OpenApiPath '+event.openApiPath)
     // Authorize
     const authorizeWithCognitoDecorated = denyIfErrorDecorator(authorizeWithCognito, event, principalId, awsAccountId, apiOptions);
     const authResponse = await authorizeWithCognitoDecorated(event, accessToken, apiOptions, principalId, awsAccountId, bucketName, bucketKey);
@@ -72,9 +72,7 @@ const authorizeWithCognito = async (event, accessToken, apiOptions, principalId,
     // If valid, get tags and check that they match
     const bearerToken = accessToken.replace('Bearer ', '');
     const userAttributes = await getCognitoUserAttributes(bearerToken);
-    console.log(userAttributes);
     const methodTags = await getMethodTagsFromS3(event, bucketName, bucketKey);
-    console.log(methodTags);
 
     if (arraysOverlap(userAttributes, methodTags)) {
         policy.allowMethod(event.httpMethod, event.path);
