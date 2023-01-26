@@ -44,4 +44,3 @@ describe("Test array overlap", () => {
         expect(hasOverlap).equals(false);
     });
 })
-
