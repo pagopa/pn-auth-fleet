@@ -64,6 +64,7 @@ describe('eventHandler test ', function() {
   
     const res = await eventHandler(event, null);
     expect(res.usageIdentifierKey).equal(mockIamPolicyOk.usageIdentifierKey);
+    expect(res.context.cx_groups).equal(mockIamPolicyOk.context.cx_groups);
   })
 
   it("error thrown", async () => {

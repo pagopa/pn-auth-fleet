@@ -16,6 +16,7 @@ describe('index tests', function() {
 
         const res = await lambda.handler(event, null);
         expect(res.usageIdentifierKey).equal(mockIamPolicyOk.usageIdentifierKey);
+        expect(res.context.cx_groups).equal(mockIamPolicyOk.context.cx_groups);
     });
 
     it("test fail", async () => {

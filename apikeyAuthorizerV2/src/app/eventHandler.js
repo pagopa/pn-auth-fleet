@@ -45,7 +45,7 @@ module.exports.eventHandler = async (event, context) => {
 
         return iamPolicy;
     } catch (error) {
-        handleError(error)
+        return handleError(error)
     }
 }; 
 

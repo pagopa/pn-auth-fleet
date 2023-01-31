@@ -13,7 +13,7 @@ const mockIamPolicyOk = {
     context: {
         "uid": "APIKEY-testApiKey",
         "cx_id": "cxId",
-        "cx_groups": '',
+        "cx_groups": 'group1,group2',
         "cx_type": "PA"
     },
     usageIdentifierKey: "testApiKey"

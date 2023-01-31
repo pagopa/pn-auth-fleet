@@ -3,15 +3,16 @@ const { generateIAMPolicy } = require('../app/iamPolicyGenerator');
 
 describe("iamPolicyGenerator tests", () => {
     let mockContext = {
-        "x-pagopa-pn-uid": "apiKey-testApiKey",
-        "x-pagopa-pn-cx-id": "testCxId",
-        "x-pagopa-pn-cx-groups": "[GRUPPO1,GRUPPO2]",
-        "x-pagopa-pn-cxtype": "PA"
+        "uid": "apiKey-testApiKey",
+        "cx_id": "testCxId",
+        "cx_groups": "[GRUPPO1,GRUPPO2]",
+        "cx_type": "PA"
     }
 
     it("generateIAMPolicy ok", () => {
         const policy = generateIAMPolicy("arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request", mockContext, "testApiKey");
-        expect(policy.usageIdentifierKey).to.equal("testApiKey")
+        expect(policy.usageIdentifierKey).to.equal("testApiKey");
+        expect(policy.context.cx_groups).to.equal(mockContext.cx_groups);
     })
 
     it("generateIAMPolicy failed", () => {

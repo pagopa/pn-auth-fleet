@@ -64,7 +64,7 @@ describe('Test logIamPolicy', () => {
             context: {
                 "uid": "APIKEY-te******ey",
                 "cx_id": "cxId",
-                "cx_groups": '',
+                "cx_groups": 'group1,group2',
                 "cx_type": "PA"
             },
             usageIdentifierKey: "te******ey"
