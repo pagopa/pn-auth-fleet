@@ -1,7 +1,7 @@
 const { mockClient } = require("aws-sdk-client-mock");
 const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { expect } = require('chai');
-const { getMethodTagsFromS3 } = require('../app/s3Utils');
+const { getAllowedResourcesFromS3 } = require('../app/s3Utils');
 
 const fs = require('fs');
 const ddbMock = mockClient(S3Client);
@@ -23,16 +23,15 @@ describe('s3 tests', function() {
 
     const event = {
       path: '/aggregate',
-      openApiPath: '/api-key-bo/aggregate',
+      servicePath: 'api-key-bo',
       httpMethod: 'POST'
     }
     const bucket = 'buck'
     const key = 'key'
-    const tags = await getMethodTagsFromS3(event, bucket, key);
+    const resources = await getAllowedResourcesFromS3(event, bucket, key, ['Aggregate']);
 
-    expect(tags).deep.equal([
-        'Aggregate'
-    ]);
+    console.log('resources', resources)
+    expect(resources.length).eq(9);
   });
 
   it("test trigger ", async () => {
@@ -40,13 +39,13 @@ describe('s3 tests', function() {
 
     const event = {
       path: '/aggregate',
-      openApiPath: '/api-key-bo/aggregate',
-      httpMethod: 'POST'
+      httpMethod: 'POST',
+      servicePath: 'api-key-bo'
     }
     const bucket = 'buck'
     const key = 'key'
     try {
-        const tags = await getMethodTagsFromS3(event, bucket, key);
+        const tags = await getAllowedResourcesFromS3(event, bucket, key, []);
     } catch(error){
         expect(error).to.not.be.null;
         expect(error).to.not.be.undefined;
