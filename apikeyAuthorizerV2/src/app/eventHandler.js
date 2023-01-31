@@ -45,11 +45,19 @@ module.exports.eventHandler = async (event, context) => {
 
         return iamPolicy;
     } catch (error) {
-        console.error('Error generating IAM policy with error ', error);
-        return defaultDenyAllPolicy;
+        handleError(error)
     }
 }; 
 
 function checkStatus(status) {
     return status === 'ENABLED' || status === 'ROTATED';
+}
+
+function handleError(error) {
+    if(error instanceof KeyStatusException) {
+        console.warn('Error generating IAM policy with error ', error);
+    } else {
+        console.error('Error generating IAM policy with error ', error);
+    }
+    return defaultDenyAllPolicy;
 }

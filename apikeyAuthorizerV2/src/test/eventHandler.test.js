@@ -65,5 +65,19 @@ describe('eventHandler test ', function() {
     const res = await eventHandler(event, null);
     expect(res.usageIdentifierKey).equal(mockIamPolicyOk.usageIdentifierKey);
   })
+
+  it("error thrown", async () => {
+    const { eventHandler } = proxyquire.noCallThru().load("../app/eventHandler.js", {
+      "./dynamoFunctions.js": {
+        getApiKeyByIndex: async (vk) => {
+          throw new Error("error test");
+        }
+      }
+    });
+  
+    const res = await eventHandler(event, null);
+    expect(res.policyDocument.Statement[0].Effect).equal('Deny');
+    expect(res.usageIdentifierKey).to.be.undefined;
+  })
 });
 
