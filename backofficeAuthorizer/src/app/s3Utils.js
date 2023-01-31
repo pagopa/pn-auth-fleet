@@ -2,8 +2,11 @@ const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const yaml = require( 'js-yaml');
 const { arraysOverlap } = require("./utils.js");
 
-const transformPathPattern = (path) => {
-    return path.replaceAll(/({.*})/g,"*");
+const transformPathPattern = (path, servicePath) => {
+    const string = `^/${servicePath}`
+    const regex = new RegExp(string)
+
+    return path.replaceAll(/({.*})/g,"*").replace(regex, '');
 }
 
 const getAllowedResourcesFromS3 = async (event, bucket, key, userTags) => {
@@ -19,8 +22,8 @@ const getAllowedResourcesFromS3 = async (event, bucket, key, userTags) => {
             const tags = yamlElement['tags']
             if(!tags || arraysOverlap(tags, userTags)){
                 resources.push({
-                    method: method,
-                    path: transformPathPattern(path)
+                    method: method.toUpperCase(),
+                    path: transformPathPattern(path, event.servicePath)
                 })
             }
         }
