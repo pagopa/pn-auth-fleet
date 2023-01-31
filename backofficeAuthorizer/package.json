@@ -25,12 +25,11 @@
     "mocha-lcov-reporter": "^1.3.0",
     "nyc": "^15.1.0",
     "proxyquire": "^2.1.3",
+    "sinon": "^15.0.1",
     "sonarqube-scanner": "^2.8.2"
   },
   "dependencies": {
     "aws-jwt-verify": "^3.3.0",
-    "js-yaml": "^4.1.0",
-    "sinon": "^14.0.0",
-    "url-pattern": "^1.0.3"
+    "js-yaml": "^4.1.0"
   }
 }

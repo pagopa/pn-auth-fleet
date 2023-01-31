@@ -1,68 +1,39 @@
-const { mockClient } = require("aws-sdk-client-mock");
-const { CognitoIdentityProviderClient, GetUserCommand } = require("@aws-sdk/client-cognito-identity-provider");
 const { expect } = require('chai');
-const { getCognitoUserAttributes, verifyAccessToken } = require('../app/cognitoUtils');
+const { getCognitoUserTags, verifyIdToken } = require('../app/cognitoUtils');
 const sinon = require('sinon');
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
-const ddbMock = mockClient(CognitoIdentityProviderClient);
 
 describe('cognito tests', function() {
-  this.beforeAll(() => {
-    ddbMock.reset();
-  })
-
   it("test cognito get user tag", async () => {
-    process.env.USER_POOL_ARN = 'arn:aws:cognito-idp:eu-central-1:123123123:userpool/eu-central-1_abcd'
-    ddbMock.on(GetUserCommand).resolves({
-        UserAttributes: [
-            {
-                Name: 'custom:boo',
-                Value: 'TEST'
-            },
-            {
-                Name: 'custom:backoffice_tags',
-                Value: 'tag1, tag2'
-            }
-        ]
-    });
 
-    const accessToken = 'token'
-    const tags = await getCognitoUserAttributes(accessToken);
+    const idTokenPayload = {
+      'custom:backoffice_tags': 'Aggregate'
+    }
+    const tags = getCognitoUserTags(idTokenPayload);
 
     expect(tags).deep.equal([
-        'tag1', 'tag2'
+        'Aggregate'
     ]);
   });
 
-  it("test cognito get user tag empty", async () => {
-    process.env.USER_POOL_ARN = 'arn:aws:cognito-idp:eu-central-1:123123123:userpool/eu-central-1_abcd'
-    ddbMock.on(GetUserCommand).resolves({
-        UserAttributes: [
-            {
-                Name: 'custom:boo',
-                Value: 'TEST'
-            }
-        ]
-    });
+  it("test cognito get user tag, empty attribute", async () => {
 
-    const accessToken = 'token'
-    const tags = await getCognitoUserAttributes(accessToken);
+    const idTokenPayload = {}
+
+    const tags = getCognitoUserTags(idTokenPayload);
 
     expect(tags).deep.equal([]);
   });
 
-  it("test cognito get user tag empty", async () => {
-    process.env.USER_POOL_ARN = 'arn:aws:cognito-idp:eu-central-1:123123123:userpool/eu-central-1_abcd'
-    ddbMock.on(GetUserCommand).rejects(new Error('TEST ERROR'));
-
-    const accessToken = 'token'
-    try {
-        const tags = await getCognitoUserAttributes(accessToken);
-    } catch(error){
-        expect(error).to.not.be.null;
-        expect(error).to.not.be.undefined;
-        expect(error.message).to.equal('TEST ERROR');
+  it("test cognito get user tag trim", async () => {
+    const idTokenPayload = {
+      'custom:backoffice_tags': 'Aggregate , Aggregate1 '
     }
+    const tags = getCognitoUserTags(idTokenPayload);
+
+    expect(tags).deep.equal([
+        'Aggregate', 'Aggregate1'
+    ]);
   });
 
 });
@@ -81,13 +52,14 @@ describe('jwt verifier', function() {
     process.env.USER_POOL_ARN = 'arn:aws:cognito-idp:eu-central-1:123123123:userpool/eu-central-1_abcd'
     process.env.CLIENT_ID = '123131312132'
     
-    sandbox.stub(CognitoJwtVerifier.prototype, 'verify').resolves({
-        jit: '123123'
-    });
+    const payload = {
+      jit: '123123'
+    }
+    sandbox.stub(CognitoJwtVerifier.prototype, 'verify').resolves(payload);
 
     const accessToken = 'token'
-    const valid = await verifyAccessToken(accessToken);
-    expect(valid).equals(true);
+    const valid = await verifyIdToken(accessToken);
+    expect(valid).equals(payload);
   });
 
   it("test jwt verifier when the USER_POOL_ARN is missing", async () => {
@@ -99,7 +71,7 @@ describe('jwt verifier', function() {
     });
 
     const accessToken = 'token'
-    const valid = await verifyAccessToken(accessToken);
+    const valid = await verifyIdToken(accessToken);
     expect(valid).equals(false);
   });
 
@@ -111,8 +83,8 @@ describe('jwt verifier', function() {
         jit: '123123'
     });
 
-    const accessToken = 'token'
-    const valid = await verifyAccessToken(accessToken);
+    const idToken = 'token'
+    const valid = await verifyIdToken(idToken);
     expect(valid).equals(false);
   });
 
@@ -125,7 +97,7 @@ describe('jwt verifier', function() {
     });
 
     const accessToken = 'token'
-    const valid = await verifyAccessToken(accessToken);
+    const valid = await verifyIdToken(accessToken);
     expect(valid).equals(false);
   });
 
@@ -136,7 +108,7 @@ describe('jwt verifier', function() {
     sandbox.stub(CognitoJwtVerifier.prototype, 'verify').rejects(new Error('AAA'));
 
     const accessToken = 'token'
-    const valid = await verifyAccessToken(accessToken);
+    const valid = await verifyIdToken(accessToken);
     expect(valid).equals(false);
   });
 
