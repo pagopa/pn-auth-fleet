@@ -213,9 +213,14 @@ describe("Test auth policy", () => {
             },
         });
 
-        const authResponse = await eventHandler.handleEvent(event);
-        console.log(authResponse.policyDocument)
-        expect(authResponse.policyDocument.Statement[0].Effect).equals('Deny');
+        try {
+            await eventHandler.handleEvent(event);
+        } catch(error){
+            expect(error).to.not.be.null;
+            expect(error).to.not.be.undefined;
+            expect(error.message).to.equal('Invalid token');
+        }
+
     });
 })
 

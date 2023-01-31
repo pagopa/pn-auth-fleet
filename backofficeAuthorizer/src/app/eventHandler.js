@@ -32,14 +32,14 @@ const handleEvent = async function (event) {
     event.servicePath = servicePath
 
     // Authorize
-    const authorizeWithCognitoDecorated = denyIfErrorDecorator(authorizeWithCognito, event, principalId, awsAccountId, apiOptions);
+    const authorizeWithCognitoDecorated = logIfErrorDecorator(authorizeWithCognito, event, principalId, awsAccountId, apiOptions);
     const authResponse = await authorizeWithCognitoDecorated(event, accessToken, apiOptions, principalId, awsAccountId, bucketName, bucketKey);
     console.log(`AuthResponse: ${JSON.stringify(authResponse)}`);
     return authResponse;
 };
 
 // Decorator
-const denyIfErrorDecorator = (f, event, principalId, awsAccountId, apiOptions) => {
+const logIfErrorDecorator = (f, event, principalId, awsAccountId, apiOptions) => {
     let authResponse;
     return async function (...args) {
         try {
@@ -47,10 +47,7 @@ const denyIfErrorDecorator = (f, event, principalId, awsAccountId, apiOptions) =
             return authResponse;
         } catch (err) {
             console.error(err);
-            let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
-            policy.denyAllMethods();
-            const authResponse = policy.build();
-            return authResponse;
+            throw err;
         }
     };
 };

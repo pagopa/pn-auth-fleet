@@ -6,7 +6,7 @@ const transformPathPattern = (path, servicePath) => {
     const string = `^/${servicePath}`
     const regex = new RegExp(string)
 
-    return path.replaceAll(/({.*})/g,"*").replace(regex, '');
+    return path.replaceAll(/({.*?})/g,"*").replace(regex, '');
 }
 
 const getAllowedResourcesFromS3 = async (event, bucket, key, userTags) => {
