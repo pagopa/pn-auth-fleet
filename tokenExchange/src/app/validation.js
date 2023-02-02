@@ -86,6 +86,10 @@ function checkAudience(aud) {
 function checkRoles(role) {
     const allowedRoles = ['admin', 'operator'];
 
+    if (role.startsWith('pg-')) {
+        return 1
+    }
+
     if (allowedRoles != 0) {
         return allowedRoles.indexOf(role)
     } else {
