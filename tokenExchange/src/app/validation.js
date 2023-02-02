@@ -29,7 +29,7 @@ async function jwtValidator(jwtToken) {
         }
         if (checkAudience(aud) !== -1) {
             if (checkIssuer(issuer) !== -1) {
-                if (organization === undefined || checkRoles(role) !== -1 ||  role.startsWith('pg-')) {
+                if (organization === undefined || checkRoles(role) !== -1) {
                     const kid = decodedToken.header.kid;
                     console.debug('kid from header', kid)
                     try {
@@ -85,6 +85,10 @@ function checkAudience(aud) {
 
 function checkRoles(role) {
     const allowedRoles = ['admin', 'operator'];
+
+    if (role.startsWith('pg-')) {
+        return 1
+    }
 
     if (allowedRoles != 0) {
         return allowedRoles.indexOf(role)
