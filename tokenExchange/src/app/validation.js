@@ -29,7 +29,7 @@ async function jwtValidator(jwtToken) {
         }
         if (checkAudience(aud) !== -1) {
             if (checkIssuer(issuer) !== -1) {
-                if (organization === undefined || checkRoles(role) !== -1) {
+                if (organization === undefined || checkRoles(role) !== -1 ||  role.startsWith('pg')) {
                     const kid = decodedToken.header.kid;
                     console.debug('kid from header', kid)
                     try {

@@ -12,7 +12,6 @@ module.exports = {
             if (checkOrigin( eventOrigin ) !== -1) {
                 console.info('Origin successful checked');
                 // retrieve token
-                const httpMethod = event?.httpMethod;
                 let encodedToken;
                 try {
                     const requestBody = JSON.parse(event?.body);
@@ -27,7 +26,7 @@ module.exports = {
                         const sessionToken = await tokenGen.generateToken(decodedToken);
                         const uid = decodedToken.uid;
                         const cx_id = decodedToken.organization ? decodedToken.organization.id : ('PF-' + decodedToken.uid);
-                        const cx_type = decodedToken.organization ? 'PA' : 'PF';
+                        const cx_type = getUserType(decodedToken);
                         const cx_role = decodedToken.organization?.roles[0]?.role
                         auditLog(`Token successful generated with id ${decodedToken.jti}`, 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, cx_role, uid, decodedToken.jti).info('success');
                         return generateOkResponse(sessionToken, decodedToken, eventOrigin);
@@ -116,4 +115,16 @@ function makeLower(headers) {
     }
 
     return head
+}
+
+function getUserType(token) {
+    if (!token.organization) {
+        return 'PF';
+    }
+    if (token.organization && token.organization.roles[0]?.role.startsWith('pg')) {
+        return 'PG';
+    }
+    if (token.organization) {
+        return 'PA';
+    }
 }

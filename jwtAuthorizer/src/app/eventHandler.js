@@ -29,8 +29,8 @@ module.exports = {
                 console.log('decodedToken', decodedToken);
                 let contextAttrs = {};
                 contextAttrs.uid = decodedToken.uid;
-                contextAttrs.cx_id = decodedToken.organization? decodedToken.organization.id : ('PF-' + decodedToken.uid);
-                contextAttrs.cx_type = decodedToken.organization? 'PA' : 'PF';
+                contextAttrs.cx_id = decodedToken.organization ? decodedToken.organization.id : ('PF-' + decodedToken.uid);
+                contextAttrs.cx_type = getUserType(decodedToken);
                 contextAttrs.cx_groups = decodedToken.organization?.groups?.join();
                 contextAttrs.cx_role = decodedToken.organization?.role;
                 contextAttrs.cx_jti = decodedToken.jti;
@@ -48,5 +48,17 @@ module.exports = {
             console.error('EncodedToken is null')
             return defaultDenyAllPolicy;
         } 
+    }
+}
+
+function getUserType(token) {
+    if (!token.organization) {
+        return 'PF';
+    }
+    if (token.organization && token.organization.roles[0]?.role.startsWith('pg')) {
+        return 'PG';
+    }
+    if (token.organization) {
+        return 'PA';
     }
 }
