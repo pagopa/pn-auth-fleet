@@ -1,8 +1,8 @@
 const AuthPolicy = require("./authPolicy.js");
-const { arraysOverlap } = require("./utils.js");
-const { getMethodTagsFromS3 } = require("./s3Utils.js");
+
+const { getAllowedResourcesFromS3 } = require("./s3Utils.js");
 const { getOpenAPIS3Location } = require("./apiGatewayUtils.js");
-const { getCognitoUserAttributes, verifyAccessToken } = require("./cognitoUtils.js");
+const { getCognitoUserTags, verifyIdToken } = require("./cognitoUtils.js");
 
 const handleEvent = async function (event) {
     // Parameters
@@ -29,18 +29,17 @@ const handleEvent = async function (event) {
     const bucketName = locationValues[0];
     const bucketKey = locationValues[1];
     const servicePath = locationValues[2]
+    event.servicePath = servicePath
 
-    event.openApiPath = '/'+servicePath+event.path
-    console.log('OpenApiPath '+event.openApiPath)
     // Authorize
-    const authorizeWithCognitoDecorated = denyIfErrorDecorator(authorizeWithCognito, event, principalId, awsAccountId, apiOptions);
+    const authorizeWithCognitoDecorated = logIfErrorDecorator(authorizeWithCognito, event, principalId, awsAccountId, apiOptions);
     const authResponse = await authorizeWithCognitoDecorated(event, accessToken, apiOptions, principalId, awsAccountId, bucketName, bucketKey);
     console.log(`AuthResponse: ${JSON.stringify(authResponse)}`);
     return authResponse;
 };
 
 // Decorator
-const denyIfErrorDecorator = (f, event, principalId, awsAccountId, apiOptions) => {
+const logIfErrorDecorator = (f, event, principalId, awsAccountId, apiOptions) => {
     let authResponse;
     return async function (...args) {
         try {
@@ -48,42 +47,37 @@ const denyIfErrorDecorator = (f, event, principalId, awsAccountId, apiOptions) =
             return authResponse;
         } catch (err) {
             console.error(err);
-            let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
-            policy.denyMethod(event.httpMethod, event.path);
-            const authResponse = policy.build();
-            return authResponse;
+            throw err;
         }
     };
 };
 
-const authorizeWithCognito = async (event, accessToken, apiOptions, principalId, awsAccountId, bucketName, bucketKey) => {
+const authorizeWithCognito = async (event, idToken, apiOptions, principalId, awsAccountId, bucketName, bucketKey) => {
     // Instantiate policy
     let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
 
     // Check valdity of the bearer token
-    const tokenValid = await isTokenValid(accessToken);
-    if (!tokenValid) {
-        console.log(`Token ${accessToken} is invalid`);
-        policy.denyMethod(event.httpMethod, event.path);
+    const idTokenPayload = await getValidIdTokenPayload(idToken);
+    if (!idTokenPayload) {
+        console.log(`Token ${idToken} is invalid`);
+        policy.denyAllMethods();
         const authResponse = policy.build();
         return authResponse;
     }
 
     // If valid, get tags and check that they match
-    const bearerToken = accessToken.replace('Bearer ', '');
-    const userAttributes = await getCognitoUserAttributes(bearerToken);
-    const methodTags = await getMethodTagsFromS3(event, bucketName, bucketKey);
+    const userTags = getCognitoUserTags(idTokenPayload);
+    const resources = await getAllowedResourcesFromS3(event, bucketName, bucketKey, userTags);
 
-    if (arraysOverlap(userAttributes, methodTags)) {
-        policy.allowMethod(event.httpMethod, event.path);
-    } else {
-        policy.denyMethod(event.httpMethod, event.path);
+    for(let i=0; i<resources.length; i++){
+        policy.allowMethod(resources[i].method, resources[i].path);
     }
+
     const authResponse = policy.build();
     return authResponse;
 };
 
-const isTokenValid = async (accessToken) => {
+const getValidIdTokenPayload = async (accessToken) => {
     // Token must be a Bearer Token and must be valid
     const isBearerToken = accessToken.startsWith('Bearer');
     if (!isBearerToken) {
@@ -91,7 +85,7 @@ const isTokenValid = async (accessToken) => {
         return false;
     }
 
-    return await verifyAccessToken(accessToken)
+    return await verifyIdToken(accessToken)
 };
 
 module.exports = {

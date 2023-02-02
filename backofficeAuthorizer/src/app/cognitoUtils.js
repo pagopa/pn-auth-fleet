@@ -1,31 +1,17 @@
-const { CognitoIdentityProviderClient, GetUserCommand } = require("@aws-sdk/client-cognito-identity-provider");
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
 
-const getCognitoUserAttributes = (accessToken) => {
-    const userPoolArn = process.env.USER_POOL_ARN;
-    const region = userPoolArn.split(':')[3];
-    const cognitoClient = new CognitoIdentityProviderClient({ region: region});
+const getCognitoUserTags = (idTokenPayload) => {
 
-    const command = new GetUserCommand({ AccessToken: accessToken });
-    const response = cognitoClient.send(command)
-        .then((data) => {
-            let userAttributesTags;
-            const attributeKeys = data.UserAttributes;
-            const filteredKey = attributeKeys.filter((obj) => obj.Name.includes("custom:backoffice_tags"));
-            if (filteredKey.length === 0) {
-                userAttributesTags = [];
-            } else {
-                userAttributesTags = filteredKey[0]['Value'].split(',').map((value) => value.trim());
-            }
-            return userAttributesTags;
+    if(idTokenPayload["custom:backoffice_tags"]){
+        return idTokenPayload["custom:backoffice_tags"].split(',').map(function(t){
+            return t.trim();
         })
-        .catch((err) => {
-            throw err;
-        });
-    return response;
+    } else {
+        return  []
+    }
 };
 
-const verifyAccessToken = async (accessToken) => {
+const verifyIdToken = async (accessToken) => {
     // Verify validity of JWT
     const userPoolArn = process.env.USER_POOL_ARN;
     if(!userPoolArn){
@@ -46,7 +32,7 @@ const verifyAccessToken = async (accessToken) => {
 
     const verifier = CognitoJwtVerifier.create({
         userPoolId: userPoolArnTokens[1],
-        tokenUse: "access",
+        tokenUse: "id",
         clientId: clientId,
     });
     
@@ -55,7 +41,7 @@ const verifyAccessToken = async (accessToken) => {
           accessToken.replace('Bearer ', '') // the JWT as string
         );
         console.log("Token is valid. Payload:", payload);
-        return true;
+        return payload;
     } catch (err) {
         console.error(err);
         console.log("Token not valid!");
@@ -64,6 +50,6 @@ const verifyAccessToken = async (accessToken) => {
 }
 
 module.exports = {
-    getCognitoUserAttributes,
-    verifyAccessToken
+    getCognitoUserTags,
+    verifyIdToken
 }
