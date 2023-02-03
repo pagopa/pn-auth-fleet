@@ -55,7 +55,7 @@ function getUserType(token) {
     if (!token.organization) {
         return 'PF';
     }
-    if (token.organization && token.organization.roles[0]?.role.startsWith('pg')) {
+    if (token.organization && token.organization.role.startsWith('pg')) {
         return 'PG';
     }
     if (token.organization) {
