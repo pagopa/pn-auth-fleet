@@ -74,9 +74,9 @@ const authorizeWithCognito = async (event, idToken, apiOptions, principalId, aws
     }
 
     const context = {
-        "x-pagopa-pn-uid": idTokenPayload.sub
+        "x-pagopa-pn-uid": 'BO-'+idTokenPayload.sub
     }
-
+    
     const authResponse = policy.build(context);
     return authResponse;
 };

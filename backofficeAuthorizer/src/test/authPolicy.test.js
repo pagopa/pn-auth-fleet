@@ -153,7 +153,7 @@ describe("Test auth policy", () => {
         }
         policy.allowMethod(event.httpMethod, event.path);
         let context = {
-            "x-pagopa-pn-uid": '123456'
+            "x-pagopa-pn-uid": 'BO-123456'
         }
         const authResponse = policy.build(context);
         expect(authResponse.policyDocument.Statement[0].Effect).equals('Allow');
