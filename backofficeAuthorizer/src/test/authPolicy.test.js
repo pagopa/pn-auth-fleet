@@ -140,6 +140,24 @@ describe("Test auth policy", () => {
         expect(authResponse.policyDocument.Statement[0].Effect).equals('Allow');
     });
     
-    
+    it("context test", () => {
+        const apiOptions = {
+            restApiId: '1231231',
+            region: 'eu-south-1',
+            stage: 'unique'
+        }
+        let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+        const event = {
+            httpMethod: 'POST',
+            path: '/test'
+        }
+        policy.allowMethod(event.httpMethod, event.path);
+        let context = {
+            "x-pagopa-pn-uid": 'BO-123456'
+        }
+        const authResponse = policy.build(context);
+        expect(authResponse.policyDocument.Statement[0].Effect).equals('Allow');
+        expect(authResponse.context).deep.eq(context);        
+    });
 })
 

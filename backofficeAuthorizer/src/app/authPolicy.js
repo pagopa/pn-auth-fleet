@@ -301,7 +301,7 @@ AuthPolicy.prototype = (function () {
          * @method build
          * @return {Object} The policy object that can be serialized to JSON.
          */
-        build: function () {
+        build: function (context = {}) {
             if ((!this.allowMethods || this.allowMethods.length === 0) &&
                 (!this.denyMethods || this.denyMethods.length === 0)) {
                 throw new Error("No statements defined for the policy");
@@ -317,7 +317,8 @@ AuthPolicy.prototype = (function () {
             doc.Statement = doc.Statement.concat(getStatementsForEffect.call(this, "Deny", this.denyMethods));
 
             policy.policyDocument = doc;
-
+            policy.context = context;
+            
             return policy;
         }
     };
