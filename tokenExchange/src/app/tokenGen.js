@@ -49,6 +49,7 @@ function getTokenComponent(decodedToken,keyId) {
         organization.groups = decodedToken.organization.groups
         organization.fiscal_code = decodedToken.organization.fiscal_code
         payload.organization = organization;
+        organization.hasGroups = Boolean(decodedToken.organization.groups?.length)
     }
 
     return {
