@@ -1,7 +1,8 @@
 module.exports = {
   checkOrigin,
+  enrichDecodedToken,
+  getUserType,
   makeLower,
-  getUserType
 }
 
 function checkOrigin(origin) {
@@ -35,4 +36,14 @@ function getUserType(token) {
   if (token.organization) {
     return 'PA';
   }
+}
+
+function enrichDecodedToken(decodedToken) {
+  const enrichedToken = decodedToken
+  // enrichedToken adds additional information
+  if (enrichedToken.organization) {
+    enrichedToken.organization.hasGroups = Boolean(enrichedToken.organization.groups?.length)
+  }
+
+  return enrichedToken
 }

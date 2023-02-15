@@ -17,7 +17,7 @@ const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
     "./tokenGen.js": tokenGen,
 });
 
-const decodedToken = {
+const enrichedToken = {
     email: 'info@agid.gov.it',
     family_name: 'Rossi',
     fiscal_number: 'GDNNWA12H81Y874F',
@@ -38,6 +38,7 @@ const decodedToken = {
         role: 'admin'
       }],
       groups: [ '62e941d313b0fc6edad4535a' ],
+      hasGroups: true,
       fiscal_code: '01199250158'
     },
     sessionToken: ''
@@ -139,8 +140,8 @@ describe('test eventHandler', () => {
         const body = JSON.parse(result.body);
         expect(body.error).to.be.undefined;
         // calc sessionToken
-        const sessionToken = await tokenGen.generateToken(decodedToken);
-        expect(body).to.be.eql({...decodedToken, sessionToken});
+        const sessionToken = await tokenGen.generateToken(enrichedToken);
+        expect(body).to.be.eql({...enrichedToken, sessionToken});
     })
 
     it('handle event with uppercase origin in headers', async () => {
@@ -157,7 +158,7 @@ describe('test eventHandler', () => {
         const body = JSON.parse(result.body);
         expect(body.error).to.be.undefined;
         // calc sessionToken
-        const sessionToken = await tokenGen.generateToken(decodedToken);
-        expect(body).to.be.eql({...decodedToken, sessionToken});
+        const sessionToken = await tokenGen.generateToken(enrichedToken);
+        expect(body).to.be.eql({...enrichedToken, sessionToken});
     })
 });
