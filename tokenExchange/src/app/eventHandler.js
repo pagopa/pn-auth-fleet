@@ -24,13 +24,14 @@ module.exports = {
                 if (encodedToken) {
                     try {
                         const decodedToken = await validator.validation(encodedToken);
-                        const sessionToken = await tokenGen.generateToken(decodedToken);
-                        const uid = decodedToken.uid;
-                        const cx_id = decodedToken.organization ? decodedToken.organization.id : ('PF-' + decodedToken.uid);
-                        const cx_type = utils.getUserType(decodedToken);
-                        const cx_role = decodedToken.organization?.roles[0]?.role
-                        auditLog(`Token successful generated with id ${decodedToken.jti}`, 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, cx_role, uid, decodedToken.jti).info('success');
-                        return responses.generateOkResponse(sessionToken, decodedToken, eventOrigin);
+                        const enrichedToken = utils.enrichDecodedToken(decodedToken);
+                        const sessionToken = await tokenGen.generateToken(enrichedToken);
+                        const uid = enrichedToken.uid;
+                        const cx_id = enrichedToken.organization ? enrichedToken.organization.id : ('PF-' + enrichedToken.uid);
+                        const cx_type = utils.getUserType(enrichedToken);
+                        const cx_role = enrichedToken.organization?.roles[0]?.role
+                        auditLog(`Token successful generated with id ${enrichedToken.jti}`, 'AUD_ACC_LOGIN', eventOrigin, 'OK', cx_type, cx_id, cx_role, uid, enrichedToken.jti).info('success');
+                        return responses.generateOkResponse(sessionToken, enrichedToken, eventOrigin);
                     } catch (err) {
                         auditLog(`Error generating token ${err.message}`,'AUD_ACC_LOGIN', eventOrigin, 'KO').error("error");
                         return responses.generateKoResponse(err, eventOrigin);
