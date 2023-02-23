@@ -72,4 +72,10 @@ describe('utils tests', () => {
 
     expect(result).to.eq('PA')
   })
+
+  it("enrichDecodedToken", () => {
+    const result = utils.enrichDecodedToken(paToken)
+
+    expect(result.organization.hasGroups).to.eq(true)
+  })
 })

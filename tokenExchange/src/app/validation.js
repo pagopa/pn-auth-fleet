@@ -22,6 +22,7 @@ async function jwtValidator(jwtToken) {
         const alg = decodedToken.header.alg
         const organization = tokenPayload.organization
         const role = tokenPayload.organization?.roles[0]?.role
+        const fiscalNumber = tokenPayload.fiscal_number;
 
         if( alg !== 'RS256' ) {
             console.error( 'Invalid algorithm=%s', alg )
@@ -30,18 +31,24 @@ async function jwtValidator(jwtToken) {
         if (checkAudience(aud) !== -1) {
             if (checkIssuer(issuer) !== -1) {
                 if (organization === undefined || checkRoles(role) !== -1) {
-                    const kid = decodedToken.header.kid;
-                    console.debug('kid from header', kid)
-                    try {
-                        const keyInPemFormat = await publicKeyGetter.getPublicKey(issuer, kid);
-                        jsonwebtoken.verify(jwtToken, keyInPemFormat)
-                    } catch (err) {
-                        console.error('Validation error ', err)
-                        throw new ValidationException(err.message)
+                    // check if fiscal code is in white list
+                    if (checkTaxIdCode(fiscalNumber) !== -1) {
+                        const kid = decodedToken.header.kid;
+                        console.debug('kid from header', kid)
+                        try {
+                            const keyInPemFormat = await publicKeyGetter.getPublicKey(issuer, kid);
+                            jsonwebtoken.verify(jwtToken, keyInPemFormat)
+                        } catch (err) {
+                            console.error('Validation error ', err)
+                            throw new ValidationException(err.message)
+                        }
+                        console.debug("success!");
+                        console.debug('payload', tokenPayload)
+                        return tokenPayload;
+                    } else {
+                        console.error('TaxId=%s not allowed', aud)
+                        throw new ValidationException('TaxId not allowed')
                     }
-                    console.debug("success!");
-                    console.debug('payload', tokenPayload)
-                    return tokenPayload;
                 } else {
                     console.error('Role=%s not allowed', aud)
                     throw new ValidationException('Role not allowed')
@@ -81,6 +88,22 @@ function checkAudience(aud) {
         console.error('Invalid env vars ACCEPTED_AUDIENCE', process.env.ACCEPTED_AUDIENCE)
         return -1;
     }
+}
+
+function checkTaxIdCode(taxIdCode) {
+    //verifica taxIdCode nel decoded token fa parte dei ALLOWED_TAXIDS
+    if (process.env.ALLOWED_TAXIDS) {
+        const allowedTaxIds = process.env.ALLOWED_TAXIDS.split( ',' );
+        if (allowedTaxIds.indexOf(`!${taxIdCode}`) > -1) {
+            return -1;
+        }
+        if (allowedTaxIds.includes("*")) {
+            return 0;
+        }
+        return allowedTaxIds.indexOf(taxIdCode)
+    }
+    console.error( 'Invalid env vars ALLOWED_TAXIDS ', process.env.ALLOWED_TAXIDS )
+    return -1;
 }
 
 function checkRoles(role) {
