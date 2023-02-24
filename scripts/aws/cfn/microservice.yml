@@ -1019,5 +1019,6 @@ Resources:
           - - !Ref ApiKeyAuthorizerV2LambdaLogGroup
             - !Ref IoAuthorizerLambdaLogGroup
             - !Ref JwtAuthorizerLambdaLogGroup
+            - !Ref BackofficeAuthorizerLambdaLogGroup
             - !Ref TokenExchangeLambdaLogGroup
             - !Ref TokenExchangeApiLogGroup
