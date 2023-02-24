@@ -145,7 +145,12 @@ Resources:
       TracingConfig:
         Mode: Active
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13" 
+      Tags:
+        - Key: pnInfraFeature
+          Value: pnLambdas
+        - Key: pnMicroservice
+          Value: !Sub '${ProjectName}-ApiKeyAuthorizerV2Lambda'   
 
   # Lambda function role
   ApiKeyAuthorizerV2LambdaRole:
@@ -252,7 +257,12 @@ Resources:
       TracingConfig:
         Mode: Active
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"  
+      Tags:
+        - Key: pnInfraFeature
+          Value: pnLambdas
+        - Key: pnMicroservice
+          Value: !Sub '${ProjectName}-ioAuthorizerLambda'       
       
   # Lambda function role
   IoAuthorizerLambdaRole:
@@ -365,7 +375,12 @@ Resources:
       TracingConfig:
         Mode: Active
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"   
+      Tags:
+        - Key: pnInfraFeature
+          Value: pnLambdas
+        - Key: pnMicroservice
+          Value: !Sub '${ProjectName}-jwtAuthorizerLambda'        
 
   # Lambda function role
   JwtAuthorizerLambdaRole:
@@ -467,7 +482,12 @@ Resources:
       TracingConfig:
         Mode: Active
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+      Tags:
+        - Key: pnInfraFeature
+          Value: pnLambdas
+        - Key: pnMicroservice
+          Value: !Sub '${ProjectName}-backofficeAuthorizerLambda'   
 
   # Lambda function role
   BackofficeAuthorizerLambdaRole:
@@ -588,7 +608,12 @@ Resources:
       TracingConfig:
         Mode: Active
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"  
+      Tags:
+        - Key: pnInfraFeature
+          Value: pnLambdas
+        - Key: pnMicroservice
+          Value: !Sub '${ProjectName}-tokenExchangeLambda'
 
   # Lambda function role
   TokenExchangeLambdaRole:
