@@ -1014,3 +1014,10 @@ Resources:
             - !Sub "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:${TokenExchangeErrorFatalLogsMetricAlarm}"
             - !GetAtt TokenExchangeAPIGatewayApiLatencyAlarm.Arn
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
+        LogGroupsNames: !Join
+          - ','
+          - - !Ref ApiKeyAuthorizerV2LambdaLogGroup
+            - !Ref IoAuthorizerLambdaLogGroup
+            - !Ref JwtAuthorizerLambdaLogGroup
+            - !Ref TokenExchangeLambdaLogGroup
+            - !Ref TokenExchangeApiLogGroup
