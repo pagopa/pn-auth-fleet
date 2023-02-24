@@ -102,8 +102,7 @@ function checkTaxIdCode(taxIdCode) {
         }
         return allowedTaxIds.indexOf(taxIdCode)
     }
-    console.error( 'Invalid env vars ALLOWED_TAXIDS ', process.env.ALLOWED_TAXIDS )
-    return -1;
+    return 0;
 }
 
 function checkRoles(role) {
