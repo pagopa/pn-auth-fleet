@@ -21,7 +21,7 @@ async function jwtValidator(jwtToken) {
         const aud = tokenPayload.aud
         const alg = decodedToken.header.alg
         const organization = tokenPayload.organization
-        const role = tokenPayload.organization?.roles[0]?.role
+        const role = tokenPayload.organization?.roles[0]?.role.replace(/pg-/, "")
         const fiscalNumber = tokenPayload.fiscal_number;
 
         if( alg !== 'RS256' ) {
@@ -107,10 +107,6 @@ function checkTaxIdCode(taxIdCode) {
 
 function checkRoles(role) {
     const allowedRoles = ['admin', 'operator'];
-
-    if (role.startsWith('pg-')) {
-        return 1
-    }
 
     if (allowedRoles != 0) {
         return allowedRoles.indexOf(role)

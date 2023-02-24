@@ -32,7 +32,7 @@ module.exports = {
                 contextAttrs.cx_id = decodedToken.organization ? decodedToken.organization.id : ('PF-' + decodedToken.uid);
                 contextAttrs.cx_type = getUserType(decodedToken);
                 contextAttrs.cx_groups = decodedToken.organization?.groups?.join();
-                contextAttrs.cx_role = decodedToken.organization?.role;
+                contextAttrs.cx_role = decodedToken.organization?.role.replace(/pg-/, "");
                 contextAttrs.cx_jti = decodedToken.jti;
                 console.log('contextAttrs ', contextAttrs);
                 
