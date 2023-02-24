@@ -29,6 +29,8 @@ function generateKoResponse(err, allowedOrigin) {
   if (err instanceof ValidationException) {
     if (err.message === 'Role not allowed') {
       statusCode = 403;
+    } else if (err.message === 'TaxId not allowed') {
+      statusCode = 451;
     } else {
       statusCode = 400;
     }

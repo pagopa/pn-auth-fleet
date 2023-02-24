@@ -226,6 +226,32 @@ describe("Not allowed role", function () {
     });
 });
 
+describe("Not allowed TaxId", function () {
+    const expiredToken = {
+        headers:{
+            httpMethod: 'POST',
+            origin: 'https://portale-pa-develop.fe.dev.pn.pagopa.it'
+        },
+        body: JSON.stringify({
+            authorizationToken: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEEiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTY4Njc0OSwiZXhwIjoxNjQ5NjkwMzQ5LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMENGVzgwSEdUVFcwUkg1NFdRRDZGNlMiLCJvcmdhbml6YXRpb24iOnsiaWQiOiIwMjZlOGM3Mi03OTQ0LTRkY2QtODY2OC1mNTk2NDQ3ZmVjNmQiLCJyb2xlcyI6W3sicGFydHlSb2xlIjoiTUFOQUdFUiIsInJvbGUiOiJhZG1pbiJ9XSwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In19.PrlZTKA21sSOF3mh3TKziXfDgxSZJBPzWWqtbI_5wWVo3C0MT6ZdemOGw8OKYxmMvWpkIwJjTJ4zf2plAqxAaO52olY5zbbrOES5zo2AkwURVHVgnJw6CihSGqrtfB2bgmLUYo1yI-qZRwauDOqa4KyZs9R1fNJFSbDBZUaD8Id7-bNH4i599b_cdBRnrrJSMjNwViyD_s3Eu98LxgoJoQDKCfbQlR90-cnG61S_-zNQkDqEztsePa45GpthpCh9wCDgCmLWfXlwfXXp7P-q_LRO_AWWJx203VFl9rtXXih5VV0AYdPFEJdR9dXHzcuA2tdKStB6EwBj7DXzqqVECQ'
+        })
+    }
+
+    it("with code = 451", function (done) {
+        lambdaTester( lambda.handler )
+          .event( expiredToken )
+          .expectResult((result) => {
+              // Check if code exist
+              console.debug('the result is ', result);
+              expect(result.statusCode).to.equal(451);
+              const body = JSON.parse(result.body);
+              expect(body.error).to.exist;
+              expect(body.error).to.match(/taxid not allowed/i)
+              done();
+          }).catch(done); // Catch assertion errors
+    });
+});
+
 describe("Executes the token exchange successfully", function () {
     afterEach(function() {
         sinon.restore();

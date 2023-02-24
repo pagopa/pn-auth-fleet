@@ -46,6 +46,13 @@ describe('responses tests', () => {
     expect(result).to.eql(makeKoResponse('Role not allowed', 403))
   })
 
+  it("generateKoResponse TaxId not allowed", () => {
+    const result = responses.generateKoResponse(new ValidationException('TaxId not allowed'), origin)
+
+    expect(result).to.eql(makeKoResponse('TaxId not allowed', 451))
+  })
+
+
   it("generateKoResponse Issuer not known", () => {
     const result = responses.generateKoResponse(new ValidationException('Issuer not known'), origin)
 
