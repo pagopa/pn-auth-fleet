@@ -4,6 +4,8 @@ const sinon = require('sinon');
 const expect = require("chai").expect;
 const rewire = require('rewire');
 const proxyquire = require("proxyquire");
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
 
 const tokenGen = rewire('../app/tokenGen');
 const retrieverJwks = require('../app/retrieverJwks');
@@ -53,6 +55,18 @@ describe('test eventHandler', () => {
             return JSON.parse(result);
         });
         sinon.stub(jsonwebtoken, 'verify').returns('token.token.token');
+
+        const mock = new MockAdapter(axios);
+        mock
+          .onGet(
+            `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
+              process.env.ALLOWED_TAXIDS_PARAMETER_PATH
+            )}`
+          )
+          .reply(
+            200,
+            JSON.stringify({ Parameter: { Value: "GDNNWA12H81Y874F" } })
+          );
     });
 
     after(() => {

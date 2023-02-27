@@ -1,8 +1,11 @@
+const axios = require('axios');
+
 module.exports = {
   checkOrigin,
   enrichDecodedToken,
   getUserType,
   makeLower,
+  getParameterFromStore
 }
 
 function checkOrigin(origin) {
@@ -46,4 +49,23 @@ function enrichDecodedToken(decodedToken) {
   }
 
   return enrichedToken
+}
+
+async function getParameterFromStore(parameterName) {
+  try {
+    const response = await axios.get(
+      `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
+        parameterName
+      )}`,
+      {
+        headers: {
+          "X-Aws-Parameters-Secrets-Token": process.env.AWS_SESSION_TOKEN,
+        },
+      }
+    );
+    return response.data.Parameter.Value;
+  } catch (err) {
+    console.error("Error in get parameter ", err);
+    throw new Error("Error in get parameter");
+  }
 }
