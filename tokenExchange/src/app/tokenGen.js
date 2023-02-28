@@ -5,12 +5,12 @@ const base64url = require("base64url");
 const { getUserType } = require("./utils");
 
 const organizationFCToIdMap = {
-    "06363391001": "PG-d9209523-7a6b-44fc-81a3-30a8a9bf5c1c",
-    "CCRMCT06A03A433H": "PG-c8337798-e872-4ce9-93ca-f164309873f9",
-    "20517490320": "PG-aa200ece-b0bc-49a3-be59-559c6ee3a1a4",
-    "70472431207": "PG-3e22b2ec-a9e9-41c0-9932-a894979d87a9",
-    "27937810870": "PG-0d7ba4c2-0abf-4013-bbac-2ad43bbf4fe3",
-    "12825810299": "PG-3f7db9ca-0e24-45e1-9cd3-f0b185e69def",
+    "06363391001": "d9209523-7a6b-44fc-81a3-30a8a9bf5c1c",
+    "CCRMCT06A03A433H": "c8337798-e872-4ce9-93ca-f164309873f9",
+    "20517490320": "aa200ece-b0bc-49a3-be59-559c6ee3a1a4",
+    "70472431207": "3e22b2ec-a9e9-41c0-9932-a894979d87a9",
+    "27937810870": "0d7ba4c2-0abf-4013-bbac-2ad43bbf4fe3",
+    "12825810299": "3f7db9ca-0e24-45e1-9cd3-f0b185e69def",
 }
 
 module.exports = {
