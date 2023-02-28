@@ -2,13 +2,23 @@ const AWSXRay = require('aws-xray-sdk-core');
 const AWS = AWSXRay.captureAWS(require('aws-sdk'));
 const kms = new AWS.KMS();
 const base64url = require("base64url");
+const { getUserType } = require("./utils");
+
+const organizationFCToIdMap = {
+    "06363391001": "PG-d9209523-7a6b-44fc-81a3-30a8a9bf5c1c",
+    "CCRMCT06A03A433H": "PG-c8337798-e872-4ce9-93ca-f164309873f9",
+    "20517490320": "PG-aa200ece-b0bc-49a3-be59-559c6ee3a1a4",
+    "70472431207": "PG-3e22b2ec-a9e9-41c0-9932-a894979d87a9",
+    "27937810870": "PG-0d7ba4c2-0abf-4013-bbac-2ad43bbf4fe3",
+    "12825810299": "PG-3f7db9ca-0e24-45e1-9cd3-f0b185e69def",
+}
 
 module.exports = {
-    async generateToken(decodedToken){
+    async generateToken(decodedToken, isDev){
         const keyAlias = process.env.KEY_ALIAS;
         let keyId = await getKeyId(keyAlias);
         console.debug( 'keyId from alias', keyId )
-        let token_components = getTokenComponent(decodedToken, keyId);
+        let token_components = getTokenComponent(decodedToken, keyId, isDev);
         console.debug( 'token_components', token_components )
         let res = await sign(token_components, keyId)
         console.debug(`JWT token: [${res}]`)
@@ -25,7 +35,7 @@ async function getKeyId(keyAlias) {
     return key.KeyMetadata.KeyId;
 }
 
-function getTokenComponent(decodedToken,keyId) {
+function getTokenComponent(decodedToken, keyId, isDev) {
     let header = {
         "alg": "RS256",
         "typ": "JWT",
@@ -44,10 +54,12 @@ function getTokenComponent(decodedToken,keyId) {
 
     let organization = {};
     if (decodedToken.organization) {
-        organization.id = decodedToken.organization.id
-        organization.role = decodedToken.organization.roles[0].role
-        organization.groups = decodedToken.organization.groups
-        organization.fiscal_code = decodedToken.organization.fiscal_code
+        organization.id = isDev && getUserType(decodedToken) === 'PG'
+          ? organizationFCToIdMap[decodedToken.organization.fiscal_code]
+          : decodedToken.organization.id;
+        organization.role = decodedToken.organization.roles[0].role;
+        organization.groups = decodedToken.organization.groups;
+        organization.fiscal_code = decodedToken.organization.fiscal_code;
         payload.organization = organization;
     }
 
