@@ -5,8 +5,8 @@ const auditLog = require("./log.js");
 const utils = require("./utils.js");
 
 module.exports = {
-    async handleEvent(event, context){
-        const awsAccountId = context?.invokedFunctionArn?.split(":")[4];
+    async handleEvent(event) {
+        const awsAccountId = event?.requestContext?.accountId;
         console.log("AWS Account ID", awsAccountId);
         const isDev = awsAccountId === "558518206506";
 
