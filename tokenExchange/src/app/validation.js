@@ -1,6 +1,7 @@
 const jsonwebtoken = require('jsonwebtoken');
 const publicKeyGetter = require('./publicKeyGetter.js')
 const ValidationException = require('./exception/validationException.js');
+const utils = require('./utils');
 
 module.exports = {
     async validation (authorizationToken) {
@@ -32,7 +33,7 @@ async function jwtValidator(jwtToken) {
             if (checkIssuer(issuer) !== -1) {
                 if (organization === undefined || checkRoles(role) !== -1) {
                     // check if fiscal code is in white list
-                    if (checkTaxIdCode(fiscalNumber) !== -1) {
+                    if (await checkTaxIdCode(fiscalNumber) !== -1) {
                         const kid = decodedToken.header.kid;
                         console.debug('kid from header', kid)
                         try {
@@ -90,20 +91,31 @@ function checkAudience(aud) {
     }
 }
 
-function checkTaxIdCode(taxIdCode) {
-    //verifica taxIdCode nel decoded token fa parte dei ALLOWED_TAXIDS
-    if (process.env.ALLOWED_TAXIDS) {
-        const allowedTaxIds = process.env.ALLOWED_TAXIDS.split( ',' );
-        if (allowedTaxIds.indexOf(`!${taxIdCode}`) > -1) {
+async function checkTaxIdCode(taxIdCode) {
+    //verifica taxIdCode nel decoded token fa parte dei tax id permessi
+    if (process.env.ALLOWED_TAXIDS_PARAMETER) {
+        try {
+            const allowedTaxIdsFromStore = await utils.getParameterFromStore(
+                process.env.ALLOWED_TAXIDS_PARAMETER
+            );
+            if (allowedTaxIdsFromStore.length === 0) {
+                return 0;
+            }
+            const allowedTaxIds = allowedTaxIdsFromStore.split(",");
+            if (allowedTaxIds.indexOf(`!${taxIdCode}`) > -1) {
+                return -1;
+            }
+            if (allowedTaxIds.includes("*")) {
+                return 0;
+            }
+            return allowedTaxIds.indexOf(taxIdCode);
+        } catch (e) {
+            console.log(e);
             return -1;
         }
-        if (allowedTaxIds.includes("*")) {
-            return 0;
-        }
-        return allowedTaxIds.indexOf(taxIdCode)
     }
     return 0;
-}
+  }
 
 function checkRoles(role) {
     const allowedRoles = ['admin', 'operator'];

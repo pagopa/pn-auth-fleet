@@ -4,6 +4,8 @@ const jsonwebtoken = require("jsonwebtoken");
 const sinon = require("sinon");
 const rewire = require("rewire");
 const fs = require("fs");
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -39,6 +41,17 @@ const decodedToken = {
   },
 };
 
+function mockGetTaxIdFromStore(taxIdParameterValue) {
+  const mock = new MockAdapter(axios);
+  mock
+    .onGet(
+      `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
+        process.env.ALLOWED_TAXIDS_PARAMETER
+      )}`
+    )
+    .reply(200, JSON.stringify({ Parameter: { Value: taxIdParameterValue } }));
+}
+
 describe("test validation", () => {
   before(() => {
     // mock methods for token exchange
@@ -55,7 +68,7 @@ describe("test validation", () => {
   after(() => {
     sinon.reset();
     sinon.restore();
-})
+  });
 
   it("test the token validation - token null", async () => {
     await expect(validator.validation(null)).to.be.rejectedWith(
@@ -96,7 +109,21 @@ describe("test validation", () => {
     ).to.be.rejectedWith(ValidationException, "Role not allowed");
   });
 
+  it("test the token validation - no parameter path defined", async () => {
+    const stub = sinon.stub(process.env, 'ALLOWED_TAXIDS_PARAMETER').value('');
+    const tokenPayload = await validator.validation(
+      "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEEiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTY4Njc0OSwiZXhwIjoxNjQ5NjkwMzQ5LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMENGVzgwSEdUVFcwUkg1NFdRRDZGNlMiLCJvcmdhbml6YXRpb24iOnsiaWQiOiIwMjZlOGM3Mi03OTQ0LTRkY2QtODY2OC1mNTk2NDQ3ZmVjNmQiLCJyb2xlcyI6W3sicGFydHlSb2xlIjoiTUFOQUdFUiIsInJvbGUiOiJhZG1pbiJ9XSwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In19.PrlZTKA21sSOF3mh3TKziXfDgxSZJBPzWWqtbI_5wWVo3C0MT6ZdemOGw8OKYxmMvWpkIwJjTJ4zf2plAqxAaO52olY5zbbrOES5zo2AkwURVHVgnJw6CihSGqrtfB2bgmLUYo1yI-qZRwauDOqa4KyZs9R1fNJFSbDBZUaD8Id7-bNH4i599b_cdBRnrrJSMjNwViyD_s3Eu98LxgoJoQDKCfbQlR90-cnG61S_-zNQkDqEztsePa45GpthpCh9wCDgCmLWfXlwfXXp7P-q_LRO_AWWJx203VFl9rtXXih5VV0AYdPFEJdR9dXHzcuA2tdKStB6EwBj7DXzqqVECQ"
+    );
+    expect(tokenPayload).to.be.eql({
+      ...decodedToken,
+      fiscal_number: "GDNNWA12H81Y874A",
+    });
+    stub.reset();
+    stub.restore();
+  });
+
   it("test the token validation - not allowed taxId (not present in list)", async () => {
+    mockGetTaxIdFromStore("GDNNWA12H81Y874F");
     await expect(
       validator.validation(
         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEEiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTY4Njc0OSwiZXhwIjoxNjQ5NjkwMzQ5LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMENGVzgwSEdUVFcwUkg1NFdRRDZGNlMiLCJvcmdhbml6YXRpb24iOnsiaWQiOiIwMjZlOGM3Mi03OTQ0LTRkY2QtODY2OC1mNTk2NDQ3ZmVjNmQiLCJyb2xlcyI6W3sicGFydHlSb2xlIjoiTUFOQUdFUiIsInJvbGUiOiJhZG1pbiJ9XSwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In19.PrlZTKA21sSOF3mh3TKziXfDgxSZJBPzWWqtbI_5wWVo3C0MT6ZdemOGw8OKYxmMvWpkIwJjTJ4zf2plAqxAaO52olY5zbbrOES5zo2AkwURVHVgnJw6CihSGqrtfB2bgmLUYo1yI-qZRwauDOqa4KyZs9R1fNJFSbDBZUaD8Id7-bNH4i599b_cdBRnrrJSMjNwViyD_s3Eu98LxgoJoQDKCfbQlR90-cnG61S_-zNQkDqEztsePa45GpthpCh9wCDgCmLWfXlwfXXp7P-q_LRO_AWWJx203VFl9rtXXih5VV0AYdPFEJdR9dXHzcuA2tdKStB6EwBj7DXzqqVECQ"
@@ -105,7 +132,7 @@ describe("test validation", () => {
   });
 
   it("test the token validation - not allowed taxId (negated)", async () => {
-    sinon.stub(process.env, 'ALLOWED_TAXIDS').value('*,!GDNNWA12H81Y874A')
+    mockGetTaxIdFromStore("*,!GDNNWA12H81Y874A");
     await expect(
       validator.validation(
         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEEiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTY4Njc0OSwiZXhwIjoxNjQ5NjkwMzQ5LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMENGVzgwSEdUVFcwUkg1NFdRRDZGNlMiLCJvcmdhbml6YXRpb24iOnsiaWQiOiIwMjZlOGM3Mi03OTQ0LTRkY2QtODY2OC1mNTk2NDQ3ZmVjNmQiLCJyb2xlcyI6W3sicGFydHlSb2xlIjoiTUFOQUdFUiIsInJvbGUiOiJhZG1pbiJ9XSwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In19.PrlZTKA21sSOF3mh3TKziXfDgxSZJBPzWWqtbI_5wWVo3C0MT6ZdemOGw8OKYxmMvWpkIwJjTJ4zf2plAqxAaO52olY5zbbrOES5zo2AkwURVHVgnJw6CihSGqrtfB2bgmLUYo1yI-qZRwauDOqa4KyZs9R1fNJFSbDBZUaD8Id7-bNH4i599b_cdBRnrrJSMjNwViyD_s3Eu98LxgoJoQDKCfbQlR90-cnG61S_-zNQkDqEztsePa45GpthpCh9wCDgCmLWfXlwfXXp7P-q_LRO_AWWJx203VFl9rtXXih5VV0AYdPFEJdR9dXHzcuA2tdKStB6EwBj7DXzqqVECQ"
@@ -113,15 +140,30 @@ describe("test validation", () => {
     ).to.be.rejectedWith(ValidationException, "TaxId not allowed");
   });
 
-  it("test the token validation - allowed taxId (wildcard)", async () => {
-    sinon.stub(process.env, 'ALLOWED_TAXIDS').value('*')
+  it("test the token validation - allowed taxId (empty)", async () => {
+    mockGetTaxIdFromStore("");
     const tokenPayload = await validator.validation(
       "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEEiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTY4Njc0OSwiZXhwIjoxNjQ5NjkwMzQ5LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMENGVzgwSEdUVFcwUkg1NFdRRDZGNlMiLCJvcmdhbml6YXRpb24iOnsiaWQiOiIwMjZlOGM3Mi03OTQ0LTRkY2QtODY2OC1mNTk2NDQ3ZmVjNmQiLCJyb2xlcyI6W3sicGFydHlSb2xlIjoiTUFOQUdFUiIsInJvbGUiOiJhZG1pbiJ9XSwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In19.PrlZTKA21sSOF3mh3TKziXfDgxSZJBPzWWqtbI_5wWVo3C0MT6ZdemOGw8OKYxmMvWpkIwJjTJ4zf2plAqxAaO52olY5zbbrOES5zo2AkwURVHVgnJw6CihSGqrtfB2bgmLUYo1yI-qZRwauDOqa4KyZs9R1fNJFSbDBZUaD8Id7-bNH4i599b_cdBRnrrJSMjNwViyD_s3Eu98LxgoJoQDKCfbQlR90-cnG61S_-zNQkDqEztsePa45GpthpCh9wCDgCmLWfXlwfXXp7P-q_LRO_AWWJx203VFl9rtXXih5VV0AYdPFEJdR9dXHzcuA2tdKStB6EwBj7DXzqqVECQ"
     );
-    expect(tokenPayload).to.be.eql({...decodedToken, fiscal_number: "GDNNWA12H81Y874A"});
+    expect(tokenPayload).to.be.eql({
+      ...decodedToken,
+      fiscal_number: "GDNNWA12H81Y874A",
+    });
+  });
+
+  it("test the token validation - allowed taxId (wildcard)", async () => {
+    mockGetTaxIdFromStore("*");
+    const tokenPayload = await validator.validation(
+      "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEEiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTY4Njc0OSwiZXhwIjoxNjQ5NjkwMzQ5LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMENGVzgwSEdUVFcwUkg1NFdRRDZGNlMiLCJvcmdhbml6YXRpb24iOnsiaWQiOiIwMjZlOGM3Mi03OTQ0LTRkY2QtODY2OC1mNTk2NDQ3ZmVjNmQiLCJyb2xlcyI6W3sicGFydHlSb2xlIjoiTUFOQUdFUiIsInJvbGUiOiJhZG1pbiJ9XSwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In19.PrlZTKA21sSOF3mh3TKziXfDgxSZJBPzWWqtbI_5wWVo3C0MT6ZdemOGw8OKYxmMvWpkIwJjTJ4zf2plAqxAaO52olY5zbbrOES5zo2AkwURVHVgnJw6CihSGqrtfB2bgmLUYo1yI-qZRwauDOqa4KyZs9R1fNJFSbDBZUaD8Id7-bNH4i599b_cdBRnrrJSMjNwViyD_s3Eu98LxgoJoQDKCfbQlR90-cnG61S_-zNQkDqEztsePa45GpthpCh9wCDgCmLWfXlwfXXp7P-q_LRO_AWWJx203VFl9rtXXih5VV0AYdPFEJdR9dXHzcuA2tdKStB6EwBj7DXzqqVECQ"
+    );
+    expect(tokenPayload).to.be.eql({
+      ...decodedToken,
+      fiscal_number: "GDNNWA12H81Y874A",
+    });
   });
 
   it("test the token validation", async () => {
+    mockGetTaxIdFromStore("GDNNWA12H81Y874F");
     const tokenPayload = await validator.validation(
       "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEYiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTY4Njc0OSwiZXhwIjoxNjQ5NjkwMzQ5LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMENGVzgwSEdUVFcwUkg1NFdRRDZGNlMiLCJvcmdhbml6YXRpb24iOnsiaWQiOiIwMjZlOGM3Mi03OTQ0LTRkY2QtODY2OC1mNTk2NDQ3ZmVjNmQiLCJyb2xlcyI6W3sicGFydHlSb2xlIjoiTUFOQUdFUiIsInJvbGUiOiJhZG1pbiJ9XSwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In19.kNdfWLhZTxust5GOjTXoh03G9Px5KGOri9w6gV2xFc2FftjjguNZV2FxtkBKrzKmjH8BHQTpRO0hJV3uCb8zW_VHW3hbqwDQjw5MGYOMeAmR5xmlkVfF0Xd_7eaAPQv8VevceYypkMaq0UBzQR1SkBYKPj0Dn9ga52WAsJ-2P5cLSzSA52nVkISvAaAqOLg1-eoiVLv8KGw_STKctHq60SuQFa9vmXTDHblebR30SN9vFv0AJEj0oaw_pTWRjG3wW2pVJwhLrefwhS00n8E04649hTkcUPa9JxVBDwFgcDTJyii2KBSAJ0kmi7IO20VBiESmaeZQSpsH4JpkMnjyIIO9jjIkicssfW0HeAcJLZUfCo21lZcXh9kzxAXCrZ_rK09RUew7hZwP3Xpt4X-4DS1YzXfwl4So5ayDv38zsOocT10EJEEKQg8UOCSXzh8_-MgMsukU6fgdXny3epvLKq0aahtP3vqSbl9wZd5aPPEklU08PS-bWifw2Qa8gozzSR-MOPGTdLun5230Z1MQJmyJXy_HJuLIKeKMMfCAinhR5476xBE2bpC_gjvPcr7LGfUYTI6ZRLDFf96Muf48hq0bGWZzT2nxOBs5WpWQcOvPw3XIgQ8Th9wWSOWiSakpyT-AIpbj7K83Z-HkHIUwqzgbtApRPNhnlzaMrRELqF0"
     );

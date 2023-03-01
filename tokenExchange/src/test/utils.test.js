@@ -1,5 +1,7 @@
 const utils = require("../app/utils.js");
 const expect = require("chai").expect;
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
 
 const pgToken = {
   organization: {
@@ -78,4 +80,33 @@ describe('utils tests', () => {
 
     expect(result.organization.hasGroups).to.eq(true)
   })
+
+  it("getParameterFromStore - success", async () => {
+    const parameterName = "/fake-path/fake-param";
+    const mock = new MockAdapter(axios);
+    mock
+      .onGet(
+        `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
+          parameterName
+        )}`
+      )
+      .reply(200, JSON.stringify({ Parameter: { Value: "fake" } }));
+    const result = await utils.getParameterFromStore("/fake-path/fake-param");
+    expect(result).to.eq("fake");
+  });
+
+  it("getParameterFromStore - fail", async () => {
+    const parameterName = "/fake-path/fake-param";
+    const mock = new MockAdapter(axios);
+    mock
+      .onGet(
+        `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
+          parameterName
+        )}`
+      )
+      .reply(500);
+    await expect(
+      utils.getParameterFromStore("/fake-path/fake-param")
+    ).to.be.rejectedWith(Error, "Error in get parameter");
+  });
 })
