@@ -98,10 +98,10 @@ async function checkTaxIdCode(taxIdCode) {
             const allowedTaxIdsFromStore = await utils.getParameterFromStore(
                 process.env.ALLOWED_TAXIDS_PARAMETER
             );
-            const allowedTaxIds = allowedTaxIdsFromStore.split(",");
-            if (allowedTaxIds.length === 0) {
+            if (allowedTaxIdsFromStore.length === 0) {
                 return 0;
             }
+            const allowedTaxIds = allowedTaxIdsFromStore.split(",");
             if (allowedTaxIds.indexOf(`!${taxIdCode}`) > -1) {
                 return -1;
             }
