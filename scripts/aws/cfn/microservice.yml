@@ -74,7 +74,7 @@ Parameters:
 
   TokenExchangeLatencyLimit: 
     Type: Number
-    Default: 1000
+    Default: 2000
     Description: Default latency limit for token exchange api
 
   ApplicationLoadBalancerDomain:
@@ -942,7 +942,7 @@ Resources:
       Dimensions:
         - Name: ApiName
           Value: !Sub '${ProjectName}-token-exchange-api'
-      ExtendedStatistic: "p95"
+      ExtendedStatistic: "p90"
 
   TokenExchangeAPIGatewayApiErrorAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -983,8 +983,12 @@ Resources:
             Period: 60
             Stat: Sum
           ReturnData: False
+        - Id: e2
+          Expression: "m1*(0.1)"
+          Label: !Sub "4XXError-weight-adjust"
+          ReturnData: False
         - Id: e1
-          Expression: SUM([m1,m2])
+          Expression: SUM([e2,m2])
           Label: !Sub "${ProjectName}-token-exchange-api-ErrorMetric"
 
   # Dashboard
