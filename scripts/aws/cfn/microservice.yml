@@ -57,7 +57,8 @@ Parameters:
                  Notifiche" back-ends API'
   TokenExchangeLambdaEnvironmentAllowedTaxIdsParameter:
     Type: String
-    Description: 'Path to parameter store value'
+    Description: 'Parameter of allowed login Tax Ids'
+    Default: '/pn-auth-fleet/allowedLoginTaxids'
                  
   TokenExchangeLambdaEnvironmentJwksMapping:
     Type: String
