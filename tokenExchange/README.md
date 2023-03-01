@@ -55,5 +55,17 @@ Il valore del parametro dentro al ParameterStore può assumere a sua volta tre v
 - lista di codici fiscali separati da virgola per indicare quali sono validi
 - \* + lista di codici fiscali ognuno preceduto da ! e separati da virgola, per indicare quali codici fiscali sono esclusi
 
-
+````bash
+PROFILE=
+REGION=
+VALUE="*"
+aws ssm put-parameter \
+    --profile $PROFILE \
+    --region $REGION \
+    --description "TokenExchange login allowed tax ids" \
+    --name "/pn-auth-fleet/allowedLoginTaxids" \
+    --value $VALUE \
+    --type "String" \
+    --overwrite
+````
 
