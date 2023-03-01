@@ -99,6 +99,9 @@ async function checkTaxIdCode(taxIdCode) {
                 process.env.ALLOWED_TAXIDS_PARAMETER_PATH
             );
             const allowedTaxIds = allowedTaxIdsFromStore.split(",");
+            if (allowedTaxIds.length === 0) {
+                return 0;
+            }
             if (allowedTaxIds.indexOf(`!${taxIdCode}`) > -1) {
                 return -1;
             }
