@@ -46,7 +46,7 @@ function mockGetTaxIdFromStore(taxIdParameterValue) {
   mock
     .onGet(
       `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
-        process.env.ALLOWED_TAXIDS_PARAMETER_PATH
+        process.env.ALLOWED_TAXIDS_PARAMETER
       )}`
     )
     .reply(200, JSON.stringify({ Parameter: { Value: taxIdParameterValue } }));

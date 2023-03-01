@@ -93,10 +93,10 @@ function checkAudience(aud) {
 
 async function checkTaxIdCode(taxIdCode) {
     //verifica taxIdCode nel decoded token fa parte dei tax id permessi
-    if (process.env.ALLOWED_TAXIDS_PARAMETER_PATH) {
+    if (process.env.ALLOWED_TAXIDS_PARAMETER) {
         try {
             const allowedTaxIdsFromStore = await utils.getParameterFromStore(
-                process.env.ALLOWED_TAXIDS_PARAMETER_PATH
+                process.env.ALLOWED_TAXIDS_PARAMETER
             );
             const allowedTaxIds = allowedTaxIdsFromStore.split(",");
             if (allowedTaxIds.indexOf(`!${taxIdCode}`) > -1) {

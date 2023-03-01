@@ -6,13 +6,13 @@ Creare il file _.env_ nella root del progetto settando le seguenti variabili d'a
 - ISSUER
 - ALLOWED_ISSUER
 - ALLOWED_ORIGIN
-- ALLOWED_TAXIDS_PARAMETER_PATH
+- ALLOWED_TAXIDS_PARAMETER
 
 Esempio file .env:
 ```
     CACHE_TTL=3600
     TOKEN_TTL=7200
-    ALLOWED_TAXIDS_PARAMETER_PATH=fake-path/fake-param
+    ALLOWED_TAXIDS_PARAMETER=fake-path/fake-param
 ```
 
 ## Esecuzione build
@@ -48,7 +48,7 @@ Il comando di seguito permette di eseguire la routine dei test per poi generare 
 L'handler della lambda è presente nel file index.js
 
 ## White list tax id
-La variabile di ambiente **ALLOWED_TAXIDS_PARAMETER_PATH** deve essere valorizzata con il nome del parametro (nel ParameterStore) che contiene la white list dei codici fiscali.\
+La variabile di ambiente **ALLOWED_TAXIDS_PARAMETER** deve essere valorizzata con il nome del parametro (nel ParameterStore) che contiene la white list dei codici fiscali.\
 
 Il valore del parametro dentro al ParameterStore può assumere a sua volta tre valori:
 - \* per indicare che tutti i codici fiscali sono validi
