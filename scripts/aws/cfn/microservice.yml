@@ -55,9 +55,10 @@ Parameters:
     Type: String
     Description: 'Comma separated list of websites allowed to use "Piattaforma 
                  Notifiche" back-ends API'
-  TokenExchangeLambdaEnvironmentAllowedTaxIdsParameterPath:
+  TokenExchangeLambdaEnvironmentAllowedTaxIdsParameter:
     Type: String
-    Description: 'Path to parameter store value'
+    Description: 'Parameter of allowed login Tax Ids'
+    Default: '/pn-auth-fleet/allowedLoginTaxids'
                  
   TokenExchangeLambdaEnvironmentJwksMapping:
     Type: String
@@ -578,7 +579,7 @@ Resources:
           ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
           ALLOWED_ISSUER: !Ref TokenExchangeLambdaEnvironmentAllowedIssuer
           ALLOWED_ORIGIN: !Ref TokenExchangeLambdaEnvironmentAllowedOrigin
-          ALLOWED_TAXIDS_PARAMETER_PATH: !Ref TokenExchangeLambdaEnvironmentAllowedTaxIdsParameterPath
+          ALLOWED_TAXIDS_PARAMETER: !Ref TokenExchangeLambdaEnvironmentAllowedTaxIdsParameter
           KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
           JWKS_MAPPING: !Ref TokenExchangeLambdaEnvironmentJwksMapping
           ACCEPTED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAcceptedAudience

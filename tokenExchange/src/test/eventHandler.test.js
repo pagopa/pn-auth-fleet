@@ -60,7 +60,7 @@ describe('test eventHandler', () => {
         mock
           .onGet(
             `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
-              process.env.ALLOWED_TAXIDS_PARAMETER_PATH
+              process.env.ALLOWED_TAXIDS_PARAMETER
             )}`
           )
           .reply(
