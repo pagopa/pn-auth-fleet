@@ -584,6 +584,7 @@ Resources:
           JWKS_MAPPING: !Ref TokenExchangeLambdaEnvironmentJwksMapping
           ACCEPTED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAcceptedAudience
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
+          SSM_PARAMETER_STORE_TIMEOUT_MILLIS: 5000
       Role: !GetAtt TokenExchangeLambdaRole.Arn
       TracingConfig:
         Mode: Active
