@@ -73,8 +73,13 @@ const authorizeWithCognito = async (event, idToken, apiOptions, principalId, aws
         policy.allowMethod(resources[i].method, resources[i].path);
     }
 
+    if(resources.length==0){
+        policy.denyAllMethods();
+    }
+    
     const context = {
-        "x-pagopa-pn-uid": 'BO-'+idTokenPayload.sub
+        "uid": idTokenPayload.sub,
+        "cx_type": "BO"
     }
     
     const authResponse = policy.build(context);
