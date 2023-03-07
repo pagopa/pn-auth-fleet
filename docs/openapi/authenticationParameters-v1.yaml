@@ -7,6 +7,9 @@ components:
       required: true
       schema:
         type: string
+        # ASCII printable characters
+        pattern: ^[ -~]*$
+        maxLength: 64
     cxTypeAuthFleet:
       name: x-pagopa-pn-cx-type
       in: header
@@ -21,6 +24,9 @@ components:
       required: true
       schema:
         type: string
+        # ASCII printable characters
+        pattern: ^[ -~]*$
+        maxLength: 64
     cxGroupsAuthFleet:
       name: x-pagopa-pn-cx-groups
       in: header
@@ -30,6 +36,9 @@ components:
         type: array
         items:
           type: string
+          # ASCII printable characters
+          pattern: ^[ -~]*$
+          maxLength: 1024
     cxTaxIdAuthFleet:
       name: x-pagopa-cx-taxid
       in: header
