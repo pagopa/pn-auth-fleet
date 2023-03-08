@@ -1,0 +1,259 @@
+openapi: 3.0.3
+info:
+  x-summary: 'Piattaforma Notifiche: API per il Front End del BackOffice'
+  title: 'Gestione Aggregati'
+  version: '1.0.0'
+tags:
+  - name: Aggregate
+    description: >-
+      Invocazioni utilizzabili dai mittenti per la gestione degli aggregati
+paths:
+  "/api-key-bo/aggregate/{x}/aadadas/{y}":
+    get:
+      summary: Ricerca aggregati
+      description: >-
+        servizio di consultazione della lista degli aggregati
+      tags:
+        - Aggregate
+      operationId: getAggregatesList
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: lastEvaluatedId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: lastEvaluatedName
+          in: query
+          required: false
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/AggregatesListResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Internal error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  
+components:
+  parameters:
+    pathAggregate:
+      description: >-
+        Identificativo univoco dell'aggregato
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    AggregateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        usagePlanId:
+          type: string
+    Problem:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: Contiene il codice HTTP dell'errore
+        title:
+          type: string
+        detail:
+          type: string
+        traceId:
+          type: string
+        timestamp:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              element:
+                type: string
+              detail:
+                type: string
+    PaAggregateResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        items:
+          $ref: '#/components/schemas/AssociatedPa'
+    AssociatedPa:
+      type: array
+      items:
+        $ref: '#/components/schemas/PaDetail'
+    AssociablePaResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        items:
+          $ref: '#/components/schemas/AssociablePa'
+    AssociablePa:
+      type: array
+      items:
+        $ref: '#/components/schemas/PaDetail'
+    AddPaListRequest:
+      title: Lista Pa da Associare
+      description: >-
+        Dto contenente la lista delle Pa da associare all'aggregato selezionato
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaDetail'
+    AggregatesListResponse:
+      title: Elenco Aggregati
+      description: >-
+        Dto contenente la lista degli aggregati eventualmente paginata e filtrata
+      type: object
+      required:
+        - items
+      properties:
+        total:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AggregateRow'
+        lastEvaluatedId:
+          type: string
+        lastEvaluatedName:
+          type: string
+    AggregateRow:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Id dell'aggregato
+        name:
+          type: string
+          description: Nome dell'aggregato
+        description:
+          type: string
+          description: Descrizione dell'aggregato
+        usagePlan:
+          type: string
+          description: size dello usage plan al quale è collegato
+        createdAt:
+          type: string
+          description: Data creazione
+          format: date-time
+        lastUpdate:
+          type: string
+          description: Data ultima modifica
+          format: date-time
+    SaveAggregateResponse:
+      title: Salvataggio aggregato
+      properties:
+        id:
+          type: string
+          description: Id dell'aggregato
+    AggregateResponse:
+      title: Dettaglio aggregato
+      properties:
+        id:
+          type: string
+          description: Id dell'aggregato
+        name:
+          type: string
+          description: Nome dell'aggregato
+        description:
+          type: string
+          description: Descrizione dell'aggregato
+        usagePlan:
+          $ref: '#/components/schemas/UsagePlanDetail'
+        createdAt:
+          type: string
+          description: Data creazione
+          format: date-time
+        lastUpdate:
+          type: string
+          description: Data ultima modifica
+          format: date-time
+    UsagePlanDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          description: id dell'istanza di usagePlan collegata all'aggregato
+        name:
+          type: string
+        description:
+          type: string
+        quota:
+          type: integer
+        rate:
+          type: number
+          format: double
+        burst:
+          type: integer
+    PaDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    UsagePlanResponse:
+      title: elenco usagePlan template
+      description: >-
+        Dto contenente la lista dei template per gli usagePlan
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UsagePlanDetail'
+    MovePaResponse:
+      type: object
+      properties:
+        processed:
+          type: integer
+          default: 0
+        unprocessed:
+          type: integer
+          default: 0
+        unprocessedPA:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/PaDetail'
