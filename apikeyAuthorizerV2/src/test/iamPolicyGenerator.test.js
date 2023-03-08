@@ -5,7 +5,7 @@ describe("iamPolicyGenerator tests", () => {
     let mockContext = {
         "uid": "apiKey-testApiKey",
         "cx_id": "testCxId",
-        "cx_groups": "[GRUPPO1,GRUPPO2]",
+        "cx_groups": "[GRUPPO1,GRUPPO2,GRUPPO3]",
         "cx_type": "PA"
     }
 
