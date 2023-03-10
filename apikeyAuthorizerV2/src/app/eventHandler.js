@@ -41,18 +41,23 @@ module.exports.eventHandler = async (event, context) => {
         };
 
         const iamPolicy = iam.generateIAMPolicy(event.methodArn, contextAuth, aggregateDynamo.AWSApiKey);
-        
-        //merge the iamPolicy retrieved object, with the anonymized apikey to prevent display in log.
-        const loggedIamPolicy = {...iamPolicy, usageIdentifierKey: utils.anonymizeKey(iamPolicy.usageIdentifierKey)}
-        console.log("IAM Policy:", loggedIamPolicy);
+        utils.logIamPolicy(iamPolicy);
 
         return iamPolicy;
     } catch (error) {
-        console.error('Error generating IAM policy with error ', error);
-        return defaultDenyAllPolicy;
+        return handleError(error)
     }
 }; 
 
 function checkStatus(status) {
     return status === 'ENABLED' || status === 'ROTATED';
+}
+
+function handleError(error) {
+    if(error instanceof KeyStatusException) {
+        console.warn('Error generating IAM policy with error ', error);
+    } else {
+        console.error('Error generating IAM policy with error ', error);
+    }
+    return defaultDenyAllPolicy;
 }
