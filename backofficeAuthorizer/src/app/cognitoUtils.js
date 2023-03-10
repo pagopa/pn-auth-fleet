@@ -43,7 +43,7 @@ const verifyIdToken = async (accessToken) => {
         console.log("Token is valid. Payload:", payload);
         return payload;
     } catch (err) {
-        console.error(err);
+        console.warn(err);
         console.log("Token not valid!");
         return false
     }

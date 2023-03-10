@@ -19,7 +19,7 @@ const getAllowedResourcesFromS3 = async (event, bucket, key, userTags) => {
 
     for (const [path, yamlMethodElement] of Object.entries(yamlPaths)) {
         for (const [method, yamlElement] of Object.entries(yamlMethodElement)) {
-            const tags = yamlElement['tags']
+            const tags = yamlElement['x-api-permissions']
             if(!tags || arraysOverlap(tags, userTags)){
                 resources.push({
                     method: method.toUpperCase(),
