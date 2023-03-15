@@ -180,6 +180,7 @@ Resources:
               - 'apigateway:*'
               - 'dynamodb:GetItem'
               - 'dynamodb:Query'
+              - 'kms:Decrypt'
             Resource: "*"
 
   # lambda function Log Group
