@@ -15,6 +15,8 @@ paths:
         servizio di consultazione della lista degli aggregati
       tags:
         - Aggregate
+      'x-api-permissions':
+        - Aggregate  
       operationId: getAggregatesList
       parameters:
         - name: name
@@ -62,6 +64,8 @@ paths:
       description: Servizio per la creazione di un nuovo aggregato
       tags:
         - Aggregate
+      'x-api-permissions':
+        - Aggregate  
       operationId: createAggregate
       requestBody:
         content:
@@ -101,6 +105,8 @@ paths:
         servizio per la lista delle PA associate all'aggregato
       tags:
         - Aggregate
+      'x-api-permissions':
+        - Aggregate  
       operationId: getPaAggregation
       parameters:
         - $ref: '#/components/parameters/pathAggregate'
@@ -137,6 +143,8 @@ paths:
         servizio per il dettaglio dell'Aggregato
       tags:
         - Aggregate
+      'x-api-permissions':
+        - Aggregate  
       operationId: getAggregate
       parameters:
         - $ref: '#/components/parameters/pathAggregate'
@@ -171,6 +179,8 @@ paths:
         servizio di rimozione dell'aggregato
       tags:
         - Aggregate
+      'x-api-permissions':
+        - Aggregate  
       operationId: deleteApiKeys
       parameters:
         - $ref: '#/components/parameters/pathAggregate'
@@ -200,6 +210,8 @@ paths:
       description: Servizio per la modifica di un aggregato
       tags:
         - Aggregate
+      'x-api-permissions':
+        - Aggregate  
       operationId: updateAggregate
       parameters:
         - $ref: '#/components/parameters/pathAggregate'
@@ -242,6 +254,8 @@ paths:
         servizio che associa una lista di PA a un determinato aggregato
       tags:
         - Aggregate
+      'x-api-permissions':
+        - Aggregate  
       operationId: addPaListToAggregate
       parameters:
         - $ref: '#/components/parameters/pathAggregate'
@@ -284,6 +298,8 @@ paths:
         servizio che si occupa dello spostamento di una PA da un aggregato a un altro
       tags:
         - Aggregate
+      'x-api-permissions':
+        - Aggregate  
       operationId: movePa
       parameters:
         - $ref: '#/components/parameters/pathAggregate'
@@ -326,6 +342,8 @@ paths:
         servizio che restituisce la lista della PA associabili all'aggregato
       tags:
         - Aggregate
+      'x-api-permissions':
+        - Aggregate  
       operationId: getAssociablePa
       parameters:
         - name: name
@@ -366,6 +384,8 @@ paths:
         servizio che restituisce la lista dei template per gli usage plan
       tags:
         - UsagePlan
+      'x-api-permissions':
+        - UsagePlan  
       operationId: getUsagePlan
       responses:
         '200':
