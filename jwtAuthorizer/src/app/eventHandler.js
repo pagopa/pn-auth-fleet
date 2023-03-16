@@ -41,11 +41,15 @@ module.exports = {
                 console.log('IAM Policy', JSON.stringify(iamPolicy));
                 return iamPolicy;
             } catch(err) {
-                console.error('Error generating IAM policy ',err);
+                if(err.name=='ValidationException'){
+                    console.warn('Error generating IAM policy ',err);
+                } else {
+                    console.error('Error generating IAM policy ',err);
+                }
                 return defaultDenyAllPolicy;
             }
         } else {
-            console.error('EncodedToken is null')
+            console.warn('EncodedToken is null')
             return defaultDenyAllPolicy;
         } 
     }
