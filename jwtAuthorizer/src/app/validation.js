@@ -39,7 +39,7 @@ async function jwtValidator(jwtToken) {
         console.debug( 'publicKeyPem', publicKeyPem )
         jsonwebtoken.verify(jwtToken, publicKeyPem)
     }catch(err){
-        console.error('Validation error ', err)
+        console.warn('Validation error ', err)
         throw new ValidationException(err.message)
     }
     console.log("success!");
