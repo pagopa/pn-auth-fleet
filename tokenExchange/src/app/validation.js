@@ -40,31 +40,31 @@ async function jwtValidator(jwtToken) {
                             const keyInPemFormat = await publicKeyGetter.getPublicKey(issuer, kid);
                             jsonwebtoken.verify(jwtToken, keyInPemFormat)
                         } catch (err) {
-                            console.error('Validation error ', err)
+                            console.warn('Validation error ', err)
                             throw new ValidationException(err.message)
                         }
                         console.debug("success!");
                         console.debug('payload', tokenPayload)
                         return tokenPayload;
                     } else {
-                        console.error('TaxId=%s not allowed', aud)
+                        console.warn('TaxId=%s not allowed', aud)
                         throw new ValidationException('TaxId not allowed')
                     }
                 } else {
-                    console.error('Role=%s not allowed', aud)
+                    console.warn('Role=%s not allowed', aud)
                     throw new ValidationException('Role not allowed')
                 }
             } else {
-                console.error('Issuer=%s not known', issuer)
+                console.warn('Issuer=%s not known', issuer)
                 throw new ValidationException('Issuer not known')
             }
         } else {
-            console.error('Audience=%s not known', aud)
+            console.warn('Audience=%s not known', aud)
             throw new ValidationException('Invalid Audience')
         }
     }
     else {
-        console.error('decoded token is null, token is not valid')
+        console.warn('decoded token is null, token is not valid')
         throw new ValidationException('Token is not valid')
     }
 }
