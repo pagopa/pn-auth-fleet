@@ -20,16 +20,103 @@ Parameters:
     Type: String
     Description: 'keep track of used projects commitIds'
 
-Conditions:
-  Never: !Equals [ 'true', 'false' ]
+  LogsKinesisSourceStreamArn:
+    Type: String
+    Description: 'Where to send Logs'
 
-# dummy (null) resource, never created
 Resources:
-  NullResource:
-    Type: Custom::Null
-    Condition: Never
+
+  ApiKeyAuthorizerV2LambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain    
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-ApiKeyAuthorizerV2Lambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+
+  IoAuthorizerLambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain    
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-ioAuthorizerLambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+
+  JwtAuthorizerLambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain    
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-jwtAuthorizerLambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+
+  BackofficeAuthorizerLambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain    
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-backofficeAuthorizerLambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+
+  TokenExchangeLambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain    
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-tokenExchangeLambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+
+  # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
+  # ###########################################################
+  PnAuthFleetJwtSignKey:
+    Type: 'AWS::KMS::Key'
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: RSA-2048 key to generate session token
+      KeySpec: RSA_2048
+      KeyUsage: SIGN_VERIFY
+      PendingWindowInDays: 7
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
 
 Outputs:
-  Dummy:
-    Description: 'The deploy scripts need at least one Output'
-    Value: 'FooBar'
+  PnAuthFleetJwtSignKeyId:
+    Value: !Ref PnAuthFleetJwtSignKey
+
+  ApiKeyAuthorizerV2LambdaName:
+    Value: !Sub '${ProjectName}-ApiKeyAuthorizerV2Lambda'
+
+  IoAuthorizerLambdaName:
+    Value: !Sub '${ProjectName}-ioAuthorizerLambda'
+
+  JwtAuthorizerLambdaName:
+    Value: !Sub '${ProjectName}-jwtAuthorizerLambda'
+
+  BackofficeAuthorizerLambdaName:
+    Value: !Sub '${ProjectName}-backofficeAuthorizerLambda'
+
+  TokenExchangeLambdaName:
+    Value: !Sub '${ProjectName}-tokenExchangeLambda'
