@@ -199,14 +199,14 @@ Resources:
         Version: 2012-10-17
         Statement:
           - Effect: Allow
-            Sid: Allow db queries
+            Sid: AllowDbQueries
             Action:
               - 'apigateway:*'
               - 'dynamodb:GetItem'
               - 'dynamodb:Query'
             Resource: "*"
           - Effect: Allow
-            Sid: Allow decrypt
+            Sid: AllowDecrypt
             Action:
               - 'kms:Decrypt'
             Resource: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${ApiKeyTablesEncryptKeyId}
