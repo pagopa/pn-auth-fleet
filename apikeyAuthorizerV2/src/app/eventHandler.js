@@ -1,7 +1,8 @@
 const dynamo = require('./dynamoFunctions.js');
-const { KeyStatusException } = require('./exceptions.js');
+const { KeyStatusException, ValidationException } = require('./exceptions.js');
 const iam = require('./iamPolicyGenerator.js');
 const utils = require("./utils");
+const validator = require('./validation.js')
 
 const defaultDenyAllPolicy = {
     "principalId": "user",
@@ -20,7 +21,7 @@ const defaultDenyAllPolicy = {
 module.exports.eventHandler = async (event, context) => {
     try {
         const virtualKey = event.headers["x-api-key"];
-        
+
         const apiKeyDynamo = await dynamo.getApiKeyByIndex(virtualKey);
         
         if(!checkStatus(apiKeyDynamo.status)) {
@@ -33,16 +34,32 @@ module.exports.eventHandler = async (event, context) => {
         const aggregateDynamo = await dynamo.getPaAggregateById(paAggregationDynamo.aggregateId);
         console.log("AWS ApiKey Found -> ", utils.anonymizeKey(aggregateDynamo.AWSApiKey));
 
-        const contextAuth = {
-            "uid": "APIKEY-" + aggregateDynamo.AWSApiKey,
-            "cx_id": apiKeyDynamo.cxId,
-            "cx_groups": apiKeyDynamo?.groups?.join(),
-            "cx_type": "PA"
-        };
-
+        let contextAuth;
+        if(apiKeyDynamo.pdnd === false){
+            contextAuth = {
+                "uid": "APIKEY-" + aggregateDynamo.AWSApiKey,
+                "cx_id": apiKeyDynamo.cxId,
+                "cx_groups": apiKeyDynamo?.groups?.join(),
+                "cx_type": "PA"
+            };
+        }else{
+            const encodedToken = event?.headers?.Authorization?.replace('Bearer ','');
+            if (encodedToken) {
+                console.log('encodedToken', encodedToken);
+                let decodedToken = await validator.validation(encodedToken);
+                contextAuth = {
+                    "uid": decodedToken.client_id,
+                    "cx_id": apiKeyDynamo.cxId,
+                    "cx_groups": apiKeyDynamo?.groups?.join(),
+                    "cx_type": "PA"
+                };
+            } else {
+                console.warn('Token is null')
+                throw new ValidationException('Missing token')
+            }
+        }
         const iamPolicy = iam.generateIAMPolicy(event.methodArn, contextAuth, aggregateDynamo.AWSApiKey);
         utils.logIamPolicy(iamPolicy);
-
         return iamPolicy;
     } catch (error) {
         return handleError(error)

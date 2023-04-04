@@ -77,6 +77,14 @@ Parameters:
     Default: 2000
     Description: Default latency limit for token exchange api
 
+  ApikeyAuthorizerV2PDNDAudience:
+    type: String
+    Description: Pdnd Audience for ApikeyAuthorizerV2
+  
+  ApikeyAuthorizerV2PDNDIssuer:
+    type: String
+    Description: Pdnd Issuer for ApikeyAuthorizerV2
+
   ApplicationLoadBalancerDomain:
     Type: String
     Description: application loadbalancer used from ioAuthorizer to call pn-data-vault
@@ -160,6 +168,10 @@ Resources:
       Code:
         S3Bucket: !Ref LambdasBucketName
         S3Key: !Sub '${BucketBasePath}/apikeyAuthorizerV2.zip'
+      Environment:
+        Variables:
+          PDND_ISSUER: !Ref ApikeyAuthorizerV2PDNDIssuer
+          PDND_AUDIENCE: !Ref ApikeyAuthorizerV2PDNDAudience
       Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
       TracingConfig:
         Mode: Active

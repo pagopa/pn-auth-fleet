@@ -10,6 +10,8 @@
     "TokenExchangeLambdaEnvironmentJwksMapping": "{ }",
     "TokenExchangeLambdaEnvironmentAcceptedAudience":"portale-pa.svil.pn.pagopa.it,portale.svil.pn.pagopa.it,portale-pg.svil.pn.pagopa.it",
     "TokenExchangeLambdaEnvironmentAudience":"webapi.svil.pn.pagopa.it",
-    "TokenExchangeLatencyLimit": "2000"    
+    "TokenExchangeLatencyLimit": "2000",
+    "ApikeyAuthorizerV2PDNDAudience":"https://api.svil.pn.pagopa.it",
+    "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it"   
   }
 }
