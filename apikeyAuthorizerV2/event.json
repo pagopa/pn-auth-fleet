@@ -5,8 +5,7 @@
   "path": "/request",
   "httpMethod": "GET",
   "headers": {
-    "x-api-key":"1577ca43-098e-4c99-96df-2679b3afe421",
-    "Authorization": "Bearer eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsInVzZSI6InNpZyIsImtpZCI6IjMyZDhhMzIxLTE1NjgtNDRmNS05NTU4LWE5MDcyZjUxOWQyZCJ9.eyJhdWQiOiJodHRwczovL2FwaS5kZXYucG4ucGFnb3BhLml0Iiwic3ViIjoiYmQ1ZWNiNzgtZTFkNC00MzIyLTkyMWMtNmZlMGVhYTQyN2Q1IiwibmJmIjoxNjgwNjEzOTY4LCJwdXJwb3NlSWQiOiIyMDk5OWEwZi1lYzQwLTQxYzctOWZkZC05ZDNhZDA3OWFkODEiLCJpc3MiOiJ1YXQuaW50ZXJvcC5wYWdvcGEuaXQiLCJleHAiOjE2ODA2MTc1NjgsImlhdCI6MTY4MDYxMzk2OCwiY2xpZW50X2lkIjoiYmQ1ZWNiNzgtZTFkNC00MzIyLTkyMWMtNmZlMGVhYTQyN2Q1IiwianRpIjoiNDlmN2NmYmItMTNhZi00NmFiLThhMjktNGRjMTk0ZjExMjRiIn0.IRv-aBfgyHOOUu3o5K6adm4kMRQF8nm0hFTJkaMpPdzVazxjjXFvuagvf3c5ofH6DHzufXQJyjsj8h-VK1FX7hSQF9hVw80R_o1PD4TGWwKV3X2qjaqRnNxvDaEa6FjSwZdqU-0zx4tHNnwZP0MjefwBS9w7QUgg6dkpHRDJoScAyEYK0mf-dpybb5WVeU9Qgo9F7zvm10WBl3eQtyehrHqj-k_cRprOs15Q0ns3jcJI4kMcyqQG-todMdoJwsLebtct-veUPCi3HWox6pW-VdrUZVN_qN-RC3OcAUF5R3_pHoruypLJj64HEcUlmY0PV-4l95UlrDxq293ocqAS0g"
+    "x-api-key":"1577ca43-098e-4c99-96df-2679b3afe421"
   },
   "queryStringParameters": {
     "QueryString1": "queryValue1"
