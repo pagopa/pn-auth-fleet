@@ -122,6 +122,10 @@ Parameters:
     Type: String
     Description: filter expression for exported logs
 
+  ApiKeyTablesEncryptKeyId:
+    Type: String
+    Description: 'KMS ID for apikey manager tables'
+
   PnAuthFleetJwtSignKeyId:
     Type: String
     Description: JWT sign key ID
@@ -195,12 +199,17 @@ Resources:
         Version: 2012-10-17
         Statement:
           - Effect: Allow
+            Sid: AllowDbQueries
             Action:
               - 'apigateway:*'
               - 'dynamodb:GetItem'
               - 'dynamodb:Query'
-              - 'kms:Decrypt'
             Resource: "*"
+          - Effect: Allow
+            Sid: AllowDecrypt
+            Action:
+              - 'kms:Decrypt'
+            Resource: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${ApiKeyTablesEncryptKeyId}
 
   ApiKeyAuthorizerV2LambdaAlarms:
     Type: AWS::CloudFormation::Stack
