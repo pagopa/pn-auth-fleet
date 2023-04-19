@@ -55,7 +55,7 @@ function getTokenComponent(decodedToken, keyId, isDev) {
     let organization = {};
     if (decodedToken.organization) {
         organization.id = isDev && getUserType(decodedToken) === 'PG'
-          ? 'PG-' + organizationFCToIdMap[decodedToken.organization.fiscal_code]
+          ? organizationFCToIdMap[decodedToken.organization.fiscal_code]
           : decodedToken.organization.id;
         organization.role = decodedToken.organization.roles[0].role;
         organization.groups = decodedToken.organization.groups;
