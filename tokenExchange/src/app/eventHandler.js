@@ -1,15 +1,11 @@
-const validator = require('./validation.js');
-const tokenGen = require('./tokenGen.js');
-const responses = require('./responses.js');
+const validator = require('./validation.js')
+const tokenGen = require('./tokenGen.js')
+const responses = require('./responses.js')
 const auditLog = require("./log.js");
-const utils = require("./utils.js");
+const utils = require("./utils.js")
 
 module.exports = {
-    async handleEvent(event) {
-        const awsAccountId = event?.requestContext?.accountId;
-        console.log("AWS Account ID", awsAccountId);
-        const isDev = awsAccountId === "558518206506";
-
+    async handleEvent(event){
         event.headers = utils.makeLower(event.headers);
         const eventOrigin = event?.headers?.origin;
         if (eventOrigin) {
@@ -29,7 +25,7 @@ module.exports = {
                     try {
                         const decodedToken = await validator.validation(encodedToken);
                         const enrichedToken = utils.enrichDecodedToken(decodedToken);
-                        const sessionToken = await tokenGen.generateToken(enrichedToken, isDev);
+                        const sessionToken = await tokenGen.generateToken(enrichedToken);
                         const uid = enrichedToken.uid;
                         const cx_id = enrichedToken.organization ? enrichedToken.organization.id : ('PF-' + enrichedToken.uid);
                         const cx_type = utils.getUserType(enrichedToken);

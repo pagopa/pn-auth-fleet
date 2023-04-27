@@ -16,7 +16,7 @@
     "@aws-sdk/client-api-gateway": "^3.252.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.252.0",
     "@aws-sdk/client-s3": "^3.252.0",
-    "aws-sdk": "^2.1066.0",
+    "aws-sdk": "^2.1356.0",
     "aws-sdk-client-mock": "^2.0.1",
     "aws-sdk-mock": "^5.6.2",
     "chai": "^4.3.6",

@@ -3,7 +3,7 @@ let options = {
     "sonar.projectKey": "pagopa_pn-auth-fleet_tokenExchange"
 }
 
-if (typeof process.env.PR_NUM !== 'undefined' ) {
+if (process.env.PR_NUM) {
     options["sonar.pullrequest.base"] = process.env.BRANCH_TARGET;
     options["sonar.pullrequest.branch"] = process.env.BRANCH_NAME;
     options["sonar.pullrequest.key"] = process.env.PR_NUM;

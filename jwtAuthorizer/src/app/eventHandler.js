@@ -29,8 +29,10 @@ module.exports = {
                 console.log('decodedToken', decodedToken);
                 let contextAttrs = {};
                 contextAttrs.uid = decodedToken.uid;
-                contextAttrs.cx_id = decodedToken.organization ? decodedToken.organization.id : ('PF-' + decodedToken.uid);
                 contextAttrs.cx_type = getUserType(decodedToken);
+                let prefix = (contextAttrs.cx_type == 'PA' ? '' : contextAttrs.cx_type + '-')
+                contextAttrs.cx_id = prefix + (decodedToken.organization ? decodedToken.organization.id : decodedToken.uid )
+
                 contextAttrs.cx_groups = decodedToken.organization?.groups?.join();
                 contextAttrs.cx_role = decodedToken.organization?.role.replace(/pg-/, "");
                 contextAttrs.cx_jti = decodedToken.jti;

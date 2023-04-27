@@ -12,6 +12,6 @@
     "TokenExchangeLambdaEnvironmentAudience":"webapi.svil.pn.pagopa.it",
     "TokenExchangeLatencyLimit": "2000",
     "ApikeyAuthorizerV2PDNDAudience":"https://api.svil.pn.pagopa.it",
-    "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it"   
+    "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it"
   }
 }
