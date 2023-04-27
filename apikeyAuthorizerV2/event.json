@@ -5,7 +5,8 @@
   "path": "/request",
   "httpMethod": "GET",
   "headers": {
-    "x-api-key":"575a2e04-c462-4a80-9665-50f62cb60bfb"
+    "x-api-key":"1577ca43-098e-4c99-96df-2679b3afe421",
+    "Authorization":"Bearer xxx"
   },
   "queryStringParameters": {
     "QueryString1": "queryValue1"

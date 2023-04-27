@@ -35,7 +35,8 @@ module.exports.getApiKeyByIndex = async (virtualKey) => {
         cxId : apiKeyItem["x-pagopa-pn-cx-id"],
         groups: apiKeyItem["groups"],
         status: apiKeyItem["status"],
-        virtualKey: apiKeyItem["virtualKey"]
+        virtualKey: apiKeyItem["virtualKey"],
+        pdnd: apiKeyItem["pdnd"]
     };
 }
 
