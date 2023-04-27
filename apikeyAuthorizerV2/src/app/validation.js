@@ -1,7 +1,7 @@
 const jsonwebtoken = require('jsonwebtoken');
 const retrieverPdndJwks = require('./retrieverPdndJwks.js');
 const { ValidationException } = require('./exceptions.js');
-const crypto = require('crypto');
+const jwkToPem = require('jwk-to-pem');
 
 let cachedPublicKeyMap = new Map();
 
@@ -37,17 +37,16 @@ async function jwtValidator(jwtToken) {
 
 async function getDecodedPublicKey(issuer, keyId){
     let cachedPublicKey = searchInCache(keyId);
-    let decodedPublicKey
+    let keyInPemFormat
     if ( cachedPublicKey ) {
         console.log( 'Using cached public key' )
-        decodedPublicKey = cachedPublicKey;
+        keyInPemFormat = cachedPublicKey;
     } else {
         publicKey = await retrievePublicKey(issuer, keyId);
-        let key = crypto.createPublicKey({ format: "jwk", key: { "kty": publicKey.kty, "n": publicKey.n, "e": publicKey.e }});
-        decodedPublicKey = key.export({format:'pem',type:'spki'});
-        setCachedData(keyId , decodedPublicKey )
+        keyInPemFormat = jwkToPem(publicKey);
+        setCachedData(keyId , keyInPemFormat)
     }
-    return decodedPublicKey;
+    return keyInPemFormat;
 }
 
 const setCachedData = (keyId, val) =>{

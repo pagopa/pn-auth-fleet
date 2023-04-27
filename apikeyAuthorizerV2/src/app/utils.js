@@ -39,11 +39,9 @@ const maskLoggableInfoFromIamPolicy = (iamPolicy) => {
 }
 
 const anonymizeUid = (uid) => {
-	if(uid.startsWith("APIKEY-")){
-		let apikeyToHide = uid.substring(uid.indexOf("-") + 1);
-    	return "APIKEY-" + this.anonymizeKey(apikeyToHide);
-	}
-    return this.anonymizeKey(uid);
+	let prefix = uid.substring(0, uid.indexOf("-") + 1);
+	let apikeyToHide = uid.substring(uid.indexOf("-") + 1);
+	return prefix + this.anonymizeKey(apikeyToHide);
 }
 
 

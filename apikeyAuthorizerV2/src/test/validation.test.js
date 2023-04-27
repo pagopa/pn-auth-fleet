@@ -3,10 +3,7 @@ const chai = require("chai");
 const jsonwebtoken = require("jsonwebtoken");
 const sinon = require("sinon");
 const rewire = require("rewire");
-const crypto = require("crypto")
 const fs = require("fs");
-const axios = require("axios");
-const MockAdapter = require("axios-mock-adapter");
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -14,8 +11,6 @@ const expect = chai.expect;
 const validator = rewire("../app/validation");
 const retrieverPdndJwks = require("../app/retrieverPdndJwks");
 const ValidationException = require("../app/exceptions");
-const { KendraRanking } = require("aws-sdk");
-const { error } = require("console");
 
 const decodedToken = {
     aud: "https://api.dev.pn.pagopa.it",
@@ -29,10 +24,6 @@ const decodedToken = {
     jti: "651b205c-e76e-44d3-b028-45a99ae46e17"
 };
 
-const key = {
-  export: ({format,type}) => "test"
-}
-
 describe("test validation", () => {
   beforeEach(() => {
     process.env.PDND_ISSUER = "uat.interop.pagopa.it"
@@ -44,7 +35,6 @@ describe("test validation", () => {
       );
       return JSON.parse(result);
     });
-    sinon.stub(crypto, "createPublicKey").returns(key);
   });
 
   afterEach(() => {

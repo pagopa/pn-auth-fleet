@@ -48,7 +48,7 @@ module.exports.eventHandler = async (event, context) => {
                 console.log('encodedToken', encodedToken);
                 let decodedToken = await validator.validation(encodedToken);
                 contextAuth = {
-                    "uid": decodedToken.client_id,
+                    "uid": "PDND-" + decodedToken.client_id,
                     "cx_id": apiKeyDynamo.cxId,
                     "cx_groups": apiKeyDynamo?.groups?.join(),
                     "cx_type": "PA"
