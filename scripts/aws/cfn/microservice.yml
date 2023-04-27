@@ -78,11 +78,11 @@ Parameters:
     Description: Default latency limit for token exchange api
 
   ApikeyAuthorizerV2PDNDAudience:
-    type: String
+    Type: String
     Description: Pdnd Audience for ApikeyAuthorizerV2
   
   ApikeyAuthorizerV2PDNDIssuer:
-    type: String
+    Type: String
     Description: Pdnd Issuer for ApikeyAuthorizerV2
 
   ApplicationLoadBalancerDomain:
