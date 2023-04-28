@@ -5,7 +5,6 @@
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentTokenTtl": "3200",
     "TokenExchangeLatencyLimit": "2000",
-    "ApikeyAuthorizerV2PDNDAudience":"https://api.svil.pn.pagopa.it",
     "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it"
   }
 }
