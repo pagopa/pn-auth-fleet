@@ -1,7 +1,8 @@
 const event = require('../../event.json');
+const eventPdnd = require('../../event-PDND.json');
 const { expect } = require('chai');
 const proxyquire = require('proxyquire').noPreserveCache();
-const { mockIamPolicyOk } = require("./mocks");
+const { mockIamPolicyOk, mockIamPolicyKo } = require("./mocks");
 const { mockPaAggregationFound, mockAggregateFound,mockIamPolicyOkPdnd, mockJwtValidationOk, mockEventTokenNull } = require("./mocks");
 
 const mockBlockedVirtualKey = {
@@ -77,6 +78,36 @@ describe('eventHandler test ', function() {
     expect(res.context.cx_groups).equal(mockIamPolicyOk.context.cx_groups);
   })
 
+  it("iam policy KO", async () => {
+    const { eventHandler } = proxyquire.noCallThru().load("../app/eventHandler.js", {
+      "./dynamoFunctions.js": {
+        getApiKeyByIndex: async (vk) => {
+          return new Promise(res => {
+            res(mockEnabledVirtualKey)
+          })
+        },
+        getPaAggregationById: async (cx) => {
+          return new Promise(res => {
+            res(mockPaAggregationFound)
+          })
+        },
+        getPaAggregateById: async (aggregateId) => {
+          return new Promise(res => {
+            res(mockAggregateFound)
+          })
+        } 
+      },
+      "./iamPolicyGenerator.js": {
+        generateIAMPolicy: ()=> {
+          return mockIamPolicyOk;
+        }
+      }
+    });
+  
+    const res = await eventHandler(eventPdnd, null);
+    expect(res.usageIdentifierKey).equal(mockIamPolicyKo.usageIdentifierKey);
+  })
+
   it("iam policy ok", async () => {
     const { eventHandler } = proxyquire.noCallThru().load("../app/eventHandler.js", {
       "./dynamoFunctions.js": {
@@ -108,7 +139,7 @@ describe('eventHandler test ', function() {
       }
     });
   
-    const res = await eventHandler(event, null);
+    const res = await eventHandler(eventPdnd, null);
     expect(res.context.uid).equal(mockIamPolicyOkPdnd.context.uid)
   })
 

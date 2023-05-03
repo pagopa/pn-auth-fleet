@@ -35,7 +35,12 @@ module.exports.eventHandler = async (event, context) => {
         console.log("AWS ApiKey Found -> ", utils.anonymizeKey(aggregateDynamo.AWSApiKey));
 
         let contextAuth;
+        const encodedToken = event?.headers?.Authorization?.replace('Bearer ','');
         if(apiKeyDynamo.pdnd === false){
+            if(encodedToken){
+                console.warn('PDND Token is not required')
+                throw new ValidationException('PDND Token is not required, you have to use only API-KEY to access this resource')
+            }
             contextAuth = {
                 "uid": "APIKEY-" + aggregateDynamo.AWSApiKey,
                 "cx_id": apiKeyDynamo.cxId,
@@ -43,7 +48,6 @@ module.exports.eventHandler = async (event, context) => {
                 "cx_type": "PA"
             };
         }else{
-            const encodedToken = event?.headers?.Authorization?.replace('Bearer ','');
             if (encodedToken) {
                 console.log('encodedToken', encodedToken);
                 let decodedToken = await validator.validation(encodedToken);
@@ -54,8 +58,8 @@ module.exports.eventHandler = async (event, context) => {
                     "cx_type": "PA"
                 };
             } else {
-                console.warn('Token is null')
-                throw new ValidationException('Missing token')
+                console.warn('PDND Token is required')
+                throw new ValidationException('PDND Token is required, you have to use both APIKEY and PDND token to access this resource')
             }
         }
         const iamPolicy = iam.generateIAMPolicy(event.methodArn, contextAuth, aggregateDynamo.AWSApiKey);
