@@ -24,6 +24,10 @@ Parameters:
     Type: String
     Description: 'Where to send Logs'
 
+  LogRetention:
+    Type: Number
+    Default: 14
+
 Resources:
 
   ApiKeyAuthorizerV2LambdaLogGroup:
@@ -35,6 +39,7 @@ Resources:
       Parameters:
         LogGroupName: !Sub '${ProjectName}-ApiKeyAuthorizerV2Lambda'
         LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
 
   IoAuthorizerLambdaLogGroup:
@@ -46,6 +51,7 @@ Resources:
       Parameters:
         LogGroupName: !Sub '${ProjectName}-ioAuthorizerLambda'
         LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
 
   JwtAuthorizerLambdaLogGroup:
@@ -57,6 +63,7 @@ Resources:
       Parameters:
         LogGroupName: !Sub '${ProjectName}-jwtAuthorizerLambda'
         LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
 
   BackofficeAuthorizerLambdaLogGroup:
@@ -68,6 +75,7 @@ Resources:
       Parameters:
         LogGroupName: !Sub '${ProjectName}-backofficeAuthorizerLambda'
         LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
 
   TokenExchangeLambdaLogGroup:
@@ -79,6 +87,7 @@ Resources:
       Parameters:
         LogGroupName: !Sub '${ProjectName}-tokenExchangeLambda'
         LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
 
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
