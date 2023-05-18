@@ -31,6 +31,10 @@ parse_params() {
   env_type=""
   keyIdAlias="alias/pn-jwt-sign-key"
   uid=""
+
+  organization_id="b05de777-80c6-4549-a054-d8dfda139c62"
+  role="pg-admin"
+  tax_id="20517490320"
   
   while :; do
     case "${1-}" in
@@ -124,7 +128,7 @@ echo "Next year date epoch: ${next_year_date}"
 
 header="{\"alg\": \"RS256\",\"typ\": \"JWT\",\"kid\": \"${keyId}\"}"
 dot="."
-payload="{\"iat\": ${date_now},\"exp\": ${next_year_date}, \"uid\": \"${uid}\",\"iss\": \"${iss}\",\"aud\": \"${aud}\"}"
+payload="{\"iat\": ${date_now},\"exp\": ${next_year_date}, \"uid\": \"${uid}\",\"iss\": \"${iss}\",\"aud\": \"${aud}\", \"organization\": { \"id\": \"${organization_id}\", \"role\": \"${role}\",\"fiscal_code\": \"${tax_id}\"}}"
 
 header_base64=$(echo "${header}" | base64_encode)
 payload_base64=$(echo "${payload}" | base64_encode)
