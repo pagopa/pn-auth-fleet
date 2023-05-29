@@ -15,13 +15,23 @@ const defaultDenyAllPolicy = {
     }
 };
 
+function getTaxId(event){
+    const lollipopUserId = event?.headers?.['x-pagopa-lollipop-user-id'];
+    if(lollipopUserId){
+        return lollipopUserId
+    }
+
+    const cxId = event?.headers?.['x-pagopa-cx-taxid'];
+    return cxId
+}
+
 module.exports = {
     async handleEvent(event){
         // Declare Policy
         let iamPolicy = null;
 
         // Capture taxId from event
-        const taxId = event?.headers?.['x-pagopa-cx-taxid'];
+        const taxId = getTaxId(event);
         if( taxId )
         {
             // console.info('taxId', taxId); non si può loggare il codice fiscale, magari mettiamo solo un pezzo!
