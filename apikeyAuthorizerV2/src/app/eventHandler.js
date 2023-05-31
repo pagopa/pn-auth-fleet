@@ -46,32 +46,32 @@ module.exports.eventHandler = async (event, context) => {
     let contextAuth;
     const encodedToken = event?.headers?.Authorization?.replace("Bearer ", "");
     if (apiKeyDynamo.pdnd === false) {
-        if (encodedToken) {
-            throw new ValidationException(
-              "PDND Token is not required, you have to use only API-KEY to access this resource"
-            );
-        }
-        contextAuth = {
-            uid: "APIKEY-" + aggregateDynamo.AWSApiKey,
-            cx_id: apiKeyDynamo.cxId,
-            cx_groups: apiKeyDynamo?.groups?.join(),
-            cx_type: "PA",
-        };
+      if (encodedToken) {
+        throw new ValidationException(
+          "PDND Token is not required, you have to use only API-KEY to access this resource"
+        );
+      }
+      contextAuth = {
+        uid: "APIKEY-" + apiKeyDynamo.id,
+        cx_id: apiKeyDynamo.cxId,
+        cx_groups: apiKeyDynamo?.groups?.join(),
+        cx_type: "PA",
+      };
     } else {
-        if (encodedToken) {
-            console.log("encodedToken", encodedToken);
-            let decodedToken = await validator.validation(encodedToken);
-            contextAuth = {
-              uid: "PDND-" + decodedToken.client_id,
-              cx_id: apiKeyDynamo.cxId,
-              cx_groups: apiKeyDynamo?.groups?.join(),
-              cx_type: "PA",
-            };
-          } else {
-            throw new ValidationException(
-              "PDND Token is required, you have to use both APIKEY and PDND token to access this resource"
-            );
-          }
+      if (encodedToken) {
+        console.log("encodedToken", encodedToken);
+        let decodedToken = await validator.validation(encodedToken);
+        contextAuth = {
+          uid: "PDND-" + decodedToken.client_id,
+          cx_id: apiKeyDynamo.cxId,
+          cx_groups: apiKeyDynamo?.groups?.join(),
+          cx_type: "PA",
+        };
+      } else {
+        throw new ValidationException(
+          "PDND Token is required, you have to use both APIKEY and PDND token to access this resource"
+        );
+      }
     }
     const iamPolicy = iam.generateIAMPolicy(
       event.methodArn,
