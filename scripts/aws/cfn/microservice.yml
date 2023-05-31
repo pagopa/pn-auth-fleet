@@ -747,7 +747,7 @@ Resources:
   TokenExchangeAPIGatewayApiLatencyAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub "${ProjectName}-token-exchange-api-LatencyAlarm"
+      AlarmName: !Sub "${ProjectName}-token-exchange-api-LatencyAlarm-Wakeup"
       AlarmDescription: "CloudWatch alarm for when API Gateway latency exceeds the limit."
       AlarmActions: 
         - !Ref AlarmSNSTopicArn
@@ -755,9 +755,9 @@ Resources:
         - !Ref AlarmSNSTopicArn
       OKActions:
         - !Ref AlarmSNSTopicArn
-      DatapointsToAlarm: 3
+      DatapointsToAlarm: 15
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 5
+      EvaluationPeriods: 20
       Period: 60
       Threshold: !Ref TokenExchangeLatencyLimit
       TreatMissingData: notBreaching
@@ -809,11 +809,65 @@ Resources:
           ReturnData: False
         - Id: e2
           Expression: "m1*(0.1)"
-          Label: !Sub "4XXError-weight-adjust"
+          Label: "4XXError-weight-adjust"
           ReturnData: False
         - Id: e1
           Expression: SUM([e2,m2])
           Label: !Sub "${ProjectName}-token-exchange-api-ErrorMetric"
+
+  TokenExchangeAPIGatewayApiErrorAlarmWakeup:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ProjectName}-token-exchange-api-ErrorAlarm-Wakeup"
+      AlarmDescription: "CloudWatch alarm for when API Gateway has 4xx or 5xx error."
+      AlarmActions: 
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-token-exchange-api
+              MetricName: 4XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m2
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-token-exchange-api
+              MetricName: 5XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m3
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub '${ProjectName}-token-exchange-api'
+              MetricName: Count
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False          
+        - Id: e1
+          Expression: IF(m3>=10 AND m1/m3>=0.9 AND m2/m3>=0.1, 1, 0)
+          Label: !Sub "${ProjectName}-token-exchange-api-ErrorMetric-Wakeup"         
 
   # Dashboard
   MicroserviceDashboard:
