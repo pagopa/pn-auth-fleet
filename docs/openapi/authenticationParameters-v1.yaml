@@ -43,7 +43,7 @@ components:
       name: x-pagopa-cx-taxid
       in: header
       description: Customer taxId, used in B2B AppIO.
-      required: false
+      required: true
       schema:
         type: string
         minLength: 16
