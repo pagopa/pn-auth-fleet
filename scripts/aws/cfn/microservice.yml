@@ -525,7 +525,8 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - '*'
+              - "kms:Sign"
+              - "kms:DescribeKey"
             Resource: "*"
           - Sid: AllowLambdaToCreateLogs
             Action:
