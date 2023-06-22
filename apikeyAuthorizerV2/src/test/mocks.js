@@ -14,7 +14,8 @@ const mockIamPolicyOk = {
         "uid": "APIKEY-testApiKey",
         "cx_id": "cxId",
         "cx_groups": 'group1,group2',
-        "cx_type": "PA"
+        "cx_type": "PA",
+        "sourceChannelDetails":"NONINTEROP"
     },
     usageIdentifierKey: "testApiKey"
 }
@@ -50,7 +51,8 @@ const mockIamPolicyOkPdnd = {
         "uid": "client_id",
         "cx_id": "cxId",
         "cx_groups": 'group1,group2',
-        "cx_type": "PA"
+        "cx_type": "PA",
+        "sourceChannelDetails":"INTEROP"
     },
     usageIdentifierKey: "testApiKey"
 }
