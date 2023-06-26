@@ -56,6 +56,7 @@ module.exports.eventHandler = async (event, context) => {
         cx_id: apiKeyDynamo.cxId,
         cx_groups: apiKeyDynamo?.groups?.join(),
         cx_type: "PA",
+        sourceChannelDetails: "NONINTEROP",
       };
     } else {
       if (encodedToken) {
@@ -66,6 +67,7 @@ module.exports.eventHandler = async (event, context) => {
           cx_id: apiKeyDynamo.cxId,
           cx_groups: apiKeyDynamo?.groups?.join(),
           cx_type: "PA",
+          sourceChannelDetails: "INTEROP",
         };
       } else {
         throw new ValidationException(
