@@ -18,7 +18,12 @@ async function jwtValidator(jwtToken) {
     if (decodedToken) {
         const sensitiveFields = ['email', 'family_name', 'fiscal_number', 'name' ];
         const decodedTokenMaskedPayload = utils.copyAndMaskObject(decodedToken.payload, sensitiveFields);
-        console.debug('decoded_token', decodedToken.header, decodedTokenMaskedPayload, decodedToken.signature);
+        const decodedTokenMasked = {
+            header: decodedToken.header,
+            payload: decodedTokenMaskedPayload,
+            signature: decodedToken.signature
+        }
+        console.debug('decoded_token', decodedTokenMasked);
         const tokenPayload = decodedToken.payload
         const issuer = tokenPayload.iss
         const aud = tokenPayload.aud
@@ -129,3 +134,5 @@ function checkRoles(role) {
         return -1
     }
 }
+
+function 
