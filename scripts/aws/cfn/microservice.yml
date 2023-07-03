@@ -493,6 +493,7 @@ Resources:
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
           SSM_PARAMETER_STORE_TIMEOUT_MILLIS: 5000
       Role: !GetAtt TokenExchangeLambdaRole.Arn
+      Timeout: 10
       TracingConfig:
         Mode: Active
       Layers:
