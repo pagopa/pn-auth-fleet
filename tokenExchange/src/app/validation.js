@@ -134,5 +134,3 @@ function checkRoles(role) {
         return -1
     }
 }
-
-function 
