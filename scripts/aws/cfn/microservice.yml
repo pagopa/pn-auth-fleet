@@ -446,7 +446,9 @@ Resources:
               - Effect: Allow
                 Action: 
                   - "apigateway:GET"
-                Resource: !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
+                Resource: 
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/*"
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
         - PolicyName: "lambda-s3-read-permission"
           PolicyDocument:
             Version: 2012-10-17
