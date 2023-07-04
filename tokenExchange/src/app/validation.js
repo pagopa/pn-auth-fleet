@@ -16,7 +16,14 @@ async function jwtValidator(jwtToken) {
     const decodedToken = jsonwebtoken.decode(jwtToken, { complete: true });
     
     if (decodedToken) {
-        console.debug('decoded_token', decodedToken)
+        const sensitiveFields = ['email', 'family_name', 'fiscal_number', 'name' ];
+        const decodedTokenMaskedPayload = utils.copyAndMaskObject(decodedToken.payload, sensitiveFields);
+        const decodedTokenMasked = {
+            header: decodedToken.header,
+            payload: decodedTokenMaskedPayload,
+            signature: decodedToken.signature
+        }
+        console.debug('decoded_token', decodedTokenMasked);
         const tokenPayload = decodedToken.payload
         const issuer = tokenPayload.iss
         const aud = tokenPayload.aud
@@ -44,7 +51,7 @@ async function jwtValidator(jwtToken) {
                             throw new ValidationException(err.message)
                         }
                         console.debug("success!");
-                        console.debug('payload', tokenPayload)
+                        console.debug('payload', decodedTokenMaskedPayload)
                         return tokenPayload;
                     } else {
                         console.warn('TaxId=%s not allowed', aud)
