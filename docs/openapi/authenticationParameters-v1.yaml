@@ -7,6 +7,9 @@ components:
       required: true
       schema:
         type: string
+        # ASCII printable characters
+        pattern: ^[ -~]*$
+        maxLength: 64
     cxTypeAuthFleet:
       name: x-pagopa-pn-cx-type
       in: header
@@ -21,6 +24,9 @@ components:
       required: true
       schema:
         type: string
+        # ASCII printable characters
+        pattern: ^[ -~]*$
+        maxLength: 64
     cxGroupsAuthFleet:
       name: x-pagopa-pn-cx-groups
       in: header
@@ -30,6 +36,9 @@ components:
         type: array
         items:
           type: string
+          # ASCII printable characters
+          pattern: ^[ -~]*$
+          maxLength: 1024
     cxTaxIdAuthFleet:
       name: x-pagopa-cx-taxid
       in: header
@@ -40,6 +49,83 @@ components:
         minLength: 16
         maxLength: 16
         pattern: '^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{3}[A-Z]{1}'
+    cxRoleAuthFleet:
+      name: x-pagopa-pn-cx-role
+      in: header
+      description: User role
+      required: true
+      schema:
+        type: string
+        # ASCII printable characters
+        pattern: ^[ -~]*$
+        maxLength: 64
+    
+    ############################################################################################
+    ###                     HEADER DI AUTENTICAZIONE LOLLIPOP                               ###
+    ############################################################################################
+    lollipopOriginalUrl:
+      name: x-pagopa-lollipop-original-url
+      in: header
+      description: lollipop expected lc original url
+      required: false
+      schema:
+        type: string
+    lollipopOriginalMethod:
+      name: x-pagopa-lollipop-original-method
+      in: header
+      description: lollipop expected lc original method
+      required: false
+      schema:
+        type: string
+    lollipopPublicKey:
+      name: x-pagopa-lollipop-public-key
+      in: header
+      description: lollipop public key
+      required: false
+      schema:
+        type: string
+    lollipopAssertionRef:
+      name: x-pagopa-lollipop-assertion-ref
+      in: header
+      description: lollipop assertion reference
+      required: false
+      schema:
+        type: string
+    lollipopAssertionType:
+      name: x-pagopa-lollipop-assertion-type
+      in: header
+      description: lollipop assertion type (SAML)
+      required: false
+      schema:
+        type: string
+    lollipopAuthJwt:
+      name: x-pagopa-lollipop-auth-jwt
+      in: header
+      description: lollipop authentication jwt
+      required: false
+      schema:
+        type: string
+    lollipopUserId:
+      name: x-pagopa-lollipop-user-id
+      in: header
+      description: lollipop user id
+      required: false
+      schema:
+        type: string
+    lollipopSignatureInput:
+      name: signature-input
+      in: header
+      description: lollipop signature input
+      required: false
+      schema:
+        type: string
+    lollipopSignature:
+      name: signature
+      in: header
+      description: lollipop signature
+      required: false
+      schema:
+        type: string
   schemas:
     CxTypeAuthFleet:
       type: string

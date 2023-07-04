@@ -85,8 +85,8 @@ parse_params "$@"
 dump_params
 
 
-iss="https://webapi.${env_type}.pn.pagopa.it"
-aud="webapi.${env_type}.pn.pagopa.it"
+iss="https://webapi.${env_type}.notifichedigitali.it"
+aud="webapi.${env_type}.notifichedigitali.it"
 
 
 echo ""

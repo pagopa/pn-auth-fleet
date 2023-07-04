@@ -29,10 +29,12 @@ module.exports = {
                 console.log('decodedToken', decodedToken);
                 let contextAttrs = {};
                 contextAttrs.uid = decodedToken.uid;
-                contextAttrs.cx_id = decodedToken.organization? decodedToken.organization.id : ('PF-' + decodedToken.uid);
-                contextAttrs.cx_type = decodedToken.organization? 'PA' : 'PF';
+                contextAttrs.cx_type = getUserType(decodedToken);
+                let prefix = (contextAttrs.cx_type == 'PA' ? '' : contextAttrs.cx_type + '-')
+                contextAttrs.cx_id = prefix + (decodedToken.organization ? decodedToken.organization.id : decodedToken.uid )
+
                 contextAttrs.cx_groups = decodedToken.organization?.groups?.join();
-                contextAttrs.cx_role = decodedToken.organization?.role;
+                contextAttrs.cx_role = decodedToken.organization?.role.replace(/pg-/, "");
                 contextAttrs.cx_jti = decodedToken.jti;
                 console.log('contextAttrs ', contextAttrs);
                 
@@ -41,12 +43,28 @@ module.exports = {
                 console.log('IAM Policy', JSON.stringify(iamPolicy));
                 return iamPolicy;
             } catch(err) {
-                console.error('Error generating IAM policy ',err);
+                if(err.name=='ValidationException'){
+                    console.warn('Error generating IAM policy ',err);
+                } else {
+                    console.error('Error generating IAM policy ',err);
+                }
                 return defaultDenyAllPolicy;
             }
         } else {
-            console.error('EncodedToken is null')
+            console.warn('EncodedToken is null')
             return defaultDenyAllPolicy;
         } 
+    }
+}
+
+function getUserType(token) {
+    if (!token.organization) {
+        return 'PF';
+    }
+    if (token.organization && token.organization.role?.startsWith('pg-')) {
+        return 'PG';
+    }
+    if (token.organization) {
+        return 'PA';
     }
 }

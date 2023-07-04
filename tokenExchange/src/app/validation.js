@@ -1,6 +1,7 @@
 const jsonwebtoken = require('jsonwebtoken');
 const publicKeyGetter = require('./publicKeyGetter.js')
 const ValidationException = require('./exception/validationException.js');
+const utils = require('./utils');
 
 module.exports = {
     async validation (authorizationToken) {
@@ -21,7 +22,8 @@ async function jwtValidator(jwtToken) {
         const aud = tokenPayload.aud
         const alg = decodedToken.header.alg
         const organization = tokenPayload.organization
-        const role = tokenPayload.organization?.roles[0]?.role
+        const role = tokenPayload.organization?.roles[0]?.role.replace(/pg-/, "")
+        const fiscalNumber = tokenPayload.fiscal_number;
 
         if( alg !== 'RS256' ) {
             console.error( 'Invalid algorithm=%s', alg )
@@ -30,33 +32,39 @@ async function jwtValidator(jwtToken) {
         if (checkAudience(aud) !== -1) {
             if (checkIssuer(issuer) !== -1) {
                 if (organization === undefined || checkRoles(role) !== -1) {
-                    const kid = decodedToken.header.kid;
-                    console.debug('kid from header', kid)
-                    try {
-                        const keyInPemFormat = await publicKeyGetter.getPublicKey(issuer, kid);
-                        jsonwebtoken.verify(jwtToken, keyInPemFormat)
-                    } catch (err) {
-                        console.error('Validation error ', err)
-                        throw new ValidationException(err.message)
+                    // check if fiscal code is in white list
+                    if (await checkTaxIdCode(fiscalNumber) !== -1) {
+                        const kid = decodedToken.header.kid;
+                        console.debug('kid from header', kid)
+                        try {
+                            const keyInPemFormat = await publicKeyGetter.getPublicKey(issuer, kid);
+                            jsonwebtoken.verify(jwtToken, keyInPemFormat)
+                        } catch (err) {
+                            console.warn('Validation error ', err)
+                            throw new ValidationException(err.message)
+                        }
+                        console.debug("success!");
+                        console.debug('payload', tokenPayload)
+                        return tokenPayload;
+                    } else {
+                        console.warn('TaxId=%s not allowed', aud)
+                        throw new ValidationException('TaxId not allowed')
                     }
-                    console.debug("success!");
-                    console.debug('payload', tokenPayload)
-                    return tokenPayload;
                 } else {
-                    console.error('Role=%s not allowed', aud)
+                    console.warn('Role=%s not allowed', aud)
                     throw new ValidationException('Role not allowed')
                 }
             } else {
-                console.error('Issuer=%s not known', issuer)
+                console.warn('Issuer=%s not known', issuer)
                 throw new ValidationException('Issuer not known')
             }
         } else {
-            console.error('Audience=%s not known', aud)
+            console.warn('Audience=%s not known', aud)
             throw new ValidationException('Invalid Audience')
         }
     }
     else {
-        console.error('decoded token is null, token is not valid')
+        console.warn('decoded token is null, token is not valid')
         throw new ValidationException('Token is not valid')
     }
 }
@@ -82,6 +90,32 @@ function checkAudience(aud) {
         return -1;
     }
 }
+
+async function checkTaxIdCode(taxIdCode) {
+    //verifica taxIdCode nel decoded token fa parte dei tax id permessi
+    if (process.env.ALLOWED_TAXIDS_PARAMETER) {
+        try {
+            const allowedTaxIdsFromStore = await utils.getParameterFromStore(
+                process.env.ALLOWED_TAXIDS_PARAMETER
+            );
+            if (allowedTaxIdsFromStore.length === 0) {
+                return 0;
+            }
+            const allowedTaxIds = allowedTaxIdsFromStore.split(",");
+            if (allowedTaxIds.indexOf(`!${taxIdCode}`) > -1) {
+                return -1;
+            }
+            if (allowedTaxIds.includes("*")) {
+                return 0;
+            }
+            return allowedTaxIds.indexOf(taxIdCode);
+        } catch (e) {
+            console.log(e);
+            return -1;
+        }
+    }
+    return 0;
+  }
 
 function checkRoles(role) {
     const allowedRoles = ['admin', 'operator'];

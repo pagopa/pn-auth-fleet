@@ -1,16 +1,10 @@
 {
   "Parameters" : {
-    "ApiKeyAuthorizerLambdaEnvironmentPaTagName": "cx_id",
-    "ApiKeyAuthorizerLambdaEnvironmentGroupsTagName": "cx_groups",
     "JwtAuthorizerLambdaEnvironmentCacheTtl": "120",
-
+    "HelpdeskAuthorizerLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentTokenTtl": "3200",
-    "TokenExchangeLambdaEnvironmentIssuer":"https://webapi.svil.pn.pagopa.it",
-    "TokenExchangeLambdaEnvironmentAllowedIssuer":"https://hub-login.ecs.svil.pn.pagopa.it,https://hub-login.spid.svil.pn.pagopa.it,https://uat.selfcare.pagopa.it ",
-    "TokenExchangeLambdaEnvironmentAllowedOrigin":"https://portale-pa.svil.pn.pagopa.it,https://portale.svil.pn.pagopa.it",
-    "TokenExchangeLambdaEnvironmentJwksMapping": "{ }",
-    "TokenExchangeLambdaEnvironmentAcceptedAudience":"portale-pa.svil.pn.pagopa.it,portale.svil.pn.pagopa.it",
-    "TokenExchangeLambdaEnvironmentAudience":"webapi.svil.pn.pagopa.it"
+    "TokenExchangeLatencyLimit": "2000",
+    "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it"
   }
 }
