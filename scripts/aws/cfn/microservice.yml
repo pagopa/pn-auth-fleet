@@ -153,6 +153,10 @@ Parameters:
   TokenExchangeLambdaName:
     Type: String
 
+  TokenExchangeWafLimit:
+    Type: Number
+    Default: '600000'
+
 Conditions:
   HaveToDefineVpcs: !Equals [ 'true', !Ref PutIntoVpc ]
   SendLogToKinesis: !Not [ !Equals [ !Ref LogsKinesisSourceStreamArn, '' ] ]
@@ -717,6 +721,16 @@ Resources:
       LogGroupName: !Ref TokenExchangeApiLogGroup
       FilterPattern: !Ref CloudwatchFilterPattern
       DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  TokenExchangeApiWaf:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
+      Parameters:
+        WAFName: !Sub '${ProjectName}-token-exchange-web'
+        IntendedUsage: WEB
+        APIGatewayARNs: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}'
+        Limit: !Ref TokenExchangeWafLimit
 
   ### IAM Role used by Subscription filters to allow read logs from Cloudwatch and send logs to Kinesis Firehose
   SubscriptionFilterServiceRole:
