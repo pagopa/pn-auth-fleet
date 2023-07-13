@@ -1,6 +1,6 @@
 const jsonwebtoken = require('jsonwebtoken');
 const retrieverPdndJwks = require('./retrieverPdndJwks.js');
-const { ValidationException } = require('./exceptions.js');
+const { ValidationException,AudienceValidationException } = require('./exceptions.js');
 const jwkToPem = require('jwk-to-pem');
 
 let cachedPublicKeyMap = new Map();
@@ -28,7 +28,7 @@ async function jwtValidator(jwtToken) {
      try{
         jsonwebtoken.verify(jwtToken, publicKey, {issuer: process.env.PDND_ISSUER, audience: process.env.PDND_AUDIENCE})
      }catch(err){
-        throw new ValidationException(err.message)
+        throw new AudienceValidationException(err.message)
      }
      console.debug('token payload', token.payload)
      console.log("success!");

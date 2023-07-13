@@ -5,6 +5,13 @@ class ValidationException extends Error{
     }
 }
 
+class AudienceValidationException extends Error{
+    constructor(message) {
+        super(message);
+        this.name = "AudienceValidationException";
+    }
+}
+
 class KeyStatusException extends Error{
     constructor(message) {
         super(message);
