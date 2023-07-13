@@ -11,6 +11,7 @@ const expect = chai.expect;
 const validator = rewire("../app/validation");
 const retrieverPdndJwks = require("../app/retrieverPdndJwks");
 const ValidationException = require("../app/exceptions");
+const AudienceValidationException = require("../app/exceptions");
 
 const decodedToken = {
     aud: "https://api.dev.pn.pagopa.it",
@@ -63,6 +64,14 @@ describe("test validation", () => {
         "eyJhbGciOiJSUzI1NiIsInR5cCI6ImF0K2p3dCIsInVzZSI6InNpZyIsImtpZCI6IjMyZDhhMzIxLTE1NjgtNDRmNS05NTU4LWE5MDcyZjUxOWQyZCJ9.eyJhdWQiOiJodHRwczovL2FwaS5kZXYucG4ucGFnb3BhLml0Iiwic3ViIjoiYmQ1ZWNiNzgtZTFkNC00MzIyLTkyMWMtNmZlMGVhYTQyN2Q1IiwibmJmIjoxNjgxMjE1MDYwLCJwdXJwb3NlSWQiOiIyMDk5OWEwZi1lYzQwLTQxYzctOWZkZC05ZDNhZDA3OWFkODEiLCJpc3MiOiJpbnZhbGlkIiwiZXhwIjoxNjgxMjE4NjYwLCJpYXQiOjE2ODEyMTUwNjAsImNsaWVudF9pZCI6ImJkNWVjYjc4LWUxZDQtNDMyMi05MjFjLTZmZTBlYWE0MjdkNSIsImp0aSI6IjY1MWIyMDVjLWU3NmUtNDRkMy1iMDI4LTQ1YTk5YWU0NmUxNyJ9.dNJ5-4gn03Yo4RdMEqAF7kgZMWgskwpdiWxTLomHA-ce0ReTuhon-3bgbJf-SYqShu99YPBempfzj-zXwOL4YkQOKe4Y45Y7EtzEsoFXJJu9O_jyJhKbNjZet-bpkICI9SzGTDUr5r8ww_tVlmo8XR-VrYSZEa67gi7i6zB2zIJyU1PYvnmSCFG9fr1EZU3GjnaMpaCR1uz678sn2OJQFxNz8oomnwy9UpJ6N67Glomi1FvBIABpEXqO2EHVjSYMw1DbbW6WDFY8pFl_XLpcXy5hMC3Q82l_-cLlmToWxlNdHtm_ooIF0mJDg-UOTgVJjnZbf29XXBrkYKAbBI5aKw"
       )
     ).to.be.rejectedWith(ValidationException, "Invalid token Issuer");
+  });
+
+  it("test the token validation - Invalid token audience", async () => {
+    await expect(
+      validator.validation(
+        "eyJhbGciOiAiUlMyNTYiLCJ0eXAiOiAiYXQrand0IiwgInVzZSI6ICJzaWciLCJraWQiOiAiYWFmZDRmOWUtNGFiYy00OTA4LTg3MzEtYmY0ZWE4YjZlMDhhIn0.eyJpYXQiOiAxNjg5MjYwNDU1LCJleHAiOiAxNzIwODgyODU1LCAidWlkIjogImJkNWVjYjc4LWUxZDQtNDMyMi05MjFjLTZmZTBlYWE0MjdkNSIsImlzcyI6ICJ1YXQuaW50ZXJvcC5wYWdvcGEuaXQiLCJhdWQiOiAiaHR0cHM6Ly9hdWRpZW5jZS5pbnZhbGlkby5pdCJ9.b-TWVlAZB9r8dQGUgjSrU5G0pBDmkrdD9lK6TWz-ndRkHSQVd_kgKqkLWpScARAjXTniuwvcutloqQsSZPQnZXkTQLRlsEcSy318gY3WcUEG6qeQlomFLL8CorFhbvErgeV8uB882jENL_m6S-erQZ7i8JFp7Dxpnb_omNk3T7eBhFhbPUrYB0W-sdU3EG7CqYRldKqyKpZiF-W6N76gd6XTscjr4UM3PpvPDnb0R0Ky_49pFhYIDvi6HNJOSibjVhCGOXUROGggAAIZVMw7AzyvCEHkOJDRV0lmDicopvS4Or7KhDDMIi1f7j616zzt2KDX4u2Me9I7efJmEC0YXA"
+      )
+    ).to.be.rejectedWith(AudienceValidationException, "Invalid token Audience");
   });
 
   it("test the token validation", async () => {
