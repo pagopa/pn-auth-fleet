@@ -34,4 +34,4 @@ class TooManyItemsFoundException extends Error{
 }
 
 
-module.exports = {ValidationException, KeyStatusException, ItemNotFoundException, TooManyItemsFoundException};
+module.exports = {ValidationException, KeyStatusException, ItemNotFoundException, TooManyItemsFoundException, AudienceValidationException};
