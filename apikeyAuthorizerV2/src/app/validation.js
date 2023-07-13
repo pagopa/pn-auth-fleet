@@ -1,6 +1,6 @@
 const jsonwebtoken = require('jsonwebtoken');
 const retrieverPdndJwks = require('./retrieverPdndJwks.js');
-const { ValidationException } = require('./exceptions.js');
+const { ValidationException,AudienceValidationException } = require('./exceptions.js');
 const jwkToPem = require('jwk-to-pem');
 
 let cachedPublicKeyMap = new Map();
@@ -25,6 +25,7 @@ async function jwtValidator(jwtToken) {
      let issuer = token.payload.iss
      validateTokenIssuer(issuer)
      let publicKey = await getDecodedPublicKey(issuer, keyId)
+     validateTokenAudience(token.payload.aud);
      try{
         jsonwebtoken.verify(jwtToken, publicKey, {issuer: process.env.PDND_ISSUER, audience: process.env.PDND_AUDIENCE})
      }catch(err){
@@ -91,5 +92,13 @@ function validateTokenIssuer(issuer){
     if(issuer != process.env.PDND_ISSUER){
         console.warn('Validation error: Invalid token Issuer')
         throw new ValidationException('Invalid token Issuer') 
+    }
+}
+
+function validateTokenAudience(aud){
+    console.log('Validating audience: '+aud);
+    if (aud != process.env.PDND_AUDIENCE){
+        console.warn('Validation error: Invalid token Audience');
+        throw new AudienceValidationException('Invalid token Audience');
     }
 }

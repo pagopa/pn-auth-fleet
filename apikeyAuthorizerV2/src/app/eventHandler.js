@@ -1,5 +1,5 @@
 const dynamo = require("./dynamoFunctions.js");
-const { KeyStatusException, ValidationException } = require("./exceptions.js");
+const { KeyStatusException, ValidationException, AudienceValidationException } = require("./exceptions.js");
 const iam = require("./iamPolicyGenerator.js");
 const utils = require("./utils");
 const validator = require("./validation.js");
@@ -92,7 +92,7 @@ function checkStatus(status) {
 }
 
 function handleError(error) {
-  if (error instanceof KeyStatusException) {
+  if (error instanceof KeyStatusException || error instanceof AudienceValidationException) {
     console.warn("Error generating IAM policy with error ", error);
   } else {
     console.error("Error generating IAM policy with error ", error);

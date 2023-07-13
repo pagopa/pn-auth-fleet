@@ -5,6 +5,13 @@ class ValidationException extends Error{
     }
 }
 
+class AudienceValidationException extends Error{
+    constructor(message) {
+        super(message);
+        this.name = "AudienceValidationException";
+    }
+}
+
 class KeyStatusException extends Error{
     constructor(message) {
         super(message);
@@ -27,4 +34,4 @@ class TooManyItemsFoundException extends Error{
 }
 
 
-module.exports = {ValidationException, KeyStatusException, ItemNotFoundException, TooManyItemsFoundException};
+module.exports = {ValidationException, KeyStatusException, ItemNotFoundException, TooManyItemsFoundException, AudienceValidationException};
