@@ -102,7 +102,7 @@ function handleError(error) {
     error instanceof ValidationException ||
     error instanceof ItemNotFoundException
   ) {
-    console.info("Error generating IAM policy with error ", error);
+    console.warn("Error generating IAM policy with error ", error);
   } else {
     console.error("Error generating IAM policy with error ", error);
   }

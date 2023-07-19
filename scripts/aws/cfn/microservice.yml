@@ -87,6 +87,7 @@ Parameters:
   
   ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl:
     Type: String
+    Default: 300
     Description: Cryptography keys cache entry duration in seconds
 
   ApplicationLoadBalancerDomain:

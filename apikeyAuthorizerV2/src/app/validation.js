@@ -83,14 +83,14 @@ function findKey(jwks, keyId) {
 function validateTokenHeader(tokenHeader) {
   let tokenType = tokenHeader.typ;
   if (tokenType != "at+jwt") {
-    console.info("Validation error: Invalid token Type");
+    console.warn("Validation error: Invalid token Type");
     throw new ValidationException("Invalid token Type");
   }
 }
 
 function validateTokenIssuer(issuer) {
   if (issuer != process.env.PDND_ISSUER) {
-    console.info("Validation error: Invalid token Issuer");
+    console.warn("Validation error: Invalid token Issuer");
     throw new ValidationException("Invalid token Issuer");
   }
 }
@@ -98,7 +98,7 @@ function validateTokenIssuer(issuer) {
 function validateTokenAudience(aud) {
   console.log("Validating audience: " + aud);
   if (aud != process.env.PDND_AUDIENCE) {
-    console.info("Validation error: Invalid token Audience");
+    console.warn("Validation error: Invalid token Audience");
     throw new AudienceValidationException("Invalid token Audience");
   }
 }
