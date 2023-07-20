@@ -53,7 +53,7 @@ async function jwtValidator(jwtToken) {
               );
               jsonwebtoken.verify(jwtToken, keyInPemFormat);
             } catch (err) {
-              console.error("Validation error ", err);
+              console.warn("Validation error ", err);
               throw new ValidationException(err.message);
             }
             console.debug("success!");
