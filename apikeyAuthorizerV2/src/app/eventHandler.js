@@ -3,6 +3,7 @@ const {
   KeyStatusException,
   ValidationException,
   AudienceValidationException,
+  ItemNotFoundException,
 } = require("./exceptions.js");
 const iam = require("./iamPolicyGenerator.js");
 const utils = require("./utils");
