@@ -11,6 +11,7 @@
     "TokenExchangeLambdaEnvironmentAcceptedAudience":"portale-pa-main.fe.dev.pn.pagopa.it,portale-pf-main.fe.dev.pn.pagopa.it",
     "TokenExchangeLambdaEnvironmentAudience":"webapi.uat.pn.pagopa.it",
     "ApikeyAuthorizerV2PDNDAudience":"https://api.uat.pn.pagopa.it",
-    "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it"  
+    "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it",
+    "ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl": "300"
   }
 }

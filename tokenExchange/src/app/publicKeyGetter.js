@@ -1,50 +1,45 @@
-const jwkToPem = require('jwk-to-pem');
-const retrieverJwks = require('./retrieverJwks.js')
-let cachedKeyPemMap = new Map();
-const KEY_SEPARATOR='&'
+const jwkToPem = require("jwk-to-pem");
+const retrieverJwks = require("./retrieverJwks.js");
+const jwksCache = require("./jwksCache.js");
+const ValidationException = require("./exception/validationException.js");
 
 module.exports = {
-    async getPublicKey ( issuer, kid ){
-        let keyInPemFormat = searchInCache( issuer, kid )
-        if ( keyInPemFormat ) {
-            console.info( 'Using cached key pem' )
-        } else {
-            const jwks = await retrieverJwks.getJwks(issuer);
-            let jwKey = findKey(jwks, kid);
-            console.info('get jwkey: ', jwKey);
-            keyInPemFormat = jwkToPem(jwKey);
-            console.info('get key in pem format ok ');
-            setCachedData(issuer, kid, keyInPemFormat )
-        } 
-        return keyInPemFormat;
+  async getPublicKey(issuer, kid) {
+    let publicKey;
+    if (jwksCache.isCacheActive()) {
+      publicKey = await findPublicKeyUsingCache(kid, issuer);
+    } else {
+      publicKey = await findPublicKeyWithoutCache(kid, issuer);
     }
+    return publicKey;
+  },
+};
+
+async function findPublicKeyUsingCache(keyId, issuer) {
+  console.log("Using cache");
+  let cachedJwks = await jwksCache.get(issuer);
+  return getKeyFromJwks(cachedJwks, keyId);
 }
 
-
-
-function findKey(jwks, kid) {
-    console.debug(jwks);
-    for (let key of jwks.keys) {
-        if (key.kid === kid) {
-            console.debug('Found key', key.kid);
-            return key;
-        }
-    }
+async function findPublicKeyWithoutCache(keyId, issuer) {
+  console.debug("Retrieving public key without cache");
+  let jwks = await retrieverJwks.getJwks(issuer);
+  return getKeyFromJwks(jwks, keyId);
 }
 
-function searchInCache( issuer, kid ) {
-    let result = cachedKeyPemMap.get( issuer+KEY_SEPARATOR+kid )
-    console.debug( 'Value in cache ', result )
-    if ( result && result.expiresOn > Date.now() ) {
-        return result.value;
-    }else {
-        return null
-    }
+function getKeyFromJwks(jwks, keyId) {
+  let publicKey = findKey(jwks, keyId);
+  let keyInPemFormat = jwkToPem(publicKey);
+  return keyInPemFormat;
 }
 
-const setCachedData = (issuer, kid, val) => {
-    console.info( 'Set cached key pem' )
-    var key = issuer+KEY_SEPARATOR+kid;
-    cachedKeyPemMap.set(key, { expiresOn: Date.now() + process.env.CACHE_TTL * 1000, value: val });
-    console.debug( 'cachedKeyPemMap', cachedKeyPemMap )
+function findKey(jwks, keyId) {
+  for (let key of jwks.keys) {
+    if (key.kid === keyId) {
+      console.debug("Found key", key.kid);
+      return key;
+    }
+  }
+
+  throw ValidationException("Public key not found");
 }
