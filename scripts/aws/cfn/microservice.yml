@@ -178,6 +178,7 @@ Resources:
       FunctionName: !Ref ApiKeyAuthorizerV2LambdaName
       Runtime: nodejs14.x
       Handler: 'index.handler'
+      Timeout: 6
       Code:
         S3Bucket: !Ref LambdasBucketName
         S3Key: !Sub '${BucketBasePath}/apikeyAuthorizerV2.zip'
