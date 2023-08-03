@@ -84,6 +84,11 @@ Parameters:
   ApikeyAuthorizerV2PDNDIssuer:
     Type: String
     Description: Pdnd Issuer for ApikeyAuthorizerV2
+  
+  ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl:
+    Type: String
+    Default: 300
+    Description: Cryptography keys cache entry duration in seconds
 
   ApplicationLoadBalancerDomain:
     Type: String
@@ -153,6 +158,10 @@ Parameters:
   TokenExchangeLambdaName:
     Type: String
 
+  TokenExchangeWafLimit:
+    Type: Number
+    Default: '600000'
+
 Conditions:
   HaveToDefineVpcs: !Equals [ 'true', !Ref PutIntoVpc ]
   SendLogToKinesis: !Not [ !Equals [ !Ref LogsKinesisSourceStreamArn, '' ] ]
@@ -174,6 +183,7 @@ Resources:
         S3Key: !Sub '${BucketBasePath}/apikeyAuthorizerV2.zip'
       Environment:
         Variables:
+          CACHE_TTL: !Ref ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl
           PDND_ISSUER: !Ref ApikeyAuthorizerV2PDNDIssuer
           PDND_AUDIENCE: !Ref ApikeyAuthorizerV2PDNDAudience
       Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
@@ -446,7 +456,9 @@ Resources:
               - Effect: Allow
                 Action: 
                   - "apigateway:GET"
-                Resource: !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
+                Resource: 
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/*"
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
         - PolicyName: "lambda-s3-read-permission"
           PolicyDocument:
             Version: 2012-10-17
@@ -491,6 +503,7 @@ Resources:
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
           SSM_PARAMETER_STORE_TIMEOUT_MILLIS: 5000
       Role: !GetAtt TokenExchangeLambdaRole.Arn
+      Timeout: 10
       TracingConfig:
         Mode: Active
       Layers:
@@ -714,6 +727,16 @@ Resources:
       LogGroupName: !Ref TokenExchangeApiLogGroup
       FilterPattern: !Ref CloudwatchFilterPattern
       DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  TokenExchangeApiWaf:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
+      Parameters:
+        WAFName: !Sub '${ProjectName}-token-exchange-web'
+        IntendedUsage: WEB
+        APIGatewayARNs: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}'
+        Limit: !Ref TokenExchangeWafLimit
 
   ### IAM Role used by Subscription filters to allow read logs from Cloudwatch and send logs to Kinesis Firehose
   SubscriptionFilterServiceRole:

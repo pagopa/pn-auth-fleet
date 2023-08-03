@@ -1,11 +1,40 @@
 const axios = require('axios');
 
 module.exports = {
+  copyAndMaskObject,
   checkOrigin,
   enrichDecodedToken,
   getUserType,
   makeLower,
   getParameterFromStore
+}
+
+function copyAndMaskObject(originalObject, sensitiveFields) {
+  // Copia l'oggetto originale
+  const copiedObject = Object.assign({}, originalObject);
+
+  // Maschera i campi sensibili
+  sensitiveFields.forEach(field => {
+    if (copiedObject.hasOwnProperty(field)) {
+      copiedObject[field] = maskString(copiedObject[field]);
+    }
+  });
+
+  return copiedObject;
+}
+
+
+function maskString(stringToMask) {
+	if(stringToMask.length < 6)
+		return "".padStart(stringToMask.length,"*")
+	
+	let firstTwoChars = stringToMask.substring(0, 2);
+	let lastTwoChars = stringToMask.substring(stringToMask.length - 2, stringToMask.length);
+
+  let hiddenStringLength = stringToMask.length - 4;
+	let hiddenString = "".padStart(hiddenStringLength,"*");
+
+	return firstTwoChars + hiddenString + lastTwoChars;
 }
 
 function checkOrigin(origin) {

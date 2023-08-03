@@ -27,7 +27,32 @@ const paToken = {
   }
 }
 
+const objectToMask = {
+  email: 'mario.rossi@fakemail.it',
+  family_name: 'Rossi',
+  fiscal_number: 'FRMTTR76M06B715E',
+  name: 'Mario',
+  notToMask: 'notToMask'
+}
+
+const maskedObject = {
+  email: 'ma*******************it',
+  family_name: '*****',
+  fiscal_number: 'FR************5E',
+  name: '*****',
+  notToMask: 'notToMask'
+}
+
 describe('utils tests', () => {
+  it("checks mask object", () => {
+    const sensitiveFields = ['email', 'family_name', 'fiscal_number', 'name']
+    const result = utils.copyAndMaskObject(objectToMask, sensitiveFields)
+    expect(result.email).to.eq(maskedObject.email)
+    expect(result.family_name).to.eq(maskedObject.family_name)
+    expect(result.name).to.eq(maskedObject.name)
+    expect(result.notToMask).to.eq(maskedObject.notToMask)
+  })
+
   it("checks allowed origin", () => {
     const result = utils.checkOrigin('https://portale-pa-develop.fe.dev.pn.pagopa.it')
 
