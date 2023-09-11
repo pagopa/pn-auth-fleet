@@ -974,6 +974,7 @@ Resources:
             - !GetAtt ApiKeyAuthorizerV2Lambda.Arn          
             - !GetAtt JwtAuthorizerLambda.Arn          
             - !GetAtt TokenExchangeLambda.Arn                      
+            - !GetAtt ServicedeskAuthorizerLambda.Arn                      
         RestApiStageArns: !Join
           - ','
           - - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
@@ -986,6 +987,7 @@ Resources:
             - !GetAtt IoAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwtAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt BackofficeAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt ServicedeskAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
         LogGroupsNames: !Join
@@ -994,4 +996,5 @@ Resources:
             - !Sub '/aws/lambda/${IoAuthorizerLambdaName}'
             - !Sub '/aws/lambda/${JwtAuthorizerLambdaName}'
             - !Sub '/aws/lambda/${BackofficeAuthorizerLambdaName}'
+            - !Sub '/aws/lambda/${ServicedeskAuthorizerLambdaName}'
             - !Sub '/aws/lambda/${TokenExchangeLambdaName}'
