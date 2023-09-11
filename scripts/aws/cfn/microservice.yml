@@ -38,9 +38,6 @@ Parameters:
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
-  ServicedeskAuthorizerLambdaEnvironmentCacheTtl:
-    Type: String
-    Description: Cryptography keys cache entry duration in seconds
   BackofficeAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Default: "120"
@@ -416,9 +413,6 @@ Resources:
       Code: 
         S3Bucket: !Ref LambdasBucketName
         S3Key: !Sub '${BucketBasePath}/servicedeskAuthorizer.zip'
-      Environment:
-        Variables:
-          CACHE_TTL: !Ref ServicedeskAuthorizerLambdaEnvironmentCacheTtl
       Role: !GetAtt ServicedeskAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
