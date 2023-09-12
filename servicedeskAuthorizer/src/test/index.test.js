@@ -45,9 +45,8 @@ describe( "Success", function () {
             console.debug('statement ', statement);
             expect(statement[0].Action).to.equal('execute-api:Invoke');
             expect(statement[0].Effect).to.equal('Allow');
-            expect(result.context.cx_id).to.equal('SD-123e4567-e89b-12d3-a456-426655440000')
-            expect(result.context.cx_type).to.equal('PF')
-            expect(result.context.uid).to.equal('123e4567-e89b-12d3-a456-426655440000')
+            expect(result.context.cx_type).to.equal('SD')
+            expect(result.context.uid).to.equal('SD-123e4567-e89b-12d3-a456-426655440000')
             done();
         }).catch(done);
     });
