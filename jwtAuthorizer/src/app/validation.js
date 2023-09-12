@@ -1,5 +1,7 @@
-const AWS = require("aws-sdk");
-const kms = new AWS.KMS();
+const {
+    KMS
+} = require("@aws-sdk/client-kms");
+const kms = new KMS();
 const jsonwebtoken = require('jsonwebtoken');
 const ValidationException = require('./exception/validationException.js');
 let cachedPublicKeyMap = new Map();
@@ -55,7 +57,7 @@ async function retrievePublicKey(keyId) {
     console.debug( 'Retrieving public key from KMS' )
     let res = kms.getPublicKey({
         KeyId: keyId
-    }).promise()
+    })
     return res;
 }
 

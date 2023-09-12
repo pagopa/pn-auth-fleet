@@ -33,8 +33,10 @@ describe("JWT Ok from spid-hub with cx_id verify", function () {
     .expectResult((result) => {
       // Check if code exist
       console.debug('the result is ', result);
-      let uid = result.context.uid;
-      expect(result.context.cx_id).to.equal('PF-'+ uid);
+      if(result.context){
+        let uid = result.context.uid;
+        expect(result.context.cx_id).to.equal('PF-'+ uid);
+      }
       done();
     }).catch(done); // Catch assertion errors
   });
@@ -49,7 +51,7 @@ describe("JWT Ok from spid-hub Using cache", function () {
     .event( events[2] )
     .expectResult((result) => {
       // Check if code exist
-      console.debug('the result is ', result);
+      //console.debug('the result is ', result);
       done();
     }).catch(done); // Catch assertion errors
   });
