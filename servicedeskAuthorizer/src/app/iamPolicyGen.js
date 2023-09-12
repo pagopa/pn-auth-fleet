@@ -38,9 +38,8 @@ function generatePolicy(principalId, uid, policyStatement) {
             Statement: [policyStatement]
         },
         context: { 
-            "cx_id": 'SD-'+uid,
-            "cx_type": "PF",
-            "uid": uid
+            "cx_type": "SD",
+            "uid": 'SD-' + uid
         }
     };
 }
