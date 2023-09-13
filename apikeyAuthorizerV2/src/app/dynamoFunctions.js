@@ -2,12 +2,11 @@ const {
   ItemNotFoundException,
   TooManyItemsFoundException,
 } = require("./exceptions.js");
-const AWSXRay = require("aws-xray-sdk-core");
-const AWS = AWSXRay.captureAWS(require("aws-sdk"));
 const utils = require("./utils");
+const { ddbDocClient } = require("./ddbClient.js");
+const { GetCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
 
 module.exports.getApiKeyByIndex = async (virtualKey) => {
-  const docClient = new AWS.DynamoDB.DocumentClient();
   const TableName = "pn-apiKey";
 
   const params = {
@@ -22,7 +21,8 @@ module.exports.getApiKeyByIndex = async (virtualKey) => {
     },
   };
 
-  const apiKeyItems = await docClient.query(params).promise();
+  const command = new QueryCommand(params);
+  const apiKeyItems = await ddbDocClient.send(command);
 
   if (!apiKeyItems.Items || apiKeyItems.Items.length === 0) {
     throw new ItemNotFoundException(utils.anonymizeKey(virtualKey), TableName);
@@ -55,18 +55,16 @@ module.exports.getPaAggregateById = async (aggregateId) => {
 };
 
 const getItemById = async (TableName, keyName, keyValue) => {
-  const docClient = new AWS.DynamoDB.DocumentClient();
+  const command = new GetCommand({
+    TableName,
+    Key: {
+      [keyName]: keyValue,
+    },
+  });
 
-  const dynamoItem = await docClient
-    .get({
-      TableName,
-      Key: {
-        [keyName]: keyValue,
-      },
-    })
-    .promise();
+  const dynamoItem = await ddbDocClient.send(command);
 
-  if (!dynamoItem.Item) {
+  if (!dynamoItem || !dynamoItem.Item) {
     throw new ItemNotFoundException(keyValue, TableName);
   }
 
