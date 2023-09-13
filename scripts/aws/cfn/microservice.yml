@@ -395,7 +395,7 @@ Resources:
       Parameters:
         FunctionName: !Ref JwtAuthorizerLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
-
+  
   ###             BACKOFFICE AUTHORIZER LAMBDA            ###
   #########################################################
   
