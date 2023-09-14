@@ -25,7 +25,10 @@ const defaultDenyAllPolicy = {
 
 module.exports.eventHandler = async (event, context) => {
   try {
-    const virtualKey = getInsensitiveCaseHeader(event.headers, "x-api-key");
+    const virtualKey = utils.findAttributeValueInObjectWithInsensitiveCase(
+      event.headers,
+      "x-api-key"
+    );
 
     const apiKeyDynamo = await dynamo.getApiKeyByIndex(virtualKey);
 
@@ -49,10 +52,12 @@ module.exports.eventHandler = async (event, context) => {
     );
 
     let contextAuth;
-    const encodedToken = getInsensitiveCaseHeader(
-      event.headers,
-      "Authorization"
-    )?.replace("Bearer ", "");
+    const encodedToken = utils
+      .findAttributeValueInObjectWithInsensitiveCase(
+        event.headers,
+        "Authorization"
+      )
+      ?.replace("Bearer ", "");
     if (apiKeyDynamo.pdnd === false) {
       if (encodedToken) {
         throw new ValidationException(
@@ -94,13 +99,6 @@ module.exports.eventHandler = async (event, context) => {
     return handleError(error);
   }
 };
-
-function getInsensitiveCaseHeader(headers, target) {
-  let foundHeaderName = Object.keys(headers).filter(
-    (headerName) => headerName.toLowerCase() === target.toLowerCase()
-  );
-  return foundHeaderName !== undefined ? headers[foundHeaderName] : undefined;
-}
 
 function checkStatus(status) {
   return status === "ENABLED" || status === "ROTATED";
