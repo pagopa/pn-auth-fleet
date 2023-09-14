@@ -4,7 +4,10 @@ const {
 } = require("./exceptions.js");
 const utils = require("./utils");
 const { ddbDocClient } = require("./ddbClient.js");
-const { GetCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
+const {
+  GetCommand,
+  QueryCommand,
+} = require("@aws-sdk/lib-dynamodb"); /* refers to: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html#dynamodb-example-document-client-query */
 
 module.exports.getApiKeyByIndex = async (virtualKey) => {
   const TableName = "pn-apiKey";

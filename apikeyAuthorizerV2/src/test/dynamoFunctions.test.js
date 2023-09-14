@@ -10,7 +10,9 @@ const {
   GetCommand,
   QueryCommand,
 } = require("@aws-sdk/lib-dynamodb");
-const { mockClient } = require("aws-sdk-client-mock");
+const {
+  mockClient,
+} = require("aws-sdk-client-mock"); /* refers to: https://aws.amazon.com/it/blogs/developer/mocking-modular-aws-sdk-for-javascript-v3-in-unit-tests/ */
 
 const dynamoItemVirtualApiKey = {
   id: "testId",
