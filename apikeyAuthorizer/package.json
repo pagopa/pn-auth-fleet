@@ -24,6 +24,9 @@
     "sonarqube-scanner": "^2.8.2"
   },
   "dependencies": {
+    "@aws-sdk/client-api-gateway": "^3.410.0",
+    "aws-sdk-client-mock": "^3.0.0",
+    "aws-xray-sdk": "^3.5.1",
     "aws-xray-sdk-core": "^3.3.6",
     "sinon": "^14.0.0"
   }

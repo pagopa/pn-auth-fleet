@@ -5,7 +5,7 @@ const AWSXRay = require("aws-xray-sdk"); /* refers to: https://docs.aws.amazon.c
 
 const ddbClient = AWSXRay.captureAWSv3Client(
   new DynamoDBClient({
-    region: process.env.REGION || "eu-central-1",
+    region: process.env.REGION ?? "eu-central-1",
   })
 );
 
