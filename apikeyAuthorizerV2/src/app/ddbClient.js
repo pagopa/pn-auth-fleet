@@ -1,10 +1,13 @@
 // Create a service client module using ES6 syntax.
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+const AWSXRay = require("aws-xray-sdk");
 
-const ddbClient = new DynamoDBClient({
-  region: process.env.REGION || "eu-central-1",
-});
+const ddbClient = AWSXRay.captureAWSv3Client(
+  new DynamoDBClient({
+    region: process.env.REGION || "eu-central-1",
+  })
+);
 
 const marshallOptions = {
   // Whether to automatically convert empty strings, blobs, and sets to `null`.
