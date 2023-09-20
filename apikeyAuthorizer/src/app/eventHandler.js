@@ -1,5 +1,5 @@
-const iamPolicyGenerator = require("./iamPolicyGen.js");
-const keyTagsGetter = require("./keyTagsGetter.js");
+import iamPolicyGenerator from "./iamPolicyGen.js";
+import keyTagsGetter from "./keyTagsGetter.js";
 const PA_TAG_NAME = process.env.PA_TAG_NAME;
 const GROUPS_TAG_NAME = process.env.GROUPS_TAG_NAME;
 
@@ -17,39 +17,39 @@ const defaultDenyAllPolicy = {
   },
 };
 
-module.exports = {
-  async handleEvent(event) {
-    // Declare Policy
-    let iamPolicy = null;
+async function handleEvent(event) {
+  // Declare Policy
+  let iamPolicy = null;
 
-    // Capture apiKey from event
-    const apiKeyId = event?.requestContext?.identity?.apiKeyId;
-    if (apiKeyId) {
-      console.info("ApiKeyId", apiKeyId);
-      try {
-        let response = await keyTagsGetter.getKeyTags(apiKeyId);
-        console.log("Get key tags response", response);
-        // Retrieve token scopes
-        const paId = response.tags[PA_TAG_NAME];
-        console.log("ApiKey paId Tags", paId);
-        const groups = response.tags[GROUPS_TAG_NAME];
-        console.log("ApiKey groups Tags", groups);
-        // Generate IAM Policy
-        iamPolicy = await iamPolicyGenerator.generateIAMPolicy(
-          event.methodArn,
-          paId,
-          apiKeyId,
-          groups
-        );
-        console.log("IAM Policy", JSON.stringify(iamPolicy));
-        return iamPolicy;
-      } catch (err) {
-        console.error("Error generating IAM policy with error ", err);
-        return defaultDenyAllPolicy;
-      }
-    } else {
-      console.error("ApiKeyID is null");
+  // Capture apiKey from event
+  const apiKeyId = event?.requestContext?.identity?.apiKeyId;
+  if (apiKeyId) {
+    console.info("ApiKeyId", apiKeyId);
+    try {
+      let response = await keyTagsGetter(apiKeyId);
+      console.log("Get key tags response", response);
+      // Retrieve token scopes
+      const paId = response.tags[PA_TAG_NAME];
+      console.log("ApiKey paId Tags", paId);
+      const groups = response.tags[GROUPS_TAG_NAME];
+      console.log("ApiKey groups Tags", groups);
+      // Generate IAM Policy
+      iamPolicy = await iamPolicyGenerator(
+        event.methodArn,
+        paId,
+        apiKeyId,
+        groups
+      );
+      console.log("IAM Policy", JSON.stringify(iamPolicy));
+      return iamPolicy;
+    } catch (err) {
+      console.error("Error generating IAM policy with error ", err);
       return defaultDenyAllPolicy;
     }
-  },
-};
+  } else {
+    console.error("ApiKeyID is null");
+    return defaultDenyAllPolicy;
+  }
+}
+
+export default handleEvent;

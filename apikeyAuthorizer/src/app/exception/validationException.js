@@ -1,6 +1,6 @@
-module.exports =  class ValidationException extends Error {
-    constructor(message) {
-      super(message);
-      this.name = 'ValidationException'
-    }
+export default class ValidationException extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ValidationException";
+  }
 }

@@ -1,16 +1,14 @@
-const ValidationException = require("./exception/validationException.js");
+import ValidationException from "./exception/validationException.js";
 
-module.exports = {
-  async generateIAMPolicy(resourceArn, paId, apiKeyId, groups) {
-    let policyStatement = generatePolicyStatement(resourceArn, "Allow");
-    if (policyStatement) {
-      console.debug("Policy statement generated", policyStatement);
-      return generatePolicy("user", paId, apiKeyId, groups, policyStatement);
-    } else {
-      throw new ValidationException("Unable to generate policy statement");
-    }
-  },
-};
+async function generateIAMPolicy(resourceArn, paId, apiKeyId, groups) {
+  let policyStatement = generatePolicyStatement(resourceArn, "Allow");
+  if (policyStatement) {
+    console.debug("Policy statement generated", policyStatement);
+    return generatePolicy("user", paId, apiKeyId, groups, policyStatement);
+  } else {
+    throw new ValidationException("Unable to generate policy statement");
+  }
+}
 
 function generatePolicyStatement(resourceArn, action) {
   let resources = resourceArn.split("/");
@@ -48,3 +46,5 @@ function generatePolicy(principalId, paId, apiKeyId, groups, policyStatement) {
     },
   };
 }
+
+export default generateIAMPolicy;

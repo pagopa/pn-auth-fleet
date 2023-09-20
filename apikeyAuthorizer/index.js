@@ -1,6 +1,6 @@
-const workflowHandler = require('./src/app/eventHandler.js')
+import workflowHandler from "./src/app/eventHandler.js";
 
-exports.handler = async (event) => {
-    console.info("New event received ", event);
-    return workflowHandler.handleEvent(event);
+export const lambdaHandler = async (event) => {
+  console.info("New event received ", event);
+  return workflowHandler(event);
 };
