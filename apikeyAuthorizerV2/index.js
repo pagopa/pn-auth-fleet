@@ -1,7 +1,9 @@
-const workflowHandler = require('./src/app/eventHandler.js');
-const utils = require("./src/app/utils.js");
+import { eventHandler } from "./src/app/eventHandler.js";
+import { logEvent } from "./src/app/utils.js";
 
-exports.handler = async (event) => {
-    utils.logEvent(event);
-    return workflowHandler.eventHandler(event);
+const handler = async (event) => {
+  logEvent(event);
+  return eventHandler(event);
 };
+
+export { handler };

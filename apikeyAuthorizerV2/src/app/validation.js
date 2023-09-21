@@ -1,25 +1,23 @@
-const jsonwebtoken = require("jsonwebtoken");
-const retrieverPdndJwks = require("./retrieverPdndJwks.js");
-const {
-  ValidationException,
+import jsonwebtoken from "jsonwebtoken";
+import jwkToPem from "jwk-to-pem";
+import {
   AudienceValidationException,
-} = require("./exceptions.js");
-const jwkToPem = require("jwk-to-pem");
-const jwksCache = require("./jwksCache.js");
+  ValidationException,
+} from "./exceptions.js";
+import { get, isCacheActive } from "./jwksCache.js";
+import { getJwks } from "./retrieverPdndJwks.js";
 
-module.exports = {
-  async validation(jwtToken) {
-    if (jwtToken) {
-      let decodedToken = await jwtValidator(jwtToken);
-      console.info("token is valid");
-      return decodedToken;
-    } else {
-      throw new ValidationException("token is not valid");
-    }
-  },
+const validation = async (jwtToken) => {
+  if (jwtToken) {
+    let decodedToken = await jwtValidator(jwtToken);
+    console.info("token is valid");
+    return decodedToken;
+  } else {
+    throw new ValidationException("token is not valid");
+  }
 };
 
-async function jwtValidator(jwtToken) {
+const jwtValidator = async (jwtToken) => {
   const token = jsonwebtoken.decode(jwtToken, { complete: true });
   let keyId = token.header.kid;
   let tokenHeader = token.header;
@@ -39,11 +37,11 @@ async function jwtValidator(jwtToken) {
   console.debug("token payload", token.payload);
   console.log("success!");
   return token.payload;
-}
+};
 
 async function getDecodedPublicKey(keyId) {
   let publicKey;
-  if (jwksCache.isCacheActive()) {
+  if (isCacheActive()) {
     publicKey = await findPublicKeyUsingCache(keyId);
   } else {
     publicKey = await findPublicKeyWithoutCache(keyId);
@@ -53,13 +51,13 @@ async function getDecodedPublicKey(keyId) {
 
 async function findPublicKeyUsingCache(keyId) {
   console.log("Using cache");
-  let cachedJwks = await jwksCache.get();
+  let cachedJwks = await get();
   return getKeyFromJwks(cachedJwks, keyId);
 }
 
 async function findPublicKeyWithoutCache(keyId) {
   console.debug("Retrieving public key from PDND");
-  let jwks = await retrieverPdndJwks.getJwks(process.env.PDND_ISSUER);
+  let jwks = await getJwks(process.env.PDND_ISSUER);
   return getKeyFromJwks(jwks, keyId);
 }
 
@@ -102,3 +100,5 @@ function validateTokenAudience(aud) {
     throw new AudienceValidationException("Invalid token Audience");
   }
 }
+
+export { validation };

@@ -1,7 +1,7 @@
 // Create a service client module using ES6 syntax.
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
-const AWSXRay = require("aws-xray-sdk"); /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import AWSXRay from "aws-xray-sdk"; /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
 
 const ddbClient = AWSXRay.captureAWSv3Client(
   new DynamoDBClient({
@@ -24,7 +24,7 @@ const unmarshallOptions = {
 };
 
 // Create the DynamoDB document client.
-exports.ddbDocClient = DynamoDBDocumentClient.from(ddbClient, {
+export default DynamoDBDocumentClient.from(ddbClient, {
   marshallOptions,
   unmarshallOptions,
 });

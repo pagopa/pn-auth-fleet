@@ -1,13 +1,17 @@
-const dynamo = require("./dynamoFunctions.js");
-const {
-  KeyStatusException,
-  ValidationException,
+import {
+  getApiKeyByIndex,
+  getPaAggregateById,
+  getPaAggregationById,
+} from "./dynamoFunctions.js";
+import {
   AudienceValidationException,
   ItemNotFoundException,
-} = require("./exceptions.js");
-const iam = require("./iamPolicyGenerator.js");
-const utils = require("./utils");
-const validator = require("./validation.js");
+  KeyStatusException,
+  ValidationException,
+} from "./exceptions.js";
+import { generateIAMPolicy } from "./iamPolicyGenerator.js";
+import { anonymizeKey, logIamPolicy } from "./utils.js";
+import { validation } from "./validation.js";
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -23,11 +27,12 @@ const defaultDenyAllPolicy = {
   },
 };
 
-module.exports.eventHandler = async (event, context) => {
+const eventHandler = async (event, context) => {
+  console.warn(event);
   try {
     const virtualKey = event.headers["x-api-key"];
 
-    const apiKeyDynamo = await dynamo.getApiKeyByIndex(virtualKey);
+    const apiKeyDynamo = await getApiKeyByIndex(virtualKey);
 
     if (!checkStatus(apiKeyDynamo.status)) {
       throw new KeyStatusException(
@@ -35,17 +40,15 @@ module.exports.eventHandler = async (event, context) => {
       );
     }
 
-    const paAggregationDynamo = await dynamo.getPaAggregationById(
-      apiKeyDynamo.cxId
-    );
+    const paAggregationDynamo = await getPaAggregationById(apiKeyDynamo.cxId);
     console.log("Aggregate ID found -> ", paAggregationDynamo.aggregateId);
 
-    const aggregateDynamo = await dynamo.getPaAggregateById(
+    const aggregateDynamo = await getPaAggregateById(
       paAggregationDynamo.aggregateId
     );
     console.log(
       "AWS ApiKey Found -> ",
-      utils.anonymizeKey(aggregateDynamo.AWSApiKey)
+      anonymizeKey(aggregateDynamo.AWSApiKey)
     );
 
     let contextAuth;
@@ -66,7 +69,7 @@ module.exports.eventHandler = async (event, context) => {
     } else {
       if (encodedToken) {
         console.log("encodedToken", encodedToken);
-        let decodedToken = await validator.validation(encodedToken);
+        let decodedToken = await validation(encodedToken);
         contextAuth = {
           uid: "PDND-" + decodedToken.client_id,
           cx_id: apiKeyDynamo.cxId,
@@ -80,12 +83,12 @@ module.exports.eventHandler = async (event, context) => {
         );
       }
     }
-    const iamPolicy = iam.generateIAMPolicy(
+    const iamPolicy = generateIAMPolicy(
       event.methodArn,
       contextAuth,
       aggregateDynamo.AWSApiKey
     );
-    utils.logIamPolicy(iamPolicy);
+    logIamPolicy(iamPolicy);
     return iamPolicy;
   } catch (error) {
     return handleError(error);
@@ -109,3 +112,5 @@ function handleError(error) {
   }
   return defaultDenyAllPolicy;
 }
+
+export { eventHandler };
