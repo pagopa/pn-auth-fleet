@@ -1,19 +1,18 @@
-const { KMS, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
+import { GetPublicKeyCommand, KMS } from "@aws-sdk/client-kms";
+import jsonwebtoken from "jsonwebtoken";
+import { ValidationException } from "./exception/validationException.js";
+
 const kms = new KMS();
-const jsonwebtoken = require("jsonwebtoken");
-const ValidationException = require("./exception/validationException.js");
 let cachedPublicKeyMap = new Map();
 
-module.exports = {
-  async validation(jwtToken) {
-    if (jwtToken) {
-      let decodedToken = await jwtValidator(jwtToken);
-      console.info("token is valid");
-      return decodedToken;
-    } else {
-      throw new ValidationException("token is not valid");
-    }
-  },
+const validation = async (jwtToken) => {
+  if (jwtToken) {
+    let decodedToken = await jwtValidator(jwtToken);
+    console.info("token is valid");
+    return decodedToken;
+  } else {
+    throw new ValidationException("token is not valid");
+  }
 };
 
 async function jwtValidator(jwtToken) {
@@ -70,3 +69,5 @@ function searchInCache(keyId) {
     return null;
   }
 }
+
+export { validation };
