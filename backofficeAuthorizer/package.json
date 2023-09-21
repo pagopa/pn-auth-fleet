@@ -3,10 +3,22 @@
   "version": "1.0.0",
   "description": "lambda utilizzata per autorizzare i client tramite lo userpool cognito di Helpdesk",
   "main": "index.js",
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  },
   "scripts": {
     "test-build": "npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
     "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
-    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config",
+    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config -r @babel/register",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
   },
@@ -16,6 +28,9 @@
     "@aws-sdk/client-api-gateway": "^3.252.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.252.0",
     "@aws-sdk/client-s3": "^3.252.0",
+    "@babel/core": "^7.22.20",
+    "@babel/node": "^7.22.19",
+    "@babel/preset-env": "^7.22.20",
     "aws-sdk": "^2.1356.0",
     "aws-sdk-client-mock": "^2.0.1",
     "aws-sdk-mock": "^5.6.2",
