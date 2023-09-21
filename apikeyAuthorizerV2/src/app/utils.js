@@ -47,4 +47,16 @@ const anonymizeUid = (uid) => {
   return prefix + anonymizeKey(apikeyToHide);
 };
 
-export { anonymizeKey, logEvent, logIamPolicy };
+const findAttributeValueInObjectWithInsensitiveCase = (object, target) => {
+  let foundKeys = Object.keys(object).filter(
+    (key) => key.toLowerCase() === target.toLowerCase()
+  );
+  return foundKeys.length !== 0 ? object[foundKeys[0]] : undefined;
+};
+
+export {
+  anonymizeKey,
+  findAttributeValueInObjectWithInsensitiveCase,
+  logEvent,
+  logIamPolicy,
+};
