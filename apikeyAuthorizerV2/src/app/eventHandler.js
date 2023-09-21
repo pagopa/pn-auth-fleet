@@ -10,7 +10,11 @@ import {
   ValidationException,
 } from "./exceptions.js";
 import { generateIAMPolicy } from "./iamPolicyGenerator.js";
-import { anonymizeKey, logIamPolicy } from "./utils.js";
+import {
+  anonymizeKey,
+  findAttributeValueInObjectWithInsensitiveCase,
+  logIamPolicy,
+} from "./utils.js";
 import { validation } from "./validation.js";
 
 const defaultDenyAllPolicy = {
@@ -30,7 +34,10 @@ const defaultDenyAllPolicy = {
 const eventHandler = async (event, context) => {
   console.warn(event);
   try {
-    const virtualKey = event.headers["x-api-key"];
+    const virtualKey = findAttributeValueInOvbjectWithInsensitiveCase(
+      event.headers,
+      "x-api-key"
+    );
 
     const apiKeyDynamo = await getApiKeyByIndex(virtualKey);
 
@@ -52,7 +59,10 @@ const eventHandler = async (event, context) => {
     );
 
     let contextAuth;
-    const encodedToken = event?.headers?.Authorization?.replace("Bearer ", "");
+    const encodedToken = findAttributeValueInObjectWithInsensitiveCase(
+      event.headers,
+      "Authorization"
+    )?.replace("Bearer ", "");
     if (apiKeyDynamo.pdnd === false) {
       if (encodedToken) {
         throw new ValidationException(
