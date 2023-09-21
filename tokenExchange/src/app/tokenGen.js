@@ -1,19 +1,18 @@
-const AWSXRay = require("aws-xray-sdk-core");
-const { KMS, DescribeKeyCommand, SignCommand } = require("@aws-sdk/client-kms");
-const kms = AWSXRay.captureAWSv3Client(new KMS());
-const base64url = require("base64url");
+import { DescribeKeyCommand, KMS, SignCommand } from "@aws-sdk/client-kms";
+import AWSXRay from "aws-xray-sdk-core";
+import base64url from "base64url";
 
-module.exports = {
-  async generateToken(decodedToken) {
-    const keyAlias = process.env.KEY_ALIAS;
-    let keyId = await getKeyId(keyAlias);
-    console.debug("keyId from alias", keyId);
-    let token_components = getTokenComponent(decodedToken, keyId);
-    console.debug("token_components", token_components);
-    let res = await sign(token_components, keyId);
-    console.debug(`JWT token: [${res}]`);
-    return res;
-  },
+const kms = AWSXRay.captureAWSv3Client(new KMS());
+
+const generateToken = async (decodedToken) => {
+  const keyAlias = process.env.KEY_ALIAS;
+  let keyId = await getKeyId(keyAlias);
+  console.debug("keyId from alias", keyId);
+  let token_components = getTokenComponent(decodedToken, keyId);
+  console.debug("token_components", token_components);
+  let res = await sign(token_components, keyId);
+  console.debug(`JWT token: [${res}]`);
+  return res;
 };
 
 async function getKeyId(keyAlias) {
@@ -88,3 +87,5 @@ async function sign(tokenParts, keyId) {
   console.debug("token ", token);
   return token;
 }
+
+export { generateToken };

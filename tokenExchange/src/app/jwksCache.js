@@ -1,4 +1,4 @@
-const retrieverJwks = require("./retrieverJwks.js");
+import { getJwks } from "./retrieverJwks.js";
 
 /* 
   Map structure : { 
@@ -11,16 +11,15 @@ let cachedJwks = new Map();
 const TWO_HOURS_IN_MILLISECONDS = 7200000;
 const TTL = process.env.CACHE_TTL ? Number(process.env.CACHE_TTL) : 300;
 
-module.exports = {
-  async get(issuer) {
-    if (isCacheEmpty(issuer) || isCacheExpired(issuer)) {
-      await refreshCache(issuer);
-    }
-    return cachedJwks.get(issuer);
-  },
-  isCacheActive() {
-    return TTL != 0;
-  },
+const get = async (issuer) => {
+  if (isCacheEmpty(issuer) || isCacheExpired(issuer)) {
+    await refreshCache(issuer);
+  }
+  return cachedJwks.get(issuer);
+};
+
+const isCacheActive = () => {
+  return TTL != 0;
 };
 
 function isCacheEmpty(issuer) {
@@ -35,7 +34,7 @@ function isCacheExpired(issuer) {
 async function refreshCache(issuer) {
   console.debug(`Starting refresh cache for issuer : ${issuer}`);
   try {
-    const jwks = await retrieverJwks.getJwks(issuer);
+    const jwks = await getJwks(issuer);
     setCachedData(jwks, issuer);
   } catch (error) {
     handleCacheRefreshFail(error, issuer);
@@ -77,3 +76,5 @@ function checkLastUpdateTresholdExceeded(issuer) {
   const treshold = jwks.lastUpdate + TWO_HOURS_IN_MILLISECONDS;
   return jwks.lastUpdate > treshold;
 }
+
+export { get, isCacheActive };

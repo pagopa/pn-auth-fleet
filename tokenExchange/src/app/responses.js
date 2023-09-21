@@ -1,35 +1,30 @@
-const ValidationException = require("./exception/validationException");
-
-module.exports = {
-  generateOkResponse,
-  generateKoResponse
-}
+import { ValidationException } from "./exception/validationException";
 
 function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {
   // Clone decodedToken information and add sessionToken to them
-  const responseBody = { ...decodedToken, sessionToken }
+  const responseBody = { ...decodedToken, sessionToken };
 
   return {
     statusCode: 200,
     headers: {
-      'Access-Control-Allow-Origin': allowedOrigin
+      "Access-Control-Allow-Origin": allowedOrigin,
     },
     body: JSON.stringify(responseBody),
-    isBase64Encoded: false
+    isBase64Encoded: false,
   };
 }
 
 function generateKoResponse(err, allowedOrigin) {
-  console.debug('GenerateKoResponse this err', err);
+  console.debug("GenerateKoResponse this err", err);
 
   let statusCode;
   let responseBody = {};
   const traceId = process.env._X_AMZN_TRACE_ID;
 
   if (err instanceof ValidationException) {
-    if (err.message === 'Role not allowed') {
+    if (err.message === "Role not allowed") {
       statusCode = 403;
-    } else if (err.message === 'TaxId not allowed') {
+    } else if (err.message === "TaxId not allowed") {
       statusCode = 451;
     } else {
       statusCode = 400;
@@ -46,9 +41,10 @@ function generateKoResponse(err, allowedOrigin) {
   return {
     statusCode: statusCode,
     headers: {
-      'Access-Control-Allow-Origin': allowedOrigin
+      "Access-Control-Allow-Origin": allowedOrigin,
     },
     body: JSON.stringify(responseBody),
-    isBase64Encoded: false
+    isBase64Encoded: false,
   };
 }
+export { generateKoResponse, generateOkResponse };

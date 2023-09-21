@@ -1,29 +1,27 @@
-const jwkToPem = require("jwk-to-pem");
-const retrieverJwks = require("./retrieverJwks.js");
-const jwksCache = require("./jwksCache.js");
-const ValidationException = require("./exception/validationException.js");
+import jwkToPem from "jwk-to-pem";
+import { ValidationException } from "./exception/validationException.js";
+import { get, isCacheActive } from "./jwksCache.js";
+import { getJwks } from "./retrieverJwks.js";
 
-module.exports = {
-  async getPublicKey(issuer, kid) {
-    let publicKey;
-    if (jwksCache.isCacheActive()) {
-      publicKey = await findPublicKeyUsingCache(kid, issuer);
-    } else {
-      publicKey = await findPublicKeyWithoutCache(kid, issuer);
-    }
-    return publicKey;
-  },
+const getPublicKey = async (issuer, kid) => {
+  let publicKey;
+  if (isCacheActive()) {
+    publicKey = await findPublicKeyUsingCache(kid, issuer);
+  } else {
+    publicKey = await findPublicKeyWithoutCache(kid, issuer);
+  }
+  return publicKey;
 };
 
 async function findPublicKeyUsingCache(keyId, issuer) {
   console.log("Using cache");
-  let cachedJwks = await jwksCache.get(issuer);
+  let cachedJwks = await get(issuer);
   return getKeyFromJwks(cachedJwks, keyId);
 }
 
 async function findPublicKeyWithoutCache(keyId, issuer) {
   console.debug("Retrieving public key without cache");
-  let jwks = await retrieverJwks.getJwks(issuer);
+  let jwks = await getJwks(issuer);
   return getKeyFromJwks(jwks, keyId);
 }
 
@@ -43,3 +41,5 @@ function findKey(jwks, keyId) {
 
   throw ValidationException("Public key not found");
 }
+
+export { getPublicKey };

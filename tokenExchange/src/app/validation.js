@@ -1,14 +1,12 @@
-const jsonwebtoken = require("jsonwebtoken");
-const publicKeyGetter = require("./publicKeyGetter.js");
-const ValidationException = require("./exception/validationException.js");
-const utils = require("./utils");
+import jsonwebtoken from "jsonwebtoken";
+import { ValidationException } from "./exception/validationException.js";
+import { getPublicKey } from "./publicKeyGetter.js";
+import { copyAndMaskObject, getParameterFromStore } from "./utils";
 
-module.exports = {
-  async validation(authorizationToken) {
-    const decodedTokenPayload = await jwtValidator(authorizationToken);
-    console.info("token is valid");
-    return decodedTokenPayload;
-  },
+const validation = async (authorizationToken) => {
+  const decodedTokenPayload = await jwtValidator(authorizationToken);
+  console.info("token is valid");
+  return decodedTokenPayload;
 };
 
 async function jwtValidator(jwtToken) {
@@ -17,7 +15,7 @@ async function jwtValidator(jwtToken) {
 
   if (decodedToken) {
     const sensitiveFields = ["email", "family_name", "fiscal_number", "name"];
-    const decodedTokenMaskedPayload = utils.copyAndMaskObject(
+    const decodedTokenMaskedPayload = copyAndMaskObject(
       decodedToken.payload,
       sensitiveFields
     );
@@ -47,10 +45,7 @@ async function jwtValidator(jwtToken) {
             const kid = decodedToken.header.kid;
             console.debug("kid from header", kid);
             try {
-              const keyInPemFormat = await publicKeyGetter.getPublicKey(
-                issuer,
-                kid
-              );
+              const keyInPemFormat = await getPublicKey(issuer, kid);
               jsonwebtoken.verify(jwtToken, keyInPemFormat);
             } catch (err) {
               console.warn("Validation error ", err);
@@ -113,7 +108,7 @@ async function checkTaxIdCode(taxIdCode) {
   //verifica taxIdCode nel decoded token fa parte dei tax id permessi
   if (process.env.ALLOWED_TAXIDS_PARAMETER) {
     try {
-      const allowedTaxIdsFromStore = await utils.getParameterFromStore(
+      const allowedTaxIdsFromStore = await getParameterFromStore(
         process.env.ALLOWED_TAXIDS_PARAMETER
       );
       if (allowedTaxIdsFromStore.length === 0) {
@@ -145,3 +140,5 @@ function checkRoles(role) {
     return -1;
   }
 }
+
+export { validation };
