@@ -1,8 +1,15 @@
-import { APIGatewayClient, GetTagsCommand } from "@aws-sdk/client-api-gateway";
-import { mockClient } from "aws-sdk-client-mock";
-import chai from "chai";
-import lambdaTester from "lambda-tester";
-import { lambdaHandler } from "../../index.js";
+const expect = require("chai").expect;
+const lambdaTester = require("lambda-tester");
+const proxyquire = require("proxyquire");
+const generateIAMPolicy = require("../app/iamPolicyGen");
+const getKeyTags = require("../app/keyTagsGetter");
+const {
+  APIGatewayClient,
+  GetTagsCommand,
+} = require("@aws-sdk/client-api-gateway");
+const { mockClient } = require("aws-sdk-client-mock");
+
+const apiGatewayClientMock = mockClient(APIGatewayClient);
 
 const awsMockResult = {
   tags: {
@@ -11,10 +18,16 @@ const awsMockResult = {
   },
 };
 
-describe("Success", function () {
-  const expect = chai.expect;
-  const apiGatewayClientMock = mockClient(APIGatewayClient);
+const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
+  "../app/iamPolicyGen.js": generateIAMPolicy,
+  "../app/keyTagsGetter.js": getKeyTags,
+});
 
+const lambda = proxyquire.noCallThru().load("../../index.js", {
+  "./src/app/eventHandler.js": eventHandler,
+});
+
+describe("Success", function () {
   beforeEach(() => {
     apiGatewayClientMock.reset();
   });
@@ -32,7 +45,7 @@ describe("Success", function () {
 
   it("with IAM Policy", function (done) {
     apiGatewayClientMock.on(GetTagsCommand).resolves(awsMockResult);
-    lambdaTester(lambdaHandler)
+    lambdaTester(lambda.lambdaHandler)
       .event(event)
       .expectResult((result) => {
         console.debug("the result is ", result);
@@ -53,7 +66,7 @@ describe("Success", function () {
     apiGatewayClientMock.on(GetTagsCommand).resolves(awsMockResult);
     // changing into bad method arn
     event.methodArn = "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/";
-    lambdaTester(lambdaHandler)
+    lambdaTester(lambda.lambdaHandler)
       .event(event)
       .expectResult((result) => {
         console.debug("the result is ", result);

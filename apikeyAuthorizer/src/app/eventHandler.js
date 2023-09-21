@@ -1,5 +1,5 @@
-import iamPolicyGenerator from "./iamPolicyGen.js";
-import keyTagsGetter from "./keyTagsGetter.js";
+import { generateIAMPolicy } from "./iamPolicyGen.js";
+import { getKeyTags } from "./keyTagsGetter.js";
 const PA_TAG_NAME = process.env.PA_TAG_NAME;
 const GROUPS_TAG_NAME = process.env.GROUPS_TAG_NAME;
 
@@ -26,7 +26,7 @@ async function handleEvent(event) {
   if (apiKeyId) {
     console.info("ApiKeyId", apiKeyId);
     try {
-      let response = await keyTagsGetter(apiKeyId);
+      let response = await getKeyTags(apiKeyId);
       console.log("Get key tags response", response);
       // Retrieve token scopes
       const paId = response.tags[PA_TAG_NAME];
@@ -34,7 +34,7 @@ async function handleEvent(event) {
       const groups = response.tags[GROUPS_TAG_NAME];
       console.log("ApiKey groups Tags", groups);
       // Generate IAM Policy
-      iamPolicy = await iamPolicyGenerator(
+      iamPolicy = await generateIAMPolicy(
         event.methodArn,
         paId,
         apiKeyId,
@@ -52,4 +52,4 @@ async function handleEvent(event) {
   }
 }
 
-export default handleEvent;
+export { handleEvent };

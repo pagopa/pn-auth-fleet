@@ -47,4 +47,4 @@ function generatePolicy(principalId, paId, apiKeyId, groups, policyStatement) {
   };
 }
 
-export default generateIAMPolicy;
+export { generateIAMPolicy };

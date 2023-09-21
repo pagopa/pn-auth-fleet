@@ -22,4 +22,4 @@ async function getKeyTags(apiKeyId) {
   }
 }
 
-export default getKeyTags;
+export { getKeyTags };
