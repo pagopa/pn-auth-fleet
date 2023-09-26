@@ -25,10 +25,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.22.20",
-    "@babel/node": "^7.22.19",
-    "@babel/preset-env": "^7.22.20",
-    "aws-sdk-mock": "^5.6.2",
+    "aws-sdk-client-mock": "^3.0.0",
     "axios-mock-adapter": "^1.20.0",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
@@ -42,6 +39,9 @@
     "sonarqube-scanner": "^2.8.2"
   },
   "dependencies": {
+    "@babel/core": "^7.22.20",
+    "@babel/node": "^7.22.19",
+    "@babel/preset-env": "^7.22.20",
     "@aws-sdk/client-dynamodb": "^3.410.0",
     "@aws-sdk/lib-dynamodb": "^3.410.0",
     "aws-xray-sdk": "^3.5.1",
