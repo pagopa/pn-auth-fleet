@@ -162,6 +162,14 @@ Parameters:
     Type: Number
     Default: '600000'
 
+  EnhancedWebSecurityEnabled:
+    Type: String
+    Default: false
+    Description: Enable additional WAF Web rules
+    AllowedValues:
+      - true
+      - false
+
 Conditions:
   HaveToDefineVpcs: !Equals [ 'true', !Ref PutIntoVpc ]
   SendLogToKinesis: !Not [ !Equals [ !Ref LogsKinesisSourceStreamArn, '' ] ]
@@ -739,6 +747,7 @@ Resources:
         IntendedUsage: WEB
         APIGatewayARNs: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}'
         Limit: !Ref TokenExchangeWafLimit
+        EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
 
   ### IAM Role used by Subscription filters to allow read logs from Cloudwatch and send logs to Kinesis Firehose
   SubscriptionFilterServiceRole:
