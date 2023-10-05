@@ -7,7 +7,7 @@ import { getJwks } from "./retrieverJwks.js";
     ...
   } 
 */
-let cachedJwks = new Map();
+const cachedJwks = new Map();
 const TWO_HOURS_IN_MILLISECONDS = 7200000;
 const TTL = process.env.CACHE_TTL ? Number(process.env.CACHE_TTL) : 300;
 
@@ -27,7 +27,7 @@ function isCacheEmpty(issuer) {
 }
 
 function isCacheExpired(issuer) {
-  let jwks = cachedJwks.get(issuer);
+  const jwks = cachedJwks.get(issuer);
   return jwks.expiresOn < Date.now();
 }
 
@@ -72,7 +72,7 @@ function handleCacheRefreshFail(error, issuer) {
 }
 
 function checkLastUpdateTresholdExceeded(issuer) {
-  let jwks = cachedJwks.get(issuer);
+  const jwks = cachedJwks.get(issuer);
   const treshold = jwks.lastUpdate + TWO_HOURS_IN_MILLISECONDS;
   return jwks.lastUpdate > treshold;
 }

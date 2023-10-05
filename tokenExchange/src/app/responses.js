@@ -18,7 +18,7 @@ function generateKoResponse(err, allowedOrigin) {
   console.debug("GenerateKoResponse this err", err);
 
   let statusCode;
-  let responseBody = {};
+  const responseBody = {};
   const traceId = process.env._X_AMZN_TRACE_ID;
 
   if (err instanceof ValidationException) {

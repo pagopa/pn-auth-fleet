@@ -7,7 +7,7 @@ AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
 
 const getJwks = async (issuer) => {
-  let jwksendpoint = "https://" + issuer + "/.well-known/jwks.json";
+  const jwksendpoint = "https://" + issuer + "/.well-known/jwks.json";
   console.info("jwksendpoint is ", jwksendpoint);
   try {
     const response = await axios.get(jwksendpoint, { timeout: 2000 });

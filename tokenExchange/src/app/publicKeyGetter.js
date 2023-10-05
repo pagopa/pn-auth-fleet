@@ -15,19 +15,19 @@ const getPublicKey = async (issuer, kid) => {
 
 async function findPublicKeyUsingCache(keyId, issuer) {
   console.log("Using cache");
-  let cachedJwks = await get(issuer);
+  const cachedJwks = await get(issuer);
   return getKeyFromJwks(cachedJwks, keyId);
 }
 
 async function findPublicKeyWithoutCache(keyId, issuer) {
   console.debug("Retrieving public key without cache");
-  let jwks = await getJwks(issuer);
+  const jwks = await getJwks(issuer);
   return getKeyFromJwks(jwks, keyId);
 }
 
 function getKeyFromJwks(jwks, keyId) {
-  let publicKey = findKey(jwks, keyId);
-  let keyInPemFormat = jwkToPem(publicKey);
+  const publicKey = findKey(jwks, keyId);
+  const keyInPemFormat = jwkToPem(publicKey);
   return keyInPemFormat;
 }
 

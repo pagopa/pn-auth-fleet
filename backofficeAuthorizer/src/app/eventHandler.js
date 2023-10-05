@@ -6,7 +6,7 @@ import { getAllowedResourcesFromS3 } from "./s3Utils.js";
 
 const handleEvent = async function (event) {
   // Parameters
-  let apiOptions = {};
+  const apiOptions = {};
   const tmp = event.methodArn.split(":");
   const apiGatewayArnTmp = tmp[5].split("/");
   const awsAccountId = tmp[4];
@@ -16,8 +16,8 @@ const handleEvent = async function (event) {
   const accessToken = event.authorizationToken;
   const principalId = accessToken;
   event.httpMethod = apiGatewayArnTmp[2];
-  var path = "/";
-  for (var i = 3; i < apiGatewayArnTmp.length; i++) {
+  let path = "/";
+  for (let i = 3; i < apiGatewayArnTmp.length; i++) {
     path += apiGatewayArnTmp[i];
     if (i < apiGatewayArnTmp.length - 1) path += "/";
   }
@@ -81,7 +81,7 @@ const authorizeWithCognito = async (
   bucketKey
 ) => {
   // Instantiate policy
-  let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+  const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
 
   // Check valdity of the bearer token
   const idTokenPayload = await getValidIdTokenPayload(idToken);

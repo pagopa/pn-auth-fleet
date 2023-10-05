@@ -6,11 +6,11 @@ const kms = AWSXRay.captureAWSv3Client(new KMS());
 
 const generateToken = async (decodedToken) => {
   const keyAlias = process.env.KEY_ALIAS;
-  let keyId = await getKeyId(keyAlias);
+  const keyId = await getKeyId(keyAlias);
   console.debug("keyId from alias", keyId);
-  let token_components = getTokenComponent(decodedToken, keyId);
+  const token_components = getTokenComponent(decodedToken, keyId);
   console.debug("token_components", token_components);
-  let res = await sign(token_components, keyId);
+  const res = await sign(token_components, keyId);
   console.debug(`JWT token: [${res}]`);
   return res;
 };
@@ -26,7 +26,7 @@ async function getKeyId(keyAlias) {
 }
 
 function getTokenComponent(decodedToken, keyId) {
-  let header = {
+  const header = {
     alg: "RS256",
     typ: "JWT",
     kid: keyId,
@@ -42,7 +42,7 @@ function getTokenComponent(decodedToken, keyId) {
     jti: decodedToken.jti,
   };
 
-  let organization = {};
+  const organization = {};
   if (decodedToken.organization) {
     organization.id = decodedToken.organization.id;
     organization.role = decodedToken.organization.roles[0].role;

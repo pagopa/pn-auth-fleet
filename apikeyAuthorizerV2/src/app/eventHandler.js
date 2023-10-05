@@ -79,7 +79,7 @@ const eventHandler = async (event, context) => {
     } else {
       if (encodedToken) {
         console.log("encodedToken", encodedToken);
-        let decodedToken = await validation(encodedToken);
+        const decodedToken = await validation(encodedToken);
         contextAuth = {
           uid: "PDND-" + decodedToken.client_id,
           cx_id: apiKeyDynamo.cxId,

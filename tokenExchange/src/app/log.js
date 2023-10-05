@@ -11,7 +11,7 @@ function auditLog(
   uid,
   jti
 ) {
-  let statusMessage = `INFO - ${message}`;
+  const statusMessage = `INFO - ${message}`;
   if (status === "OK") {
     statusMessage = `OK - SUCCESS - ${message}`;
   }

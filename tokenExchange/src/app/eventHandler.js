@@ -55,7 +55,7 @@ const handleEvent = async (event) => {
           ).info("success");
           return generateOkResponse(sessionToken, enrichedToken, eventOrigin);
         } catch (err) {
-          let log = auditLog(
+          const log = auditLog(
             `Error generating token ${err.message}`,
             "AUD_ACC_LOGIN",
             eventOrigin,

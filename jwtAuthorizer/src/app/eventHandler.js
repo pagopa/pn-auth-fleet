@@ -23,12 +23,12 @@ const handleEvent = async (event) => {
   if (encodedToken) {
     console.log("encodedToken", encodedToken);
     try {
-      let decodedToken = await validation(encodedToken);
+      const decodedToken = await validation(encodedToken);
       console.log("decodedToken", decodedToken);
-      let contextAttrs = {};
+      const contextAttrs = {};
       contextAttrs.uid = decodedToken.uid;
       contextAttrs.cx_type = getUserType(decodedToken);
-      let prefix =
+      const prefix =
         contextAttrs.cx_type == "PA" ? "" : contextAttrs.cx_type + "-";
       contextAttrs.cx_id =
         prefix +

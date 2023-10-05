@@ -5,6 +5,4 @@ const handler = async (event) => {
     return handleEvent(event);
 };
 
-module.exports = {
-    handler
-}
+export { handler };

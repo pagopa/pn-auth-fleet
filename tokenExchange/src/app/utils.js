@@ -17,14 +17,14 @@ function copyAndMaskObject(originalObject, sensitiveFields) {
 function maskString(stringToMask) {
   if (stringToMask.length < 6) return "".padStart(stringToMask.length, "*");
 
-  let firstTwoChars = stringToMask.substring(0, 2);
-  let lastTwoChars = stringToMask.substring(
+  const firstTwoChars = stringToMask.substring(0, 2);
+  const lastTwoChars = stringToMask.substring(
     stringToMask.length - 2,
     stringToMask.length
   );
 
-  let hiddenStringLength = stringToMask.length - 4;
-  let hiddenString = "".padStart(hiddenStringLength, "*");
+  const hiddenStringLength = stringToMask.length - 4;
+  const hiddenString = "".padStart(hiddenStringLength, "*");
 
   return firstTwoChars + hiddenString + lastTwoChars;
 }
@@ -43,7 +43,7 @@ function checkOrigin(origin) {
 }
 
 function makeLower(headers) {
-  let head = {};
+  const head = {};
   for (const key in headers) {
     if (headers.hasOwnProperty(key)) {
       head[key.toLowerCase()] = headers[key];

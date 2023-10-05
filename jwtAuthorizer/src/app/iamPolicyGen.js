@@ -1,7 +1,7 @@
 import { ValidationException } from "./exception/validationException.js";
 
 const generateIAMPolicy = async (resourceArn, contextAttr) => {
-  let policyStatement = generatePolicyStatement(resourceArn, "Allow");
+  const policyStatement = generatePolicyStatement(resourceArn, "Allow");
   // Check if no policy statements are generated, if so, create default deny all policy statement
   if (policyStatement) {
     return generatePolicy("user", contextAttr, policyStatement);
@@ -11,10 +11,10 @@ const generateIAMPolicy = async (resourceArn, contextAttr) => {
 };
 
 function generatePolicyStatement(resourceArn, action) {
-  let resources = resourceArn.split("/");
+  const resources = resourceArn.split("/");
   console.debug("resources", resources);
   if (resources.length >= 2) {
-    let resource = resources[0] + "/" + resources[1] + "/*";
+    const resource = resources[0] + "/" + resources[1] + "/*";
     // Generate an IAM policy statement
     return {
       Action: "execute-api:Invoke",

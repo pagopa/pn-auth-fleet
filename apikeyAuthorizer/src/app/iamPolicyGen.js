@@ -1,7 +1,7 @@
 import ValidationException from "./exception/validationException.js";
 
 async function generateIAMPolicy(resourceArn, paId, apiKeyId, groups) {
-  let policyStatement = generatePolicyStatement(resourceArn, "Allow");
+  const policyStatement = generatePolicyStatement(resourceArn, "Allow");
   if (policyStatement) {
     console.debug("Policy statement generated", policyStatement);
     return generatePolicy("user", paId, apiKeyId, groups, policyStatement);
