@@ -20,29 +20,35 @@ const dynamoItemVirtualApiKey = {
   virtualKey: "testVK",
 };
 
-const ddbMock = mockClient(DynamoDBDocumentClient);
-
 describe("dynamoFunctions tests", function () {
+  const ddbMock = mockClient(DynamoDBDocumentClient);
+
   beforeEach(() => {
     ddbMock.reset();
   });
 
+  after(() => {
+    ddbMock.restore();
+  });
+
   it("test getPaAggregationById found", async () => {
+    const id = "test";
     const params = {
       TableName: "pn-paAggregations",
-      Key: { ["x-pagopa-pn-cx-id"]: "test" },
+      Key: { ["x-pagopa-pn-cx-id"]: id },
     };
     ddbMock.on(GetCommand, params).resolves({
       Item: mockPaAggregationFound,
     });
-    const item = await getPaAggregationById("test");
-    expect(item.aggregateId).equal("testAggregate");
+    const item = await getPaAggregationById(id);
+    expect(item.aggregateId).equal(mockPaAggregationFound.aggregateId);
   });
 
   it("test getPaAggregationById not found", async () => {
+    const id = "fake";
     const params = {
       TableName: "pn-paAggregations",
-      Key: { ["x-pagopa-pn-cx-id"]: "fake" },
+      Key: { ["x-pagopa-pn-cx-id"]: id },
     };
     ddbMock.on(GetCommand, params).resolves({ Item: null });
     try {
@@ -50,28 +56,28 @@ describe("dynamoFunctions tests", function () {
     } catch (error) {
       expect(error).to.not.be.null;
       expect(error).to.not.be.undefined;
-      expect(error.message).to.equal(
-        errorMessageDynamo("fake", "pn-paAggregations")
-      );
+      expect(error.message).to.equal(errorMessageDynamo(id, params.TableName));
     }
   });
 
   it("test getPaAggregateById found", async () => {
+    const id = "test";
     const params = {
       TableName: "pn-aggregates",
-      Key: { ["aggregateId"]: "test" },
+      Key: { ["aggregateId"]: id },
     };
     ddbMock.on(GetCommand, params).resolves({
       Item: mockAggregateFound,
     });
-    const item = await getPaAggregateById("test");
-    expect(item.AWSApiKey).equal("testApiKey");
+    const item = await getPaAggregateById(id);
+    expect(item.AWSApiKey).equal(mockAggregateFound.AWSApiKey);
   });
 
   it("test getPaAggregateById not found", async () => {
+    const id = "fake";
     const params = {
       TableName: "pn-aggregates",
-      Key: { ["aggregateId"]: "fake" },
+      Key: { ["aggregateId"]: id },
     };
     ddbMock.on(GetCommand, params).resolves({ Item: null });
     try {
@@ -79,16 +85,20 @@ describe("dynamoFunctions tests", function () {
     } catch (error) {
       expect(error).to.not.be.null;
       expect(error).to.not.be.undefined;
-      expect(error.message).to.equal(
-        errorMessageDynamo("fake", "pn-aggregates")
-      );
+      expect(error.message).to.equal(errorMessageDynamo(id, params.TableName));
     }
   });
 });
 
 describe("getApiKeyByIndex", function () {
+  const ddbMock = mockClient(DynamoDBDocumentClient);
+
   beforeEach(() => {
     ddbMock.reset();
+  });
+
+  after(() => {
+    ddbMock.restore();
   });
 
   it("test getApiKeyByIndex found", async () => {
@@ -96,7 +106,7 @@ describe("getApiKeyByIndex", function () {
       Items: [dynamoItemVirtualApiKey],
     });
     const item = await getApiKeyByIndex("test");
-    expect(item.virtualKey).equal("testVK");
+    expect(item.virtualKey).equal(dynamoItemVirtualApiKey.virtualKey);
   });
 
   it("test getApiKeyByIndex not found", async () => {
@@ -115,8 +125,14 @@ describe("getApiKeyByIndex", function () {
 
 //Casistica impossibile
 describe("getApiKeyByIndex fail", function () {
+  const ddbMock = mockClient(DynamoDBDocumentClient);
+
   beforeEach(() => {
     ddbMock.reset();
+  });
+
+  after(() => {
+    ddbMock.restore();
   });
 
   it("too many items", async () => {
