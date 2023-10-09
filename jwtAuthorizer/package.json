@@ -40,7 +40,6 @@
     "@babel/node": "^7.22.19",
     "@babel/preset-env": "^7.22.20",
     "@aws-sdk/client-kms": "^3.410.0",
-    "aws-xray-sdk-core": "^3.3.6",
     "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.5",
     "node-fetch": "^2.6.7"

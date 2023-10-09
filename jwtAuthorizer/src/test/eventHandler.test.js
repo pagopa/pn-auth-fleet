@@ -1,9 +1,9 @@
-const expect = require("chai").expect;
-const rewire = require("rewire");
-const proxyquire = require("proxyquire");
+import { expect } from "chai";
+import rewire from "rewire";
+import proxyquire from "proxyquire";
 
 const validation = rewire("../app/validation");
-const revert = validation.__set__({
+validation.__set__({
   retrievePublicKey: () =>
     Promise.resolve({
       PublicKey:

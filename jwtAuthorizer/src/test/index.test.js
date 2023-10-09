@@ -1,19 +1,20 @@
-const expect = require("chai").expect;
-const lambdaTester = require("lambda-tester");
-const proxyquire = require("proxyquire");
-const fs = require("fs");
-const iamPolicyGen = require("../app/iamPolicyGen");
-const ValidationException = require("../app/exception/validationException.js");
-const { mockClient } = require("aws-sdk-client-mock");
-const { KMSClient, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
+import { expect } from "chai";
+import lambdaTester from "lambda-tester";
+import proxyquire from "proxyquire";
+import fs from "fs";
+import { mockClient } from "aws-sdk-client-mock";
+import { KMSClient, GetPublicKeyCommand } from "@aws-sdk/client-kms";
+
+import { generateIAMPolicy } from "../app/iamPolicyGen";
+import { ValidationException } from "../app/exception/validationException.js";
+import { validation } from "../app/validation.js";
 
 const kmsClientMock = mockClient(KMSClient);
-const validator = require("../app/validation.js");
 
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
-  "./validation.js": validator,
-  "./iamPolicyGenerator.js": iamPolicyGen,
-  "./exception/validationException.js": ValidationException,
+  "./validation.js": { validation },
+  "./iamPolicyGenerator.js": { generateIAMPolicy },
+  "./exception/validationException.js": { ValidationException },
 });
 
 const lambda = proxyquire.noCallThru().load("../../index.js", {
@@ -21,8 +22,8 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 });
 
 describe("JWT Ok from spid-hub with cx_id verify", function () {
-  let eventFile = fs.readFileSync("event.json");
-  let events = JSON.parse(eventFile);
+  const eventFile = fs.readFileSync("event.json");
+  const events = JSON.parse(eventFile);
 
   beforeEach(() => {
     kmsClientMock.reset();
@@ -38,7 +39,7 @@ describe("JWT Ok from spid-hub with cx_id verify", function () {
       .expectResult((result) => {
         // Check if code exist
         console.debug("the result is ", result);
-        let uid = result.context.uid;
+        const uid = result.context.uid;
         expect(result.context.cx_id).to.equal("PF-" + uid);
         done();
       })
@@ -47,8 +48,8 @@ describe("JWT Ok from spid-hub with cx_id verify", function () {
 });
 
 describe("JWT Ok from spid-hub Using cache", function () {
-  let eventFile = fs.readFileSync("event.json");
-  let events = JSON.parse(eventFile);
+  const eventFile = fs.readFileSync("event.json");
+  const events = JSON.parse(eventFile);
 
   beforeEach(() => {
     kmsClientMock.reset();
@@ -71,8 +72,8 @@ describe("JWT Ok from spid-hub Using cache", function () {
 });
 
 describe("JWT expired from spid-hub", function () {
-  let eventFile = fs.readFileSync("event.json");
-  let events = JSON.parse(eventFile);
+  const eventFile = fs.readFileSync("event.json");
+  const events = JSON.parse(eventFile);
 
   beforeEach(() => {
     kmsClientMock.reset();
