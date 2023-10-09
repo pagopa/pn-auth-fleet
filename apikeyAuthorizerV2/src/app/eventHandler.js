@@ -32,7 +32,6 @@ const defaultDenyAllPolicy = {
 };
 
 const eventHandler = async (event, context) => {
-  console.warn(event);
   try {
     const virtualKey = findAttributeValueInObjectWithInsensitiveCase(
       event.headers,

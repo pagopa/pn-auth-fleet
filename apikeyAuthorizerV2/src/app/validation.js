@@ -9,7 +9,7 @@ import { getJwks } from "./retrieverPdndJwks.js";
 
 const validation = async (jwtToken) => {
   if (jwtToken) {
-    let decodedToken = await jwtValidator(jwtToken);
+    const decodedToken = await jwtValidator(jwtToken);
     console.info("token is valid");
     return decodedToken;
   } else {
