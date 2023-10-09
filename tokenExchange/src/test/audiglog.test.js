@@ -1,5 +1,7 @@
-const { auditLog } = require("../app/log.js");
-const expect = require("chai").expect;
+import { expect } from "chai";
+
+import { auditLog } from "../app/log.js";
+
 const cx_type = "AUD";
 const cx_id = "1111";
 const cx_role = "admin";

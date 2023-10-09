@@ -1,18 +1,19 @@
-const chaiAsPromised = require("chai-as-promised");
-const chai = require("chai");
-const jsonwebtoken = require("jsonwebtoken");
-const sinon = require("sinon");
-const rewire = require("rewire");
-const fs = require("fs");
-const axios = require("axios");
-const MockAdapter = require("axios-mock-adapter");
+import chaiAsPromised from "chai-as-promised";
+import chai from "chai";
+import jsonwebtoken from "jsonwebtoken";
+import sinon from "sinon";
+import rewire from "rewire";
+import fs from "fs";
+import axios from "axios";
+import MockAdapter from "axios-mock-adapter";
+
+import * as retrieverJwks from "../app/retrieverJwks";
+import ValidationException from "../app/exception/validationException";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 const validator = rewire("../app/validation");
-const retrieverJwks = require("../app/retrieverJwks");
-const ValidationException = require("../app/exception/validationException");
 
 const decodedToken = {
   email: "info@agid.gov.it",
@@ -110,7 +111,7 @@ describe("test validation", () => {
   });
 
   it("test the token validation - no parameter path defined", async () => {
-    const stub = sinon.stub(process.env, 'ALLOWED_TAXIDS_PARAMETER').value('');
+    const stub = sinon.stub(process.env, "ALLOWED_TAXIDS_PARAMETER").value("");
     const tokenPayload = await validator.validation(
       "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEEiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTY4Njc0OSwiZXhwIjoxNjQ5NjkwMzQ5LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMENGVzgwSEdUVFcwUkg1NFdRRDZGNlMiLCJvcmdhbml6YXRpb24iOnsiaWQiOiIwMjZlOGM3Mi03OTQ0LTRkY2QtODY2OC1mNTk2NDQ3ZmVjNmQiLCJyb2xlcyI6W3sicGFydHlSb2xlIjoiTUFOQUdFUiIsInJvbGUiOiJhZG1pbiJ9XSwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In19.PrlZTKA21sSOF3mh3TKziXfDgxSZJBPzWWqtbI_5wWVo3C0MT6ZdemOGw8OKYxmMvWpkIwJjTJ4zf2plAqxAaO52olY5zbbrOES5zo2AkwURVHVgnJw6CihSGqrtfB2bgmLUYo1yI-qZRwauDOqa4KyZs9R1fNJFSbDBZUaD8Id7-bNH4i599b_cdBRnrrJSMjNwViyD_s3Eu98LxgoJoQDKCfbQlR90-cnG61S_-zNQkDqEztsePa45GpthpCh9wCDgCmLWfXlwfXXp7P-q_LRO_AWWJx203VFl9rtXXih5VV0AYdPFEJdR9dXHzcuA2tdKStB6EwBj7DXzqqVECQ"
     );

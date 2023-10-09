@@ -1,6 +1,7 @@
-const responses = require("../app/responses.js");
-const { ValidationException } = require("../app/exception/validationException");
-const expect = require("chai").expect;
+import { expect } from "chai";
+
+import { generateKoResponse, generateOkResponse } from "../app/responses.js";
+import { ValidationException } from "../app/exception/validationException";
 
 const sessionToken = "a.b.c";
 
@@ -34,17 +35,13 @@ const makeKoResponse = (message, statusCode) => ({
 
 describe("responses tests", () => {
   it("generateOkResponse", () => {
-    const result = responses.generateOkResponse(
-      sessionToken,
-      decodedToken,
-      origin
-    );
+    const result = generateOkResponse(sessionToken, decodedToken, origin);
 
     expect(result).to.eql(okResponse);
   });
 
   it("generateKoResponse Role not allowed", () => {
-    const result = responses.generateKoResponse(
+    const result = generateKoResponse(
       new ValidationException("Role not allowed"),
       origin
     );
@@ -53,7 +50,7 @@ describe("responses tests", () => {
   });
 
   it("generateKoResponse TaxId not allowed", () => {
-    const result = responses.generateKoResponse(
+    const result = generateKoResponse(
       new ValidationException("TaxId not allowed"),
       origin
     );
@@ -62,7 +59,7 @@ describe("responses tests", () => {
   });
 
   it("generateKoResponse Issuer not known", () => {
-    const result = responses.generateKoResponse(
+    const result = generateKoResponse(
       new ValidationException("Issuer not known"),
       origin
     );
@@ -71,7 +68,7 @@ describe("responses tests", () => {
   });
 
   it("generateKoResponse Invalid Audience", () => {
-    const result = responses.generateKoResponse(
+    const result = generateKoResponse(
       new ValidationException("Invalid Audience"),
       origin
     );
@@ -80,7 +77,7 @@ describe("responses tests", () => {
   });
 
   it("generateKoResponse Token is not valid", () => {
-    const result = responses.generateKoResponse(
+    const result = generateKoResponse(
       new ValidationException("Token is not valid"),
       origin
     );
