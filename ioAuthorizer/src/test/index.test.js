@@ -1,7 +1,7 @@
-const expect = require("chai").expect;
-const lambdaTester = require("lambda-tester");
-const proxyquire = require("proxyquire");
-const iamPolicyGen = require("../app/iamPolicyGen");
+import { expect } from "chai";
+import lambdaTester from "lambda-tester";
+import proxyquire from "proxyquire";
+import * as iamPolicyGen from "../app/iamPolicyGen";
 
 const dataVaultClientMock = {
   getCxId: async function (taxId) {
@@ -19,7 +19,7 @@ const lambda = proxyquire.noCallThru().load("../../index.js", {
 });
 
 describe("Success", function () {
-  let event = {
+  const event = {
     type: "REQUEST",
     methodArn:
       "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request",
@@ -48,7 +48,7 @@ describe("Success", function () {
       .event(event)
       .expectResult((result) => {
         console.debug("the result is ", result);
-        let statement = result.policyDocument.Statement;
+        const statement = result.policyDocument.Statement;
         console.debug("statement ", statement);
         expect(statement[0].Action).to.equal("execute-api:Invoke");
         expect(statement[0].Effect).to.equal("Allow");
@@ -66,7 +66,7 @@ describe("Success", function () {
 });
 
 describe("Error", function () {
-  let event = {
+  const event = {
     type: "REQUEST",
     methodArn: "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/",
     headers: {
@@ -91,7 +91,7 @@ describe("Error", function () {
 });
 
 describe("Error No TaxId", function () {
-  let event = {
+  const event = {
     type: "REQUEST",
     methodArn: "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/",
     requestContext: {
@@ -113,7 +113,7 @@ describe("Error No TaxId", function () {
 });
 
 describe("Error iamPolicy", function () {
-  let event = {
+  const event = {
     type: "REQUEST",
     methodArn: "fake.method.arn",
     headers: {
