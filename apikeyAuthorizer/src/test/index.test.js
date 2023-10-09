@@ -1,13 +1,10 @@
-const expect = require("chai").expect;
-const lambdaTester = require("lambda-tester");
-const proxyquire = require("proxyquire");
-const generateIAMPolicy = require("../app/iamPolicyGen");
-const getKeyTags = require("../app/keyTagsGetter");
-const {
-  APIGatewayClient,
-  GetTagsCommand,
-} = require("@aws-sdk/client-api-gateway");
-const { mockClient } = require("aws-sdk-client-mock");
+import { expect } from "chai";
+import lambdaTester from "lambda-tester";
+import proxyquire from "proxyquire";
+import { generateIAMPolicy } from "../app/iamPolicyGen";
+import { getKeyTags } from "../app/keyTagsGetter";
+import { APIGatewayClient, GetTagsCommand } from "@aws-sdk/client-api-gateway";
+import { mockClient } from "aws-sdk-client-mock";
 
 const apiGatewayClientMock = mockClient(APIGatewayClient);
 
@@ -19,8 +16,8 @@ const awsMockResult = {
 };
 
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
-  "../app/iamPolicyGen.js": generateIAMPolicy,
-  "../app/keyTagsGetter.js": getKeyTags,
+  "../app/iamPolicyGen.js": { generateIAMPolicy },
+  "../app/keyTagsGetter.js": { getKeyTags },
 });
 
 const lambda = proxyquire.noCallThru().load("../../index.js", {

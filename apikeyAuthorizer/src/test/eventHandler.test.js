@@ -1,11 +1,9 @@
-const expect = require("chai").expect;
-const {
-  APIGatewayClient,
-  GetTagsCommand,
-} = require("@aws-sdk/client-api-gateway");
-const { mockClient } = require("aws-sdk-client-mock");
+import { expect } from "chai";
+import { APIGatewayClient, GetTagsCommand } from "@aws-sdk/client-api-gateway";
+import { mockClient } from "aws-sdk-client-mock";
 
-const eventHandler = require("../app/eventHandler");
+import { handleEvent } from "../app/eventHandler";
+
 const apiGatewayClientMock = mockClient(APIGatewayClient);
 
 describe("test eventHandler", () => {
@@ -14,12 +12,7 @@ describe("test eventHandler", () => {
   });
 
   it("handle event without apiKey", async () => {
-    apiGatewayClientMock.on(GetTagsCommand).rejects({
-      $metadata: {
-        httpStatusCode: 404,
-      },
-    });
-    const result = await eventHandler.handleEvent({
+    const result = await handleEvent({
       type: "TOKEN",
       methodArn:
         "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/beta/POST/delivery/notifications/sent",
@@ -46,7 +39,7 @@ describe("test eventHandler", () => {
         httpStatusCode: 404,
       },
     });
-    const result = await eventHandler.handleEvent({
+    const result = await handleEvent({
       type: "TOKEN",
       methodArn: "arn:aws:execute-api:us-east-1:123456789012:swz6w548va",
       requestContext: {
@@ -73,7 +66,7 @@ describe("test eventHandler", () => {
         cx_groups: "foo,bar",
       },
     });
-    const result = await eventHandler.handleEvent({
+    const result = await handleEvent({
       type: "TOKEN",
       methodArn:
         "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/beta/POST/delivery/notifications/sent",

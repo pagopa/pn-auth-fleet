@@ -1,8 +1,11 @@
 import {
   GetCommand,
   QueryCommand,
+  DynamoDBDocumentClient,
 } from "@aws-sdk/lib-dynamodb"; /* refers to: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html#dynamodb-example-document-client-query */
-import ddbDocClient from "./ddbClient.js";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import AWSXRay from "aws-xray-sdk"; /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
+
 import {
   ItemNotFoundException,
   TooManyItemsFoundException,
@@ -10,6 +13,11 @@ import {
 import { anonymizeKey } from "./utils";
 
 const getApiKeyByIndex = async (virtualKey) => {
+  const ddbClient = new DynamoDBClient();
+  const ddbDocClient = AWSXRay.captureAWSv3Client(
+    DynamoDBDocumentClient.from(ddbClient)
+  );
+
   const TableName = "pn-apiKey";
 
   const params = {
@@ -58,6 +66,10 @@ const getPaAggregateById = async (aggregateId) => {
 };
 
 const getItemById = async (TableName, keyName, keyValue) => {
+  const ddbClient = new DynamoDBClient();
+  const ddbDocClient = AWSXRay.captureAWSv3Client(
+    DynamoDBDocumentClient.from(ddbClient)
+  );
   const command = new GetCommand({
     TableName,
     Key: {

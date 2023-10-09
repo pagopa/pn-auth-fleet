@@ -26,7 +26,7 @@ async function handleEvent(event) {
   if (apiKeyId) {
     console.info("ApiKeyId", apiKeyId);
     try {
-      let response = await getKeyTags(apiKeyId);
+      const response = await getKeyTags(apiKeyId);
       console.log("Get key tags response", response);
       // Retrieve token scopes
       const paId = response.tags[PA_TAG_NAME];
