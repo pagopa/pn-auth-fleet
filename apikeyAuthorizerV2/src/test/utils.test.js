@@ -1,18 +1,23 @@
-const { expect } = require("chai");
-const utils = require("../app/utils");
-const sinon = require("sinon");
-const { mockIamPolicyOk } = require("./mocks");
+import { expect } from "chai";
+import {
+  findAttributeValueInObjectWithInsensitiveCase,
+  anonymizeKey,
+  logEvent,
+  logIamPolicy,
+} from "../app/utils";
+import sinon from "sinon";
+import { mockIamPolicyOk } from "./mocks";
 
 describe("Test anonymize function", () => {
   it("anonymize with length > 6", () => {
     let text = "test-clear";
-    let anonymized = utils.anonymizeKey(text);
+    let anonymized = anonymizeKey(text);
     expect(anonymized).equals("te******ar");
   });
 
   it("anonymize with length < 6", () => {
     let text = "test";
-    let anonymized = utils.anonymizeKey(text);
+    let anonymized = anonymizeKey(text);
     expect(anonymized).equals("****");
   });
 });
@@ -28,7 +33,7 @@ describe("Test logEvent", () => {
         "X-Amzn-Trace-Id": "test",
       },
     };
-    utils.logEvent(mockedEvent);
+    logEvent(mockedEvent);
     let expectedEvent = {
       httpMethod: "GET",
       path: "/request",
@@ -47,7 +52,7 @@ describe("Test logEvent", () => {
 describe("Test logIamPolicy", () => {
   it("", () => {
     let spy = sinon.spy(console, "log");
-    utils.logIamPolicy(mockIamPolicyOk);
+    logIamPolicy(mockIamPolicyOk);
     let expectedIamPolicy = {
       principalId: "testPrincipal",
       policyDocument: {
@@ -80,10 +85,7 @@ describe("Test findAttributeValueInObjectWithInsensitiveCase", () => {
     let object = {
       key: "test",
     };
-    const value = utils.findAttributeValueInObjectWithInsensitiveCase(
-      object,
-      "KEY"
-    );
+    const value = findAttributeValueInObjectWithInsensitiveCase(object, "KEY");
     expect(value).equals("test");
   });
 
@@ -91,10 +93,7 @@ describe("Test findAttributeValueInObjectWithInsensitiveCase", () => {
     let object = {
       key: "test",
     };
-    const value = utils.findAttributeValueInObjectWithInsensitiveCase(
-      object,
-      "foo"
-    );
+    const value = findAttributeValueInObjectWithInsensitiveCase(object, "foo");
     expect(value).to.be.undefined;
   });
 });

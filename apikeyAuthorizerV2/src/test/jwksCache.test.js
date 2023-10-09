@@ -1,9 +1,10 @@
-const sinon = require("sinon");
-const jwksCache = require("../app/jwksCache");
-const retrieverPdndJwks = require("../app/retrieverPdndJwks");
-const fs = require("fs");
-const chaiAsPromised = require("chai-as-promised");
-const chai = require("chai");
+import sinon from "sinon";
+import { get, isCacheActive } from "../app/jwksCache";
+import * as retrieverPdndJwks from "../app/retrieverPdndJwks";
+import fs from "fs";
+import chaiAsPromised from "chai-as-promised";
+import chai from "chai";
+
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
@@ -35,12 +36,11 @@ describe("test jwksCache", () => {
       .stub(retrieverPdndJwks, "getJwks")
       .callsFake((issuer) => jwksFromPdnd);
 
-    const jwks = await jwksCache.get();
-    const isCacheActive = jwksCache.isCacheActive();
+    const jwks = await get();
     expect(jwks.keys).to.be.eql(jwksFromPdnd.keys);
     expect(jwks.expiresOn).not.to.be.undefined;
     expect(jwks.lastUpdate).not.to.be.undefined;
-    expect(isCacheActive).to.be.true;
+    expect(isCacheActive()).to.be.true;
   });
 
   it("refresh cache when is expired", async () => {
@@ -48,7 +48,7 @@ describe("test jwksCache", () => {
       .stub(retrieverPdndJwks, "getJwks")
       .callsFake((issuer) => jwksFromPdnd);
 
-    const jwks = await jwksCache.get();
+    const jwks = await get();
     const firstExpiresOn = jwks.expiresOn;
     expect(jwks.keys).to.be.eql(jwksFromPdnd.keys);
     expect(firstExpiresOn).not.to.be.undefined;
@@ -60,7 +60,7 @@ describe("test jwksCache", () => {
     const isCacheExpired = firstExpiresOn < now;
     expect(isCacheExpired).to.be.true;
 
-    const newJwks = await jwksCache.get();
+    const newJwks = await get();
     const secondExpiresOn = newJwks.expiresOn;
     expect(firstExpiresOn).to.be.lessThan(secondExpiresOn);
   });
@@ -69,7 +69,7 @@ describe("test jwksCache", () => {
     //First call fails
     sinon.stub(retrieverPdndJwks, "getJwks").throws();
 
-    expect(jwksCache.get).throws;
+    expect(get).throws;
   });
 
   it("error refreshing cache", async () => {
@@ -78,7 +78,7 @@ describe("test jwksCache", () => {
       .stub(retrieverPdndJwks, "getJwks")
       .callsFake((issuer) => jwksFromPdnd);
 
-    const jwks = await jwksCache.get();
+    const jwks = await get();
     const firstExpiresOn = jwks.expiresOn;
     expect(jwks.keys).to.be.eql(jwksFromPdnd.keys);
     expect(firstExpiresOn).not.to.be.undefined;
@@ -98,7 +98,7 @@ describe("test jwksCache", () => {
     expect(isCacheExpired).to.be.true;
 
     //Obtain old cache value
-    const secondJwks = await jwksCache.get();
+    const secondJwks = await get();
     const secondExpiresOn = secondJwks.expiresOn;
     expect(firstExpiresOn).to.be.eql(secondExpiresOn);
   });

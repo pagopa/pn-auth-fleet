@@ -1,17 +1,20 @@
-const { expect } = require("chai");
-const event = require("../../event.json");
-const proxyquire = require("proxyquire").noPreserveCache();
-const { mockIamPolicyOk, mockIamPolicyKo } = require("./mocks");
+import { expect } from "chai";
+import * as event from "../../event.json";
+import proxyquire from "proxyquire";
+import { mockIamPolicyOk, mockIamPolicyKo } from "./mocks";
 
 describe("index tests", function () {
   it("test Ok", async () => {
-    const lambda = proxyquire.noCallThru().load("../../index.js", {
-      "./src/app/eventHandler.js": {
-        eventHandler: async () => {
-          return new Promise((res) => res(mockIamPolicyOk));
+    const lambda = proxyquire
+      .noPreserveCache()
+      .noCallThru()
+      .load("../../index.js", {
+        "./src/app/eventHandler.js": {
+          eventHandler: async () => {
+            return new Promise((res) => res(mockIamPolicyOk));
+          },
         },
-      },
-    });
+      });
 
     const res = await lambda.handler(event, null);
     expect(res.usageIdentifierKey).equal(mockIamPolicyOk.usageIdentifierKey);
@@ -19,13 +22,16 @@ describe("index tests", function () {
   });
 
   it("test fail", async () => {
-    const lambda = proxyquire.noCallThru().load("../../index.js", {
-      "./src/app/eventHandler.js": {
-        eventHandler: async () => {
-          return new Promise((res) => res(mockIamPolicyKo));
+    const lambda = proxyquire
+      .noPreserveCache()
+      .noCallThru()
+      .load("../../index.js", {
+        "./src/app/eventHandler.js": {
+          eventHandler: async () => {
+            return new Promise((res) => res(mockIamPolicyKo));
+          },
         },
-      },
-    });
+      });
     const res = await lambda.handler(event, null);
     expect(res.policyDocument.Statement[0].Effect).equal("Deny");
   });

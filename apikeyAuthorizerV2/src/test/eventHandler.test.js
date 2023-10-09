@@ -1,15 +1,15 @@
-const event = require("../../event.json");
-const eventPdnd = require("../../event-PDND.json");
-const { expect } = require("chai");
-const proxyquire = require("proxyquire").noPreserveCache();
-const { mockIamPolicyOk, mockIamPolicyKo } = require("./mocks");
-const {
+import * as event from "../../event.json";
+import * as eventPdnd from "../../event-PDND.json";
+import { expect } from "chai";
+import proxyquire from "proxyquire";
+import { mockIamPolicyOk, mockIamPolicyKo } from "./mocks";
+import {
   mockPaAggregationFound,
   mockAggregateFound,
   mockIamPolicyOkPdnd,
   mockJwtValidationOk,
   mockEventTokenNull,
-} = require("./mocks");
+} from "./mocks";
 
 const mockBlockedVirtualKey = {
   id: "testId",
@@ -41,6 +41,7 @@ const mockEnabledVirtualKeyAndPdndTrue = {
 describe("eventHandler test ", function () {
   it("apiKeyBlocked", async () => {
     const { eventHandler } = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./dynamoFunctions.js": {
@@ -59,6 +60,7 @@ describe("eventHandler test ", function () {
 
   it("iam policy ok", async () => {
     const { eventHandler } = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./dynamoFunctions.js": {
@@ -93,6 +95,7 @@ describe("eventHandler test ", function () {
 
   it("iam policy KO", async () => {
     const { eventHandler } = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./dynamoFunctions.js": {
@@ -125,6 +128,7 @@ describe("eventHandler test ", function () {
 
   it("iam policy ok", async () => {
     const { eventHandler } = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./dynamoFunctions.js": {
@@ -163,6 +167,7 @@ describe("eventHandler test ", function () {
 
   it("pdnd error thrown", async () => {
     const { eventHandler } = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./dynamoFunctions.js": {
@@ -196,6 +201,7 @@ describe("eventHandler test ", function () {
 
   it("pdnd error thrown", async () => {
     const { eventHandler } = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./dynamoFunctions.js": {
@@ -229,6 +235,7 @@ describe("eventHandler test ", function () {
 
   it("error thrown", async () => {
     const { eventHandler } = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./dynamoFunctions.js": {

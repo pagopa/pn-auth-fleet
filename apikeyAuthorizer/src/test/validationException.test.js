@@ -1,5 +1,5 @@
-const { ValidationException } = require("../app/exception/validationException");
-const expect = require("chai").expect;
+import { ValidationException } from "../app/exception/validationException";
+import { expect } from "chai";
 
 describe("test ValidationException", () => {
   it("should set name", () => {

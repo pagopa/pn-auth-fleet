@@ -1,18 +1,16 @@
-const { expect } = require("chai");
-const {
+import { expect } from "chai";
+import {
   getApiKeyByIndex,
   getPaAggregateById,
   getPaAggregationById,
-} = require("../app/dynamoFunctions");
-const { mockPaAggregationFound, mockAggregateFound } = require("./mocks");
-const {
+} from "../app/dynamoFunctions";
+import { mockPaAggregationFound, mockAggregateFound } from "./mocks";
+import {
   DynamoDBDocumentClient,
   GetCommand,
   QueryCommand,
-} = require("@aws-sdk/lib-dynamodb");
-const {
-  mockClient,
-} = require("aws-sdk-client-mock"); /* refers to: https://aws.amazon.com/it/blogs/developer/mocking-modular-aws-sdk-for-javascript-v3-in-unit-tests/ */
+} from "@aws-sdk/lib-dynamodb";
+import { mockClient } from "aws-sdk-client-mock"; /* refers to: https://aws.amazon.com/it/blogs/developer/mocking-modular-aws-sdk-for-javascript-v3-in-unit-tests/ */
 
 const dynamoItemVirtualApiKey = {
   id: "testId",
