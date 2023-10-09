@@ -1,10 +1,7 @@
-const { mockClient } = require("aws-sdk-client-mock");
-const {
-  APIGatewayClient,
-  GetTagsCommand,
-} = require("@aws-sdk/client-api-gateway");
-const { expect } = require("chai");
-const { getOpenAPIS3Location } = require("../app/apiGatewayUtils");
+import { mockClient } from "aws-sdk-client-mock";
+import { APIGatewayClient, GetTagsCommand } from "@aws-sdk/client-api-gateway";
+import { expect } from "chai";
+import { getOpenAPIS3Location } from "../app/apiGatewayUtils";
 
 const ddbMock = mockClient(APIGatewayClient);
 

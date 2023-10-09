@@ -1,7 +1,5 @@
-const { expect } = require("chai");
-const sinon = require("sinon");
-
-const proxyquire = require("proxyquire").noPreserveCache();
+import { expect } from "chai";
+import proxyquire from "proxyquire";
 
 describe("Test auth policy", () => {
   it("allow method", async () => {
@@ -14,6 +12,7 @@ describe("Test auth policy", () => {
     };
 
     const eventHandler = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./s3Utils.js": {
@@ -58,6 +57,7 @@ describe("Test auth policy", () => {
     };
 
     const eventHandler = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./s3Utils.js": {
@@ -95,6 +95,7 @@ describe("Test auth policy", () => {
     };
 
     const eventHandler = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./s3Utils.js": {
@@ -143,6 +144,7 @@ describe("Test auth policy", () => {
     };
 
     const eventHandler = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./s3Utils.js": {
@@ -185,6 +187,7 @@ describe("Test auth policy", () => {
     };
 
     const eventHandler = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./s3Utils.js": {
@@ -228,6 +231,7 @@ describe("Test auth policy", () => {
     };
 
     const eventHandler = proxyquire
+      .noPreserveCache()
       .noCallThru()
       .load("../app/eventHandler.js", {
         "./s3Utils.js": {

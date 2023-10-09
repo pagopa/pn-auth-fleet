@@ -1,9 +1,9 @@
-const { mockClient } = require("aws-sdk-client-mock");
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
-const { expect } = require("chai");
-const { getAllowedResourcesFromS3 } = require("../app/s3Utils");
+import { mockClient } from "aws-sdk-client-mock";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { expect } from "chai";
+import { getAllowedResourcesFromS3 } from "../app/s3Utils";
+import fs from "fs";
 
-const fs = require("fs");
 const ddbMock = mockClient(S3Client);
 
 describe("s3 tests", function () {
