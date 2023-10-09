@@ -13,14 +13,8 @@ async function getKeyTags(apiKeyId) {
   };
 
   const command = new GetTagsCommand(params);
-  try {
-    // process data.
-    const request = await apigateway.send(command);
-    return request;
-  } catch (error) {
-    // error handling.
-    throw error;
-  }
+  const request = await apigateway.send(command);
+  return request;
 }
 
 export { getKeyTags };
