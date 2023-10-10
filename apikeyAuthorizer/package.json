@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "lambda per verificare lo stato della Api Key proveniente dal client dell’API, decodificare il “cliente”, aggiungere eventuali attributi dell’utente collegati alla API Key impostati come header nelle chiamate ai micro-servizi",
   "main": "index.js",
+  "type": "module",
   "babel": {
     "presets": [
       [

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "lambda utilizzata per autorizzare i client tramite lo userpool cognito di Helpdesk",
   "main": "index.js",
+  "type": "module",
   "babel": {
     "presets": [
       [
