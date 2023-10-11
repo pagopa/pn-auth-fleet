@@ -1,13 +1,15 @@
-import { expect } from "chai";
-import lambdaTester from "lambda-tester";
-import proxyquire from "proxyquire";
-import fs from "fs";
-import { mockClient } from "aws-sdk-client-mock";
-import { KMSClient, GetPublicKeyCommand } from "@aws-sdk/client-kms";
+const { expect } = require("chai");
+const lambdaTester = require("lambda-tester");
+const proxyquire = require("proxyquire");
+const fs = require("fs");
+const { mockClient } = require("aws-sdk-client-mock");
+const { KMSClient, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
 
-import { generateIAMPolicy } from "../app/iamPolicyGen";
-import { ValidationException } from "../app/exception/validationException.js";
-import { validation } from "../app/validation.js";
+const { generateIAMPolicy } = require("../app/iamPolicyGen");
+const {
+  ValidationException,
+} = require("../app/exception/validationException.js");
+const { validation } = require("../app/validation.js");
 
 const kmsClientMock = mockClient(KMSClient);
 

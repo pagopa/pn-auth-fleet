@@ -1,12 +1,13 @@
-import { expect } from "chai";
-import {
+const { expect } = require("chai");
+const sinon = require("sinon");
+
+const {
   findAttributeValueInObjectWithInsensitiveCase,
   anonymizeKey,
   logEvent,
   logIamPolicy,
-} from "../app/utils";
-import sinon from "sinon";
-import { mockIamPolicyOk } from "./mocks";
+} = require("../app/utils");
+const { mockIamPolicyOk } = require("./mocks");
 
 describe("Test anonymize function", () => {
   it("anonymize with length > 6", () => {

@@ -1,4 +1,4 @@
-import { expect } from "chai";
+const { expect } = require("chai");
 import { AuthPolicy } from "../app/authPolicy.js";
 
 const principalId = "1231312";

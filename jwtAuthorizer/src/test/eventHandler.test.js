@@ -1,6 +1,6 @@
-import { expect } from "chai";
-import rewire from "rewire";
-import proxyquire from "proxyquire";
+const { expect } = require("chai");
+const rewire = require("rewire");
+const { proxyquire } = require("proxyquire");
 
 const validation = rewire("../app/validation");
 validation.__set__({

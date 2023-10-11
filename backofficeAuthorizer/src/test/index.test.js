@@ -1,6 +1,6 @@
-import { expect } from "chai";
+const { expect } = require("chai");
 import event from "../../event.json";
-import proxyquire from "proxyquire";
+const { proxyquire } = require("proxyquire");
 import { mockIamPolicyOk, mockIamPolicyKo } from "./mocks";
 
 describe("index tests", function () {

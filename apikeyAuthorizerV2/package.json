@@ -3,22 +3,10 @@
   "version": "1.0.0",
   "description": "lambda utilizzata per autorizzare i client tramite le apikey virtuali",
   "main": "index.js",
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "targets": {
-            "node": "current"
-          }
-        }
-      ]
-    ]
-  },
   "scripts": {
     "test-build": "npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
     "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
-    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config -r @babel/register",
+    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
   },
@@ -39,9 +27,6 @@
     "sonarqube-scanner": "^2.8.2"
   },
   "dependencies": {
-    "@babel/core": "^7.22.20",
-    "@babel/node": "^7.22.19",
-    "@babel/preset-env": "^7.22.20",
     "@aws-sdk/client-dynamodb": "^3.410.0",
     "@aws-sdk/lib-dynamodb": "^3.410.0",
     "aws-xray-sdk": "^3.5.1",

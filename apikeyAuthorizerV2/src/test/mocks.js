@@ -92,7 +92,7 @@ const mockEventTokenNull = {
   },
 };
 
-export {
+module.exports = {
   mockIamPolicyOk,
   mockIamPolicyKo,
   mockPaAggregationFound,

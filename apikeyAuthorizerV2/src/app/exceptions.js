@@ -33,7 +33,7 @@ class TooManyItemsFoundException extends Error {
   }
 }
 
-export {
+module.exports = {
   AudienceValidationException,
   ItemNotFoundException,
   KeyStatusException,

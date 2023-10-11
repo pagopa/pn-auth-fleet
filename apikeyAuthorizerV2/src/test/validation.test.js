@@ -1,13 +1,14 @@
-import chaiAsPromised from "chai-as-promised";
-import chai from "chai";
-import jsonwebtoken from "jsonwebtoken";
-import sinon from "sinon";
-import rewire from "rewire";
-import fs from "fs";
-import * as retrieverPdndJwks from "../app/retrieverPdndJwks";
-import * as jwksCache from "../app/jwksCache";
-import ValidationException from "../app/exceptions";
-import AudienceValidationException from "../app/exceptions";
+const chaiAsPromised = require("chai-as-promised");
+const chai = require("chai");
+const jsonwebtoken = require("jsonwebtoken");
+const sinon = require("sinon");
+const rewire = require("rewire");
+const fs = require("fs");
+
+const retrieverPdndJwks = require("../app/retrieverPdndJwks");
+const jwksCache = require("../app/jwksCache");
+const ValidationException = require("../app/exceptions");
+const AudienceValidationException = require("../app/exceptions");
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;

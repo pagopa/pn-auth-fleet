@@ -1,21 +1,21 @@
-import {
+const {
   getApiKeyByIndex,
   getPaAggregateById,
   getPaAggregationById,
-} from "./dynamoFunctions.js";
-import {
+} = require("./dynamoFunctions.js");
+const {
   AudienceValidationException,
   ItemNotFoundException,
   KeyStatusException,
   ValidationException,
-} from "./exceptions.js";
-import { generateIAMPolicy } from "./iamPolicyGenerator.js";
-import {
+} = require("./exceptions.js");
+const { generateIAMPolicy } = require("./iamPolicyGenerator.js");
+const {
   anonymizeKey,
   findAttributeValueInObjectWithInsensitiveCase,
   logIamPolicy,
-} from "./utils.js";
-import { validation } from "./validation.js";
+} = require("./utils.js");
+const { validation } = require("./validation.js");
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -122,4 +122,4 @@ function handleError(error) {
   return defaultDenyAllPolicy;
 }
 
-export { eventHandler };
+module.exports = { eventHandler };

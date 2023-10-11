@@ -1,6 +1,6 @@
-import axios from "axios";
+const axios = require("axios");
 import { getCxId } from "../app/dataVaultClient.js";
-import MockAdapter from "axios-mock-adapter";
+const MockAdapter = require("axios-mock-adapter");
 
 describe("retrieverCxId success", () => {
   const result = "123e4567-e89b-12d3-a456-426655440000";

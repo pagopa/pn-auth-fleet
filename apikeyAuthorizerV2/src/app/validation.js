@@ -1,11 +1,12 @@
-import jsonwebtoken from "jsonwebtoken";
-import jwkToPem from "jwk-to-pem";
-import {
+const jsonwebtoken = require("jsonwebtoken");
+const jwkToPem = require("jwk-to-pem");
+
+const {
   AudienceValidationException,
   ValidationException,
-} from "./exceptions.js";
-import { get, isCacheActive } from "./jwksCache.js";
-import { getJwks } from "./retrieverPdndJwks.js";
+} = require("./exceptions.js");
+const { get, isCacheActive } = require("./jwksCache.js");
+const retrieverPdndJwks = require("./retrieverPdndJwks.js");
 
 const validation = async (jwtToken) => {
   if (jwtToken) {
@@ -57,7 +58,7 @@ async function findPublicKeyUsingCache(keyId) {
 
 async function findPublicKeyWithoutCache(keyId) {
   console.debug("Retrieving public key from PDND");
-  const jwks = await getJwks(process.env.PDND_ISSUER);
+  const jwks = await retrieverPdndJwks.getJwks(process.env.PDND_ISSUER);
   return getKeyFromJwks(jwks, keyId);
 }
 
@@ -101,4 +102,4 @@ function validateTokenAudience(aud) {
   }
 }
 
-export { validation };
+module.exports = { validation };

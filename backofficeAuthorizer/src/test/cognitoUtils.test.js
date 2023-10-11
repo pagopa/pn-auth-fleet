@@ -1,6 +1,6 @@
-import { expect } from "chai";
+const { expect } = require("chai");
 import { getCognitoUserTags, verifyIdToken } from "../app/cognitoUtils";
-import sinon from "sinon";
+const sinon = require("sinon");
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 
 describe("cognito tests", function () {

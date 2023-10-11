@@ -1,16 +1,16 @@
-import {
+const {
   GetCommand,
   QueryCommand,
   DynamoDBDocumentClient,
-} from "@aws-sdk/lib-dynamodb"; /* refers to: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html#dynamodb-example-document-client-query */
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import AWSXRay from "aws-xray-sdk"; /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
+} = require("@aws-sdk/lib-dynamodb"); /* refers to: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html#dynamodb-example-document-client-query */
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const AWSXRay = require("aws-xray-sdk"); /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
 
-import {
+const {
   ItemNotFoundException,
   TooManyItemsFoundException,
-} from "./exceptions.js";
-import { anonymizeKey } from "./utils.js";
+} = require("./exceptions.js");
+const { anonymizeKey } = require("./utils.js");
 
 const getApiKeyByIndex = async (virtualKey) => {
   const ddbClient = new DynamoDBClient();
@@ -86,4 +86,4 @@ const getItemById = async (TableName, keyName, keyValue) => {
   return dynamoItem.Item;
 };
 
-export { getApiKeyByIndex, getPaAggregateById, getPaAggregationById };
+module.exports = { getApiKeyByIndex, getPaAggregateById, getPaAggregationById };

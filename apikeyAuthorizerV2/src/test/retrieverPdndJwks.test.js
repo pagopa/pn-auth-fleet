@@ -1,7 +1,8 @@
-import axios from "axios";
-import { getJwks } from "../app/retrieverPdndJwks.js";
-import MockAdapter from "axios-mock-adapter";
-import fs from "fs";
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
+const fs = require("fs");
+
+const { getJwks } = require("../app/retrieverPdndJwks.js");
 
 describe("retrieverJwks success", () => {
   const result = fs.readFileSync(

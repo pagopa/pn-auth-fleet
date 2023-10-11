@@ -1,6 +1,6 @@
-import { expect } from "chai";
-import lambdaTester from "lambda-tester";
-import proxyquire from "proxyquire";
+const { expect } = require("chai");
+const lambdaTester = require("lambda-tester");
+const { proxyquire } = require("proxyquire");
 import * as iamPolicyGen from "../app/iamPolicyGen";
 
 const dataVaultClientMock = {

@@ -1,10 +1,10 @@
-import {
+const {
   ValidationException,
   KeyStatusException,
   ItemNotFoundException,
   TooManyItemsFoundException,
-} from "../app/exceptions";
-import { expect } from "chai";
+} = require("../app/exceptions");
+const { expect } = require("chai");
 
 describe("test ValidationException", () => {
   it("should set name", () => {

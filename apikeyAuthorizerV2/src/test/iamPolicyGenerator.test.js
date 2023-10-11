@@ -1,5 +1,5 @@
-import { expect } from "chai";
-import { generateIAMPolicy } from "../app/iamPolicyGenerator";
+const { expect } = require("chai");
+const { generateIAMPolicy } = require("../app/iamPolicyGenerator");
 
 describe("iamPolicyGenerator tests", () => {
   let mockContext = {

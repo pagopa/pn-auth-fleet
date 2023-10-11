@@ -1,5 +1,5 @@
 import { GetPublicKeyCommand, KMS } from "@aws-sdk/client-kms";
-import jsonwebtoken from "jsonwebtoken";
+const jsonwebtoken = require("jsonwebtoken");
 import { ValidationException } from "./exception/validationException.js";
 
 const kms = new KMS();

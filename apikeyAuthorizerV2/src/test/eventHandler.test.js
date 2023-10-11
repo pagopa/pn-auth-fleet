@@ -1,9 +1,9 @@
-import { expect } from "chai";
-import proxyquire from "proxyquire";
+const { expect } = require("chai");
+const proxyquire = require("proxyquire");
 
-import * as event from "../../event.json";
-import * as eventPdnd from "../../event-PDND.json";
-import {
+const event = require("../../event.json");
+const eventPdnd = require("../../event-PDND.json");
+const {
   mockPaAggregationFound,
   mockAggregateFound,
   mockIamPolicyOkPdnd,
@@ -11,7 +11,7 @@ import {
   mockEventTokenNull,
   mockIamPolicyOk,
   mockIamPolicyKo,
-} from "./mocks.js";
+} = require("./mocks.js");
 
 const mockBlockedVirtualKey = {
   id: "testId",

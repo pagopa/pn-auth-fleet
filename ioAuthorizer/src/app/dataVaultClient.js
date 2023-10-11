@@ -1,5 +1,5 @@
 import AWSXRay from "aws-xray-sdk-core";
-import axios from "axios";
+const axios = require("axios");
 import http from "http";
 import https from "https";
 

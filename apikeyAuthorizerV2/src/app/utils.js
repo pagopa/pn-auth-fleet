@@ -54,7 +54,7 @@ const findAttributeValueInObjectWithInsensitiveCase = (object, target) => {
   return foundKeys.length !== 0 ? object[foundKeys[0]] : undefined;
 };
 
-export {
+module.exports = {
   anonymizeKey,
   findAttributeValueInObjectWithInsensitiveCase,
   logEvent,

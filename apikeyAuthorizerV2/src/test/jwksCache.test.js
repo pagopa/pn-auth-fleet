@@ -1,9 +1,10 @@
-import sinon from "sinon";
-import { get, isCacheActive } from "../app/jwksCache";
-import * as retrieverPdndJwks from "../app/retrieverPdndJwks";
-import fs from "fs";
-import chaiAsPromised from "chai-as-promised";
-import chai from "chai";
+const sinon = require("sinon");
+const fs = require("fs");
+const chaiAsPromised = require("chai-as-promised");
+const chai = require("chai");
+
+const { get, isCacheActive } = require("../app/jwksCache");
+const retrieverPdndJwks = require("../app/retrieverPdndJwks");
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
