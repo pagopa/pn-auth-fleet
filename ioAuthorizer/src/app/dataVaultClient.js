@@ -1,7 +1,7 @@
-import AWSXRay from "aws-xray-sdk-core";
+const AWSXRay = require("aws-xray-sdk-core");
 const axios = require("axios");
-import http from "http";
-import https from "https";
+const http = require("http");
+const https = require("https");
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
@@ -22,4 +22,4 @@ const getCxId = async (taxId) => {
   }
 };
 
-export { getCxId };
+module.exports = { getCxId };

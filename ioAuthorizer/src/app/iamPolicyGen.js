@@ -1,4 +1,4 @@
-import { ValidationException } from "./exception/validationException.js";
+const ValidationException = require("./exception/validationException.js");
 
 const generateIAMPolicy = async (resourceArn, cxId) => {
   const policyStatement = generatePolicyStatement(resourceArn, "Allow");
@@ -46,4 +46,4 @@ function generatePolicy(principalId, cxId, policyStatement) {
   };
 }
 
-export { generateIAMPolicy };
+module.exports = { generateIAMPolicy };

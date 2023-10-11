@@ -1,5 +1,5 @@
-import { generateIAMPolicy } from "./iamPolicyGen.js";
-import { validation } from "./validation.js";
+const { generateIAMPolicy } = require("./iamPolicyGen.js");
+const { validation } = require("./validation.js");
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -71,4 +71,4 @@ function getUserType(token) {
   }
 }
 
-export { handleEvent };
+module.exports = { handleEvent };

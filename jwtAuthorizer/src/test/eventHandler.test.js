@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const rewire = require("rewire");
-const { proxyquire } = require("proxyquire");
+const proxyquire = require("proxyquire");
 
 const validation = rewire("../app/validation");
 validation.__set__({

@@ -3,22 +3,10 @@
   "version": "1.0.0",
   "description": "lambda che decodifica e valida i token JWT “Access Token” generati dal servizio di “Token Exchange” ed aggiunge eventuali attributi dell’utente collegati alla API Key impostati come header nelle chiamate ai micro-servizi di backend.",
   "main": "index.js",
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "targets": {
-            "node": "current"
-          }
-        }
-      ]
-    ]
-  },
   "scripts": {
     "test-build": "npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
     "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
-    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config -r @babel/register",
+    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
   },
@@ -36,9 +24,6 @@
     "sonarqube-scanner": "^2.8.2"
   },
   "dependencies": {
-    "@babel/core": "^7.22.20",
-    "@babel/node": "^7.22.19",
-    "@babel/preset-env": "^7.22.20",
     "@aws-sdk/client-kms": "^3.410.0",
     "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.5",

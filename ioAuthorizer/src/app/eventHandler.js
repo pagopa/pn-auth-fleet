@@ -1,5 +1,5 @@
-import { getCxId } from "./dataVaultClient.js";
-import { generateIAMPolicy } from "./iamPolicyGen.js";
+const { getCxId } = require("./dataVaultClient.js");
+const { generateIAMPolicy } = require("./iamPolicyGen.js");
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -40,4 +40,4 @@ const handleEvent = async (event) => {
   }
 };
 
-export { handleEvent };
+module.exports = { handleEvent };

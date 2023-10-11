@@ -1,4 +1,4 @@
-import { handleEvent } from "./src/app/eventHandler.js";
+const { handleEvent } = require("./src/app/eventHandler.js");
 
 const handler = async (event) => {
   // commented to hide PII
@@ -6,4 +6,4 @@ const handler = async (event) => {
   return handleEvent(event);
 };
 
-export { handler };
+exports.handler = handler;

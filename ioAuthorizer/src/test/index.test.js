@@ -1,7 +1,8 @@
 const { expect } = require("chai");
 const lambdaTester = require("lambda-tester");
-const { proxyquire } = require("proxyquire");
-import * as iamPolicyGen from "../app/iamPolicyGen";
+const proxyquire = require("proxyquire");
+
+const iamPolicyGen = require("../app/iamPolicyGen");
 
 const dataVaultClientMock = {
   getCxId: async function (taxId) {

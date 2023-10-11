@@ -1,6 +1,7 @@
-import { GetPublicKeyCommand, KMS } from "@aws-sdk/client-kms";
+const { GetPublicKeyCommand, KMS } = require("@aws-sdk/client-kms");
 const jsonwebtoken = require("jsonwebtoken");
-import { ValidationException } from "./exception/validationException.js";
+
+const ValidationException = require("./exception/validationException.js");
 
 const kms = new KMS();
 const cachedPublicKeyMap = new Map();
@@ -70,4 +71,4 @@ function searchInCache(keyId) {
   }
 }
 
-export { validation };
+module.exports = { validation };
