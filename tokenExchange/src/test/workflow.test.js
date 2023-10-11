@@ -22,10 +22,15 @@ const retrieverJwksMock = {
   },
 };
 
+const jwksCache = proxyquire.noCallThru().load("../app/jwksCache.js", {
+  "./retrieverJwks.js": retrieverJwksMock,
+});
+
 const publicKeyGetter = proxyquire
   .noCallThru()
   .load("../app/publicKeyGetter.js", {
     "./retrieverJwks.js": retrieverJwksMock,
+    "./jwksCache.js": jwksCache,
   });
 
 const validator = proxyquire.noCallThru().load("../app/validation.js", {
@@ -161,7 +166,6 @@ describe("Token from spidhub", function () {
 
   afterEach(() => {
     kmsClientMock.reset();
-    sinon.restore();
   });
 
   after(() => {
@@ -395,11 +399,11 @@ describe("Executes the token exchange successfully", function () {
 
   afterEach(() => {
     kmsClientMock.reset();
-    sinon.restore();
   });
 
   after(() => {
     mock.restore();
+    sinon.restore();
   });
 
   const expiredToken = {

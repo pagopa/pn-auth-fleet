@@ -25,7 +25,6 @@ describe("test jwksCache", () => {
   });
 
   afterEach(() => {
-    sinon.reset();
     sinon.restore();
     clock.restore();
   });
@@ -62,7 +61,6 @@ describe("test jwksCache", () => {
     clock.tick(SIX_MINUTES_IN_MS);
 
     //Second call fails
-    sinon.reset();
     sinon.restore();
     sinon.stub(retrieverJwks, "getJwks").throws();
 

@@ -73,7 +73,6 @@ describe("test validation", () => {
   });
 
   after(() => {
-    sinon.reset();
     sinon.restore();
     mock.restore();
   });
@@ -126,7 +125,6 @@ describe("test validation", () => {
       ...decodedToken,
       fiscal_number: "GDNNWA12H81Y874A",
     });
-    stub.reset();
     stub.restore();
   });
 

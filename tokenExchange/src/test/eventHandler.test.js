@@ -74,7 +74,6 @@ describe("test eventHandler", () => {
   });
 
   after(() => {
-    sinon.reset();
     sinon.restore();
     mock.restore();
     revert();
