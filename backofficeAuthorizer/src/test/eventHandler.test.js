@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { proxyquire } = require("proxyquire");
+const proxyquire = require("proxyquire");
 
 describe("Test auth policy", () => {
   it("allow method", async () => {

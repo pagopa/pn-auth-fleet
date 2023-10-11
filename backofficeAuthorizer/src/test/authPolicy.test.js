@@ -1,5 +1,6 @@
 const { expect } = require("chai");
-import { AuthPolicy } from "../app/authPolicy.js";
+
+const { AuthPolicy } = require("../app/authPolicy.js");
 
 const principalId = "1231312";
 const awsAccountId = "1231231232";

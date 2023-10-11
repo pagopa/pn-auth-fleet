@@ -1,8 +1,7 @@
-import { AuthPolicy } from "./authPolicy.js";
-
-import { getOpenAPIS3Location } from "./apiGatewayUtils.js";
-import { getCognitoUserTags, verifyIdToken } from "./cognitoUtils.js";
-import { getAllowedResourcesFromS3 } from "./s3Utils.js";
+const { AuthPolicy } = require("./authPolicy.js");
+const { getOpenAPIS3Location } = require("./apiGatewayUtils.js");
+const { getCognitoUserTags, verifyIdToken } = require("./cognitoUtils.js");
+const { getAllowedResourcesFromS3 } = require("./s3Utils.js");
 
 const handleEvent = async function (event) {
   // Parameters
@@ -129,4 +128,4 @@ const getValidIdTokenPayload = async (accessToken) => {
   return await verifyIdToken(accessToken);
 };
 
-export { handleEvent };
+module.exports = { handleEvent };

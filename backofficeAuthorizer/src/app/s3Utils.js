@@ -1,6 +1,7 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import yaml from "js-yaml";
-import { arraysOverlap } from "./utils.js";
+const { GetObjectCommand, S3Client } = require("@aws-sdk/client-s3");
+const yaml = require("js-yaml");
+
+const { arraysOverlap } = require("./utils.js");
 
 const transformPathPattern = (path, servicePath) => {
   const string = `^/${servicePath}`;
@@ -50,4 +51,4 @@ const getS3Object = (bucket, key) => {
   return response;
 };
 
-export { getAllowedResourcesFromS3 };
+module.exports = { getAllowedResourcesFromS3 };

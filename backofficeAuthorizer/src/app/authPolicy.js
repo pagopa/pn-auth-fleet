@@ -348,4 +348,4 @@ AuthPolicy.prototype = (function () {
   };
 })();
 
-export { AuthPolicy };
+module.exports = { AuthPolicy };

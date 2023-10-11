@@ -1,6 +1,7 @@
 const { expect } = require("chai");
-const event = require("../../event.json");
 const proxyquire = require("proxyquire");
+
+const event = require("../../event.json");
 const { mockIamPolicyOk, mockIamPolicyKo } = require("./mocks");
 
 describe("index tests", function () {

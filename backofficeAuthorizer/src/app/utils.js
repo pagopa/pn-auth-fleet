@@ -12,4 +12,4 @@ const arraysOverlap = (arrayA, arrayB) => {
   }
 };
 
-export { arraysOverlap };
+module.exports = { arraysOverlap };

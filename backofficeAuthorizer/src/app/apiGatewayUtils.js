@@ -1,4 +1,7 @@
-import { APIGatewayClient, GetTagsCommand } from "@aws-sdk/client-api-gateway";
+const {
+  APIGatewayClient,
+  GetTagsCommand,
+} = require("@aws-sdk/client-api-gateway");
 
 const getOpenAPIS3Location = async (apiOptions) => {
   const apigwClient = new APIGatewayClient();
@@ -20,4 +23,4 @@ const getOpenAPIS3Location = async (apiOptions) => {
   return response;
 };
 
-export { getOpenAPIS3Location };
+module.exports = { getOpenAPIS3Location };

@@ -1,4 +1,4 @@
-import { CognitoJwtVerifier } from "aws-jwt-verify";
+const { CognitoJwtVerifier } = require("aws-jwt-verify");
 
 const getCognitoUserTags = (idTokenPayload) => {
   if (idTokenPayload["custom:backoffice_tags"]) {
@@ -50,4 +50,4 @@ const verifyIdToken = async (accessToken) => {
   }
 };
 
-export { getCognitoUserTags, verifyIdToken };
+module.exports = { getCognitoUserTags, verifyIdToken };

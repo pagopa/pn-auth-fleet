@@ -1,7 +1,8 @@
 const { expect } = require("chai");
-import event from "../../event.json";
-const { proxyquire } = require("proxyquire");
-import { mockIamPolicyOk, mockIamPolicyKo } from "./mocks";
+const proxyquire = require("proxyquire");
+
+const event = require("../../event.json");
+const { mockIamPolicyOk, mockIamPolicyKo } = require("./mocks");
 
 describe("index tests", function () {
   it("test Ok", async () => {

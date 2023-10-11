@@ -1,5 +1,6 @@
 const { expect } = require("chai");
-import { arraysOverlap } from "../app/utils.js";
+
+const { arraysOverlap } = require("../app/utils.js");
 
 describe("Test array overlap", () => {
   it("no overlap because empty", () => {
