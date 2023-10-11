@@ -1,4 +1,4 @@
-import bunyan from "bunyan";
+const bunyan = require("bunyan");
 
 function auditLog(
   message = "",
@@ -36,4 +36,4 @@ function auditLog(
   });
 }
 
-export { auditLog };
+module.exports = { auditLog };

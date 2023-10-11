@@ -4,4 +4,4 @@ class ValidationException extends Error {
     this.name = "ValidationException";
   }
 }
-export { ValidationException };
+module.exports = ValidationException;

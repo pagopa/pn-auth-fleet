@@ -1,10 +1,14 @@
-import { expect } from "chai";
-import lambdaTester from "lambda-tester";
-import proxyquire from "proxyquire";
-import { generateIAMPolicy } from "../app/iamPolicyGen";
-import { getKeyTags } from "../app/keyTagsGetter";
-import { APIGatewayClient, GetTagsCommand } from "@aws-sdk/client-api-gateway";
-import { mockClient } from "aws-sdk-client-mock";
+const { expect } = require("chai");
+const lambdaTester = require("lambda-tester");
+const proxyquire = require("proxyquire");
+const {
+  APIGatewayClient,
+  GetTagsCommand,
+} = require("@aws-sdk/client-api-gateway");
+const { mockClient } = require("aws-sdk-client-mock");
+
+const { generateIAMPolicy } = require("../app/iamPolicyGen.js");
+const { getKeyTags } = require("../app/keyTagsGetter.js");
 
 const apiGatewayClientMock = mockClient(APIGatewayClient);
 
@@ -16,8 +20,8 @@ const awsMockResult = {
 };
 
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
-  "../app/iamPolicyGen.js": { generateIAMPolicy },
-  "../app/keyTagsGetter.js": { getKeyTags },
+  "./iamPolicyGen.js": { generateIAMPolicy },
+  "./keyTagsGetter.js": { getKeyTags },
 });
 
 const lambda = proxyquire.noCallThru().load("../../index.js", {
@@ -42,7 +46,7 @@ describe("Success", function () {
 
   it("with IAM Policy", function (done) {
     apiGatewayClientMock.on(GetTagsCommand).resolves(awsMockResult);
-    lambdaTester(lambda.lambdaHandler)
+    lambdaTester(lambda.handler)
       .event(event)
       .expectResult((result) => {
         console.debug("the result is ", result);
@@ -63,7 +67,7 @@ describe("Success", function () {
     apiGatewayClientMock.on(GetTagsCommand).resolves(awsMockResult);
     // changing into bad method arn
     event.methodArn = "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/";
-    lambdaTester(lambda.lambdaHandler)
+    lambdaTester(lambda.handler)
       .event(event)
       .expectResult((result) => {
         console.debug("the result is ", result);

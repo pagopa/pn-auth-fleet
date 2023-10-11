@@ -10,7 +10,7 @@ import {
   ItemNotFoundException,
   TooManyItemsFoundException,
 } from "./exceptions.js";
-import { anonymizeKey } from "./utils";
+import { anonymizeKey } from "./utils.js";
 
 const getApiKeyByIndex = async (virtualKey) => {
   const ddbClient = new DynamoDBClient();

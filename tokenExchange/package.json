@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "babel": {
     "presets": [
       [
@@ -19,7 +18,7 @@
   "scripts": {
     "test-build": "npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
     "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
-    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit  -r dotenv/config -r @babel/register",
+    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit  -r dotenv/config",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
   },
@@ -41,9 +40,6 @@
     "sonarqube-scanner": "^2.8.2"
   },
   "dependencies": {
-    "@babel/core": "^7.22.20",
-    "@babel/node": "^7.22.19",
-    "@babel/preset-env": "^7.22.20",
     "@aws-sdk/client-kms": "^3.413.0",
     "aws-xray-sdk-core": "^3.3.6",
     "axios": "^0.25.0",

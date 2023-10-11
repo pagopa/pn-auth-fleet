@@ -1,5 +1,6 @@
-import { generateIAMPolicy } from "./iamPolicyGen.js";
-import { getKeyTags } from "./keyTagsGetter.js";
+const { generateIAMPolicy } = require("./iamPolicyGen.js");
+const { getKeyTags } = require("./keyTagsGetter.js");
+
 const PA_TAG_NAME = process.env.PA_TAG_NAME;
 const GROUPS_TAG_NAME = process.env.GROUPS_TAG_NAME;
 
@@ -52,4 +53,4 @@ async function handleEvent(event) {
   }
 }
 
-export { handleEvent };
+module.exports = { handleEvent };

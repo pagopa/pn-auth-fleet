@@ -1,4 +1,4 @@
-import { getJwks } from "./retrieverJwks.js";
+const retrieverJwks = require("./retrieverJwks.js");
 
 /* 
   Map structure : { 
@@ -18,12 +18,12 @@ const get = async (issuer) => {
   return cachedJwks.get(issuer);
 };
 
-const isCacheActive = () => {
+const isCacheActive = function () {
   return TTL != 0;
 };
 
 function isCacheEmpty(issuer) {
-  return !cachedJwks || !cachedJwks.has(issuer);
+  return !cachedJwks?.has(issuer);
 }
 
 function isCacheExpired(issuer) {
@@ -34,7 +34,7 @@ function isCacheExpired(issuer) {
 async function refreshCache(issuer) {
   console.debug(`Starting refresh cache for issuer : ${issuer}`);
   try {
-    const jwks = await getJwks(issuer);
+    const jwks = await retrieverJwks.getJwks(issuer);
     setCachedData(jwks, issuer);
   } catch (error) {
     handleCacheRefreshFail(error, issuer);
@@ -77,4 +77,4 @@ function checkLastUpdateTresholdExceeded(issuer) {
   return jwks.lastUpdate > treshold;
 }
 
-export { get, isCacheActive };
+module.exports = { get, isCacheActive };

@@ -1,15 +1,17 @@
-import * as event from "../../event.json";
-import * as eventPdnd from "../../event-PDND.json";
 import { expect } from "chai";
 import proxyquire from "proxyquire";
-import { mockIamPolicyOk, mockIamPolicyKo } from "./mocks";
+
+import * as event from "../../event.json";
+import * as eventPdnd from "../../event-PDND.json";
 import {
   mockPaAggregationFound,
   mockAggregateFound,
   mockIamPolicyOkPdnd,
   mockJwtValidationOk,
   mockEventTokenNull,
-} from "./mocks";
+  mockIamPolicyOk,
+  mockIamPolicyKo,
+} from "./mocks.js";
 
 const mockBlockedVirtualKey = {
   id: "testId",

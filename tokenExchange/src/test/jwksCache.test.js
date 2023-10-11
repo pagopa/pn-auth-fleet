@@ -1,10 +1,10 @@
-import sinon from "sinon";
-import fs from "fs";
-import chaiAsPromised from "chai-as-promised";
-import chai from "chai";
+const sinon = require("sinon");
+const fs = require("fs");
+const chaiAsPromised = require("chai-as-promised");
+const chai = require("chai");
 
-import { get, isCacheActive } from "../app/jwksCache";
-import * as retrieverJwks from "../app/retrieverJwks";
+const { get, isCacheActive } = require("../app/jwksCache.js");
+const retrieverJwks = require("../app/retrieverJwks.js");
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -34,10 +34,11 @@ describe("test jwksCache", () => {
     sinon.stub(retrieverJwks, "getJwks").callsFake((issuer) => jwksFromSelc);
 
     const jwks = await get("api.selfcare.pagopa.it");
+    const cacheActive = isCacheActive();
     expect(jwks.keys).to.be.eql(jwksFromSelc.keys);
     expect(jwks.expiresOn).not.to.be.undefined;
     expect(jwks.lastUpdate).not.to.be.undefined;
-    expect(isCacheActive()).to.be.true;
+    expect(cacheActive).to.be.true;
   });
 
   it("error initializing cache", async () => {

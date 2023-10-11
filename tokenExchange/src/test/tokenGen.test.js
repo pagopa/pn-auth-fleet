@@ -1,5 +1,5 @@
-import { expect } from "chai";
-import rewire from "rewire";
+const { expect } = require("chai");
+const rewire = require("rewire");
 
 const tokenGen = rewire("../app/tokenGen");
 

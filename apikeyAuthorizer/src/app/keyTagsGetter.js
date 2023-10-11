@@ -1,5 +1,8 @@
-import { GetTagsCommand, APIGatewayClient } from "@aws-sdk/client-api-gateway";
-import AWSXRay from "aws-xray-sdk"; /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
+const {
+  GetTagsCommand,
+  APIGatewayClient,
+} = require("@aws-sdk/client-api-gateway");
+const AWSXRay = require("aws-xray-sdk"); /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
 
 async function getKeyTags(apiKeyId) {
   const apigateway = AWSXRay.captureAWSv3Client(new APIGatewayClient());
@@ -17,4 +20,4 @@ async function getKeyTags(apiKeyId) {
   return request;
 }
 
-export { getKeyTags };
+module.exports = { getKeyTags };

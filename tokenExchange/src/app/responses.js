@@ -1,4 +1,4 @@
-import { ValidationException } from "./exception/validationException";
+const ValidationException = require("./exception/validationException");
 
 function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {
   // Clone decodedToken information and add sessionToken to them
@@ -47,4 +47,4 @@ function generateKoResponse(err, allowedOrigin) {
     isBase64Encoded: false,
   };
 }
-export { generateKoResponse, generateOkResponse };
+module.exports = { generateKoResponse, generateOkResponse };

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "lambda per verificare pseudo anomizzare il codice fiscale passato dal backend di IO",
   "main": "index.js",
-  "type": "module",
   "babel": {
     "presets": [
       [

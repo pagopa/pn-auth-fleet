@@ -1,7 +1,8 @@
-import jsonwebtoken from "jsonwebtoken";
-import { ValidationException } from "./exception/validationException.js";
-import { getPublicKey } from "./publicKeyGetter.js";
-import { copyAndMaskObject, getParameterFromStore } from "./utils";
+const jsonwebtoken = require("jsonwebtoken");
+
+const ValidationException = require("./exception/validationException.js");
+const { getPublicKey } = require("./publicKeyGetter.js");
+const { copyAndMaskObject, getParameterFromStore } = require("./utils");
 
 const validation = async (authorizationToken) => {
   const decodedTokenPayload = await jwtValidator(authorizationToken);
@@ -141,4 +142,4 @@ function checkRoles(role) {
   }
 }
 
-export { validation };
+module.exports = { validation };

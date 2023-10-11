@@ -1,7 +1,10 @@
-import { expect } from "chai";
+const { expect } = require("chai");
 
-import { generateKoResponse, generateOkResponse } from "../app/responses.js";
-import { ValidationException } from "../app/exception/validationException";
+const {
+  generateKoResponse,
+  generateOkResponse,
+} = require("../app/responses.js");
+const ValidationException = require("../app/exception/validationException");
 
 const sessionToken = "a.b.c";
 

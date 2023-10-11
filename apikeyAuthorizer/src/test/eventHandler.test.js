@@ -1,8 +1,11 @@
-import { expect } from "chai";
-import { APIGatewayClient, GetTagsCommand } from "@aws-sdk/client-api-gateway";
-import { mockClient } from "aws-sdk-client-mock";
+const { expect } = require("chai");
+const {
+  APIGatewayClient,
+  GetTagsCommand,
+} = require("@aws-sdk/client-api-gateway");
+const { mockClient } = require("aws-sdk-client-mock");
 
-import { handleEvent } from "../app/eventHandler";
+const { handleEvent } = require("../app/eventHandler.js");
 
 const apiGatewayClientMock = mockClient(APIGatewayClient);
 

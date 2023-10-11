@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "lambda che decodifica e valida i token JWT “Access Token” generati dal servizio di “Token Exchange” ed aggiunge eventuali attributi dell’utente collegati alla API Key impostati come header nelle chiamate ai micro-servizi di backend.",
   "main": "index.js",
-  "type": "module",
   "babel": {
     "presets": [
       [

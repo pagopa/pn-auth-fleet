@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "lambda utilizzata per autorizzare i client tramite le apikey virtuali",
   "main": "index.js",
-  "type": "module",
   "babel": {
     "presets": [
       [

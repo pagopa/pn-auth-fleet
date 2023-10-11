@@ -1,7 +1,7 @@
-import AWSXRay from "aws-xray-sdk-core";
-import axios from "axios";
-import http from "http";
-import https from "https";
+const AWSXRay = require("aws-xray-sdk-core");
+const axios = require("axios");
+const http = require("http");
+const https = require("https");
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
@@ -34,4 +34,4 @@ const getJwks = async (issuer) => {
   }
 };
 
-export { getJwks };
+module.exports = { getJwks };

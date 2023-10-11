@@ -1,14 +1,14 @@
-import { ValidationException } from "./exception/validationException.js";
-import { auditLog } from "./log.js";
-import { generateKoResponse, generateOkResponse } from "./responses.js";
-import { generateToken } from "./tokenGen.js";
-import {
+const ValidationException = require("./exception/validationException.js");
+const { auditLog } = require("./log.js");
+const { generateKoResponse, generateOkResponse } = require("./responses.js");
+const { generateToken } = require("./tokenGen.js");
+const {
   checkOrigin,
   enrichDecodedToken,
   getUserType,
   makeLower,
-} from "./utils.js";
-import { validation } from "./validation.js";
+} = require("./utils.js");
+const { validation } = require("./validation.js");
 
 const handleEvent = async (event) => {
   event.headers = makeLower(event.headers);
@@ -29,7 +29,7 @@ const handleEvent = async (event) => {
           eventOrigin,
           "KO"
         ).warn("error");
-        return responses.generateKoResponse(err, eventOrigin);
+        return generateKoResponse(err, eventOrigin);
       }
       if (encodedToken) {
         try {
@@ -96,4 +96,4 @@ const handleEvent = async (event) => {
   }
 };
 
-export { handleEvent };
+module.exports = { handleEvent };

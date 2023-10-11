@@ -1,15 +1,15 @@
-import fs from "fs";
-import jsonwebtoken from "jsonwebtoken";
-import sinon from "sinon";
-import { expect } from "chai";
-import rewire from "rewire";
-import proxyquire from "proxyquire";
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
+const fs = require("fs");
+const jsonwebtoken = require("jsonwebtoken");
+const sinon = require("sinon");
+const { expect } = require("chai");
+const rewire = require("rewire");
+const proxyquire = require("proxyquire");
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
 
-import * as retrieverJwks from "../app/retrieverJwks";
+const retrieverJwks = require("../app/retrieverJwks.js");
 
-const tokenGen = rewire("../app/tokenGen");
+const tokenGen = rewire("../app/tokenGen.js");
 
 const revert = tokenGen.__set__({
   getSignature: () => ({ Signature: "signature" }),
@@ -50,6 +50,8 @@ const enrichedToken = {
 };
 
 describe("test eventHandler", () => {
+  let mock;
+
   before(() => {
     // mock methods for token exchange
     sinon.stub(retrieverJwks, "getJwks").callsFake((issuer) => {
@@ -61,7 +63,7 @@ describe("test eventHandler", () => {
     });
     sinon.stub(jsonwebtoken, "verify").returns("token.token.token");
 
-    const mock = new MockAdapter(axios);
+    mock = new MockAdapter(axios);
     mock
       .onGet(
         `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
@@ -74,6 +76,7 @@ describe("test eventHandler", () => {
   after(() => {
     sinon.reset();
     sinon.restore();
+    mock.restore();
     revert();
   });
 

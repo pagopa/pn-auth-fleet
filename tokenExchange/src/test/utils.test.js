@@ -1,15 +1,15 @@
-import { expect } from "chai";
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
+const { expect } = require("chai");
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
 
-import {
+const {
   getParameterFromStore,
   copyAndMaskObject,
   checkOrigin,
   makeLower,
   enrichDecodedToken,
   getUserType,
-} from "../app/utils.js";
+} = require("../app/utils.js");
 
 const pgToken = {
   organization: {
@@ -56,6 +56,20 @@ const maskedObject = {
 };
 
 describe("utils tests", () => {
+  let mock;
+
+  before(() => {
+    mock = new MockAdapter(axios);
+  });
+
+  afterEach(() => {
+    mock.reset();
+  });
+
+  after(() => {
+    mock.restore();
+  });
+
   it("checks mask object", () => {
     const sensitiveFields = ["email", "family_name", "fiscal_number", "name"];
     const result = copyAndMaskObject(objectToMask, sensitiveFields);
@@ -122,7 +136,6 @@ describe("utils tests", () => {
 
   it("getParameterFromStore - success", async () => {
     const parameterName = "/fake-path/fake-param";
-    const mock = new MockAdapter(axios);
     mock
       .onGet(
         `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
@@ -136,7 +149,6 @@ describe("utils tests", () => {
 
   it("getParameterFromStore - fail", async () => {
     const parameterName = "/fake-path/fake-param";
-    const mock = new MockAdapter(axios);
     mock
       .onGet(
         `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(

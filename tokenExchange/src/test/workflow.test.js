@@ -1,16 +1,16 @@
-import { expect } from "chai";
-import lambdaTester from "lambda-tester";
-import proxyquire from "proxyquire";
-import jsonwebtoken from "jsonwebtoken";
-import fs from "fs";
-import sinon from "sinon";
-import rewire from "rewire";
-import { mockClient } from "aws-sdk-client-mock"; // check the comment below for the reason of this mock
-import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
+const { expect } = require("chai");
+const lambdaTester = require("lambda-tester");
+const proxyquire = require("proxyquire");
+const jsonwebtoken = require("jsonwebtoken");
+const fs = require("fs");
+const sinon = require("sinon");
+const rewire = require("rewire");
+const { mockClient } = require("aws-sdk-client-mock"); // check the comment below for the reason of this mock
+const { KMSClient, SignCommand } = require("@aws-sdk/client-kms");
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
 
-import { ValidationException } from "../app/exception/validationException.js";
-
-const tokenGen = rewire("../app/tokenGen");
+const tokenGen = rewire("../app/tokenGen.js");
 
 const retrieverJwksMock = {
   getJwks: async function (issuer) {
@@ -30,8 +30,6 @@ const publicKeyGetter = proxyquire
 
 const validator = proxyquire.noCallThru().load("../app/validation.js", {
   "./publicKeyGetter.js": publicKeyGetter,
-  jsonwebtoken: jsonwebtoken,
-  "./exception/validationException.js": { ValidationException },
 });
 
 const kmsClientMock = mockClient(KMSClient);
@@ -50,7 +48,6 @@ from aws-sdk-client-mock library.
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
   "./validation.js": validator,
   "./tokenGen.js": tokenGen,
-  "./exception/validationException.js": { ValidationException },
 });
 
 const lambda = proxyquire.noCallThru().load("../../index.js", {
@@ -69,7 +66,7 @@ describe("Expired token from SC", function () {
     }),
   };
 
-  beforeEach(() => {
+  before(() => {
     kmsClientMock.on(SignCommand).resolves({
       Signature: "signature",
     });
@@ -133,6 +130,7 @@ describe("Invalid Audience from spidhub", function () {
 });
 
 describe("Token from spidhub", function () {
+  let mock;
   const expiredToken = {
     headers: {
       httpMethod: "POST",
@@ -144,6 +142,17 @@ describe("Token from spidhub", function () {
     }),
   };
 
+  before(() => {
+    mock = new MockAdapter(axios);
+    mock
+      .onGet(
+        `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
+          process.env.ALLOWED_TAXIDS_PARAMETER
+        )}`
+      )
+      .reply(200, JSON.stringify({ Parameter: { Value: "GDNNWA12H81Y874F" } }));
+  });
+
   beforeEach(() => {
     kmsClientMock.on(SignCommand).resolves({
       Signature: "signature",
@@ -152,6 +161,11 @@ describe("Token from spidhub", function () {
 
   afterEach(() => {
     kmsClientMock.reset();
+    sinon.restore();
+  });
+
+  after(() => {
+    mock.restore();
   });
 
   it("with code = 400", function (done) {
@@ -360,6 +374,19 @@ describe("Not allowed TaxId", function () {
 });
 
 describe("Executes the token exchange successfully", function () {
+  let mock;
+
+  before(() => {
+    mock = new MockAdapter(axios);
+    mock
+      .onGet(
+        `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
+          process.env.ALLOWED_TAXIDS_PARAMETER
+        )}`
+      )
+      .reply(200, JSON.stringify({ Parameter: { Value: "GDNNWA12H81Y874F" } }));
+  });
+
   beforeEach(() => {
     kmsClientMock.on(SignCommand).resolves({
       Signature: "signature",
@@ -370,6 +397,11 @@ describe("Executes the token exchange successfully", function () {
     kmsClientMock.reset();
     sinon.restore();
   });
+
+  after(() => {
+    mock.restore();
+  });
+
   const expiredToken = {
     headers: {
       httpMethod: "POST",

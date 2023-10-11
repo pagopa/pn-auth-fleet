@@ -1,6 +1,6 @@
-import { DescribeKeyCommand, KMS, SignCommand } from "@aws-sdk/client-kms";
-import AWSXRay from "aws-xray-sdk-core";
-import base64url from "base64url";
+const { DescribeKeyCommand, KMS, SignCommand } = require("@aws-sdk/client-kms");
+const AWSXRay = require("aws-xray-sdk-core");
+const base64url = require("base64url");
 
 const kms = AWSXRay.captureAWSv3Client(new KMS());
 
@@ -88,4 +88,4 @@ async function sign(tokenParts, keyId) {
   return token;
 }
 
-export { generateToken };
+module.exports = { generateToken };

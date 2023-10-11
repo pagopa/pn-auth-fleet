@@ -1,4 +1,4 @@
-import axios from "axios";
+const axios = require("axios");
 
 function copyAndMaskObject(originalObject, sensitiveFields) {
   // Copia l'oggetto originale
@@ -57,10 +57,7 @@ function getUserType(token) {
   if (!token.organization) {
     return "PF";
   }
-  if (
-    token.organization &&
-    token.organization.roles[0]?.role.startsWith("pg-")
-  ) {
+  if (token.organization?.roles[0]?.role.startsWith("pg-")) {
     return "PG";
   }
   if (token.organization) {
@@ -99,7 +96,7 @@ async function getParameterFromStore(parameterName) {
   }
 }
 
-export {
+module.exports = {
   checkOrigin,
   copyAndMaskObject,
   enrichDecodedToken,
