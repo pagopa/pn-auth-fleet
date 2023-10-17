@@ -10,7 +10,7 @@ const {
 } = require("./utils.js");
 const { validation } = require("./validation.js");
 
-const handleEvent = async (event) => {
+async function handleEvent(event) {
   event.headers = makeLower(event.headers);
   const eventOrigin = event?.headers?.origin;
   if (eventOrigin) {
@@ -94,6 +94,6 @@ const handleEvent = async (event) => {
     );
     return generateKoResponse("eventOrigin is null", "*");
   }
-};
+}
 
 module.exports = { handleEvent };

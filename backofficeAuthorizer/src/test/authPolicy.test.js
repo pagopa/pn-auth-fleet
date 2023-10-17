@@ -12,7 +12,7 @@ describe("Test auth policy", () => {
       region: "eu-south-1",
       stage: "unique",
     };
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "POST",
       path: "/test",
@@ -24,7 +24,7 @@ describe("Test auth policy", () => {
 
   it("rest api, region and stage empty", () => {
     const apiOptions = {};
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "POST",
       path: "/test",
@@ -36,7 +36,7 @@ describe("Test auth policy", () => {
 
   it("wrong method", () => {
     const apiOptions = {};
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "XXXX",
       path: "/test",
@@ -56,7 +56,7 @@ describe("Test auth policy", () => {
 
   it("missing statements", () => {
     const apiOptions = {};
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "XXXX",
       path: "/test",
@@ -72,7 +72,7 @@ describe("Test auth policy", () => {
 
   it("wrong path", () => {
     const apiOptions = {};
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "POST",
       path: '/test#!"£!',
@@ -90,7 +90,7 @@ describe("Test auth policy", () => {
 
   it("conditional allow", () => {
     const apiOptions = {};
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "POST",
       path: "/test",
@@ -102,7 +102,7 @@ describe("Test auth policy", () => {
 
   it("conditional deny", () => {
     const apiOptions = {};
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "POST",
       path: "/test",
@@ -114,7 +114,7 @@ describe("Test auth policy", () => {
 
   it("allow all methods", () => {
     const apiOptions = {};
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "POST",
       path: "/test",
@@ -126,7 +126,7 @@ describe("Test auth policy", () => {
 
   it("deny all methods", () => {
     const apiOptions = {};
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "POST",
       path: "/test",
@@ -138,7 +138,7 @@ describe("Test auth policy", () => {
 
   it("allow method", () => {
     const apiOptions = {};
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "POST",
       path: "/test",
@@ -154,13 +154,13 @@ describe("Test auth policy", () => {
       region: "eu-south-1",
       stage: "unique",
     };
-    let policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
+    const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     const event = {
       httpMethod: "POST",
       path: "/test",
     };
     policy.allowMethod(event.httpMethod, event.path);
-    let context = {
+    const context = {
       "x-pagopa-pn-uid": "BO-123456",
     };
     const authResponse = policy.build(context);

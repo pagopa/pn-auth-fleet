@@ -11,16 +11,16 @@ const cachedJwks = new Map();
 const TWO_HOURS_IN_MILLISECONDS = 7200000;
 const TTL = process.env.CACHE_TTL ? Number(process.env.CACHE_TTL) : 300;
 
-const get = async (issuer) => {
+async function get(issuer) {
   if (isCacheEmpty(issuer) || isCacheExpired(issuer)) {
     await refreshCache(issuer);
   }
   return cachedJwks.get(issuer);
-};
+}
 
-const isCacheActive = function () {
+function isCacheActive() {
   return TTL != 0;
-};
+}
 
 function isCacheEmpty(issuer) {
   return !cachedJwks?.has(issuer);

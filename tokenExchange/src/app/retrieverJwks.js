@@ -6,7 +6,7 @@ const https = require("https");
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
 
-const getJwks = async (issuer) => {
+async function getJwks(issuer) {
   const issuersUrl = process.env.JWKS_MAPPING
     ? JSON.parse(process.env.JWKS_MAPPING)
     : {
@@ -32,6 +32,6 @@ const getJwks = async (issuer) => {
     console.error("Error in get key ", err);
     throw new Error("Error in get pub key");
   }
-};
+}
 
 module.exports = { getJwks };

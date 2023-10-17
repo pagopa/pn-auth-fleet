@@ -4,7 +4,7 @@ const ValidationException = require("./exception/validationException.js");
 const { get, isCacheActive } = require("./jwksCache.js");
 const retrieverJwks = require("./retrieverJwks.js");
 
-const getPublicKey = async (issuer, kid) => {
+async function getPublicKey(issuer, kid) {
   let publicKey;
   if (isCacheActive()) {
     publicKey = await findPublicKeyUsingCache(kid, issuer);
@@ -12,7 +12,7 @@ const getPublicKey = async (issuer, kid) => {
     publicKey = await findPublicKeyWithoutCache(kid, issuer);
   }
   return publicKey;
-};
+}
 
 async function findPublicKeyUsingCache(keyId, issuer) {
   console.log("Using cache");
@@ -40,7 +40,7 @@ function findKey(jwks, keyId) {
     }
   }
 
-  throw ValidationException("Public key not found");
+  throw new ValidationException("Public key not found");
 }
 
 module.exports = { getPublicKey };

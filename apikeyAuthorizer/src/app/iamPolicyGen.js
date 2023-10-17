@@ -11,10 +11,10 @@ async function generateIAMPolicy(resourceArn, paId, apiKeyId, groups) {
 }
 
 function generatePolicyStatement(resourceArn, action) {
-  let resources = resourceArn.split("/");
+  const resources = resourceArn.split("/");
   console.debug("resources", resources);
   if (resources.length >= 2) {
-    let resource = resources[0] + "/" + resources[1] + "/*";
+    const resource = resources[0] + "/" + resources[1] + "/*";
     // Generate an IAM policy statement
     return {
       Action: "execute-api:Invoke",

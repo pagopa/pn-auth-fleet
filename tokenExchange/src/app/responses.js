@@ -3,7 +3,6 @@ const ValidationException = require("./exception/validationException");
 function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {
   // Clone decodedToken information and add sessionToken to them
   const responseBody = { ...decodedToken, sessionToken };
-
   return {
     statusCode: 200,
     headers: {

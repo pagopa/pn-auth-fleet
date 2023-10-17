@@ -11,22 +11,28 @@ const { mockIamPolicyOk } = require("./mocks");
 
 describe("Test anonymize function", () => {
   it("anonymize with length > 6", () => {
-    let text = "test-clear";
-    let anonymized = anonymizeKey(text);
+    const text = "test-clear";
+    const anonymized = anonymizeKey(text);
     expect(anonymized).equals("te******ar");
   });
 
   it("anonymize with length < 6", () => {
-    let text = "test";
-    let anonymized = anonymizeKey(text);
+    const text = "test";
+    const anonymized = anonymizeKey(text);
     expect(anonymized).equals("****");
+  });
+
+  it("anonymize undefined string", () => {
+    const text = undefined;
+    const anonymized = anonymizeKey(text);
+    expect(anonymized).equals("");
   });
 });
 
 describe("Test logEvent", () => {
   it("", () => {
-    let spy = sinon.spy(console, "info");
-    let mockedEvent = {
+    const spy = sinon.spy(console, "info");
+    const mockedEvent = {
       path: "/request",
       httpMethod: "GET",
       headers: {
@@ -35,7 +41,7 @@ describe("Test logEvent", () => {
       },
     };
     logEvent(mockedEvent);
-    let expectedEvent = {
+    const expectedEvent = {
       httpMethod: "GET",
       path: "/request",
       "X-Amzn-Trace-Id": "test",
@@ -52,9 +58,9 @@ describe("Test logEvent", () => {
 
 describe("Test logIamPolicy", () => {
   it("", () => {
-    let spy = sinon.spy(console, "log");
+    const spy = sinon.spy(console, "log");
     logIamPolicy(mockIamPolicyOk);
-    let expectedIamPolicy = {
+    const expectedIamPolicy = {
       principalId: "testPrincipal",
       policyDocument: {
         Version: "2012-10-17",
@@ -83,7 +89,7 @@ describe("Test logIamPolicy", () => {
 
 describe("Test findAttributeValueInObjectWithInsensitiveCase", () => {
   it("item found", () => {
-    let object = {
+    const object = {
       key: "test",
     };
     const value = findAttributeValueInObjectWithInsensitiveCase(object, "KEY");
@@ -91,7 +97,7 @@ describe("Test findAttributeValueInObjectWithInsensitiveCase", () => {
   });
 
   it("item not found", () => {
-    let object = {
+    const object = {
       key: "test",
     };
     const value = findAttributeValueInObjectWithInsensitiveCase(object, "foo");

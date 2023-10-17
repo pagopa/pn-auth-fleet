@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { generateIAMPolicy } = require("../app/iamPolicyGenerator");
 
 describe("iamPolicyGenerator tests", () => {
-  let mockContext = {
+  const mockContext = {
     uid: "apiKey-testApiKey",
     cx_id: "testCxId",
     cx_groups: "[GRUPPO1,GRUPPO2,GRUPPO3]",

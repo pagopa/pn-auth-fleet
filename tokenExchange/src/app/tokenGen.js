@@ -4,7 +4,7 @@ const base64url = require("base64url");
 
 const kms = AWSXRay.captureAWSv3Client(new KMS());
 
-const generateToken = async (decodedToken) => {
+async function generateToken(decodedToken) {
   const keyAlias = process.env.KEY_ALIAS;
   const keyId = await getKeyId(keyAlias);
   console.debug("keyId from alias", keyId);
@@ -13,7 +13,7 @@ const generateToken = async (decodedToken) => {
   const res = await sign(token_components, keyId);
   console.debug(`JWT token: [${res}]`);
   return res;
-};
+}
 
 async function getKeyId(keyAlias) {
   console.info("Retrieving keyId from alias: ", keyAlias);

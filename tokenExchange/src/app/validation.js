@@ -4,11 +4,11 @@ const ValidationException = require("./exception/validationException.js");
 const { getPublicKey } = require("./publicKeyGetter.js");
 const { copyAndMaskObject, getParameterFromStore } = require("./utils");
 
-const validation = async (authorizationToken) => {
+async function validation(authorizationToken) {
   const decodedTokenPayload = await jwtValidator(authorizationToken);
   console.info("token is valid");
   return decodedTokenPayload;
-};
+}
 
 async function jwtValidator(jwtToken) {
   console.debug("Start jwtValidator");

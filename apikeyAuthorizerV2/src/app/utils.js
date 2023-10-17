@@ -1,4 +1,6 @@
 const anonymizeKey = (cleanString) => {
+  if (!cleanString) return "";
+
   if (cleanString.length < 6) return "".padStart(cleanString.length, "*");
 
   const firstTwoChars = cleanString.substring(0, 2);

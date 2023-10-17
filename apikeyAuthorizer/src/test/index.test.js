@@ -50,7 +50,7 @@ describe("Success", function () {
       .event(event)
       .expectResult((result) => {
         console.debug("the result is ", result);
-        let statement = result.policyDocument.Statement;
+        const statement = result.policyDocument.Statement;
         console.debug("statement ", statement);
         expect(statement[0].Action).to.equal("execute-api:Invoke");
         expect(statement[0].Effect).to.equal("Allow");

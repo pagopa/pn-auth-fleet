@@ -76,7 +76,7 @@ function findKey(jwks, keyId) {
     }
   }
 
-  throw ValidationException("Public key not found");
+  throw new ValidationException("Public key not found");
 }
 
 function validateTokenHeader(tokenHeader) {
