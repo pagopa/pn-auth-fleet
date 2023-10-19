@@ -3,7 +3,7 @@ const { getOpenAPIS3Location } = require("./apiGatewayUtils.js");
 const { getCognitoUserTags, verifyIdToken } = require("./cognitoUtils.js");
 const { getAllowedResourcesFromS3 } = require("./s3Utils.js");
 
-const handleEvent = async function (event) {
+async function handleEvent(event) {
   // Parameters
   const apiOptions = {};
   const tmp = event.methodArn.split(":");
@@ -48,16 +48,10 @@ const handleEvent = async function (event) {
   );
   console.log(`AuthResponse: ${JSON.stringify(authResponse)}`);
   return authResponse;
-};
+}
 
 // Decorator
-const logIfErrorDecorator = (
-  f,
-  event,
-  principalId,
-  awsAccountId,
-  apiOptions
-) => {
+function logIfErrorDecorator(f, event, principalId, awsAccountId, apiOptions) {
   let authResponse;
   return async function (...args) {
     try {
@@ -68,9 +62,9 @@ const logIfErrorDecorator = (
       throw err;
     }
   };
-};
+}
 
-const authorizeWithCognito = async (
+async function authorizeWithCognito(
   event,
   idToken,
   apiOptions,
@@ -78,7 +72,7 @@ const authorizeWithCognito = async (
   awsAccountId,
   bucketName,
   bucketKey
-) => {
+) {
   // Instantiate policy
   const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
 
@@ -115,9 +109,9 @@ const authorizeWithCognito = async (
 
   const authResponse = policy.build(context);
   return authResponse;
-};
+}
 
-const getValidIdTokenPayload = async (accessToken) => {
+async function getValidIdTokenPayload(accessToken) {
   // Token must be a Bearer Token and must be valid
   const isBearerToken = accessToken.startsWith("Bearer");
   if (!isBearerToken) {
@@ -126,6 +120,6 @@ const getValidIdTokenPayload = async (accessToken) => {
   }
 
   return await verifyIdToken(accessToken);
-};
+}
 
 module.exports = { handleEvent };

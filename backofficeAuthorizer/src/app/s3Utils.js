@@ -3,14 +3,14 @@ const yaml = require("js-yaml");
 
 const { arraysOverlap } = require("./utils.js");
 
-const transformPathPattern = (path, servicePath) => {
+function transformPathPattern(path, servicePath) {
   const string = `^/${servicePath}`;
   const regex = new RegExp(string);
 
   return path.replaceAll(/({.*?})/g, "*").replace(regex, "");
-};
+}
 
-const getAllowedResourcesFromS3 = async (event, bucket, key, userTags) => {
+async function getAllowedResourcesFromS3(event, bucket, key, userTags) {
   // Function that collects the S3 object containing the openAPI document and extract
   // the tags of the method invoked
   const s3Object = await getS3Object(bucket, key);
@@ -31,9 +31,9 @@ const getAllowedResourcesFromS3 = async (event, bucket, key, userTags) => {
   }
 
   return resources;
-};
+}
 
-const getS3Object = (bucket, key) => {
+function getS3Object(bucket, key) {
   const s3Client = new S3Client();
   const input = {
     Bucket: bucket,
@@ -49,6 +49,6 @@ const getS3Object = (bucket, key) => {
       throw err;
     });
   return response;
-};
+}
 
 module.exports = { getAllowedResourcesFromS3 };

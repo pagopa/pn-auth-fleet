@@ -5,11 +5,15 @@ const fs = require("fs");
 
 const { getAllowedResourcesFromS3 } = require("../app/s3Utils");
 
-const ddbMock = mockClient(S3Client);
-
 describe("s3 tests", function () {
-  this.beforeAll(() => {
-    ddbMock.reset();
+  let ddbMock;
+
+  before(() => {
+    ddbMock = mockClient(S3Client);
+  });
+
+  after(() => {
+    ddbMock.restore();
   });
 
   it("test tags extraction", async () => {

@@ -7,11 +7,15 @@ const { expect } = require("chai");
 
 const { getOpenAPIS3Location } = require("../app/apiGatewayUtils");
 
-const ddbMock = mockClient(APIGatewayClient);
-
 describe("api gateway tests", function () {
-  this.beforeAll(() => {
-    ddbMock.reset();
+  let ddbMock;
+
+  before(() => {
+    ddbMock = mockClient(APIGatewayClient);
+  });
+
+  after(() => {
+    ddbMock.restore();
   });
 
   it("test tags extraction", async () => {

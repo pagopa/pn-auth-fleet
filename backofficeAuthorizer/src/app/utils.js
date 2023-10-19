@@ -1,4 +1,4 @@
-const arraysOverlap = (arrayA, arrayB) => {
+function arraysOverlap(arrayA, arrayB) {
   // Function that checks if two arrays contains overlapping values
   if (arrayA.length === 0 || arrayB.length === 0) {
     return false;
@@ -10,6 +10,6 @@ const arraysOverlap = (arrayA, arrayB) => {
     }
     return false;
   }
-};
+}
 
 module.exports = { arraysOverlap };

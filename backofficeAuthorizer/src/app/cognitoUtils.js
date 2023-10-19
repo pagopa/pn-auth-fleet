@@ -1,6 +1,6 @@
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
 
-const getCognitoUserTags = (idTokenPayload) => {
+function getCognitoUserTags(idTokenPayload) {
   if (idTokenPayload["custom:backoffice_tags"]) {
     return idTokenPayload["custom:backoffice_tags"]
       .split(",")
@@ -10,9 +10,9 @@ const getCognitoUserTags = (idTokenPayload) => {
   } else {
     return [];
   }
-};
+}
 
-const verifyIdToken = async (accessToken) => {
+async function verifyIdToken(accessToken) {
   // Verify validity of JWT
   const userPoolArn = process.env.USER_POOL_ARN;
   if (!userPoolArn) {
@@ -48,6 +48,6 @@ const verifyIdToken = async (accessToken) => {
     console.log("Token not valid!");
     return false;
   }
-};
+}
 
 module.exports = { getCognitoUserTags, verifyIdToken };
