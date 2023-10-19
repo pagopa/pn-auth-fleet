@@ -7,11 +7,19 @@ const { mockClient } = require("aws-sdk-client-mock");
 
 const { handleEvent } = require("../app/eventHandler.js");
 
-const apiGatewayClientMock = mockClient(APIGatewayClient);
-
 describe("test eventHandler", () => {
-  beforeEach(() => {
+  let apiGatewayClientMock;
+
+  before(() => {
+    apiGatewayClientMock = mockClient(APIGatewayClient);
+  });
+
+  afterEach(() => {
     apiGatewayClientMock.reset();
+  });
+
+  after(() => {
+    apiGatewayClientMock.restore();
   });
 
   it("handle event without apiKey", async () => {

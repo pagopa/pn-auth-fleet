@@ -1,16 +1,12 @@
 const { expect } = require("chai");
 const lambdaTester = require("lambda-tester");
-const proxyquire = require("proxyquire");
 const {
   APIGatewayClient,
   GetTagsCommand,
 } = require("@aws-sdk/client-api-gateway");
 const { mockClient } = require("aws-sdk-client-mock");
 
-const { generateIAMPolicy } = require("../app/iamPolicyGen.js");
-const { getKeyTags } = require("../app/keyTagsGetter.js");
-
-const apiGatewayClientMock = mockClient(APIGatewayClient);
+const lambda = require("../../index");
 
 const awsMockResult = {
   tags: {
@@ -19,18 +15,19 @@ const awsMockResult = {
   },
 };
 
-const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
-  "./iamPolicyGen.js": { generateIAMPolicy },
-  "./keyTagsGetter.js": { getKeyTags },
-});
-
-const lambda = proxyquire.noCallThru().load("../../index.js", {
-  "./src/app/eventHandler.js": eventHandler,
-});
-
 describe("Success", function () {
-  beforeEach(() => {
+  let apiGatewayClientMock;
+
+  before(() => {
+    apiGatewayClientMock = mockClient(APIGatewayClient);
+  });
+
+  afterEach(() => {
     apiGatewayClientMock.reset();
+  });
+
+  after(() => {
+    apiGatewayClientMock.restore();
   });
 
   const event = {

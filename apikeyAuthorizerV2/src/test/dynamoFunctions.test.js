@@ -23,15 +23,19 @@ const dynamoItemVirtualApiKey = {
   virtualKey: "testVK",
 };
 
-describe("dynamoFunctions tests", function () {
-  const ddbMock = mockClient(DynamoDBDocumentClient);
+function errorMessageDynamo(id, table) {
+  return "Item with id = " + id + " not found on table " + table;
+}
 
-  beforeEach(() => {
-    ddbMock.reset();
+describe("dynamoFunctions tests", function () {
+  let ddbMock;
+
+  before(() => {
+    ddbMock = mockClient(DynamoDBDocumentClient);
   });
 
-  after(() => {
-    ddbMock.restore();
+  afterEach(() => {
+    ddbMock.reset();
   });
 
   it("test getPaAggregationById found", async () => {
@@ -91,18 +95,6 @@ describe("dynamoFunctions tests", function () {
       expect(error.message).to.equal(errorMessageDynamo(id, params.TableName));
     }
   });
-});
-
-describe("getApiKeyByIndex", function () {
-  const ddbMock = mockClient(DynamoDBDocumentClient);
-
-  beforeEach(() => {
-    ddbMock.reset();
-  });
-
-  after(() => {
-    ddbMock.restore();
-  });
 
   it("test getApiKeyByIndex found", async () => {
     ddbMock.on(QueryCommand).resolves({
@@ -124,21 +116,9 @@ describe("getApiKeyByIndex", function () {
       );
     }
   });
-});
 
-//Casistica impossibile
-describe("getApiKeyByIndex fail", function () {
-  const ddbMock = mockClient(DynamoDBDocumentClient);
-
-  beforeEach(() => {
-    ddbMock.reset();
-  });
-
-  after(() => {
-    ddbMock.restore();
-  });
-
-  it("too many items", async () => {
+  //Casistica impossibile
+  it("test getApiKeyByIndex too many items", async () => {
     ddbMock.on(QueryCommand).resolves({
       Items: [dynamoItemVirtualApiKey, dynamoItemVirtualApiKey],
     });
@@ -150,8 +130,8 @@ describe("getApiKeyByIndex fail", function () {
       expect(error.message).to.equal("Too many items found on table pn-apiKey");
     }
   });
-});
 
-function errorMessageDynamo(id, table) {
-  return "Item with id = " + id + " not found on table " + table;
-}
+  after(() => {
+    ddbMock.restore();
+  });
+});

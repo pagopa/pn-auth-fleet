@@ -2,15 +2,14 @@ const sinon = require("sinon");
 const fs = require("fs");
 const chaiAsPromised = require("chai-as-promised");
 const chai = require("chai");
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
 
 const { get, isCacheActive } = require("../app/jwksCache");
-const retrieverPdndJwks = require("../app/retrieverPdndJwks");
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-
 const SIX_MINUTES_IN_MS = 360000;
-let clock;
 
 describe("test jwksCache", () => {
   const jwksFromPdnd = JSON.parse(
@@ -18,24 +17,33 @@ describe("test jwksCache", () => {
       encoding: "utf8",
     })
   );
+  let mock;
+  let clock;
 
-  beforeEach(() => {
-    clock = sinon.useFakeTimers();
-    process.env.PDND_ISSUER = "uat.interop.pagopa.it";
-    process.env.PDND_AUDIENCE = "https://api.dev.pn.pagopa.it";
-    process.env.CACHE_TTL = "300";
+  before(() => {
+    mock = new MockAdapter(axios);
+    clock = sinon.useFakeTimers({ now: Date.now(), shouldAdvanceTime: true });
+    sinon.stub(process, "env").value({
+      PDND_ISSUER: "uat.interop.pagopa.it",
+      PDND_AUDIENCE: "https://api.dev.pn.pagopa.it",
+      CACHE_TTL: "300",
+    });
   });
 
   afterEach(() => {
-    sinon.reset();
+    mock.reset();
+  });
+
+  after(() => {
+    mock.restore();
     sinon.restore();
     clock.restore();
   });
 
   it("initialize cache when is empty", async () => {
-    sinon
-      .stub(retrieverPdndJwks, "getJwks")
-      .callsFake((issuer) => jwksFromPdnd);
+    mock
+      .onGet("https://uat.interop.pagopa.it/.well-known/jwks.json")
+      .reply(200, jwksFromPdnd);
 
     const jwks = await get();
     expect(jwks.keys).to.be.eql(jwksFromPdnd.keys);
@@ -45,9 +53,9 @@ describe("test jwksCache", () => {
   });
 
   it("refresh cache when is expired", async () => {
-    sinon
-      .stub(retrieverPdndJwks, "getJwks")
-      .callsFake((issuer) => jwksFromPdnd);
+    mock
+      .onGet("https://uat.interop.pagopa.it/.well-known/jwks.json")
+      .reply(200, jwksFromPdnd);
 
     const jwks = await get();
     const firstExpiresOn = jwks.expiresOn;
@@ -68,16 +76,18 @@ describe("test jwksCache", () => {
 
   it("error initializing cache", async () => {
     //First call fails
-    sinon.stub(retrieverPdndJwks, "getJwks").throws();
+    mock
+      .onGet("https://uat.interop.pagopa.it/.well-known/jwks.json")
+      .reply(500);
 
     expect(get).throws;
   });
 
   it("error refreshing cache", async () => {
     //First call succeed
-    sinon
-      .stub(retrieverPdndJwks, "getJwks")
-      .callsFake((issuer) => jwksFromPdnd);
+    mock
+      .onGet("https://uat.interop.pagopa.it/.well-known/jwks.json")
+      .reply(200, jwksFromPdnd);
 
     const jwks = await get();
     const firstExpiresOn = jwks.expiresOn;
@@ -89,9 +99,9 @@ describe("test jwksCache", () => {
     clock.tick(SIX_MINUTES_IN_MS);
 
     //Second call fails
-    sinon.reset();
-    sinon.restore();
-    sinon.stub(retrieverPdndJwks, "getJwks").throws();
+    mock
+      .onGet("https://uat.interop.pagopa.it/.well-known/jwks.json")
+      .reply(500);
 
     // Check expiration
     const now = Date.now();

@@ -1,4 +1,4 @@
-const retrieverPdndJwks = require("./retrieverPdndJwks.js");
+const { getJwks } = require("./retrieverPdndJwks.js");
 
 let cachedJwks = null;
 const TWO_HOURS_IN_MILLISECONDS = 7200000;
@@ -24,7 +24,7 @@ function isCacheExpired() {
 async function refreshCache() {
   console.debug("Starting refresh cache");
   try {
-    const jwks = await retrieverPdndJwks.getJwks(process.env.PDND_ISSUER);
+    const jwks = await getJwks(process.env.PDND_ISSUER);
     setCachedData(jwks);
   } catch (error) {
     handleCacheRefreshFail(error);

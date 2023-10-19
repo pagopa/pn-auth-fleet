@@ -23,7 +23,9 @@ describe("test jwksCache", () => {
   before(() => {
     mock = new MockAdapter(axios);
     clock = sinon.useFakeTimers();
-    process.env.CACHE_TTL = "300";
+    sinon.stub(process, "env").value({
+      CACHE_TTL: "300",
+    });
   });
 
   afterEach(() => {

@@ -7,7 +7,7 @@ const {
   logEvent,
   logIamPolicy,
 } = require("../app/utils");
-const { mockIamPolicyOk } = require("./mocks");
+const { mockIamPolicy } = require("./mocks");
 
 describe("Test anonymize function", () => {
   it("anonymize with length > 6", () => {
@@ -59,7 +59,7 @@ describe("Test logEvent", () => {
 describe("Test logIamPolicy", () => {
   it("", () => {
     const spy = sinon.spy(console, "log");
-    logIamPolicy(mockIamPolicyOk);
+    logIamPolicy(mockIamPolicy);
     const expectedIamPolicy = {
       principalId: "testPrincipal",
       policyDocument: {
