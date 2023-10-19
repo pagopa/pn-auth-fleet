@@ -11,8 +11,6 @@ const getJwks = async (issuer) => {
   console.info("jwksendpoint is ", jwksendpoint);
   try {
     const response = await axios.get(jwksendpoint, { timeout: 2000 });
-    console.log("AOOOOO");
-    console.log(response.data);
     return response.data;
   } catch (err) {
     console.error("Error in get key ", err);
