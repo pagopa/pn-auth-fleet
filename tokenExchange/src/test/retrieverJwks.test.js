@@ -1,10 +1,20 @@
 const axios = require("axios");
 const MockAdapter = require("axios-mock-adapter");
 const fs = require("fs");
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
+
 const { getJwks } = require("../app/retrieverJwks.js");
 
-describe("retrieverJwks success", () => {
-  const mock = new MockAdapter(axios);
+chai.use(chaiAsPromised);
+const expect = chai.expect;
+
+describe("retrieverJwks", () => {
+  let mock;
+
+  before(() => {
+    mock = new MockAdapter(axios);
+  });
 
   afterEach(() => {
     mock.reset();
@@ -14,7 +24,7 @@ describe("retrieverJwks success", () => {
     mock.restore();
   });
 
-  it("success", () => {
+  it("success", async () => {
     const result = fs.readFileSync(
       "./src/test/jwks-mock/spid-hub-test.dev.pn.pagopa.it.jwks.json",
       { encoding: "utf8" }
@@ -26,24 +36,21 @@ describe("retrieverJwks success", () => {
       )
       .reply(200, jsonResult);
 
-    getJwks("https://spid-hub-test.dev.pn.pagopa.it:8080").then(function (
-      response
-    ) {
-      console.log(response);
-    });
+    const response = await getJwks(
+      "https://spid-hub-test.dev.pn.pagopa.it:8080"
+    );
+    expect(response).to.be.eq(response);
   });
 
-  it("error", () => {
+  it("error", async () => {
     mock
       .onGet(
         "https://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json"
       )
       .reply(500);
 
-    getJwks("https://spid-hub-test.dev.pn.pagopa.it:8080").then(function (
-      response
-    ) {
-      console.log(response);
-    });
+    await expect(
+      getJwks("https://spid-hub-test.dev.pn.pagopa.it:8080")
+    ).to.be.rejectedWith(Error, "Error in get pub key");
   });
 });

@@ -1,4 +1,4 @@
-const retrieverJwks = require("./retrieverJwks.js");
+const { getJwks } = require("./retrieverJwks.js");
 
 /* 
   Map structure : { 
@@ -34,7 +34,7 @@ function isCacheExpired(issuer) {
 async function refreshCache(issuer) {
   console.debug(`Starting refresh cache for issuer : ${issuer}`);
   try {
-    const jwks = await retrieverJwks.getJwks(issuer);
+    const jwks = await getJwks(issuer);
     setCachedData(jwks, issuer);
   } catch (error) {
     handleCacheRefreshFail(error, issuer);

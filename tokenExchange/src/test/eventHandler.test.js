@@ -2,23 +2,17 @@ const fs = require("fs");
 const jsonwebtoken = require("jsonwebtoken");
 const sinon = require("sinon");
 const { expect } = require("chai");
-const rewire = require("rewire");
-const proxyquire = require("proxyquire");
 const axios = require("axios");
 const MockAdapter = require("axios-mock-adapter");
+const { mockClient } = require("aws-sdk-client-mock");
+const {
+  KMSClient,
+  SignCommand,
+  DescribeKeyCommand,
+} = require("@aws-sdk/client-kms");
 
-const retrieverJwks = require("../app/retrieverJwks.js");
-
-const tokenGen = rewire("../app/tokenGen.js");
-
-const revert = tokenGen.__set__({
-  getSignature: () => ({ Signature: "signature" }),
-  getKeyId: () => Promise.resolve("keyId"),
-});
-
-const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
-  "./tokenGen.js": tokenGen,
-});
+const { handleEvent } = require("../app/eventHandler");
+const { generateToken } = require("../app/tokenGen");
 
 const enrichedToken = {
   email: "info@agid.gov.it",
@@ -51,19 +45,22 @@ const enrichedToken = {
 
 describe("test eventHandler", () => {
   let mock;
+  let kmsClientMock;
 
   before(() => {
-    // mock methods for token exchange
-    sinon.stub(retrieverJwks, "getJwks").callsFake((issuer) => {
+    // mock get jwks response
+    mock = new MockAdapter(axios);
+    mock.onGet(/(?:.*).well-known\/jwks.json/).reply((config) => {
+      const issuer = config.url
+        .replace("https://", "")
+        .replace("/.well-known/jwks.json", "");
       const result = fs.readFileSync(
-        "./src/test/jwks-mock/" + issuer.replace("https://", "") + ".jwks.json",
+        "./src/test/jwks-mock/" + issuer + ".jwks.json",
         { encoding: "utf8" }
       );
-      return JSON.parse(result);
+      return [202, JSON.parse(result)];
     });
-    sinon.stub(jsonwebtoken, "verify").returns("token.token.token");
-
-    mock = new MockAdapter(axios);
+    // mock parameter store
     mock
       .onGet(
         `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
@@ -71,16 +68,42 @@ describe("test eventHandler", () => {
         )}`
       )
       .reply(200, JSON.stringify({ Parameter: { Value: "GDNNWA12H81Y874F" } }));
+    // mock token verify
+    sinon.stub(jsonwebtoken, "verify").returns("token.token.token");
+    // mock kms responses
+    kmsClientMock = mockClient(KMSClient);
+    kmsClientMock.on(DescribeKeyCommand).resolves({
+      KeyMetadata: {
+        KeyId: "keyId",
+      },
+    });
+    // this is "signature" in bytes array
+    const binarySignature = new Uint8Array([
+      73,
+      69,
+      67,
+      "6e",
+      61,
+      74,
+      75,
+      72,
+      65,
+    ]);
+    kmsClientMock.on(SignCommand).resolves({
+      KeyId: "KeyId",
+      Signature: binarySignature,
+      SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
+    });
   });
 
   after(() => {
     sinon.restore();
     mock.restore();
-    revert();
+    kmsClientMock.restore();
   });
 
   it("handle event without origin", async () => {
-    const result = await eventHandler.handleEvent({
+    const result = await handleEvent({
       headers: {
         httpMethod: "POST",
         origin: "",
@@ -96,7 +119,7 @@ describe("test eventHandler", () => {
   });
 
   it("handle event with not allowed origin", async () => {
-    const result = await eventHandler.handleEvent({
+    const result = await handleEvent({
       headers: {
         httpMethod: "POST",
         origin: "origin-not-allowed",
@@ -112,7 +135,7 @@ describe("test eventHandler", () => {
   });
 
   it("handle event without token", async () => {
-    const result = await eventHandler.handleEvent({
+    const result = await handleEvent({
       headers: {
         httpMethod: "POST",
         origin: "https://portale-pa-develop.fe.dev.pn.pagopa.it",
@@ -128,7 +151,7 @@ describe("test eventHandler", () => {
   });
 
   it("handle event with invalid token", async () => {
-    const result = await eventHandler.handleEvent({
+    const result = await handleEvent({
       headers: {
         httpMethod: "POST",
         origin: "https://portale-pa-develop.fe.dev.pn.pagopa.it",
@@ -145,7 +168,7 @@ describe("test eventHandler", () => {
 
   it("handle event with valid token", async () => {
     // test token exchange
-    const result = await eventHandler.handleEvent({
+    const result = await handleEvent({
       httpMethod: "POST",
       headers: {
         origin: "https://portale-pa-develop.fe.dev.pn.pagopa.it",
@@ -159,12 +182,12 @@ describe("test eventHandler", () => {
     const body = JSON.parse(result.body);
     expect(body.error).to.be.undefined;
     // calc sessionToken
-    const sessionToken = await tokenGen.generateToken(enrichedToken);
+    const sessionToken = await generateToken(enrichedToken);
     expect(body).to.be.eql({ ...enrichedToken, sessionToken });
   });
 
   it("handle event with uppercase origin in headers", async () => {
-    const result = await eventHandler.handleEvent({
+    const result = await handleEvent({
       httpMethod: "POST",
       headers: {
         Origin: "https://portale-pa-develop.fe.dev.pn.pagopa.it",
@@ -178,7 +201,7 @@ describe("test eventHandler", () => {
     const body = JSON.parse(result.body);
     expect(body.error).to.be.undefined;
     // calc sessionToken
-    const sessionToken = await tokenGen.generateToken(enrichedToken);
+    const sessionToken = await generateToken(enrichedToken);
     expect(body).to.be.eql({ ...enrichedToken, sessionToken });
   });
 });

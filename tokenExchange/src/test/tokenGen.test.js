@@ -1,7 +1,12 @@
 const { expect } = require("chai");
-const rewire = require("rewire");
+const { mockClient } = require("aws-sdk-client-mock");
+const {
+  KMSClient,
+  SignCommand,
+  DescribeKeyCommand,
+} = require("@aws-sdk/client-kms");
 
-const tokenGen = rewire("../app/tokenGen");
+const { generateToken } = require("../app/tokenGen");
 
 const decodedToken = {
   email: "info@agid.gov.it",
@@ -31,14 +36,43 @@ const decodedToken = {
 };
 
 describe("test tokenGen", () => {
+  let kmsClientMock;
+
+  before(() => {
+    kmsClientMock = mockClient(KMSClient);
+  });
+
+  after(() => {
+    kmsClientMock.reset();
+  });
+
   it("test the token generation", async () => {
-    const revert = tokenGen.__set__({
-      getSignature: () => ({ Signature: "signature" }),
-      getKeyId: () => Promise.resolve("keyId"),
+    kmsClientMock.on(DescribeKeyCommand).resolves({
+      KeyMetadata: {
+        KeyId: "keyId",
+      },
     });
-    const token = await tokenGen.generateToken(decodedToken);
+    // this is "signature" in bytes array
+    const binarySignature = new Uint8Array([
+      73,
+      69,
+      67,
+      "6e",
+      61,
+      74,
+      75,
+      72,
+      65,
+    ]);
+    kmsClientMock.on(SignCommand).resolves({
+      KeyId: "KeyId",
+      Signature: binarySignature,
+      SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
+    });
+    const token = await generateToken(decodedToken);
     console.debug("my token", decodedToken, token);
-    expect(token).to.match(/.*\..*\.signature/i);
-    revert();
+    const base64Signature = "SUVDAD1KS0hB";
+    const tokenRegexp = new RegExp(`.*\..*\.${base64Signature}`, "i");
+    expect(token).to.match(tokenRegexp);
   });
 });

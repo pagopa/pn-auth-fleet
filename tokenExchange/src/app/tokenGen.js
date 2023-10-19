@@ -75,10 +75,21 @@ async function getSignature(message, keyId) {
   return signature;
 }
 
+function uint8ToBase64(uint8array) {
+  const fromCharCode = String.fromCharCode;
+  const output = [];
+
+  for (let i = 0, length = uint8array.length; i < length; i++) {
+    output.push(fromCharCode(uint8array[i]));
+  }
+
+  return btoa(output.join(""));
+}
+
 async function sign(tokenParts, keyId) {
   const message = Buffer.from(tokenParts.header + "." + tokenParts.payload);
   const res = await getSignature(message, keyId);
-  tokenParts.signature = res.Signature.toString("base64")
+  tokenParts.signature = uint8ToBase64(res.Signature)
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=/g, "");
