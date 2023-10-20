@@ -1,6 +1,6 @@
 const ValidationException = require("./exception/validationException.js");
 
-const generateIAMPolicy = async (resourceArn, cxId) => {
+async function generateIAMPolicy(resourceArn, cxId) {
   const policyStatement = generatePolicyStatement(resourceArn, "Allow");
   if (policyStatement) {
     console.debug("Policy statement generated", policyStatement);
@@ -8,7 +8,7 @@ const generateIAMPolicy = async (resourceArn, cxId) => {
   } else {
     throw new ValidationException("Unable to generate policy statement");
   }
-};
+}
 
 function generatePolicyStatement(resourceArn, action) {
   const resources = resourceArn.split("/");

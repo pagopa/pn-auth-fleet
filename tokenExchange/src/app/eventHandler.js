@@ -1,6 +1,7 @@
 const ValidationException = require("./exception/validationException.js");
 const { auditLog } = require("./log.js");
 const { generateKoResponse, generateOkResponse } = require("./responses.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
 const { generateToken } = require("./tokenGen.js");
 const {
   checkOrigin,

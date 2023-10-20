@@ -1,8 +1,5 @@
-const {
-  getApiKeyByIndex,
-  getPaAggregateById,
-  getPaAggregationById,
-} = require("./dynamoFunctions.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
+const dynamoFunctions = require("./dynamoFunctions.js");
 const {
   AudienceValidationException,
   ItemNotFoundException,
@@ -38,7 +35,7 @@ const eventHandler = async (event, context) => {
       "x-api-key"
     );
 
-    const apiKeyDynamo = await getApiKeyByIndex(virtualKey);
+    const apiKeyDynamo = await dynamoFunctions.getApiKeyByIndex(virtualKey);
 
     if (!checkStatus(apiKeyDynamo.status)) {
       throw new KeyStatusException(
@@ -46,10 +43,12 @@ const eventHandler = async (event, context) => {
       );
     }
 
-    const paAggregationDynamo = await getPaAggregationById(apiKeyDynamo.cxId);
+    const paAggregationDynamo = await dynamoFunctions.getPaAggregationById(
+      apiKeyDynamo.cxId
+    );
     console.log("Aggregate ID found -> ", paAggregationDynamo.aggregateId);
 
-    const aggregateDynamo = await getPaAggregateById(
+    const aggregateDynamo = await dynamoFunctions.getPaAggregateById(
       paAggregationDynamo.aggregateId
     );
     console.log(

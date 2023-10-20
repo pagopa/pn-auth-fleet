@@ -9,7 +9,7 @@ const { getJwks } = require("../app/retrieverPdndJwks.js");
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe("retrieverJwks", () => {
+describe("retrieverPdndJwks", () => {
   const result = fs.readFileSync(
     "./src/test/jwks-mock/interop-pagopa-jwks.json",
     { encoding: "utf8" }

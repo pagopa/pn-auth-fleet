@@ -33,18 +33,20 @@ describe("cognito tests", function () {
 });
 
 describe("jwt verifier", function () {
-  let sandbox;
+  let processStub;
+  let tokenVerify;
 
-  beforeEach(() => {
-    sandbox = sinon.createSandbox();
+  before(() => {
+    processStub = sinon.stub(process, "env");
+    tokenVerify = sinon.stub(CognitoJwtVerifier.prototype, "verify");
   });
 
-  afterEach(() => {
-    sandbox.restore();
+  after(() => {
+    sinon.restore();
   });
 
   it("test jwt verifier", async () => {
-    sandbox.stub(process, "env").value({
+    processStub.value({
       USER_POOL_ARN:
         "arn:aws:cognito-idp:eu-central-1:123123123:userpool/eu-central-1_abcd",
       CLIENT_ID: "123131312132",
@@ -52,7 +54,7 @@ describe("jwt verifier", function () {
     const payload = {
       jit: "123123",
     };
-    sandbox.stub(CognitoJwtVerifier.prototype, "verify").resolves(payload);
+    tokenVerify.resolves(payload);
 
     const accessToken = "token";
     const valid = await verifyIdToken(accessToken);
@@ -60,10 +62,10 @@ describe("jwt verifier", function () {
   });
 
   it("test jwt verifier when the USER_POOL_ARN is missing", async () => {
-    sandbox.stub(process, "env").value({
+    processStub.value({
       CLIENT_ID: "123131312132",
     });
-    sandbox.stub(CognitoJwtVerifier.prototype, "verify").resolves({
+    tokenVerify.resolves({
       jit: "123123",
     });
 
@@ -73,11 +75,11 @@ describe("jwt verifier", function () {
   });
 
   it("test jwt verifier when the CLIENT_ID is missing", async () => {
-    sandbox.stub(process, "env").value({
+    processStub.value({
       USER_POOL_ARN:
         "arn:aws:cognito-idp:eu-central-1:123123123:userpool/eu-central-1_abcd",
     });
-    sandbox.stub(CognitoJwtVerifier.prototype, "verify").resolves({
+    tokenVerify.resolves({
       jit: "123123",
     });
 
@@ -87,11 +89,11 @@ describe("jwt verifier", function () {
   });
 
   it("test jwt verifier when the userpool is not valid", async () => {
-    sandbox.stub(process, "env").value({
+    processStub.value({
       USER_POOL_ARN: "arn:aws:cognito-idp:eu-central-1:123123123:userpool",
       CLIENT_ID: "123131312132",
     });
-    sandbox.stub(CognitoJwtVerifier.prototype, "verify").resolves({
+    tokenVerify.resolves({
       jit: "123123",
     });
 
@@ -101,14 +103,12 @@ describe("jwt verifier", function () {
   });
 
   it("test jwt verifier when it triggers exception", async () => {
-    sandbox.stub(process, "env").value({
+    processStub.value({
       USER_POOL_ARN:
         "arn:aws:cognito-idp:eu-central-1:123123123:userpool/eu-central-1_abcd",
       CLIENT_ID: "123131312132",
     });
-    sandbox
-      .stub(CognitoJwtVerifier.prototype, "verify")
-      .rejects(new Error("AAA"));
+    tokenVerify.rejects(new Error("AAA"));
 
     const accessToken = "token";
     const valid = await verifyIdToken(accessToken);

@@ -2,7 +2,8 @@ const jsonwebtoken = require("jsonwebtoken");
 
 const ValidationException = require("./exception/validationException.js");
 const { getPublicKey } = require("./publicKeyGetter.js");
-const { copyAndMaskObject, getParameterFromStore } = require("./utils");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
+const utils = require("./utils");
 
 async function validation(authorizationToken) {
   const decodedTokenPayload = await jwtValidator(authorizationToken);
@@ -16,7 +17,7 @@ async function jwtValidator(jwtToken) {
 
   if (decodedToken) {
     const sensitiveFields = ["email", "family_name", "fiscal_number", "name"];
-    const decodedTokenMaskedPayload = copyAndMaskObject(
+    const decodedTokenMaskedPayload = utils.copyAndMaskObject(
       decodedToken.payload,
       sensitiveFields
     );
@@ -109,7 +110,7 @@ async function checkTaxIdCode(taxIdCode) {
   //verifica taxIdCode nel decoded token fa parte dei tax id permessi
   if (process.env.ALLOWED_TAXIDS_PARAMETER) {
     try {
-      const allowedTaxIdsFromStore = await getParameterFromStore(
+      const allowedTaxIdsFromStore = await utils.getParameterFromStore(
         process.env.ALLOWED_TAXIDS_PARAMETER
       );
       if (allowedTaxIdsFromStore.length === 0) {

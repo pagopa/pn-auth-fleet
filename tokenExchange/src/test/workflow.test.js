@@ -2,17 +2,33 @@ const { expect } = require("chai");
 const lambdaTester = require("lambda-tester");
 const jsonwebtoken = require("jsonwebtoken");
 const sinon = require("sinon");
-const { mockClient } = require("aws-sdk-client-mock"); // check the comment below for the reason of this mock
-const {
-  KMSClient,
-  SignCommand,
-  DescribeKeyCommand,
-} = require("@aws-sdk/client-kms");
-const axios = require("axios");
-const MockAdapter = require("axios-mock-adapter");
 const fs = require("fs");
+const rewire = require("rewire");
+const proxyquire = require("proxyquire");
 
-const lambda = require("../../index");
+const tokenGen = rewire("../app/tokenGen.js");
+const retrieverJwks = require("../app/retrieverJwks.js");
+const utils = require("../app/utils");
+
+let signatureResponse = "success";
+
+const revert = tokenGen.__set__({
+  getSignature: () => {
+    if (signatureResponse === "error") {
+      throw Error("Error when getting signature");
+    }
+    return { Signature: "signature" };
+  },
+  getKeyId: () => Promise.resolve("keyId"),
+});
+
+const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
+  "./tokenGen.js": tokenGen,
+});
+
+const lambda = proxyquire.noCallThru().load("../../index.js", {
+  "./src/app/eventHandler.js": eventHandler,
+});
 
 /** PN-1129
 sign function mock breaks using X-Ray, probably due to non-compatible versions
@@ -33,65 +49,31 @@ describe("workflow", function () {
     },
     body: {},
   };
-  let mock;
-  let kmsClientMock;
 
   before(() => {
     // mock get jwks response
-    mock = new MockAdapter(axios);
-    mock.onGet(/(?:.*).well-known\/jwks.json/).reply((config) => {
-      const issuer = config.url
-        .replace("https://", "")
-        .replace("/.well-known/jwks.json", "");
+    sinon.stub(retrieverJwks, "getJwks").callsFake((issuer) => {
       const result = fs.readFileSync(
-        "./src/test/jwks-mock/" + issuer + ".jwks.json",
+        "./src/test/jwks-mock/" + issuer.replace("https://", "") + ".jwks.json",
         { encoding: "utf8" }
       );
-      return [202, JSON.parse(result)];
+      return JSON.parse(result);
     });
     // mock parameter store
-    mock
-      .onGet(
-        `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
-          process.env.ALLOWED_TAXIDS_PARAMETER
-        )}`
-      )
-      .reply(200, JSON.stringify({ Parameter: { Value: "GDNNWA12H81Y874F" } }));
+    sinon
+      .stub(utils, "getParameterFromStore")
+      .callsFake(() => "GDNNWA12H81Y874F");
     // mock token verify
     sinon.stub(jsonwebtoken, "verify").returns("token.token.token");
-    // mock kms responses
-    kmsClientMock = mockClient(KMSClient);
-    kmsClientMock.on(DescribeKeyCommand).resolves({
-      KeyMetadata: {
-        KeyId: "keyId",
-      },
-    });
   });
 
   beforeEach(() => {
-    // this is "signature" in bytes array
-    const binarySignature = new Uint8Array([
-      73,
-      69,
-      67,
-      "6e",
-      61,
-      74,
-      75,
-      72,
-      65,
-    ]);
-    kmsClientMock.on(SignCommand).resolves({
-      KeyId: "KeyId",
-      Signature: binarySignature,
-      SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
-    });
+    signatureResponse = "success";
   });
 
   after(() => {
     sinon.restore();
-    mock.restore();
-    kmsClientMock.restore();
+    revert();
   });
 
   it("expired token from SC - with code = 400", function (done) {
@@ -132,7 +114,7 @@ describe("workflow", function () {
   });
 
   it("token from spidhub with error on getting signature - with code = 500", function (done) {
-    kmsClientMock.on(SignCommand).rejects();
+    signatureResponse = "error";
     event.body = JSON.stringify({
       authorizationToken:
         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEYiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY0OTkyNDYyOCwiZXhwIjoxNjQ5OTI4MjI4LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMEtKUVIxQ1YzWlE2N0NSWlRNUjJFVDAifQ.icFOts7WOu_Kz3TP1n6IRwC4uQv4ENHyMpLOaf6TMTFirXBRV2KyyqMnsZdUkzHZN-DfeeIOotN08lRTdKXZ7XXUq8lfafSQPERgNFOnsLjTYh19LyNi8h7fa36PE9Wv6nwnLws7qv_pJB5vKOVOYQf9ZXc-DTmZ_b2l-sagtwFJ5LW6tW80ph3Vl-XBZvqu1egZJRLH4pfpNq0NWyT9_gJz06SqYZSeY19orhKhaEi1tw3Uzf0jaOWhx5pw7TOF5IiXNEAeZ3e2mQn5rnAoPNVzMWiYgtmAPa74liQHrNRFEeBBApkVLT4eExxtcYuqz85FUAknj5qB5MN99qp62Q",

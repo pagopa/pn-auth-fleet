@@ -5,8 +5,9 @@ const {
   AudienceValidationException,
   ValidationException,
 } = require("./exceptions.js");
-const { get, isCacheActive } = require("./jwksCache.js");
-const { getJwks } = require("./retrieverPdndJwks.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
+const jwksCache = require("./jwksCache.js");
+const retrieverPdndJwks = require("./retrieverPdndJwks.js");
 
 const validation = async (jwtToken) => {
   if (jwtToken) {
@@ -42,7 +43,7 @@ const jwtValidator = async (jwtToken) => {
 
 async function getDecodedPublicKey(keyId) {
   let publicKey;
-  if (isCacheActive()) {
+  if (jwksCache.isCacheActive()) {
     publicKey = await findPublicKeyUsingCache(keyId);
   } else {
     publicKey = await findPublicKeyWithoutCache(keyId);
@@ -52,13 +53,13 @@ async function getDecodedPublicKey(keyId) {
 
 async function findPublicKeyUsingCache(keyId) {
   console.log("Using cache");
-  const cachedJwks = await get();
+  const cachedJwks = await jwksCache.get();
   return getKeyFromJwks(cachedJwks, keyId);
 }
 
 async function findPublicKeyWithoutCache(keyId) {
   console.debug("Retrieving public key from PDND");
-  const jwks = await getJwks(process.env.PDND_ISSUER);
+  const jwks = await retrieverPdndJwks.getJwks(process.env.PDND_ISSUER);
   return getKeyFromJwks(jwks, keyId);
 }
 

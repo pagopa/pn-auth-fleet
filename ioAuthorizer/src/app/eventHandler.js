@@ -15,7 +15,7 @@ const defaultDenyAllPolicy = {
   },
 };
 
-const handleEvent = async (event) => {
+async function handleEvent(event) {
   // Declare Policy
   let iamPolicy = null;
 
@@ -38,6 +38,6 @@ const handleEvent = async (event) => {
     console.error("taxId is null");
     return defaultDenyAllPolicy;
   }
-};
+}
 
 module.exports = { handleEvent };

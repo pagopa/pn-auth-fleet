@@ -7,6 +7,7 @@ const axios = require("axios");
 const MockAdapter = require("axios-mock-adapter");
 
 const { validation } = require("../app/validation");
+const retrieverJwks = require("../app/retrieverJwks.js");
 const ValidationException = require("../app/exception/validationException");
 
 chai.use(chaiAsPromised);
@@ -54,16 +55,12 @@ describe("test validation", () => {
 
   before(() => {
     mock = new MockAdapter(axios);
-    // mock methods for token exchange
-    mock.onGet(/(?:.*).well-known\/jwks.json/).reply((config) => {
-      const issuer = config.url
-        .replace("https://", "")
-        .replace("/.well-known/jwks.json", "");
+    sinon.stub(retrieverJwks, "getJwks").callsFake((issuer) => {
       const result = fs.readFileSync(
-        "./src/test/jwks-mock/" + issuer + ".jwks.json",
+        "./src/test/jwks-mock/" + issuer.replace("https://", "") + ".jwks.json",
         { encoding: "utf8" }
       );
-      return [202, JSON.parse(result)];
+      return JSON.parse(result);
     });
     sinon.stub(jsonwebtoken, "verify").returns("token.token.token");
   });

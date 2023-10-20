@@ -43,7 +43,7 @@ describe("api gateway tests", function () {
     });
 
     try {
-      const tags = await getOpenAPIS3Location({
+      await getOpenAPIS3Location({
         region: "eu-south-1",
         restApiId: "12312312",
       });

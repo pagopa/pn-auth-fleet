@@ -1,50 +1,52 @@
 const { expect } = require("chai");
 const lambdaTester = require("lambda-tester");
-const proxyquire = require("proxyquire");
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
 
-const iamPolicyGen = require("../app/iamPolicyGen");
+const lambda = require("../../index");
 
-const dataVaultClientMock = {
-  getCxId: async function (taxId) {
-    return "123e4567-e89b-12d3-a456-426655440000";
-  },
-};
+describe("index tests", function () {
+  let mock;
 
-const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
-  "./iamPolicyGenerator.js": iamPolicyGen,
-  "./dataVaultClient.js": dataVaultClientMock,
-});
+  before(() => {
+    mock = new MockAdapter(axios);
+    mock
+      .onPost(
+        "http://${ApplicationLoadBalancerDomain}:8080/datavault-private/v1/recipients/external/PF",
+        "CGNNMO01T10A944Q"
+      )
+      .reply(200, "123e4567-e89b-12d3-a456-426655440000");
+  });
 
-const lambda = proxyquire.noCallThru().load("../../index.js", {
-  "./src/app/eventHandler.js": eventHandler,
-});
-
-describe("Success", function () {
-  const event = {
-    type: "REQUEST",
-    methodArn:
-      "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request",
-    resource: "/request",
-    path: "/request",
-    httpMethod: "GET",
-    headers: {
-      "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
-    },
-    requestContext: {
-      path: "/request",
-      accountId: "123456789012",
-      resourceId: "05c7jb",
-      stage: "test",
-      requestId: "123456789123456789",
-      identity: {
-        apiKey: "123456789",
-      },
-    },
-    resourcePath: "/request",
-    apiId: "abcdef123",
-  };
+  after(() => {
+    mock.restore();
+  });
 
   it("with IAM Policy", function (done) {
+    const event = {
+      type: "REQUEST",
+      methodArn:
+        "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request",
+      resource: "/request",
+      path: "/request",
+      httpMethod: "GET",
+      headers: {
+        "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
+      },
+      requestContext: {
+        path: "/request",
+        accountId: "123456789012",
+        resourceId: "05c7jb",
+        stage: "test",
+        requestId: "123456789123456789",
+        identity: {
+          apiKey: "123456789",
+        },
+      },
+      resourcePath: "/request",
+      apiId: "abcdef123",
+    };
+
     lambdaTester(lambda.handler)
       .event(event)
       .expectResult((result) => {
@@ -64,23 +66,20 @@ describe("Success", function () {
       })
       .catch(done);
   });
-});
-
-describe("Error", function () {
-  const event = {
-    type: "REQUEST",
-    methodArn: "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/",
-    headers: {
-      "x-pagopa-cx-taxid": "NOTEXISTS",
-    },
-    requestContext: {
-      identity: {
-        apiKey: "123456789",
-      },
-    },
-  };
 
   it("Error method arn", function (done) {
+    const event = {
+      type: "REQUEST",
+      methodArn: "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/",
+      headers: {
+        "x-pagopa-cx-taxid": "NOTEXISTS",
+      },
+      requestContext: {
+        identity: {
+          apiKey: "123456789",
+        },
+      },
+    };
     lambdaTester(lambda.handler)
       .event(event)
       .expectResult((result) => {
@@ -89,20 +88,17 @@ describe("Error", function () {
       })
       .catch(done);
   });
-});
-
-describe("Error No TaxId", function () {
-  const event = {
-    type: "REQUEST",
-    methodArn: "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/",
-    requestContext: {
-      identity: {
-        apiKey: "123456789",
-      },
-    },
-  };
 
   it("Error Not taxId", function (done) {
+    const event = {
+      type: "REQUEST",
+      methodArn: "arn:aws:execute-api:us-east-1:123456789012:swz6w548va/",
+      requestContext: {
+        identity: {
+          apiKey: "123456789",
+        },
+      },
+    };
     lambdaTester(lambda.handler)
       .event(event)
       .expectResult((result) => {
@@ -111,23 +107,20 @@ describe("Error No TaxId", function () {
       })
       .catch(done);
   });
-});
-
-describe("Error iamPolicy", function () {
-  const event = {
-    type: "REQUEST",
-    methodArn: "fake.method.arn",
-    headers: {
-      "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
-    },
-    requestContext: {
-      identity: {
-        apiKey: "123456789",
-      },
-    },
-  };
 
   it("Error iamPolicy", function (done) {
+    const event = {
+      type: "REQUEST",
+      methodArn: "fake.method.arn",
+      headers: {
+        "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
+      },
+      requestContext: {
+        identity: {
+          apiKey: "123456789",
+        },
+      },
+    };
     lambdaTester(lambda.handler)
       .event(event)
       .expectResult((result) => {

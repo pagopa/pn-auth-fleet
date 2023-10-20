@@ -2,17 +2,12 @@ const fs = require("fs");
 const jsonwebtoken = require("jsonwebtoken");
 const sinon = require("sinon");
 const { expect } = require("chai");
-const axios = require("axios");
-const MockAdapter = require("axios-mock-adapter");
-const { mockClient } = require("aws-sdk-client-mock");
-const {
-  KMSClient,
-  SignCommand,
-  DescribeKeyCommand,
-} = require("@aws-sdk/client-kms");
+const rewire = require("rewire");
+const proxyquire = require("proxyquire");
 
-const { handleEvent } = require("../app/eventHandler");
-const { generateToken } = require("../app/tokenGen");
+const tokenGen = rewire("../app/tokenGen.js");
+const retrieverJwks = require("../app/retrieverJwks.js");
+const utils = require("../app/utils");
 
 const enrichedToken = {
   email: "info@agid.gov.it",
@@ -43,63 +38,36 @@ const enrichedToken = {
   sessionToken: "",
 };
 
-describe("test eventHandler", () => {
-  let mock;
-  let kmsClientMock;
+const revert = tokenGen.__set__({
+  getSignature: () => ({ Signature: "signature" }),
+  getKeyId: () => Promise.resolve("keyId"),
+});
 
+const { handleEvent } = proxyquire.noCallThru().load("../app/eventHandler.js", {
+  "./tokenGen.js": tokenGen,
+});
+
+describe("test eventHandler", () => {
   before(() => {
     // mock get jwks response
-    mock = new MockAdapter(axios);
-    mock.onGet(/(?:.*).well-known\/jwks.json/).reply((config) => {
-      const issuer = config.url
-        .replace("https://", "")
-        .replace("/.well-known/jwks.json", "");
+    sinon.stub(retrieverJwks, "getJwks").callsFake((issuer) => {
       const result = fs.readFileSync(
-        "./src/test/jwks-mock/" + issuer + ".jwks.json",
+        "./src/test/jwks-mock/" + issuer.replace("https://", "") + ".jwks.json",
         { encoding: "utf8" }
       );
-      return [202, JSON.parse(result)];
+      return JSON.parse(result);
     });
     // mock parameter store
-    mock
-      .onGet(
-        `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
-          process.env.ALLOWED_TAXIDS_PARAMETER
-        )}`
-      )
-      .reply(200, JSON.stringify({ Parameter: { Value: "GDNNWA12H81Y874F" } }));
+    sinon
+      .stub(utils, "getParameterFromStore")
+      .callsFake(() => "GDNNWA12H81Y874F");
     // mock token verify
     sinon.stub(jsonwebtoken, "verify").returns("token.token.token");
-    // mock kms responses
-    kmsClientMock = mockClient(KMSClient);
-    kmsClientMock.on(DescribeKeyCommand).resolves({
-      KeyMetadata: {
-        KeyId: "keyId",
-      },
-    });
-    // this is "signature" in bytes array
-    const binarySignature = new Uint8Array([
-      73,
-      69,
-      67,
-      "6e",
-      61,
-      74,
-      75,
-      72,
-      65,
-    ]);
-    kmsClientMock.on(SignCommand).resolves({
-      KeyId: "KeyId",
-      Signature: binarySignature,
-      SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
-    });
   });
 
   after(() => {
     sinon.restore();
-    mock.restore();
-    kmsClientMock.restore();
+    revert();
   });
 
   it("handle event without origin", async () => {
@@ -182,7 +150,7 @@ describe("test eventHandler", () => {
     const body = JSON.parse(result.body);
     expect(body.error).to.be.undefined;
     // calc sessionToken
-    const sessionToken = await generateToken(enrichedToken);
+    const sessionToken = await tokenGen.generateToken(enrichedToken);
     expect(body).to.be.eql({ ...enrichedToken, sessionToken });
   });
 
@@ -201,7 +169,7 @@ describe("test eventHandler", () => {
     const body = JSON.parse(result.body);
     expect(body.error).to.be.undefined;
     // calc sessionToken
-    const sessionToken = await generateToken(enrichedToken);
+    const sessionToken = await tokenGen.generateToken(enrichedToken);
     expect(body).to.be.eql({ ...enrichedToken, sessionToken });
   });
 });

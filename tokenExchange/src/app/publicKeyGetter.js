@@ -2,7 +2,8 @@ const jwkToPem = require("jwk-to-pem");
 
 const ValidationException = require("./exception/validationException.js");
 const { get, isCacheActive } = require("./jwksCache.js");
-const { getJwks } = require("./retrieverJwks.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
+const retrieverJwks = require("./retrieverJwks.js");
 
 async function getPublicKey(issuer, kid) {
   let publicKey;
@@ -22,7 +23,7 @@ async function findPublicKeyUsingCache(keyId, issuer) {
 
 async function findPublicKeyWithoutCache(keyId, issuer) {
   console.debug("Retrieving public key without cache");
-  const jwks = await getJwks(issuer);
+  const jwks = await retrieverJwks.getJwks(issuer);
   return getKeyFromJwks(jwks, keyId);
 }
 

@@ -57,10 +57,6 @@ describe("Test auth policy", () => {
   it("missing statements", () => {
     const apiOptions = {};
     const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
-    const event = {
-      httpMethod: "XXXX",
-      path: "/test",
-    };
     try {
       policy.build();
     } catch (error) {

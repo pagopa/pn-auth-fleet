@@ -1,15 +1,16 @@
 const sinon = require("sinon");
 const fs = require("fs");
 const chaiAsPromised = require("chai-as-promised");
-const axios = require("axios");
-const MockAdapter = require("axios-mock-adapter");
 const chai = require("chai");
 
 const { get, isCacheActive } = require("../app/jwksCache.js");
+const retrieverJwks = require("../app/retrieverJwks");
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-const SIX_MINUTES_IN_MS = 360000;
+const SIX_MINUTES_IN_MS = process.env.CACHE_TTL
+  ? Number(process.env.CACHE_TTL) * 1000 + 360000
+  : 360000 + 300 * 1000;
 
 describe("test jwksCache", () => {
   const jwksFromSelc = JSON.parse(
@@ -17,32 +18,24 @@ describe("test jwksCache", () => {
       encoding: "utf8",
     })
   );
-  let mock;
+  let getJwksStub;
   let clock;
 
   before(() => {
-    mock = new MockAdapter(axios);
-    clock = sinon.useFakeTimers();
+    clock = sinon.useFakeTimers({ now: Date.now(), shouldAdvanceTime: true });
     sinon.stub(process, "env").value({
       CACHE_TTL: "300",
     });
-  });
-
-  afterEach(() => {
-    mock.reset();
+    getJwksStub = sinon.stub(retrieverJwks, "getJwks");
   });
 
   after(() => {
-    mock.restore();
     sinon.restore();
     clock.restore();
   });
 
   it("initialize cache when is empty", async () => {
-    mock
-      .onGet("https://uat.selfcare.pagopa.it/.well-known/jwks.json")
-      .reply(200, jwksFromSelc);
-
+    getJwksStub.callsFake(() => jwksFromSelc);
     const jwks = await get("api.selfcare.pagopa.it");
     const cacheActive = isCacheActive();
     expect(jwks.keys).to.be.eql(jwksFromSelc.keys);
@@ -53,18 +46,16 @@ describe("test jwksCache", () => {
 
   it("error initializing cache", async () => {
     // First call fails
-    mock
-      .onGet("https://uat.selfcare.pagopa.it/.well-known/jwks.json")
-      .reply(500);
+    getJwksStub.throws();
 
     expect(get).throws;
   });
 
   it("error refreshing cache", async () => {
-    // First call succeed
-    mock
-      .onGet("https://uat.selfcare.pagopa.it/.well-known/jwks.json")
-      .reply(200, jwksFromSelc);
+    //First call succeed
+    getJwksStub.onCall(0).callsFake(() => jwksFromSelc);
+    // Second call fails
+    getJwksStub.onCall(1).throws();
 
     const jwks = await get("api.selfcare.pagopa.it");
     const firstExpiresOn = jwks.expiresOn;
@@ -75,14 +66,9 @@ describe("test jwksCache", () => {
     // advance time to simulate expiration
     clock.tick(SIX_MINUTES_IN_MS);
 
-    // Second call fails
-    mock
-      .onGet("https://uat.selfcare.pagopa.it/.well-known/jwks.json")
-      .reply(500);
-
     // Check expiration
     const now = Date.now();
-    const isCacheExpired = firstExpiresOn < now * 1000;
+    const isCacheExpired = firstExpiresOn < now;
     expect(isCacheExpired).to.be.true;
 
     // Obtain old cache value

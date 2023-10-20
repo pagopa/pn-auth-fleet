@@ -1,41 +1,29 @@
 const { expect } = require("chai");
 const lambdaTester = require("lambda-tester");
-const proxyquire = require("proxyquire");
 const fs = require("fs");
 const { mockClient } = require("aws-sdk-client-mock");
 const { KMSClient, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
 
-const { generateIAMPolicy } = require("../app/iamPolicyGen");
-const {
-  ValidationException,
-} = require("../app/exception/validationException.js");
-const { validation } = require("../app/validation.js");
+const lambda = require("../../index");
 
-const kmsClientMock = mockClient(KMSClient);
-
-const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
-  "./validation.js": { validation },
-  "./iamPolicyGenerator.js": { generateIAMPolicy },
-  "./exception/validationException.js": { ValidationException },
-});
-
-const lambda = proxyquire.noCallThru().load("../../index.js", {
-  "./src/app/eventHandler.js": eventHandler,
-});
-
-describe("JWT Ok from spid-hub with cx_id verify", function () {
+describe("index tests", function () {
   const eventFile = fs.readFileSync("event.json");
   const events = JSON.parse(eventFile);
+  let kmsClientMock;
 
-  beforeEach(() => {
-    kmsClientMock.reset();
-  });
-
-  it("with IAM Policy", function (done) {
+  before(() => {
+    kmsClientMock = mockClient(KMSClient);
     kmsClientMock.on(GetPublicKeyCommand).resolves({
       PublicKey:
         "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnSJhulApg/rNAFjIQnBibzfaP4OGPaZtNuqLdiQmOEz14ghuwmLQ/HcOe6xX4iYHv9vHJ7tvZm0wG0Q/pPEdh+nagJLnjfbkuiRUOA3mLMeiiYu4GltJVzjEx5p/YaUdGXLbTn5I/qymAH7+avrlDr9lv8R6yspNp7y2YPe95OjsHHOFcgSWmCDlVcvkiBHcoTnl6j5kUUClMXzXquxpW45ivUpQbI3/dztt6TMSIDXsYPyNOj1xHrjgI8234yXCUhCRv+jtAX7f+2SR/Dfh/b1WKMEOtUo1KvXH1Kb5s9s5VadizNN2khK5CjairbsmWO1kJZcCSro68eXebcb7HQIDAQAB",
     });
+  });
+
+  after(() => {
+    kmsClientMock.reset();
+  });
+
+  it("JWT Ok from spid-hub with cx_id verify - with IAM Policy", function (done) {
     lambdaTester(lambda.handler)
       .event(events[1])
       .expectResult((result) => {
@@ -47,21 +35,8 @@ describe("JWT Ok from spid-hub with cx_id verify", function () {
       })
       .catch(done); // Catch assertion errors
   });
-});
 
-describe("JWT Ok from spid-hub Using cache", function () {
-  const eventFile = fs.readFileSync("event.json");
-  const events = JSON.parse(eventFile);
-
-  beforeEach(() => {
-    kmsClientMock.reset();
-  });
-
-  it("with IAM Policy", function (done) {
-    kmsClientMock.on(GetPublicKeyCommand).resolves({
-      PublicKey:
-        "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnSJhulApg/rNAFjIQnBibzfaP4OGPaZtNuqLdiQmOEz14ghuwmLQ/HcOe6xX4iYHv9vHJ7tvZm0wG0Q/pPEdh+nagJLnjfbkuiRUOA3mLMeiiYu4GltJVzjEx5p/YaUdGXLbTn5I/qymAH7+avrlDr9lv8R6yspNp7y2YPe95OjsHHOFcgSWmCDlVcvkiBHcoTnl6j5kUUClMXzXquxpW45ivUpQbI3/dztt6TMSIDXsYPyNOj1xHrjgI8234yXCUhCRv+jtAX7f+2SR/Dfh/b1WKMEOtUo1KvXH1Kb5s9s5VadizNN2khK5CjairbsmWO1kJZcCSro68eXebcb7HQIDAQAB",
-    });
+  it("JWT Ok from spid-hub Using cache - with IAM Policy", function (done) {
     lambdaTester(lambda.handler)
       .event(events[2])
       .expectResult((result) => {
@@ -71,21 +46,8 @@ describe("JWT Ok from spid-hub Using cache", function () {
       })
       .catch(done); // Catch assertion errors
   });
-});
 
-describe("JWT expired from spid-hub", function () {
-  const eventFile = fs.readFileSync("event.json");
-  const events = JSON.parse(eventFile);
-
-  beforeEach(() => {
-    kmsClientMock.reset();
-  });
-
-  it("with IAM Policy", function (done) {
-    kmsClientMock.on(GetPublicKeyCommand).resolves({
-      PublicKey:
-        "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnSJhulApg/rNAFjIQnBibzfaP4OGPaZtNuqLdiQmOEz14ghuwmLQ/HcOe6xX4iYHv9vHJ7tvZm0wG0Q/pPEdh+nagJLnjfbkuiRUOA3mLMeiiYu4GltJVzjEx5p/YaUdGXLbTn5I/qymAH7+avrlDr9lv8R6yspNp7y2YPe95OjsHHOFcgSWmCDlVcvkiBHcoTnl6j5kUUClMXzXquxpW45ivUpQbI3/dztt6TMSIDXsYPyNOj1xHrjgI8234yXCUhCRv+jtAX7f+2SR/Dfh/b1WKMEOtUo1KvXH1Kb5s9s5VadizNN2khK5CjairbsmWO1kJZcCSro68eXebcb7HQIDAQAB",
-    });
+  it("JWT expired from spid-hub - with IAM Policy", function (done) {
     lambdaTester(lambda.handler)
       .event(events[0])
       .expectResult((result) => {

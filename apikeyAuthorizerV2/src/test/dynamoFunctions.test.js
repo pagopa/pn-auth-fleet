@@ -13,15 +13,11 @@ const {
   getPaAggregateById,
   getPaAggregationById,
 } = require("../app/dynamoFunctions.js");
-const { mockPaAggregationFound, mockAggregateFound } = require("./mocks.js");
-
-const dynamoItemVirtualApiKey = {
-  id: "testId",
-  "x-pagopa-pn-cx-id": "testCx",
-  groups: ["test", "test2"],
-  status: "ENABLED",
-  virtualKey: "testVK",
-};
+const {
+  mockPaAggregationFound,
+  mockAggregateFound,
+  mockVirtualKey,
+} = require("./mocks.js");
 
 function errorMessageDynamo(id, table) {
   return "Item with id = " + id + " not found on table " + table;
@@ -36,6 +32,10 @@ describe("dynamoFunctions tests", function () {
 
   afterEach(() => {
     ddbMock.reset();
+  });
+
+  after(() => {
+    ddbMock.restore();
   });
 
   it("test getPaAggregationById found", async () => {
@@ -98,10 +98,10 @@ describe("dynamoFunctions tests", function () {
 
   it("test getApiKeyByIndex found", async () => {
     ddbMock.on(QueryCommand).resolves({
-      Items: [dynamoItemVirtualApiKey],
+      Items: [mockVirtualKey],
     });
     const item = await getApiKeyByIndex("test");
-    expect(item.virtualKey).equal(dynamoItemVirtualApiKey.virtualKey);
+    expect(item.virtualKey).equal(mockVirtualKey.virtualKey);
   });
 
   it("test getApiKeyByIndex not found", async () => {
@@ -120,7 +120,7 @@ describe("dynamoFunctions tests", function () {
   //Casistica impossibile
   it("test getApiKeyByIndex too many items", async () => {
     ddbMock.on(QueryCommand).resolves({
-      Items: [dynamoItemVirtualApiKey, dynamoItemVirtualApiKey],
+      Items: [mockVirtualKey, mockVirtualKey],
     });
     try {
       await getApiKeyByIndex("test");
@@ -129,9 +129,5 @@ describe("dynamoFunctions tests", function () {
       expect(error).to.not.be.undefined;
       expect(error.message).to.equal("Too many items found on table pn-apiKey");
     }
-  });
-
-  after(() => {
-    ddbMock.restore();
   });
 });

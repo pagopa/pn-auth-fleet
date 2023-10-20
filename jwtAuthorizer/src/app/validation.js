@@ -6,7 +6,7 @@ const ValidationException = require("./exception/validationException.js");
 const kms = new KMS();
 const cachedPublicKeyMap = new Map();
 
-const validation = async (jwtToken) => {
+async function validation(jwtToken) {
   if (jwtToken) {
     const decodedToken = await jwtValidator(jwtToken);
     console.info("token is valid");
@@ -14,7 +14,7 @@ const validation = async (jwtToken) => {
   } else {
     throw new ValidationException("token is not valid");
   }
-};
+}
 
 async function jwtValidator(jwtToken) {
   const token = jsonwebtoken.decode(jwtToken, { complete: true });
@@ -47,13 +47,13 @@ async function jwtValidator(jwtToken) {
   return token.payload;
 }
 
-const setCachedData = (keyId, val) => {
+function setCachedData(keyId, val) {
   console.debug("Set cached public key");
   cachedPublicKeyMap.set(keyId, {
     expiresOn: Date.now() + process.env.CACHE_TTL * 1000,
     value: val,
   });
-};
+}
 
 async function retrievePublicKey(keyId) {
   console.debug("Retrieving public key from KMS");

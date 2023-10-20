@@ -1,5 +1,6 @@
-const { expect } = require("chai");
+const { expect, assert } = require("chai");
 const { generateIAMPolicy } = require("../app/iamPolicyGenerator");
+const { ValidationException } = require("../app/exceptions");
 
 describe("iamPolicyGenerator tests", () => {
   const mockContext = {
@@ -20,10 +21,12 @@ describe("iamPolicyGenerator tests", () => {
   });
 
   it("generateIAMPolicy failed", () => {
-    try {
-      generateIAMPolicy("arn", mockContext, "testApiKey");
-    } catch (error) {
-      expect(error.message).to.equal("Unable to generate policy statement");
-    }
+    assert.throws(
+      () => {
+        generateIAMPolicy("arn", mockContext, "testApiKey");
+      },
+      ValidationException,
+      "Unable to generate policy statement"
+    );
   });
 });

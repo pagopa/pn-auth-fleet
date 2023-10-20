@@ -1,4 +1,5 @@
-const { getJwks } = require("./retrieverJwks.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
+const retrieverJwks = require("./retrieverJwks.js");
 
 /* 
   Map structure : { 
@@ -34,7 +35,7 @@ function isCacheExpired(issuer) {
 async function refreshCache(issuer) {
   console.debug(`Starting refresh cache for issuer : ${issuer}`);
   try {
-    const jwks = await getJwks(issuer);
+    const jwks = await retrieverJwks.getJwks(issuer);
     setCachedData(jwks, issuer);
   } catch (error) {
     handleCacheRefreshFail(error, issuer);

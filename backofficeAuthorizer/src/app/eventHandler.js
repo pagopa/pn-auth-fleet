@@ -1,7 +1,8 @@
 const { AuthPolicy } = require("./authPolicy.js");
-const { getOpenAPIS3Location } = require("./apiGatewayUtils.js");
-const { getCognitoUserTags, verifyIdToken } = require("./cognitoUtils.js");
-const { getAllowedResourcesFromS3 } = require("./s3Utils.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
+const s3Utils = require("./s3Utils.js");
+const apiGatewayUtils = require("./apiGatewayUtils.js");
+const cognitoUtils = require("./cognitoUtils.js");
 
 async function handleEvent(event) {
   // Parameters
@@ -23,7 +24,7 @@ async function handleEvent(event) {
   event.path = path;
 
   // Get the openAPI file location from the tags of the Rest API
-  const locationValues = await getOpenAPIS3Location(apiOptions);
+  const locationValues = await apiGatewayUtils.getOpenAPIS3Location(apiOptions);
   const bucketName = locationValues[0];
   const bucketKey = locationValues[1];
   const servicePath = locationValues[2];
@@ -86,8 +87,8 @@ async function authorizeWithCognito(
   }
 
   // If valid, get tags and check that they match
-  const userTags = getCognitoUserTags(idTokenPayload);
-  const resources = await getAllowedResourcesFromS3(
+  const userTags = cognitoUtils.getCognitoUserTags(idTokenPayload);
+  const resources = await s3Utils.getAllowedResourcesFromS3(
     event,
     bucketName,
     bucketKey,
@@ -119,7 +120,7 @@ async function getValidIdTokenPayload(accessToken) {
     return false;
   }
 
-  return await verifyIdToken(accessToken);
+  return await cognitoUtils.verifyIdToken(accessToken);
 }
 
 module.exports = { handleEvent };

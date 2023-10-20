@@ -1,38 +1,93 @@
 const { expect } = require("chai");
-const proxyquire = require("proxyquire");
+const sinon = require("sinon");
 
+const s3Utils = require("../app/s3Utils.js");
+const apiGatewayUtils = require("../app/apiGatewayUtils.js");
+const cognitoUtils = require("../app/cognitoUtils.js");
 const event = require("../../event.json");
-const { mockIamPolicyOk, mockIamPolicyKo } = require("./mocks");
+const lambda = require("../../index");
 
 describe("index tests", function () {
-  it("test Ok", async () => {
-    const lambda = proxyquire
-      .noPreserveCache()
-      .noCallThru()
-      .load("../../index.js", {
-        "./src/app/eventHandler.js": {
-          handleEvent: async () => {
-            return new Promise((res) => res(mockIamPolicyOk));
-          },
-        },
-      });
+  let getAllowedResourcesFromS3Stub;
+  let getOpenAPIS3LocationStub;
+  let verifyIdTokenStub;
 
+  before(() => {
+    getAllowedResourcesFromS3Stub = sinon.stub(
+      s3Utils,
+      "getAllowedResourcesFromS3"
+    );
+    getOpenAPIS3LocationStub = sinon.stub(
+      apiGatewayUtils,
+      "getOpenAPIS3Location"
+    );
+    verifyIdTokenStub = sinon.stub(cognitoUtils, "verifyIdToken");
+  });
+
+  after(() => {
+    sinon.restore();
+  });
+
+  it("test Ok", async () => {
+    const tokenPayload = {
+      "custom:backoffice_tags": "Aggregate",
+      sub: "464ee270-6021-7014-1ae4-b097b4c53ba8",
+    };
+
+    getAllowedResourcesFromS3Stub.callsFake(() => [
+      {
+        path: "/test",
+        method: "POST",
+      },
+    ]);
+    getOpenAPIS3LocationStub.callsFake(() => ["bucket", "key", "api-key-bo"]);
+    verifyIdTokenStub.callsFake(() => tokenPayload);
     const res = await lambda.handler(event, null);
-    expect(res.usageIdentifierKey).equal("testApiKey");
+
+    expect(res).to.deep.equal({
+      principalId: event.authorizationToken,
+      policyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "execute-api:Invoke",
+            Effect: "Allow",
+            Resource: [
+              "arn:aws:execute-api:eu-south-1:830192246553:3y4rrxvkv4/unique/POST/test",
+            ],
+          },
+        ],
+      },
+      context: { uid: tokenPayload.sub, cx_type: "BO" },
+    });
   });
 
   it("test fail", async () => {
-    const lambda = proxyquire
-      .noPreserveCache()
-      .noCallThru()
-      .load("../../index.js", {
-        "./src/app/eventHandler.js": {
-          handleEvent: async () => {
-            return new Promise((res) => res(mockIamPolicyKo));
-          },
-        },
-      });
+    const tokenPayload = {
+      "custom:backoffice_tags": "Aggregate",
+      sub: "464ee270-6021-7014-1ae4-b097b4c53ba8",
+    };
+
+    getAllowedResourcesFromS3Stub.callsFake(() => []);
+    getOpenAPIS3LocationStub.callsFake(() => ["bucket", "key", "api-key-bo"]);
+    verifyIdTokenStub.callsFake(() => tokenPayload);
     const res = await lambda.handler(event, null);
-    expect(res.policyDocument.Statement[0].Effect).equal("Deny");
+
+    expect(res).to.deep.equal({
+      principalId: event.authorizationToken,
+      policyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "execute-api:Invoke",
+            Effect: "Deny",
+            Resource: [
+              "arn:aws:execute-api:eu-south-1:830192246553:3y4rrxvkv4/unique/*/*",
+            ],
+          },
+        ],
+      },
+      context: { uid: tokenPayload.sub, cx_type: "BO" },
+    });
   });
 });

@@ -6,11 +6,12 @@ const https = require("https");
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
 
-const getCxId = async (taxId) => {
+async function getCxId(taxId) {
   const pnDataVaultBaseUrl = process.env.PN_DATA_VAULT_BASEURL;
   const pnDataVaultUrl =
     pnDataVaultBaseUrl + "/datavault-private/v1/recipients/external/PF";
   try {
+    console.log(pnDataVaultUrl);
     const response = await axios.post(pnDataVaultUrl, taxId, {
       headers: { "Content-Type": "text/plain" },
       timeout: 2000,
@@ -20,6 +21,6 @@ const getCxId = async (taxId) => {
     console.error("Error in get external Id ", err);
     throw new Error("Error in get external Id");
   }
-};
+}
 
 module.exports = { getCxId };

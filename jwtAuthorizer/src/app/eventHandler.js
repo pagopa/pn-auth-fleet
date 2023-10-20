@@ -15,7 +15,7 @@ const defaultDenyAllPolicy = {
   },
 };
 
-const handleEvent = async (event) => {
+async function handleEvent(event) {
   // Declare Policy
   let iamPolicy = null;
   // Capture apiKey from event
@@ -57,7 +57,7 @@ const handleEvent = async (event) => {
     console.warn("EncodedToken is null");
     return defaultDenyAllPolicy;
   }
-};
+}
 
 function getUserType(token) {
   if (!token.organization) {
