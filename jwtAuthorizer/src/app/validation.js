@@ -28,7 +28,10 @@ async function jwtValidator(jwtToken) {
     decodedPublicKey = cachedPublicKey;
   } else {
     const encodedPublicKey = await retrievePublicKey(keyId);
-    decodedPublicKey = encodedPublicKey.PublicKey.toString("base64");
+    decodedPublicKey = Buffer.from(
+      encodedPublicKey.PublicKey,
+      "binary"
+    ).toString("base64");
     console.debug("decodedPublicKey", decodedPublicKey);
     setCachedData(keyId, decodedPublicKey);
   }
