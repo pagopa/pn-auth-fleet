@@ -746,7 +746,7 @@ Resources:
         IntendedUsage: WEB
         APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
         Limit: !Ref TokenExchangeWafLimit
-        # EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+        EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
 
   ### IAM Role used by Subscription filters to allow read logs from Cloudwatch and send logs to Kinesis Firehose
   SubscriptionFilterServiceRole:
