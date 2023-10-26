@@ -12,7 +12,7 @@ const {
 } = require("./exceptions.js");
 const { anonymizeKey } = require("./utils.js");
 
-const getApiKeyByIndex = async (virtualKey) => {
+async function getApiKeyByIndex(virtualKey) {
   const ddbClient = new DynamoDBClient();
   const ddbDocClient = AWSXRay.captureAWSv3Client(
     DynamoDBDocumentClient.from(ddbClient)
@@ -53,19 +53,19 @@ const getApiKeyByIndex = async (virtualKey) => {
     virtualKey: apiKeyItem["virtualKey"],
     pdnd: apiKeyItem["pdnd"],
   };
-};
+}
 
-const getPaAggregationById = async (cxId) => {
+async function getPaAggregationById(cxId) {
   const tableName = "pn-paAggregations";
   return getItemById(tableName, "x-pagopa-pn-cx-id", cxId);
-};
+}
 
-const getPaAggregateById = async (aggregateId) => {
+async function getPaAggregateById(aggregateId) {
   const tableName = "pn-aggregates";
   return getItemById(tableName, "aggregateId", aggregateId);
-};
+}
 
-const getItemById = async (TableName, keyName, keyValue) => {
+async function getItemById(TableName, keyName, keyValue) {
   const ddbClient = new DynamoDBClient();
   const ddbDocClient = AWSXRay.captureAWSv3Client(
     DynamoDBDocumentClient.from(ddbClient)
@@ -84,6 +84,6 @@ const getItemById = async (TableName, keyName, keyValue) => {
   }
 
   return dynamoItem.Item;
-};
+}
 
 module.exports = { getApiKeyByIndex, getPaAggregateById, getPaAggregationById };

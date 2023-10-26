@@ -9,7 +9,7 @@ const {
 const jwksCache = require("./jwksCache.js");
 const retrieverPdndJwks = require("./retrieverPdndJwks.js");
 
-const validation = async (jwtToken) => {
+async function validation(jwtToken) {
   if (jwtToken) {
     const decodedToken = await jwtValidator(jwtToken);
     console.info("token is valid");
@@ -17,9 +17,9 @@ const validation = async (jwtToken) => {
   } else {
     throw new ValidationException("token is not valid");
   }
-};
+}
 
-const jwtValidator = async (jwtToken) => {
+async function jwtValidator(jwtToken) {
   const token = jsonwebtoken.decode(jwtToken, { complete: true });
   const keyId = token.header.kid;
   const tokenHeader = token.header;
@@ -39,7 +39,7 @@ const jwtValidator = async (jwtToken) => {
   console.debug("token payload", token.payload);
   console.log("success!");
   return token.payload;
-};
+}
 
 async function getDecodedPublicKey(keyId) {
   let publicKey;

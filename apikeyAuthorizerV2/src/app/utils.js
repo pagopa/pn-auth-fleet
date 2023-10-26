@@ -1,4 +1,4 @@
-const anonymizeKey = (cleanString) => {
+function anonymizeKey(cleanString) {
   if (!cleanString) return "";
 
   if (cleanString.length < 6) return "".padStart(cleanString.length, "*");
@@ -13,13 +13,13 @@ const anonymizeKey = (cleanString) => {
   const hiddenString = "".padStart(hiddenStringLength, "*");
 
   return firstTwoChars + hiddenString + lastTwoChars;
-};
+}
 
-const logEvent = (event) => {
+function logEvent(event) {
   console.info("New event received", extractLoggableInfoFromEvent(event));
-};
+}
 
-const extractLoggableInfoFromEvent = (event) => {
+function extractLoggableInfoFromEvent(event) {
   const loggableObject = {
     path: event["path"],
     httpMethod: event["httpMethod"],
@@ -28,33 +28,33 @@ const extractLoggableInfoFromEvent = (event) => {
   };
 
   return loggableObject;
-};
+}
 
-const logIamPolicy = (iamPolicy) => {
+function logIamPolicy(iamPolicy) {
   console.log("IAM Policy:", maskLoggableInfoFromIamPolicy(iamPolicy));
-};
+}
 
-const maskLoggableInfoFromIamPolicy = (iamPolicy) => {
+function maskLoggableInfoFromIamPolicy(iamPolicy) {
   const iamPolicyCopy = JSON.parse(JSON.stringify(iamPolicy));
   iamPolicyCopy.usageIdentifierKey = anonymizeKey(
     iamPolicyCopy.usageIdentifierKey
   );
   iamPolicyCopy.context.uid = anonymizeUid(iamPolicyCopy.context.uid);
   return iamPolicyCopy;
-};
+}
 
-const anonymizeUid = (uid) => {
+function anonymizeUid(uid) {
   const prefix = uid.substring(0, uid.indexOf("-") + 1);
   const apikeyToHide = uid.substring(uid.indexOf("-") + 1);
   return prefix + anonymizeKey(apikeyToHide);
-};
+}
 
-const findAttributeValueInObjectWithInsensitiveCase = (object, target) => {
+function findAttributeValueInObjectWithInsensitiveCase(object, target) {
   const foundKeys = Object.keys(object).filter(
     (key) => key.toLowerCase() === target.toLowerCase()
   );
   return foundKeys.length !== 0 ? object[foundKeys[0]] : undefined;
-};
+}
 
 module.exports = {
   anonymizeKey,

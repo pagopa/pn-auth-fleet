@@ -28,7 +28,7 @@ const defaultDenyAllPolicy = {
   },
 };
 
-const eventHandler = async (event, context) => {
+async function eventHandler(event, context) {
   try {
     const virtualKey = findAttributeValueInObjectWithInsensitiveCase(
       event.headers,
@@ -101,7 +101,7 @@ const eventHandler = async (event, context) => {
   } catch (error) {
     return handleError(error);
   }
-};
+}
 
 function checkStatus(status) {
   return status === "ENABLED" || status === "ROTATED";

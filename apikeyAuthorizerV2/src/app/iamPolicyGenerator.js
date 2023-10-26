@@ -1,6 +1,6 @@
 const { ValidationException } = require("./exceptions");
 
-const generateIAMPolicy = (resourceArn, contextAttr, apiKey) => {
+function generateIAMPolicy(resourceArn, contextAttr, apiKey) {
   const policyStatement = generatePolicyStatement(resourceArn, "Allow");
   // Check if no policy statements are generated, if so, create default deny all policy statement
   if (policyStatement) {
@@ -8,7 +8,7 @@ const generateIAMPolicy = (resourceArn, contextAttr, apiKey) => {
   } else {
     throw new ValidationException("Unable to generate policy statement");
   }
-};
+}
 
 function generatePolicyStatement(resourceArn, action) {
   const resources = resourceArn.split("/");

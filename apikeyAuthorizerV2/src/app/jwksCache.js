@@ -5,14 +5,16 @@ let cachedJwks = null;
 const TWO_HOURS_IN_MILLISECONDS = 7200000;
 const TTL = process.env.CACHE_TTL ? Number(process.env.CACHE_TTL) : 300;
 
-const get = async () => {
+async function get() {
   if (isCacheEmpty() || isCacheExpired()) {
     await refreshCache();
   }
   return cachedJwks;
-};
+}
 
-const isCacheActive = () => TTL !== 0;
+function isCacheActive() {
+  return TTL !== 0;
+}
 
 function isCacheEmpty() {
   return !cachedJwks || !cachedJwks.expiresOn || !cachedJwks.keys;
@@ -32,7 +34,7 @@ async function refreshCache() {
   }
 }
 
-const setCachedData = (jwks) => {
+function setCachedData(jwks) {
   const now = Date.now();
 
   cachedJwks = {
@@ -42,7 +44,7 @@ const setCachedData = (jwks) => {
   };
 
   console.debug("Set cached jwks");
-};
+}
 
 function handleCacheRefreshFail(error) {
   if (isCacheEmpty()) {

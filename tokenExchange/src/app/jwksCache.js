@@ -42,7 +42,7 @@ async function refreshCache(issuer) {
   }
 }
 
-const setCachedData = (jwks, issuer) => {
+function setCachedData(jwks, issuer) {
   const now = Date.now();
 
   const value = {
@@ -54,7 +54,7 @@ const setCachedData = (jwks, issuer) => {
   cachedJwks.set(issuer, value);
 
   console.debug(`Set cached jwks for issuer : ${issuer}`, cachedJwks);
-};
+}
 
 function handleCacheRefreshFail(error, issuer) {
   if (isCacheEmpty(issuer)) {
