@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/traverse": "^7.23.2",
     "aws-sdk": "^2.1354.0",
     "aws-sdk-mock": "^5.6.2",
     "chai": "^4.3.6",
