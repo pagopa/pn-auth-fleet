@@ -218,6 +218,7 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
       Path: /
 
   # Lambda function IAM policy
@@ -316,6 +317,8 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
   # Data vault Service security group
   DataVaultServiceSecurityGroup:
@@ -395,6 +398,8 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
   JwtAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -477,6 +482,8 @@ Resources:
                 Action:
                   - "s3:GetObject"
                 Resource: "arn:aws:s3:::*/*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
   BackofficeAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -534,6 +541,8 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
       Path: /
 
   # Lambda function IAM policy
