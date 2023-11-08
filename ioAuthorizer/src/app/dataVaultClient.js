@@ -1,10 +1,12 @@
 const AWSXRay = require("aws-xray-sdk-core");
-const axios = require("axios");
 const http = require("http");
 const https = require("https");
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
+
+// the axios import must be after the xray capture, otherwise the xray tracking will not work
+const axios = require("axios");
 
 async function getCxId(taxId) {
   const pnDataVaultBaseUrl = process.env.PN_DATA_VAULT_BASEURL;
