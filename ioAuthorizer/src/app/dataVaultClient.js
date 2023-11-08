@@ -13,7 +13,6 @@ async function getCxId(taxId) {
   const pnDataVaultUrl =
     pnDataVaultBaseUrl + "/datavault-private/v1/recipients/external/PF";
   try {
-    console.log(pnDataVaultUrl);
     const response = await axios.post(pnDataVaultUrl, taxId, {
       headers: { "Content-Type": "text/plain" },
       timeout: 2000,

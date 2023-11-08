@@ -60,7 +60,7 @@ describe("index tests", function () {
       .event(events[2])
       .expectResult((result) => {
         // Check if code exist
-        //console.debug('the result is ', result);
+        console.debug("the result is ", result);
         done();
       })
       .catch(done); // Catch assertion errors
