@@ -12,12 +12,10 @@ const {
 } = require("./exceptions.js");
 const { anonymizeKey } = require("./utils.js");
 
-async function getApiKeyByIndex(virtualKey) {
-  const ddbClient = new DynamoDBClient();
-  const ddbDocClient = AWSXRay.captureAWSv3Client(
-    DynamoDBDocumentClient.from(ddbClient)
-  );
+const ddbClient = AWSXRay.captureAWSv3Client(new DynamoDBClient());
+const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 
+async function getApiKeyByIndex(virtualKey) {
   const TableName = "pn-apiKey";
 
   const params = {
@@ -66,10 +64,6 @@ async function getPaAggregateById(aggregateId) {
 }
 
 async function getItemById(TableName, keyName, keyValue) {
-  const ddbClient = new DynamoDBClient();
-  const ddbDocClient = AWSXRay.captureAWSv3Client(
-    DynamoDBDocumentClient.from(ddbClient)
-  );
   const command = new GetCommand({
     TableName,
     Key: {

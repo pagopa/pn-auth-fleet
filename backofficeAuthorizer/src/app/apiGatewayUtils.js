@@ -3,8 +3,9 @@ const {
   GetTagsCommand,
 } = require("@aws-sdk/client-api-gateway");
 
+const apigwClient = new APIGatewayClient();
+
 async function getOpenAPIS3Location(apiOptions) {
-  const apigwClient = new APIGatewayClient();
   const input = {
     resourceArn: `arn:aws:apigateway:${apiOptions.region}::/restapis/${apiOptions.restApiId}`,
   };

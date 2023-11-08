@@ -3,6 +3,8 @@ const yaml = require("js-yaml");
 
 const { arraysOverlap } = require("./utils.js");
 
+const s3Client = new S3Client();
+
 function transformPathPattern(path, servicePath) {
   const string = `^/${servicePath}`;
   const regex = new RegExp(string);
@@ -34,7 +36,6 @@ async function getAllowedResourcesFromS3(event, bucket, key, userTags) {
 }
 
 function getS3Object(bucket, key) {
-  const s3Client = new S3Client();
   const input = {
     Bucket: bucket,
     Key: key,
