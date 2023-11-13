@@ -1,32 +1,32 @@
 const jsonwebtoken = require("jsonwebtoken");
-const retrieverPdndJwks = require("./retrieverPdndJwks.js");
-const {
-  ValidationException,
-  AudienceValidationException,
-} = require("./exceptions.js");
 const jwkToPem = require("jwk-to-pem");
-const jwksCache = require("./jwksCache.js");
 
-module.exports = {
-  async validation(jwtToken) {
-    if (jwtToken) {
-      let decodedToken = await jwtValidator(jwtToken);
-      console.info("token is valid");
-      return decodedToken;
-    } else {
-      throw new ValidationException("token is not valid");
-    }
-  },
-};
+const {
+  AudienceValidationException,
+  ValidationException,
+} = require("./exceptions.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
+const jwksCache = require("./jwksCache.js");
+const retrieverPdndJwks = require("./retrieverPdndJwks.js");
+
+async function validation(jwtToken) {
+  if (jwtToken) {
+    const decodedToken = await jwtValidator(jwtToken);
+    console.info("token is valid");
+    return decodedToken;
+  } else {
+    throw new ValidationException("token is not valid");
+  }
+}
 
 async function jwtValidator(jwtToken) {
   const token = jsonwebtoken.decode(jwtToken, { complete: true });
-  let keyId = token.header.kid;
-  let tokenHeader = token.header;
+  const keyId = token.header.kid;
+  const tokenHeader = token.header;
   validateTokenHeader(tokenHeader);
-  let issuer = token.payload.iss;
+  const issuer = token.payload.iss;
   validateTokenIssuer(issuer);
-  let publicKey = await getDecodedPublicKey(keyId);
+  const publicKey = await getDecodedPublicKey(keyId);
   validateTokenAudience(token.payload.aud);
   try {
     jsonwebtoken.verify(jwtToken, publicKey, {
@@ -53,19 +53,19 @@ async function getDecodedPublicKey(keyId) {
 
 async function findPublicKeyUsingCache(keyId) {
   console.log("Using cache");
-  let cachedJwks = await jwksCache.get();
+  const cachedJwks = await jwksCache.get();
   return getKeyFromJwks(cachedJwks, keyId);
 }
 
 async function findPublicKeyWithoutCache(keyId) {
   console.debug("Retrieving public key from PDND");
-  let jwks = await retrieverPdndJwks.getJwks(process.env.PDND_ISSUER);
+  const jwks = await retrieverPdndJwks.getJwks(process.env.PDND_ISSUER);
   return getKeyFromJwks(jwks, keyId);
 }
 
 function getKeyFromJwks(jwks, keyId) {
-  let publicKey = findKey(jwks, keyId);
-  let keyInPemFormat = jwkToPem(publicKey);
+  const publicKey = findKey(jwks, keyId);
+  const keyInPemFormat = jwkToPem(publicKey);
   return keyInPemFormat;
 }
 
@@ -77,11 +77,11 @@ function findKey(jwks, keyId) {
     }
   }
 
-  throw ValidationException("Public key not found");
+  throw new ValidationException("Public key not found");
 }
 
 function validateTokenHeader(tokenHeader) {
-  let tokenType = tokenHeader.typ;
+  const tokenType = tokenHeader.typ;
   if (tokenType != "at+jwt") {
     console.warn("Validation error: Invalid token Type");
     throw new ValidationException("Invalid token Type");
@@ -102,3 +102,5 @@ function validateTokenAudience(aud) {
     throw new AudienceValidationException("Invalid token Audience");
   }
 }
+
+module.exports = { validation };

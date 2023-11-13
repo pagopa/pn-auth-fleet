@@ -1,26 +1,38 @@
 const { expect } = require("chai");
-const utils = require("../app/utils");
 const sinon = require("sinon");
-const { mockIamPolicyOk } = require("./mocks");
+
+const {
+  findAttributeValueInObjectWithInsensitiveCase,
+  anonymizeKey,
+  logEvent,
+  logIamPolicy,
+} = require("../app/utils");
+const { mockIamPolicy } = require("./mocks");
 
 describe("Test anonymize function", () => {
   it("anonymize with length > 6", () => {
-    let text = "test-clear";
-    let anonymized = utils.anonymizeKey(text);
+    const text = "test-clear";
+    const anonymized = anonymizeKey(text);
     expect(anonymized).equals("te******ar");
   });
 
   it("anonymize with length < 6", () => {
-    let text = "test";
-    let anonymized = utils.anonymizeKey(text);
+    const text = "test";
+    const anonymized = anonymizeKey(text);
     expect(anonymized).equals("****");
+  });
+
+  it("anonymize undefined string", () => {
+    const text = undefined;
+    const anonymized = anonymizeKey(text);
+    expect(anonymized).equals("");
   });
 });
 
 describe("Test logEvent", () => {
   it("", () => {
-    let spy = sinon.spy(console, "info");
-    let mockedEvent = {
+    const spy = sinon.spy(console, "info");
+    const mockedEvent = {
       path: "/request",
       httpMethod: "GET",
       headers: {
@@ -28,16 +40,13 @@ describe("Test logEvent", () => {
         "X-Amzn-Trace-Id": "test",
       },
     };
-
-    utils.logEvent(mockedEvent);
-
-    let = expectedEvent = {
+    logEvent(mockedEvent);
+    const expectedEvent = {
       httpMethod: "GET",
       path: "/request",
       "X-Amzn-Trace-Id": "test",
       "x-api-key": "da******de",
     };
-
     expect(
       spy
         .getCall(0)
@@ -49,11 +58,9 @@ describe("Test logEvent", () => {
 
 describe("Test logIamPolicy", () => {
   it("", () => {
-    let spy = sinon.spy(console, "log");
-
-    utils.logIamPolicy(mockIamPolicyOk);
-
-    let expectedIamPolicy = {
+    const spy = sinon.spy(console, "log");
+    logIamPolicy(mockIamPolicy);
+    const expectedIamPolicy = {
       principalId: "testPrincipal",
       policyDocument: {
         Version: "2012-10-17",
@@ -73,7 +80,6 @@ describe("Test logIamPolicy", () => {
       },
       usageIdentifierKey: "te******ey",
     };
-
     expect(
       spy.getCall(0).calledWith("IAM Policy:", sinon.match(expectedIamPolicy))
     ).to.be.true;
@@ -83,28 +89,18 @@ describe("Test logIamPolicy", () => {
 
 describe("Test findAttributeValueInObjectWithInsensitiveCase", () => {
   it("item found", () => {
-    let object = {
+    const object = {
       key: "test",
     };
-
-    const value = utils.findAttributeValueInObjectWithInsensitiveCase(
-      object,
-      "KEY"
-    );
-
+    const value = findAttributeValueInObjectWithInsensitiveCase(object, "KEY");
     expect(value).equals("test");
   });
 
   it("item not found", () => {
-    let object = {
+    const object = {
       key: "test",
     };
-
-    const value = utils.findAttributeValueInObjectWithInsensitiveCase(
-      object,
-      "foo"
-    );
-
+    const value = findAttributeValueInObjectWithInsensitiveCase(object, "foo");
     expect(value).to.be.undefined;
   });
 });

@@ -1,20 +1,11 @@
-const axios = require('axios');
-
-module.exports = {
-  copyAndMaskObject,
-  checkOrigin,
-  enrichDecodedToken,
-  getUserType,
-  makeLower,
-  getParameterFromStore
-}
+const axios = require("axios");
 
 function copyAndMaskObject(originalObject, sensitiveFields) {
   // Copia l'oggetto originale
   const copiedObject = Object.assign({}, originalObject);
 
   // Maschera i campi sensibili
-  sensitiveFields.forEach(field => {
+  sensitiveFields.forEach((field) => {
     if (copiedObject.hasOwnProperty(field)) {
       copiedObject[field] = maskString(copiedObject[field]);
     }
@@ -23,61 +14,67 @@ function copyAndMaskObject(originalObject, sensitiveFields) {
   return copiedObject;
 }
 
-
 function maskString(stringToMask) {
-	if(stringToMask.length < 6)
-		return "".padStart(stringToMask.length,"*")
-	
-	let firstTwoChars = stringToMask.substring(0, 2);
-	let lastTwoChars = stringToMask.substring(stringToMask.length - 2, stringToMask.length);
+  if (stringToMask.length < 6) return "".padStart(stringToMask.length, "*");
 
-  let hiddenStringLength = stringToMask.length - 4;
-	let hiddenString = "".padStart(hiddenStringLength,"*");
+  const firstTwoChars = stringToMask.substring(0, 2);
+  const lastTwoChars = stringToMask.substring(
+    stringToMask.length - 2,
+    stringToMask.length
+  );
 
-	return firstTwoChars + hiddenString + lastTwoChars;
+  const hiddenStringLength = stringToMask.length - 4;
+  const hiddenString = "".padStart(hiddenStringLength, "*");
+
+  return firstTwoChars + hiddenString + lastTwoChars;
 }
 
 function checkOrigin(origin) {
-  const allowedOrigins = process.env.ALLOWED_ORIGIN.split( ',' )
+  const allowedOrigins = process.env.ALLOWED_ORIGIN.split(",");
   if (allowedOrigins != 0) {
-    return allowedOrigins.indexOf( origin )
+    return allowedOrigins.indexOf(origin);
   } else {
-    console.error( 'Invalid env vars ALLOWED_ORIGIN ', process.env.ALLOWED_ORIGIN )
+    console.error(
+      "Invalid env vars ALLOWED_ORIGIN ",
+      process.env.ALLOWED_ORIGIN
+    );
     return -1;
   }
 }
 
 function makeLower(headers) {
-  let head = {}
-  for(const key in headers) {
+  const head = {};
+  for (const key in headers) {
     if (headers.hasOwnProperty(key)) {
-      head[key.toLowerCase()] = headers[key]
+      head[key.toLowerCase()] = headers[key];
     }
   }
 
-  return head
+  return head;
 }
 
 function getUserType(token) {
   if (!token.organization) {
-    return 'PF';
+    return "PF";
   }
-  if (token.organization && token.organization.roles[0]?.role.startsWith('pg-')) {
-    return 'PG';
+  if (token.organization?.roles[0]?.role.startsWith("pg-")) {
+    return "PG";
   }
   if (token.organization) {
-    return 'PA';
+    return "PA";
   }
 }
 
 function enrichDecodedToken(decodedToken) {
-  const enrichedToken = decodedToken
+  const enrichedToken = decodedToken;
   // enrichedToken adds additional information
   if (enrichedToken.organization) {
-    enrichedToken.organization.hasGroups = Boolean(enrichedToken.organization.groups?.length)
+    enrichedToken.organization.hasGroups = Boolean(
+      enrichedToken.organization.groups?.length
+    );
   }
 
-  return enrichedToken
+  return enrichedToken;
 }
 
 async function getParameterFromStore(parameterName) {
@@ -98,3 +95,12 @@ async function getParameterFromStore(parameterName) {
     throw new Error("Error in get parameter");
   }
 }
+
+module.exports = {
+  checkOrigin,
+  copyAndMaskObject,
+  enrichDecodedToken,
+  getParameterFromStore,
+  getUserType,
+  makeLower,
+};
