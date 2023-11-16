@@ -6,6 +6,7 @@
     "TokenExchangeLambdaEnvironmentTokenTtl": "3200",
     "TokenExchangeLatencyLimit": "2000",
     "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it",
-    "ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl": "300"
+    "ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl": "300",
+    "EnhancedWebSecurityEnabled": "true"
   }
 }
