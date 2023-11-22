@@ -77,7 +77,21 @@ function enrichDecodedToken(decodedToken) {
   return enrichedToken;
 }
 
-async function getParameterFromStore(parameterName) {
+// function to retry async function with a delay
+async function retryWithDelay(fn, delay, retries) {
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries > 0) {
+      await new Promise((r) => setTimeout(r, delay));
+      return await retryWithDelay(fn, delay, retries - 1);
+    } else {
+      throw err;
+    }
+  }
+}
+
+async function innerGetParameterFromStore(parameterName) {
   try {
     const response = await axios.get(
       `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
@@ -94,6 +108,14 @@ async function getParameterFromStore(parameterName) {
     console.error("Error in get parameter ", err);
     throw new Error("Error in get parameter");
   }
+}
+
+async function getParameterFromStore(parameterName) {
+  return await retryWithDelay(
+    () => innerGetParameterFromStore(parameterName),
+    1000,
+    3
+  );
 }
 
 module.exports = {
