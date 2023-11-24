@@ -42,7 +42,7 @@ async function getCxId(taxId) {
 
   const pnDataVaultBaseUrl = process.env.PN_DATA_VAULT_BASEURL;
   const pnDataVaultUrl = pnDataVaultBaseUrl + "/datavault-private/v1/recipients/external/PF";
-  console.log("[DOWNSTREAM] Invoking external service DataVault PF Recipient. Waiting Sync response.", {
+  console.log("Invoking external service pn-data-vault PF. Waiting Sync response.", {
     taxId: anonymizedTaxId,
     url: pnDataVaultUrl
   })
@@ -55,7 +55,7 @@ async function getCxId(taxId) {
     return response.data;
   } catch (err) {
     const loggableError = prepareLoggableInfoFromAxiosResponse(err)
-    console.log("[DOWNSTREAM] Service DataVault PF Recipient returned errors", {
+    console.log("External service pn-data-vault PF returned errors", {
       error: loggableError,
       url: pnDataVaultUrl,
       taxId: anonymizedTaxId
