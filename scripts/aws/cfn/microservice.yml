@@ -187,7 +187,7 @@ Resources:
       Runtime: nodejs14.x
       Handler: "index.handler"
       MemorySize: 256
-      Timeout: 6
+      Timeout: 10
       Code:
         S3Bucket: !Ref LambdasBucketName
         S3Key: !Sub "${BucketBasePath}/apikeyAuthorizerV2.zip"
