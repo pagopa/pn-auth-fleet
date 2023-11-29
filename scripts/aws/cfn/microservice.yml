@@ -281,6 +281,11 @@ Resources:
         Mode: Active
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+      Tags:
+        - Key: "pn-eni-related"
+          Value: "true"
+        - Key: "pn-eni-related-groupName-regexp"
+          Value: "^pn-auth-fleet-microsvc-prod-DataVaultServiceSecurityGroup.*$"
 
   # Lambda function role
   IoAuthorizerLambdaRole:
