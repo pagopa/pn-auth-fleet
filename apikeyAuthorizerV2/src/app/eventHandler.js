@@ -1,13 +1,18 @@
-const dynamo = require("./dynamoFunctions.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
+const dynamoFunctions = require("./dynamoFunctions.js");
 const {
-  KeyStatusException,
-  ValidationException,
   AudienceValidationException,
   ItemNotFoundException,
+  KeyStatusException,
+  ValidationException,
 } = require("./exceptions.js");
-const iam = require("./iamPolicyGenerator.js");
-const utils = require("./utils");
-const validator = require("./validation.js");
+const { generateIAMPolicy } = require("./iamPolicyGenerator.js");
+const {
+  anonymizeKey,
+  findAttributeValueInObjectWithInsensitiveCase,
+  logIamPolicy,
+} = require("./utils.js");
+const { validation } = require("./validation.js");
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -23,14 +28,14 @@ const defaultDenyAllPolicy = {
   },
 };
 
-module.exports.eventHandler = async (event, context) => {
+async function eventHandler(event, context) {
   try {
-    const virtualKey = utils.findAttributeValueInObjectWithInsensitiveCase(
+    const virtualKey = findAttributeValueInObjectWithInsensitiveCase(
       event.headers,
       "x-api-key"
     );
 
-    const apiKeyDynamo = await dynamo.getApiKeyByIndex(virtualKey);
+    const apiKeyDynamo = await dynamoFunctions.getApiKeyByIndex(virtualKey);
 
     if (!checkStatus(apiKeyDynamo.status)) {
       throw new KeyStatusException(
@@ -38,26 +43,24 @@ module.exports.eventHandler = async (event, context) => {
       );
     }
 
-    const paAggregationDynamo = await dynamo.getPaAggregationById(
+    const paAggregationDynamo = await dynamoFunctions.getPaAggregationById(
       apiKeyDynamo.cxId
     );
     console.log("Aggregate ID found -> ", paAggregationDynamo.aggregateId);
 
-    const aggregateDynamo = await dynamo.getPaAggregateById(
+    const aggregateDynamo = await dynamoFunctions.getPaAggregateById(
       paAggregationDynamo.aggregateId
     );
     console.log(
       "AWS ApiKey Found -> ",
-      utils.anonymizeKey(aggregateDynamo.AWSApiKey)
+      anonymizeKey(aggregateDynamo.AWSApiKey)
     );
 
     let contextAuth;
-    const encodedToken = utils
-      .findAttributeValueInObjectWithInsensitiveCase(
-        event.headers,
-        "Authorization"
-      )
-      ?.replace("Bearer ", "");
+    const encodedToken = findAttributeValueInObjectWithInsensitiveCase(
+      event.headers,
+      "Authorization"
+    )?.replace("Bearer ", "");
     if (apiKeyDynamo.pdnd === false) {
       if (encodedToken) {
         throw new ValidationException(
@@ -74,7 +77,7 @@ module.exports.eventHandler = async (event, context) => {
     } else {
       if (encodedToken) {
         console.log("encodedToken", encodedToken);
-        let decodedToken = await validator.validation(encodedToken);
+        const decodedToken = await validation(encodedToken);
         contextAuth = {
           uid: "PDND-" + decodedToken.client_id,
           cx_id: apiKeyDynamo.cxId,
@@ -88,17 +91,17 @@ module.exports.eventHandler = async (event, context) => {
         );
       }
     }
-    const iamPolicy = iam.generateIAMPolicy(
+    const iamPolicy = generateIAMPolicy(
       event.methodArn,
       contextAuth,
       aggregateDynamo.AWSApiKey
     );
-    utils.logIamPolicy(iamPolicy);
+    logIamPolicy(iamPolicy);
     return iamPolicy;
   } catch (error) {
     return handleError(error);
   }
-};
+}
 
 function checkStatus(status) {
   return status === "ENABLED" || status === "ROTATED";
@@ -117,3 +120,5 @@ function handleError(error) {
   }
   return defaultDenyAllPolicy;
 }
+
+module.exports = { eventHandler };

@@ -1,13 +1,21 @@
 const {
+  GetCommand,
+  QueryCommand,
+  DynamoDBDocumentClient,
+} = require("@aws-sdk/lib-dynamodb"); /* refers to: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html#dynamodb-example-document-client-query */
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const AWSXRay = require("aws-xray-sdk"); /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
+
+const {
   ItemNotFoundException,
   TooManyItemsFoundException,
 } = require("./exceptions.js");
-const AWSXRay = require("aws-xray-sdk-core");
-const AWS = AWSXRay.captureAWS(require("aws-sdk"));
-const utils = require("./utils");
+const { anonymizeKey } = require("./utils.js");
 
-module.exports.getApiKeyByIndex = async (virtualKey) => {
-  const docClient = new AWS.DynamoDB.DocumentClient();
+const ddbClient = AWSXRay.captureAWSv3Client(new DynamoDBClient());
+const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
+
+async function getApiKeyByIndex(virtualKey) {
   const TableName = "pn-apiKey";
 
   const params = {
@@ -22,10 +30,11 @@ module.exports.getApiKeyByIndex = async (virtualKey) => {
     },
   };
 
-  const apiKeyItems = await docClient.query(params).promise();
+  const command = new QueryCommand(params);
+  const apiKeyItems = await ddbDocClient.send(command);
 
   if (!apiKeyItems.Items || apiKeyItems.Items.length === 0) {
-    throw new ItemNotFoundException(utils.anonymizeKey(virtualKey), TableName);
+    throw new ItemNotFoundException(anonymizeKey(virtualKey), TableName);
   }
 
   if (apiKeyItems.Items.length > 1) {
@@ -42,33 +51,33 @@ module.exports.getApiKeyByIndex = async (virtualKey) => {
     virtualKey: apiKeyItem["virtualKey"],
     pdnd: apiKeyItem["pdnd"],
   };
-};
+}
 
-module.exports.getPaAggregationById = async (cxId) => {
+async function getPaAggregationById(cxId) {
   const tableName = "pn-paAggregations";
   return getItemById(tableName, "x-pagopa-pn-cx-id", cxId);
-};
+}
 
-module.exports.getPaAggregateById = async (aggregateId) => {
+async function getPaAggregateById(aggregateId) {
   const tableName = "pn-aggregates";
   return getItemById(tableName, "aggregateId", aggregateId);
-};
+}
 
-const getItemById = async (TableName, keyName, keyValue) => {
-  const docClient = new AWS.DynamoDB.DocumentClient();
+async function getItemById(TableName, keyName, keyValue) {
+  const command = new GetCommand({
+    TableName,
+    Key: {
+      [keyName]: keyValue,
+    },
+  });
 
-  const dynamoItem = await docClient
-    .get({
-      TableName,
-      Key: {
-        [keyName]: keyValue,
-      },
-    })
-    .promise();
+  const dynamoItem = await ddbDocClient.send(command);
 
-  if (!dynamoItem.Item) {
+  if (!dynamoItem || !dynamoItem.Item) {
     throw new ItemNotFoundException(keyValue, TableName);
   }
 
   return dynamoItem.Item;
-};
+}
+
+module.exports = { getApiKeyByIndex, getPaAggregateById, getPaAggregationById };

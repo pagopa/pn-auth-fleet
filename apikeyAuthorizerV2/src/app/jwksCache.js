@@ -1,20 +1,20 @@
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructure object
 const retrieverPdndJwks = require("./retrieverPdndJwks.js");
 
 let cachedJwks = null;
 const TWO_HOURS_IN_MILLISECONDS = 7200000;
 const TTL = process.env.CACHE_TTL ? Number(process.env.CACHE_TTL) : 300;
 
-module.exports = {
-  async get() {
-    if (isCacheEmpty() || isCacheExpired()) {
-      await refreshCache();
-    }
-    return cachedJwks;
-  },
-  isCacheActive() {
-    return TTL != 0;
-  },
-};
+async function get() {
+  if (isCacheEmpty() || isCacheExpired()) {
+    await refreshCache();
+  }
+  return cachedJwks;
+}
+
+function isCacheActive() {
+  return TTL !== 0;
+}
 
 function isCacheEmpty() {
   return !cachedJwks || !cachedJwks.expiresOn || !cachedJwks.keys;
@@ -34,7 +34,7 @@ async function refreshCache() {
   }
 }
 
-const setCachedData = (jwks) => {
+function setCachedData(jwks) {
   const now = Date.now();
 
   cachedJwks = {
@@ -44,7 +44,7 @@ const setCachedData = (jwks) => {
   };
 
   console.debug("Set cached jwks");
-};
+}
 
 function handleCacheRefreshFail(error) {
   if (isCacheEmpty()) {
@@ -64,3 +64,5 @@ function checkLastUpdateTresholdExceeded() {
   const treshold = cachedJwks.lastUpdate + TWO_HOURS_IN_MILLISECONDS;
   return cachedJwks.lastUpdate > treshold;
 }
+
+module.exports = { get, isCacheActive };

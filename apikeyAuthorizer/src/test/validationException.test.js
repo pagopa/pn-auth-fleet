@@ -1,12 +1,12 @@
-const validationException = require('../app/exception/validationException')
-const sinon = require('sinon')
-const expect = require("chai").expect;
+const { expect } = require("chai");
 
-describe('test ValidationException', () => {
-  it('should set name', () => {
-    const message = 'test';
-    const exception = new validationException(message);
-    expect(exception.name).to.eq('ValidationException');
-    expect(exception.message).to.eq('test');
+const ValidationException = require("../app/exception/validationException.js");
+
+describe("test ValidationException", () => {
+  it("should set name", () => {
+    const message = "test";
+    const exception = new ValidationException(message);
+    expect(exception.name).to.eq("ValidationException");
+    expect(exception.message).to.eq("test");
   });
 });
