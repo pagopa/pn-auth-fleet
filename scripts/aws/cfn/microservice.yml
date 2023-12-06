@@ -184,7 +184,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref ApiKeyAuthorizerV2LambdaName
-      Runtime: nodejs14.x
+      Runtime: nodejs18.x
       Handler: "index.handler"
       MemorySize: 256
       Timeout: 10
@@ -260,7 +260,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref IoAuthorizerLambdaName
-      Runtime: nodejs14.x
+      Runtime: nodejs18.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
@@ -349,7 +349,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref JwtAuthorizerLambdaName
-      Runtime: nodejs14.x
+      Runtime: nodejs18.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
@@ -501,7 +501,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref TokenExchangeLambdaName
-      Runtime: nodejs14.x
+      Runtime: nodejs18.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
