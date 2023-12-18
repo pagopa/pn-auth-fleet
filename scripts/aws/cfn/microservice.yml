@@ -285,7 +285,7 @@ Resources:
         - Key: "pn-eni-related"
           Value: "true"
         - Key: "pn-eni-related-groupName-regexp"
-          Value: "^pn-auth-fleet-microsvc-prod-DataVaultServiceSecurityGroup.*$"
+          Value: !Base64 "^pn-auth-fleet-microsvc-prod-DataVaultServiceSecurityGroup.*$"
 
   # Lambda function role
   IoAuthorizerLambdaRole:
