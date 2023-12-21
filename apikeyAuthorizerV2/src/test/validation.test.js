@@ -64,6 +64,12 @@ describe("test validation", () => {
     );
   });
 
+  it("test the token validation - Invalid token structure", async () => {
+    await expect(
+      validation("eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsInVzZSI6InNpZyIsImtpZCI6IjMyZDhhMzIxLTE1NjgtNDRmNS05NTU4LWE5MDcyZjUxOWQyZCJ9")
+    ).to.be.rejectedWith(ValidationException, "Unable to decode input JWT string");
+  });
+
   it("test the token validation - Invalid token Type", async () => {
     await expect(
       validation(
