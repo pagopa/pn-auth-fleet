@@ -17,7 +17,8 @@ async function validation(jwtToken) {
 }
 
 async function jwtValidator(jwtToken) {
-  const token = jsonwebtoken.decode(jwtToken, { complete: true });
+  const token = decodeToken(jwtToken);
+  
   console.log("token ", token);
   const keyId = token.header.kid;
   console.debug("header keyId ", keyId);
@@ -44,7 +45,7 @@ async function jwtValidator(jwtToken) {
     jsonwebtoken.verify(jwtToken, publicKeyPem);
   } catch (err) {
     console.warn("Validation error ", err);
-    throw new ValidationException(err.message);
+    throw new ValidationException(JSON.stringify(err));
   }
   console.log("success!");
   return token.payload;
@@ -72,6 +73,24 @@ function searchInCache(keyId) {
   } else {
     return null;
   }
+}
+
+/**
+ * Decode a string representation of JWT token into a {@link jsonwebtoken.Jwt} object.
+ * If input string is does not comply with JWT structure then throw {@link ValidationException} error.
+ * 
+ * @param {string} jwtToken 
+ * @returns decoded token
+ */
+function decodeToken(jwtToken) {
+
+  const decodedToken = jsonwebtoken.decode(jwtToken, { complete: true });
+
+  if (!decodedToken) {
+    throw new ValidationException("Unable to decode input JWT string");
+  }
+
+  return decodedToken;
 }
 
 module.exports = { validation };
