@@ -44,7 +44,7 @@ async function jwtValidator(jwtToken) {
     jsonwebtoken.verify(jwtToken, publicKeyPem);
   } catch (err) {
     console.warn("Validation error ", err);
-    throw new ValidationException(err.message);
+    throw new ValidationException(JSON.stringify(err));
   }
   console.log("success!");
   return token.payload;
