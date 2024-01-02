@@ -1,15 +1,15 @@
 const jsonwebtoken = require("jsonwebtoken");
-const publicKeyGetter = require("./publicKeyGetter.js");
+
 const ValidationException = require("./exception/validationException.js");
+const { getPublicKey } = require("./publicKeyGetter.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
 const utils = require("./utils");
 
-module.exports = {
-  async validation(authorizationToken) {
-    const decodedTokenPayload = await jwtValidator(authorizationToken);
-    console.info("token is valid");
-    return decodedTokenPayload;
-  },
-};
+async function validation(authorizationToken) {
+  const decodedTokenPayload = await jwtValidator(authorizationToken);
+  console.info("token is valid");
+  return decodedTokenPayload;
+}
 
 async function jwtValidator(jwtToken) {
   console.debug("Start jwtValidator");
@@ -47,10 +47,7 @@ async function jwtValidator(jwtToken) {
             const kid = decodedToken.header.kid;
             console.debug("kid from header", kid);
             try {
-              const keyInPemFormat = await publicKeyGetter.getPublicKey(
-                issuer,
-                kid
-              );
+              const keyInPemFormat = await getPublicKey(issuer, kid);
               jsonwebtoken.verify(jwtToken, keyInPemFormat);
             } catch (err) {
               console.warn("Validation error ", err);
@@ -145,3 +142,5 @@ function checkRoles(role) {
     return -1;
   }
 }
+
+module.exports = { validation };

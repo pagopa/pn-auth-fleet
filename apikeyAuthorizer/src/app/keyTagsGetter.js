@@ -1,17 +1,24 @@
-const AWSXRay = require('aws-xray-sdk-core');
-const AWS = AWSXRay.captureAWS(require('aws-sdk'));
+const {
+  GetTagsCommand,
+  APIGatewayClient,
+} = require("@aws-sdk/client-api-gateway");
+const AWSXRay = require("aws-xray-sdk"); /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
 
-module.exports = {
-    async getKeyTags(apiKeyId) {
-        const apigateway = new AWS.APIGateway();
-        const awsRegion = process.env.AWS_REGION;
-        const apiKeyArn = 'arn:aws:apigateway:' + awsRegion + '::/apikeys/' + apiKeyId;
-        console.log('Getting Tags for ', apiKeyArn);
-        
-        const params = {
-            resourceArn: apiKeyArn /* required */
-        };
-        const request = apigateway.getTags(params);
-        return request.promise();
-    }
+const apigateway = AWSXRay.captureAWSv3Client(new APIGatewayClient());
+
+async function getKeyTags(apiKeyId) {
+  const awsRegion = process.env.AWS_REGION;
+  const apiKeyArn =
+    "arn:aws:apigateway:" + awsRegion + "::/apikeys/" + apiKeyId;
+  console.log("Getting Tags for ", apiKeyArn);
+
+  const params = {
+    resourceArn: apiKeyArn /* required */,
+  };
+
+  const command = new GetTagsCommand(params);
+  const request = await apigateway.send(command);
+  return request;
 }
+
+module.exports = { getKeyTags };

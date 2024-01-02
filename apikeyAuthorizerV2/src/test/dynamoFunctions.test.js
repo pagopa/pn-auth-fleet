@@ -1,126 +1,127 @@
-const AWS = require("aws-sdk");
 const { expect } = require("chai");
-const AWSMock = require("aws-sdk-mock");
+const {
+  DynamoDBDocumentClient,
+  GetCommand,
+  QueryCommand,
+} = require("@aws-sdk/lib-dynamodb");
+const {
+  mockClient,
+} = require("aws-sdk-client-mock"); /* refers to: https://aws.amazon.com/it/blogs/developer/mocking-modular-aws-sdk-for-javascript-v3-in-unit-tests/ */
+
 const {
   getApiKeyByIndex,
   getPaAggregateById,
   getPaAggregationById,
-} = require("../app/dynamoFunctions");
-const { mockPaAggregationFound, mockAggregateFound } = require("./mocks");
+} = require("../app/dynamoFunctions.js");
+const {
+  mockPaAggregationFound,
+  mockAggregateFound,
+  mockVirtualKey,
+} = require("./mocks.js");
 
-const dynamoItemVirtualApiKey = {
-  id: "testId",
-  "x-pagopa-pn-cx-id": "testCx",
-  groups: ["test", "test2"],
-  status: "ENABLED",
-  virtualKey: "testVK",
-};
+function errorMessageDynamo(id, table) {
+  return "Item with id = " + id + " not found on table " + table;
+}
 
 describe("dynamoFunctions tests", function () {
-  this.afterAll(() => {
-    AWSMock.restore("DynamoDB.DocumentClient");
+  let ddbMock;
+
+  before(() => {
+    ddbMock = mockClient(DynamoDBDocumentClient);
   });
 
-  this.beforeAll(() => {
-    AWSMock.setSDKInstance(AWS);
-    AWSMock.mock("DynamoDB.DocumentClient", "get", (params, callback) => {
-      let dynamoItem;
-      switch (params.TableName) {
-        case "pn-paAggregations":
-          dynamoItem =
-            params.Key["x-pagopa-pn-cx-id"] === "fake"
-              ? undefined
-              : mockPaAggregationFound;
-          break;
-        case "pn-aggregates":
-          dynamoItem =
-            params.Key.aggregateId === "fake" ? undefined : mockAggregateFound;
-          break;
-      }
-      callback(null, { Item: dynamoItem });
-    });
+  afterEach(() => {
+    ddbMock.reset();
+  });
+
+  after(() => {
+    ddbMock.restore();
   });
 
   it("test getPaAggregationById found", async () => {
-    const item = await getPaAggregationById("test");
-    expect(item.aggregateId).equal("testAggregate");
+    const id = "test";
+    const params = {
+      TableName: "pn-paAggregations",
+      Key: { ["x-pagopa-pn-cx-id"]: id },
+    };
+    ddbMock.on(GetCommand, params).resolves({
+      Item: mockPaAggregationFound,
+    });
+    const item = await getPaAggregationById(id);
+    expect(item.aggregateId).equal(mockPaAggregationFound.aggregateId);
   });
 
   it("test getPaAggregationById not found", async () => {
-    let id = "fake";
-    let table = "pn-paAggregations";
+    const id = "fake";
+    const params = {
+      TableName: "pn-paAggregations",
+      Key: { ["x-pagopa-pn-cx-id"]: id },
+    };
+    ddbMock.on(GetCommand, params).resolves({ Item: null });
     try {
-      await getPaAggregationById(id);
+      await getPaAggregationById(params.Key["x-pagopa-pn-cx-id"]);
     } catch (error) {
       expect(error).to.not.be.null;
       expect(error).to.not.be.undefined;
-      expect(error.message).to.equal(errorMessageDynamo(id, table));
+      expect(error.message).to.equal(errorMessageDynamo(id, params.TableName));
     }
   });
 
   it("test getPaAggregateById found", async () => {
-    const item = await getPaAggregateById("test");
-    expect(item.AWSApiKey).equal("testApiKey");
+    const id = "test";
+    const params = {
+      TableName: "pn-aggregates",
+      Key: { ["aggregateId"]: id },
+    };
+    ddbMock.on(GetCommand, params).resolves({
+      Item: mockAggregateFound,
+    });
+    const item = await getPaAggregateById(id);
+    expect(item.AWSApiKey).equal(mockAggregateFound.AWSApiKey);
   });
 
   it("test getPaAggregateById not found", async () => {
-    let id = "fake";
-    let table = "pn-aggregates";
+    const id = "fake";
+    const params = {
+      TableName: "pn-aggregates",
+      Key: { ["aggregateId"]: id },
+    };
+    ddbMock.on(GetCommand, params).resolves({ Item: null });
     try {
-      await getPaAggregateById(id);
+      await getPaAggregateById(params.Key["aggregateId"]);
     } catch (error) {
       expect(error).to.not.be.null;
       expect(error).to.not.be.undefined;
-      expect(error.message).to.equal(errorMessageDynamo(id, table));
+      expect(error.message).to.equal(errorMessageDynamo(id, params.TableName));
     }
   });
-});
 
-describe("getApiKeyByIndex", function () {
   it("test getApiKeyByIndex found", async () => {
-    AWSMock.setSDKInstance(AWS);
-    AWSMock.mock("DynamoDB.DocumentClient", "query", (params, callback) => {
-      callback(null, { Items: [dynamoItemVirtualApiKey] });
+    ddbMock.on(QueryCommand).resolves({
+      Items: [mockVirtualKey],
     });
     const item = await getApiKeyByIndex("test");
-    AWSMock.restore("DynamoDB.DocumentClient");
-    expect(item.virtualKey).equal("testVK");
+    expect(item.virtualKey).equal(mockVirtualKey.virtualKey);
   });
 
   it("test getApiKeyByIndex not found", async () => {
-    AWSMock.setSDKInstance(AWS);
-    AWSMock.mock("DynamoDB.DocumentClient", "query", (params, callback) => {
-      callback(null, { Items: [] });
-    });
-    let id = "fakekey";
-    let table = "pn-apiKey";
-    let anonymizedId = "fa***ey";
+    ddbMock.on(QueryCommand).resolves({ Items: null });
     try {
-      await getApiKeyByIndex(id);
+      await getApiKeyByIndex("fakekey");
     } catch (error) {
       expect(error).to.not.be.null;
       expect(error).to.not.be.undefined;
-      expect(error.message).to.equal(errorMessageDynamo(anonymizedId, table));
+      expect(error.message).to.equal(
+        errorMessageDynamo("fa***ey", "pn-apiKey")
+      );
     }
-    AWSMock.restore("DynamoDB.DocumentClient");
-  });
-});
-
-//Casistica impossibile
-describe("getApiKeyByIndex fail", function () {
-  this.afterAll(() => {
-    AWSMock.restore("DynamoDB.DocumentClient");
   });
 
-  this.beforeAll(() => {
-    AWSMock.setSDKInstance(AWS);
-    AWSMock.mock("DynamoDB.DocumentClient", "query", (params, callback) => {
-      let dynamoItem = [dynamoItemVirtualApiKey, dynamoItemVirtualApiKey];
-      callback(null, { Items: dynamoItem });
+  //Casistica impossibile
+  it("test getApiKeyByIndex too many items", async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [mockVirtualKey, mockVirtualKey],
     });
-  });
-
-  it("too many items", async () => {
     try {
       await getApiKeyByIndex("test");
     } catch (error) {
@@ -130,7 +131,3 @@ describe("getApiKeyByIndex fail", function () {
     }
   });
 });
-
-function errorMessageDynamo(id, table) {
-  return "Item with id = " + id + " not found on table " + table;
-}

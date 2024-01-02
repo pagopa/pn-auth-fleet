@@ -1,14 +1,16 @@
 const sinon = require("sinon");
-const jwksCache = require("../app/jwksCache");
-const retrieverPdndJwks = require("../app/retrieverPdndJwks");
 const fs = require("fs");
 const chaiAsPromised = require("chai-as-promised");
 const chai = require("chai");
+
+const { get, isCacheActive } = require("../app/jwksCache");
+const retrieverPdndJwks = require("../app/retrieverPdndJwks");
+
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-
-const SIX_MINUTES_IN_MS = 360000;
-let clock;
+const SIX_MINUTES_IN_MS = process.env.CACHE_TTL
+  ? Number(process.env.CACHE_TTL) * 1000 + 360000
+  : 360000 + 300 * 1000;
 
 describe("test jwksCache", () => {
   const jwksFromPdnd = JSON.parse(
@@ -16,39 +18,36 @@ describe("test jwksCache", () => {
       encoding: "utf8",
     })
   );
+  let clock;
+  let getJwksStub;
 
-  beforeEach(() => {
-    clock = sinon.useFakeTimers();
-    process.env.PDND_ISSUER = "uat.interop.pagopa.it";
-    process.env.PDND_AUDIENCE = "https://api.dev.pn.pagopa.it";
-    process.env.CACHE_TTL = "300";
+  before(() => {
+    clock = sinon.useFakeTimers({ now: Date.now(), shouldAdvanceTime: true });
+    sinon.stub(process, "env").value({
+      PDND_ISSUER: "uat.interop.pagopa.it",
+      PDND_AUDIENCE: "https://api.dev.pn.pagopa.it",
+      CACHE_TTL: "300",
+    });
+    getJwksStub = sinon.stub(retrieverPdndJwks, "getJwks");
   });
 
-  afterEach(() => {
-    sinon.reset();
+  after(() => {
     sinon.restore();
     clock.restore();
   });
 
   it("initialize cache when is empty", async () => {
-    sinon
-      .stub(retrieverPdndJwks, "getJwks")
-      .callsFake((issuer) => jwksFromPdnd);
-
-    const jwks = await jwksCache.get();
-    const isCacheActive = jwksCache.isCacheActive();
+    getJwksStub.callsFake(() => jwksFromPdnd);
+    const jwks = await get();
     expect(jwks.keys).to.be.eql(jwksFromPdnd.keys);
     expect(jwks.expiresOn).not.to.be.undefined;
     expect(jwks.lastUpdate).not.to.be.undefined;
-    expect(isCacheActive).to.be.true;
+    expect(isCacheActive()).to.be.true;
   });
 
   it("refresh cache when is expired", async () => {
-    sinon
-      .stub(retrieverPdndJwks, "getJwks")
-      .callsFake((issuer) => jwksFromPdnd);
-
-    const jwks = await jwksCache.get();
+    getJwksStub.callsFake(() => jwksFromPdnd);
+    const jwks = await get();
     const firstExpiresOn = jwks.expiresOn;
     expect(jwks.keys).to.be.eql(jwksFromPdnd.keys);
     expect(firstExpiresOn).not.to.be.undefined;
@@ -60,25 +59,25 @@ describe("test jwksCache", () => {
     const isCacheExpired = firstExpiresOn < now;
     expect(isCacheExpired).to.be.true;
 
-    const newJwks = await jwksCache.get();
+    const newJwks = await get();
     const secondExpiresOn = newJwks.expiresOn;
     expect(firstExpiresOn).to.be.lessThan(secondExpiresOn);
   });
 
   it("error initializing cache", async () => {
     //First call fails
-    sinon.stub(retrieverPdndJwks, "getJwks").throws();
+    getJwksStub.throws();
 
-    expect(jwksCache.get).throws;
+    expect(get).throws;
   });
 
   it("error refreshing cache", async () => {
     //First call succeed
-    sinon
-      .stub(retrieverPdndJwks, "getJwks")
-      .callsFake((issuer) => jwksFromPdnd);
+    getJwksStub.onCall(0).callsFake(() => jwksFromPdnd);
+    // Second call fails
+    getJwksStub.onCall(1).throws();
 
-    const jwks = await jwksCache.get();
+    const jwks = await get();
     const firstExpiresOn = jwks.expiresOn;
     expect(jwks.keys).to.be.eql(jwksFromPdnd.keys);
     expect(firstExpiresOn).not.to.be.undefined;
@@ -87,18 +86,13 @@ describe("test jwksCache", () => {
     // advance time to simulate expiration
     clock.tick(SIX_MINUTES_IN_MS);
 
-    //Second call fails
-    sinon.reset();
-    sinon.restore();
-    sinon.stub(retrieverPdndJwks, "getJwks").throws();
-
     // Check expiration
     const now = Date.now();
     const isCacheExpired = firstExpiresOn < now;
     expect(isCacheExpired).to.be.true;
 
     //Obtain old cache value
-    const secondJwks = await jwksCache.get();
+    const secondJwks = await get();
     const secondExpiresOn = secondJwks.expiresOn;
     expect(firstExpiresOn).to.be.eql(secondExpiresOn);
   });

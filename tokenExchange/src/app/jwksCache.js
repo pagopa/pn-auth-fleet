@@ -1,3 +1,4 @@
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
 const retrieverJwks = require("./retrieverJwks.js");
 
 /* 
@@ -7,28 +8,27 @@ const retrieverJwks = require("./retrieverJwks.js");
     ...
   } 
 */
-let cachedJwks = new Map();
+const cachedJwks = new Map();
 const TWO_HOURS_IN_MILLISECONDS = 7200000;
 const TTL = process.env.CACHE_TTL ? Number(process.env.CACHE_TTL) : 300;
 
-module.exports = {
-  async get(issuer) {
-    if (isCacheEmpty(issuer) || isCacheExpired(issuer)) {
-      await refreshCache(issuer);
-    }
-    return cachedJwks.get(issuer);
-  },
-  isCacheActive() {
-    return TTL != 0;
-  },
-};
+async function get(issuer) {
+  if (isCacheEmpty(issuer) || isCacheExpired(issuer)) {
+    await refreshCache(issuer);
+  }
+  return cachedJwks.get(issuer);
+}
+
+function isCacheActive() {
+  return TTL != 0;
+}
 
 function isCacheEmpty(issuer) {
-  return !cachedJwks || !cachedJwks.has(issuer);
+  return !cachedJwks?.has(issuer);
 }
 
 function isCacheExpired(issuer) {
-  let jwks = cachedJwks.get(issuer);
+  const jwks = cachedJwks.get(issuer);
   return jwks.expiresOn < Date.now();
 }
 
@@ -42,7 +42,7 @@ async function refreshCache(issuer) {
   }
 }
 
-const setCachedData = (jwks, issuer) => {
+function setCachedData(jwks, issuer) {
   const now = Date.now();
 
   const value = {
@@ -54,7 +54,7 @@ const setCachedData = (jwks, issuer) => {
   cachedJwks.set(issuer, value);
 
   console.debug(`Set cached jwks for issuer : ${issuer}`, cachedJwks);
-};
+}
 
 function handleCacheRefreshFail(error, issuer) {
   if (isCacheEmpty(issuer)) {
@@ -73,7 +73,9 @@ function handleCacheRefreshFail(error, issuer) {
 }
 
 function checkLastUpdateTresholdExceeded(issuer) {
-  let jwks = cachedJwks.get(issuer);
+  const jwks = cachedJwks.get(issuer);
   const treshold = jwks.lastUpdate + TWO_HOURS_IN_MILLISECONDS;
   return jwks.lastUpdate > treshold;
 }
+
+module.exports = { get, isCacheActive };
