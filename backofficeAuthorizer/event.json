@@ -1,3 +1,5 @@
 {
- 
+  "type": "TOKEN",
+  "methodArn": "arn:aws:execute-api:eu-south-1:830192246553:3y4rrxvkv4/unique/POST/persons/v1/tax-id",
+  "authorizationToken": "Bearer xxx"
 }

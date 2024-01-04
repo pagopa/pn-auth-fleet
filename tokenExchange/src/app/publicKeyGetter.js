@@ -1,35 +1,35 @@
 const jwkToPem = require("jwk-to-pem");
-const retrieverJwks = require("./retrieverJwks.js");
-const jwksCache = require("./jwksCache.js");
-const ValidationException = require("./exception/validationException.js");
 
-module.exports = {
-  async getPublicKey(issuer, kid) {
-    let publicKey;
-    if (jwksCache.isCacheActive()) {
-      publicKey = await findPublicKeyUsingCache(kid, issuer);
-    } else {
-      publicKey = await findPublicKeyWithoutCache(kid, issuer);
-    }
-    return publicKey;
-  },
-};
+const ValidationException = require("./exception/validationException.js");
+const { get, isCacheActive } = require("./jwksCache.js");
+// for testing purpose, we mustn't destructure the import; stub doesn't mock destructured object
+const retrieverJwks = require("./retrieverJwks.js");
+
+async function getPublicKey(issuer, kid) {
+  let publicKey;
+  if (isCacheActive()) {
+    publicKey = await findPublicKeyUsingCache(kid, issuer);
+  } else {
+    publicKey = await findPublicKeyWithoutCache(kid, issuer);
+  }
+  return publicKey;
+}
 
 async function findPublicKeyUsingCache(keyId, issuer) {
   console.log("Using cache");
-  let cachedJwks = await jwksCache.get(issuer);
+  const cachedJwks = await get(issuer);
   return getKeyFromJwks(cachedJwks, keyId);
 }
 
 async function findPublicKeyWithoutCache(keyId, issuer) {
   console.debug("Retrieving public key without cache");
-  let jwks = await retrieverJwks.getJwks(issuer);
+  const jwks = await retrieverJwks.getJwks(issuer);
   return getKeyFromJwks(jwks, keyId);
 }
 
 function getKeyFromJwks(jwks, keyId) {
-  let publicKey = findKey(jwks, keyId);
-  let keyInPemFormat = jwkToPem(publicKey);
+  const publicKey = findKey(jwks, keyId);
+  const keyInPemFormat = jwkToPem(publicKey);
   return keyInPemFormat;
 }
 
@@ -41,5 +41,7 @@ function findKey(jwks, keyId) {
     }
   }
 
-  throw ValidationException("Public key not found");
+  throw new ValidationException("Public key not found");
 }
+
+module.exports = { getPublicKey };

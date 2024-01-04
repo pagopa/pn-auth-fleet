@@ -1,26 +1,56 @@
-const axios = require ('axios');
-const retrieverJwks = require('../app/retrieverJwks.js');
-const MockAdapter = require('axios-mock-adapter');
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
 const fs = require("fs");
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
 
+const { getJwks } = require("../app/retrieverJwks.js");
 
-describe('retrieverJwks success', () => {
-    const result = fs.readFileSync("./src/test/jwks-mock/spid-hub-test.dev.pn.pagopa.it.jwks.json", { encoding: "utf8" });
+chai.use(chaiAsPromised);
+const expect = chai.expect;
+
+describe("retrieverJwks", () => {
+  let mock;
+
+  before(() => {
+    mock = new MockAdapter(axios);
+  });
+
+  afterEach(() => {
+    mock.reset();
+  });
+
+  after(() => {
+    mock.restore();
+  });
+
+  it("success", async () => {
+    const result = fs.readFileSync(
+      "./src/test/jwks-mock/spid-hub-test.dev.pn.pagopa.it.jwks.json",
+      { encoding: "utf8" }
+    );
     const jsonResult = JSON.parse(result);
-    const mock = new MockAdapter(axios);
-    mock.onGet("https://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json").reply(200, jsonResult);
-    
-    retrieverJwks.getJwks("https://spid-hub-test.dev.pn.pagopa.it:8080").then(function (response) {
-        console.log(response);
-    });
-});
+    mock
+      .onGet(
+        "https://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json"
+      )
+      .reply(200, jsonResult);
 
-describe('retrieverJwks error', () => {
-    fs.readFileSync("./src/test/jwks-mock/spid-hub-test.dev.pn.pagopa.it.jwks.json", { encoding: "utf8" });
-    const mock = new MockAdapter(axios);
-    mock.onGet("https://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json").reply(500);
-    
-    retrieverJwks.getJwks("https://spid-hub-test.dev.pn.pagopa.it:8080").then(function (response) {
-        console.log(response);
-    });
+    const response = await getJwks(
+      "https://spid-hub-test.dev.pn.pagopa.it:8080"
+    );
+    expect(response).to.be.eq(response);
+  });
+
+  it("error", async () => {
+    mock
+      .onGet(
+        "https://spid-hub-test.dev.pn.pagopa.it:8080/.well-known/jwks.json"
+      )
+      .reply(500);
+
+    await expect(
+      getJwks("https://spid-hub-test.dev.pn.pagopa.it:8080")
+    ).to.be.rejectedWith(Error, "Error in get pub key");
+  });
 });

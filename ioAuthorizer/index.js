@@ -1,7 +1,9 @@
-const workflowHandler = require('./src/app/eventHandler.js')
+const { handleEvent } = require("./src/app/eventHandler.js");
 
-exports.handler = async (event) => {
-    // commented to hide PII
-    // console.info("New event received ", event);
-    return workflowHandler.handleEvent(event);
-};
+async function handler(event) {
+  // commented to hide PII
+  // console.info("New event received ", event);
+  return handleEvent(event);
+}
+
+exports.handler = handler;

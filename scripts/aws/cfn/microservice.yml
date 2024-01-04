@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'Example microservice deploy'
+Description: "Example microservice deploy"
 
 Transform:
   - UpdateDeploymentTransform
@@ -7,29 +7,30 @@ Transform:
 Parameters:
   ProjectName:
     Type: String
-    Description: 'Usually pn can be pnXYZ where XYZ are the feature number, useful to create
-      experimental environments without crash official development environment'
-  
+    Description:
+      "Usually pn can be pnXYZ where XYZ are the feature number, useful to create
+      experimental environments without crash official development environment"
+
   LambdasBucketName:
     Type: String
-    Description: 'The S3 bucket from which to fetch the templates used by this stack.'
+    Description: "The S3 bucket from which to fetch the templates used by this stack."
   WebApiDnsName:
     Type: String
-    Description: 'DNS custom domain to export token-exchange api'
+    Description: "DNS custom domain to export token-exchange api"
 
   BucketBasePath:
     Type: String
-    Description: 'The S3 bucket base path where lambda functions are stored'
+    Description: "The S3 bucket base path where lambda functions are stored"
 
   CognitoUserPoolArn:
     Type: String
-    Default: ''
-    Description: 'Cognito user pool arn'
+    Default: ""
+    Description: "Cognito user pool arn"
 
   CognitoClientId:
     Type: String
-    Default: ''
-    Description: 'Cognito CognitoClientId'
+    Default: ""
+    Description: "Cognito CognitoClientId"
 
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
@@ -49,20 +50,20 @@ Parameters:
     Description: Session token issuer
   TokenExchangeLambdaEnvironmentAllowedIssuer:
     Type: String
-    Description: 'Comma separated list of external authentication token issuers 
-                  recognized by Piattaforma Notifiche (SelfCare and SpidHub)'
+    Description: "Comma separated list of external authentication token issuers
+      recognized by Piattaforma Notifiche (SelfCare and SpidHub)"
   TokenExchangeLambdaEnvironmentAllowedOrigin:
     Type: String
-    Description: 'Comma separated list of websites allowed to use "Piattaforma 
-                 Notifiche" back-ends API'
+    Description: 'Comma separated list of websites allowed to use "Piattaforma
+      Notifiche" back-ends API'
   TokenExchangeLambdaEnvironmentAllowedTaxIdsParameter:
     Type: String
-    Description: 'Parameter of allowed login Tax Ids'
-    Default: '/pn-auth-fleet/allowedLoginTaxids'
-                 
+    Description: "Parameter of allowed login Tax Ids"
+    Default: "/pn-auth-fleet/allowedLoginTaxids"
+
   TokenExchangeLambdaEnvironmentJwksMapping:
     Type: String
-    Description: 'Mapping tra issuer e jwks url non standard in formato json'
+    Description: "Mapping tra issuer e jwks url non standard in formato json"
 
   TokenExchangeLambdaEnvironmentAcceptedAudience:
     Type: String
@@ -72,7 +73,7 @@ Parameters:
     Type: String
     Description: Audience value for token generation
 
-  TokenExchangeLatencyLimit: 
+  TokenExchangeLatencyLimit:
     Type: Number
     Default: 2000
     Description: Default latency limit for token exchange api
@@ -80,11 +81,11 @@ Parameters:
   ApikeyAuthorizerV2PDNDAudience:
     Type: String
     Description: Pdnd Audience for ApikeyAuthorizerV2
-  
+
   ApikeyAuthorizerV2PDNDIssuer:
     Type: String
     Description: Pdnd Issuer for ApikeyAuthorizerV2
-  
+
   ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl:
     Type: String
     Default: 300
@@ -97,52 +98,52 @@ Parameters:
   # Unused but required by CD pipeline
   MicroserviceNumber:
     Type: Number
-    Description: 'Disambiguation useful for load balancer rules'
+    Description: "Disambiguation useful for load balancer rules"
   # Unused but required by CD pipeline
   TemplateBucketBaseUrl:
     Type: String
-    Description: 'The S3 bucket from which to fetch the templates used by this stack.'
+    Description: "The S3 bucket from which to fetch the templates used by this stack."
 
   #SNS Topic Alarm Arn and Name
   AlarmSNSTopicArn:
     Type: String
-    Description: "An ARN of an SNS topic where to send alarm when log line includes ERROR or FATAL" 
-  
+    Description: "An ARN of an SNS topic where to send alarm when log line includes ERROR or FATAL"
+
   Version:
     Type: String
     Description: "Keep versioning of commitIds used for cloudformation templates"
-  
+
   # TODO: deploy lambda into ours VPC
   SubnetsIds:
     Type: List<AWS::EC2::Subnet::Id>
-    Description: 'subnets ids comma separated list. Where to deploy the microservice'
+    Description: "subnets ids comma separated list. Where to deploy the microservice"
 
   VpcId:
     Type: String
-    Description: 'VpcId where the microservice is going to be deployed'
+    Description: "VpcId where the microservice is going to be deployed"
 
   PutIntoVpc:
     Type: String
-    Default: 'true'
+    Default: "true"
 
   LogsKinesisSourceStreamArn:
     Type: String
-    Description: 'Kinesis stream that receive logs'
+    Description: "Kinesis stream that receive logs"
 
   # - Log exports parameters
   CloudwatchFilterPattern:
-    Default: ''
+    Default: ""
     Type: String
     Description: filter expression for exported logs
 
   ApiKeyTablesEncryptKeyId:
     Type: String
-    Description: 'KMS ID for apikey manager tables'
+    Description: "KMS ID for apikey manager tables"
 
   PnAuthFleetJwtSignKeyId:
     Type: String
     Description: JWT sign key ID
-    
+
   ApiKeyAuthorizerV2LambdaName:
     Type: String
 
@@ -160,7 +161,7 @@ Parameters:
 
   TokenExchangeWafLimit:
     Type: Number
-    Default: '600000'
+    Default: "600000"
 
   EnhancedWebSecurityEnabled:
     Type: String
@@ -171,9 +172,8 @@ Parameters:
       - false
 
 Conditions:
-  HaveToDefineVpcs: !Equals [ 'true', !Ref PutIntoVpc ]
-  SendLogToKinesis: !Not [ !Equals [ !Ref LogsKinesisSourceStreamArn, '' ] ]
-
+  HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
+  SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
 
 Resources:
   ###             API KEY AUTHORIZERV2 LAMBDA             ###
@@ -184,13 +184,13 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref ApiKeyAuthorizerV2LambdaName
-      Runtime: nodejs14.x
-      Handler: 'index.handler'
+      Runtime: nodejs18.x
+      Handler: "index.handler"
       MemorySize: 256
-      Timeout: 6
+      Timeout: 10
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub '${BucketBasePath}/apikeyAuthorizerV2.zip'
+        S3Key: !Sub "${BucketBasePath}/apikeyAuthorizerV2.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl
@@ -200,7 +200,7 @@ Resources:
       TracingConfig:
         Mode: Active
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
   # Lambda function role
   ApiKeyAuthorizerV2LambdaRole:
@@ -218,6 +218,7 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
       Path: /
 
   # Lambda function IAM policy
@@ -233,14 +234,14 @@ Resources:
           - Effect: Allow
             Sid: AllowDbQueries
             Action:
-              - 'apigateway:*'
-              - 'dynamodb:GetItem'
-              - 'dynamodb:Query'
+              - "apigateway:*"
+              - "dynamodb:GetItem"
+              - "dynamodb:Query"
             Resource: "*"
           - Effect: Allow
             Sid: AllowDecrypt
             Action:
-              - 'kms:Decrypt'
+              - "kms:Decrypt"
             Resource: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${ApiKeyTablesEncryptKeyId}
 
   ApiKeyAuthorizerV2LambdaAlarms:
@@ -259,28 +260,33 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref IoAuthorizerLambdaName
-      Runtime: nodejs14.x
-      Handler: 'index.handler'
+      Runtime: nodejs18.x
+      Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub '${BucketBasePath}/ioAuthorizer.zip'
+        S3Key: !Sub "${BucketBasePath}/ioAuthorizer.zip"
       Environment:
         Variables:
-          CX_TAXID_HEADER: 'x-pagopa-cx-taxid'
+          CX_TAXID_HEADER: "x-pagopa-cx-taxid"
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
       Role: !GetAtt IoAuthorizerLambdaRole.Arn
       VpcConfig:
         Fn::If:
           - HaveToDefineVpcs
           - SecurityGroupIds:
-            - !GetAtt DataVaultServiceSecurityGroup.GroupId
+              - !GetAtt DataVaultServiceSecurityGroup.GroupId
             SubnetIds: !Ref SubnetsIds
           - !Ref AWS::NoValue
       TracingConfig:
         Mode: Active
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
-      
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+      Tags:
+        - Key: "pn-eni-related"
+          Value: "true"
+        - Key: "pn-eni-related-groupName-regexp"
+          Value: !Base64 "^pn-auth-fleet-microsvc-prod-DataVaultServiceSecurityGroup.*$"
+
   # Lambda function role
   IoAuthorizerLambdaRole:
     Type: AWS::IAM::Role
@@ -303,19 +309,21 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - '*'
+                  - "*"
                 Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
-                - logs:CreateLogStream
-                - logs:PutLogEvents
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
                 Effect: Allow
                 Resource: "*"
               - Sid: AllowLambdaToCreateLogGroup
                 Action:
-                - logs:CreateLogGroup
+                  - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
   # Data vault Service security group
   DataVaultServiceSecurityGroup:
@@ -328,7 +336,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 8080
           ToPort: 8080
-          CidrIp: 0.0.0.0/0    
+          CidrIp: 0.0.0.0/0
 
   IoAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -340,17 +348,17 @@ Resources:
 
   ###               JWT AUTHORIZER LAMBDA               ###
   #########################################################
-  
+
   # Lambda function
   JwtAuthorizerLambda:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref JwtAuthorizerLambdaName
-      Runtime: nodejs14.x
-      Handler: 'index.handler'
-      Code: 
+      Runtime: nodejs18.x
+      Handler: "index.handler"
+      Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub '${BucketBasePath}/jwtAuthorizer.zip'
+        S3Key: !Sub "${BucketBasePath}/jwtAuthorizer.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
@@ -358,7 +366,7 @@ Resources:
       TracingConfig:
         Mode: Active
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
   # Lambda function role
   JwtAuthorizerLambdaRole:
@@ -382,19 +390,21 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - '*'
+                  - "*"
                 Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
-                - logs:CreateLogStream
-                - logs:PutLogEvents
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
                 Effect: Allow
                 Resource: "*"
               - Sid: AllowLambdaToCreateLogGroup
                 Action:
-                - logs:CreateLogGroup
+                  - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
   JwtAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -403,20 +413,20 @@ Resources:
       Parameters:
         FunctionName: !Ref JwtAuthorizerLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
-  
+
   ###             BACKOFFICE AUTHORIZER LAMBDA            ###
   #########################################################
-  
+
   # Lambda function
   BackofficeAuthorizerLambda:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref BackofficeAuthorizerLambdaName
       Runtime: nodejs18.x
-      Handler: 'index.handler'
-      Code: 
+      Handler: "index.handler"
+      Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub '${BucketBasePath}/backofficeAuthorizer.zip'
+        S3Key: !Sub "${BucketBasePath}/backofficeAuthorizer.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref BackofficeAuthorizerLambdaEnvironmentCacheTtl
@@ -426,7 +436,7 @@ Resources:
       TracingConfig:
         Mode: Active
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"          
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
   # Lambda function role
   BackofficeAuthorizerLambdaRole:
@@ -450,13 +460,13 @@ Resources:
             Statement:
               - Sid: AllowLambdaToCreateLogs
                 Action:
-                - logs:CreateLogStream
-                - logs:PutLogEvents
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
                 Effect: Allow
                 Resource: "*"
               - Sid: AllowLambdaToCreateLogGroup
                 Action:
-                - logs:CreateLogGroup
+                  - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
         - PolicyName: "get-tags-from-api-key"
@@ -464,9 +474,9 @@ Resources:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 
+                Action:
                   - "apigateway:GET"
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/*"
                   - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
         - PolicyName: "lambda-s3-read-permission"
@@ -474,9 +484,11 @@ Resources:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action: 
-                  -  "s3:GetObject"
-                Resource: "arn:aws:s3:::*/*"    
+                Action:
+                  - "s3:GetObject"
+                Resource: "arn:aws:s3:::*/*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
   BackofficeAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -485,20 +497,20 @@ Resources:
       Parameters:
         FunctionName: !Ref BackofficeAuthorizerLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
-  
+
   ###               TOKEN EXCHANGE LAMBDA               ###
   ##########################################################
-  
+
   # Lambda function
   TokenExchangeLambda:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref TokenExchangeLambdaName
-      Runtime: nodejs14.x
-      Handler: 'index.handler'
-      Code: 
+      Runtime: nodejs18.x
+      Handler: "index.handler"
+      Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub '${BucketBasePath}/tokenExchange.zip'
+        S3Key: !Sub "${BucketBasePath}/tokenExchange.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref TokenExchangeLambdaEnvironmentCacheTtl
@@ -518,7 +530,7 @@ Resources:
         Mode: Active
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
-        - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:2"         
+        - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:2"
 
   # Lambda function role
   TokenExchangeLambdaRole:
@@ -534,6 +546,8 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
       Path: /
 
   # Lambda function IAM policy
@@ -553,8 +567,8 @@ Resources:
             Resource: "*"
           - Sid: AllowLambdaToCreateLogs
             Action:
-            - logs:CreateLogStream
-            - logs:PutLogEvents
+              - logs:CreateLogStream
+              - logs:PutLogEvents
             Effect: Allow
             Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${TokenExchangeLambdaName}:*
           - Sid: AllowLambdaToReadParameterStore
@@ -575,20 +589,19 @@ Resources:
   # ###########################################################
   # Application use this alias to access the public/private key pair
   PnAuthFleetJwtSignKeyAlias:
-    Type: 'AWS::KMS::Alias'
+    Type: "AWS::KMS::Alias"
     Properties:
-      AliasName: !Sub 'alias/${ProjectName}-jwt-sign-key'
+      AliasName: !Sub "alias/${ProjectName}-jwt-sign-key"
       TargetKeyId: !Ref PnAuthFleetJwtSignKeyId
-  
-  
+
   ###               TOKEN EXCHANGE SERVICE                ###
   ###########################################################
-  
+
   # API definition
   TokenExchangeRestApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: !Sub '${ProjectName}-token-exchange-api'
+      Name: !Sub "${ProjectName}-token-exchange-api"
       FailOnWarnings: true
       DisableExecuteApiEndpoint: true
       EndpointConfiguration:
@@ -615,11 +628,11 @@ Resources:
         DestinationArn: !GetAtt "TokenExchangeApiLogGroup.Arn"
         Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","resourcePath":"$context.resourcePath","status":$context.status,"responseLatency":$context.responseLatency,"xrayTraceId":"$context.xrayTraceId","errorMessage":"$context.error.message","validationError":"$context.error.validationErrorString","integrationRequestId":"$context.integration.requestId","functionResponseStatus":"$context.integration.status","integrationLatency":"$context.integration.latency","integrationServiceStatus":"$context.integration.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}'
       MethodSettings:
-        - ResourcePath: '/*'
-          HttpMethod: '*'
-          MetricsEnabled: 'true'
-          DataTraceEnabled: 'false'
-          LoggingLevel: 'INFO'
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          MetricsEnabled: "true"
+          DataTraceEnabled: "false"
+          LoggingLevel: "INFO"
 
   # Log Group
   TokenExchangeApiLogGroup:
@@ -631,7 +644,7 @@ Resources:
   APIMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
-      BasePath: 'token-exchange'
+      BasePath: "token-exchange"
       DomainName: !Ref WebApiDnsName
       RestApiId: !Ref TokenExchangeRestApi
       Stage: !Ref TokenExchangeRestApiStage
@@ -639,18 +652,18 @@ Resources:
   # Lambda access right for POST method
   TokenExchangeLambdaPermission:
     Type: AWS::Lambda::Permission
-    DependsOn: 
+    DependsOn:
       - TokenExchangeLambda
       - TokenExchangeRestApi
     Properties:
-      FunctionName: !Sub '${ProjectName}-tokenExchangeLambda'
+      FunctionName: !Sub "${ProjectName}-tokenExchangeLambda"
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/*/POST/'
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeRestApi}/*/POST/"
 
   # Session Token Body model
   TokenExchangeModel:
-    Type: 'AWS::ApiGateway::Model'
+    Type: "AWS::ApiGateway::Model"
     Properties:
       RestApiId: !Ref TokenExchangeRestApi
       ContentType: application/json
@@ -669,21 +682,21 @@ Resources:
     DependsOn: TokenExchangeLambda
     Type: AWS::ApiGateway::Method
     Properties:
-      OperationName: 'Proxy to Session Token Lambda'
+      OperationName: "Proxy to Session Token Lambda"
       RestApiId: !Ref TokenExchangeRestApi
       ResourceId: !GetAtt TokenExchangeRestApi.RootResourceId
       HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
       RequestValidatorId: !Ref TokenExchangePostMethodRequestValidator
-      RequestParameters: 
+      RequestParameters:
         "method.request.header.Origin": true
       RequestModels:
-         "application/json": !Ref TokenExchangeModel 
+        "application/json": !Ref TokenExchangeModel
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-tokenExchangeLambda/invocations'
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-tokenExchangeLambda/invocations"
         PassthroughBehavior: WHEN_NO_MATCH
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
@@ -700,15 +713,15 @@ Resources:
     DependsOn: TokenExchangeLambda
     Type: AWS::ApiGateway::Method
     Properties:
-      OperationName: 'Options for Session Token'
+      OperationName: "Options for Session Token"
       RestApiId: !Ref TokenExchangeRestApi
       ResourceId: !GetAtt TokenExchangeRestApi.RootResourceId
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       ApiKeyRequired: false
-      MethodResponses: 
+      MethodResponses:
         - StatusCode: 200
-          ResponseParameters: 
+          ResponseParameters:
             "method.response.header.Access-Control-Allow-Headers": false
             "method.response.header.Access-Control-Allow-Methods": false
             "method.response.header.Access-Control-Allow-Origin": false
@@ -716,8 +729,8 @@ Resources:
             "application/json": "Empty"
       Integration:
         Type: MOCK
-        RequestTemplates: 
-          "application/json": "{\"statusCode\": 200}"
+        RequestTemplates:
+          "application/json": '{"statusCode": 200}'
         PassthroughBehavior: WHEN_NO_MATCH
         TimeoutInMillis: 29000
         IntegrationResponses:
@@ -743,9 +756,9 @@ Resources:
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
       Parameters:
-        WAFName: !Sub '${ProjectName}-token-exchange-web'
+        WAFName: !Sub "${ProjectName}-token-exchange-web"
         IntendedUsage: WEB
-        APIGatewayARNs: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}'
+        APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
         Limit: !Ref TokenExchangeWafLimit
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
 
@@ -763,8 +776,7 @@ Resources:
         Version: "2012-10-17"
       Path: /
       Policies:
-        -
-          PolicyName: !Sub '${ProjectName}-auth-fleet-logs-subscription-role'
+        - PolicyName: !Sub "${ProjectName}-auth-fleet-logs-subscription-role"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -784,7 +796,7 @@ Resources:
     Properties:
       AlarmName: !Sub "oncall-${ProjectName}-token-exchange-api-LatencyAlarm"
       AlarmDescription: "CloudWatch alarm for when API Gateway latency exceeds the limit."
-      AlarmActions: 
+      AlarmActions:
         - !Ref AlarmSNSTopicArn
       InsufficientDataActions:
         - !Ref AlarmSNSTopicArn
@@ -800,7 +812,7 @@ Resources:
       MetricName: "Latency"
       Dimensions:
         - Name: ApiName
-          Value: !Sub '${ProjectName}-token-exchange-api'
+          Value: !Sub "${ProjectName}-token-exchange-api"
       ExtendedStatistic: "p90"
 
   TokenExchangeAPIGatewayApiErrorAlarm:
@@ -808,7 +820,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${ProjectName}-token-exchange-api-ErrorAlarm"
       AlarmDescription: "CloudWatch alarm for when API Gateway has 4xx or 5xx error."
-      AlarmActions: 
+      AlarmActions:
         - !Ref AlarmSNSTopicArn
       InsufficientDataActions:
         - !Ref AlarmSNSTopicArn
@@ -855,7 +867,7 @@ Resources:
     Properties:
       AlarmName: !Sub "oncall-${ProjectName}-token-exchange-api-ErrorAlarm"
       AlarmDescription: "CloudWatch alarm for when API Gateway has 4xx or 5xx error."
-      AlarmActions: 
+      AlarmActions:
         - !Ref AlarmSNSTopicArn
       InsufficientDataActions:
         - !Ref AlarmSNSTopicArn
@@ -894,15 +906,15 @@ Resources:
             Metric:
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub '${ProjectName}-token-exchange-api'
+                  Value: !Sub "${ProjectName}-token-exchange-api"
               MetricName: Count
               Namespace: AWS/ApiGateway
             Period: 60
             Stat: Sum
-          ReturnData: False          
+          ReturnData: False
         - Id: e1
           Expression: IF(m3>=10 AND (m1/m3>=0.9 OR m2/m3>=0.1), 1, 0)
-          Label: !Sub "${ProjectName}-token-exchange-api-ErrorMetric-OnCall"         
+          Label: !Sub "${ProjectName}-token-exchange-api-ErrorMetric-OnCall"
 
   # Dashboard
   MicroserviceDashboard:
@@ -911,20 +923,20 @@ Resources:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/microservice-cloudwatch-dashboard.yaml"
       Parameters:
         DashboardName: !Sub "${ProjectName}-auth-fleet-v2"
-        LambdaArns: !Join 
-          - ','
+        LambdaArns: !Join
+          - ","
           - - !GetAtt IoAuthorizerLambda.Arn
-            - !GetAtt ApiKeyAuthorizerV2Lambda.Arn          
-            - !GetAtt JwtAuthorizerLambda.Arn          
-            - !GetAtt TokenExchangeLambda.Arn                      
+            - !GetAtt ApiKeyAuthorizerV2Lambda.Arn
+            - !GetAtt JwtAuthorizerLambda.Arn
+            - !GetAtt TokenExchangeLambda.Arn
         RestApiStageArns: !Join
-          - ','
+          - ","
           - - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
         RestApiNames: !Join
-          - ','
+          - ","
           - - !Ref TokenExchangeRestApiStage
         AlarmArns: !Join
-          - ','
+          - ","
           - - !GetAtt ApiKeyAuthorizerV2LambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt IoAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwtAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
@@ -932,9 +944,9 @@ Resources:
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
         LogGroupsNames: !Join
-          - ','
-          - - !Sub '/aws/lambda/${ApiKeyAuthorizerV2LambdaName}'
-            - !Sub '/aws/lambda/${IoAuthorizerLambdaName}'
-            - !Sub '/aws/lambda/${JwtAuthorizerLambdaName}'
-            - !Sub '/aws/lambda/${BackofficeAuthorizerLambdaName}'
-            - !Sub '/aws/lambda/${TokenExchangeLambdaName}'
+          - ","
+          - - !Sub "/aws/lambda/${ApiKeyAuthorizerV2LambdaName}"
+            - !Sub "/aws/lambda/${IoAuthorizerLambdaName}"
+            - !Sub "/aws/lambda/${JwtAuthorizerLambdaName}"
+            - !Sub "/aws/lambda/${BackofficeAuthorizerLambdaName}"
+            - !Sub "/aws/lambda/${TokenExchangeLambdaName}"
