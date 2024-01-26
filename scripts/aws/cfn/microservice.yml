@@ -35,6 +35,11 @@ Parameters:
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
+
+  B2BAuthorizerLambdaEnvironmentCacheTtl:
+    Type: String
+    Description: Cryptography keys cache entry duration in seconds
+
   BackofficeAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Default: "120"
@@ -153,6 +158,12 @@ Parameters:
   JwtAuthorizerLambdaName:
     Type: String
 
+  JWKSCacheRefreshLambdaName:
+    Type: String
+
+  B2BAuthorizerLambdaName:
+    Type: String
+
   BackofficeAuthorizerLambdaName:
     Type: String
 
@@ -171,9 +182,15 @@ Parameters:
       - true
       - false
 
+  JWKSRefreshIntervalMinutes:
+    Type: Number
+    Default: 0
+    Description: "Interval in minutes to refresh JWKS cache. 0 means no refresh"
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
+  HasToRefreshJWKSCache: !Not [!Equals [!Ref JWKSRefreshIntervalMinutes, 0]]
 
 Resources:
   ###             API KEY AUTHORIZERV2 LAMBDA             ###
@@ -412,6 +429,139 @@ Resources:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
       Parameters:
         FunctionName: !Ref JwtAuthorizerLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###               B2B AUTHORIZER LAMBDA               ###
+  #########################################################
+
+  # Lambda function
+  B2BAuthorizerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref B2BAuthorizerLambdaName
+      Runtime: nodejs18.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer.zip"
+      Environment:
+        Variables:
+          CACHE_TTL: !Ref B2BAuthorizerLambdaEnvironmentCacheTtl
+      Role: !GetAtt B2BAuthorizerLambdaRole.Arn
+      TracingConfig:
+        Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+
+  # Lambda function role
+  B2BAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-b2bAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "*"
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+
+  B2BAuthorizerLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref B2BAuthorizerLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###             JWKS CACHE REFRESH LAMBDA             ###
+  #########################################################
+
+  # Lambda function
+  JWKSCacheRefreshLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref JWKSCacheRefreshLambdaName
+      Runtime: nodejs18.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/jwksCacheRefreshLambda.zip"
+      Role: !GetAtt JWKSCacheRefreshLambdaRole.Arn
+      TracingConfig:
+        Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+
+  # Lambda function role
+  JWKSCacheRefreshLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-jwksCacheRefreshLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "*"
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+
+  JWKSCacheRefreshLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref JWKSCacheRefreshLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   ###             BACKOFFICE AUTHORIZER LAMBDA            ###
@@ -928,6 +1078,7 @@ Resources:
           - - !GetAtt IoAuthorizerLambda.Arn
             - !GetAtt ApiKeyAuthorizerV2Lambda.Arn
             - !GetAtt JwtAuthorizerLambda.Arn
+            - !GetAtt B2bAuthorizerLambda.Arn            
             - !GetAtt TokenExchangeLambda.Arn
         RestApiStageArns: !Join
           - ","
@@ -941,6 +1092,8 @@ Resources:
             - !GetAtt IoAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwtAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt BackofficeAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt B2BAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt JWKSCacheRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
         LogGroupsNames: !Join
@@ -949,4 +1102,28 @@ Resources:
             - !Sub "/aws/lambda/${IoAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${JwtAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${BackofficeAuthorizerLambdaName}"
+            - !Sub "/aws/lambda/${JWKSCacheRefreshLambdaName}"
+            - !Sub "/aws/lambda/${B2BAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${TokenExchangeLambdaName}"
+
+  # Event Bridge rule to trigger JWKSCacheRefreshLambda every JWKSCacheRefreshIntervalInMinutes minutes
+  JWKSCacheRefreshEventRule:
+    Type: AWS::Events::Rule
+    Condition: HasToRefreshJWKSCache
+    Properties:
+      Description: "Rule to trigger JWKSCacheRefreshLambda every JWKSRefreshIntervalMinutes minutes"
+      ScheduleExpression: !Sub "rate(${JWKSRefreshIntervalMinutes} minutes)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt JWKSCacheRefreshLambda.Arn
+          Id: !Sub "${ProjectName}-JWKSCacheRefreshLambda"
+
+  # Permission of the lambda to be invoked by event bridge rule
+  JWKSCacheRefreshLambdaSchedulePermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasToRefreshJWKSCache
+    Properties:
+      FunctionName: !Ref JWKSCacheRefreshLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt JWKSCacheRefreshEventRule.Arn
