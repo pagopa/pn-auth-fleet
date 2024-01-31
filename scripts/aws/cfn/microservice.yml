@@ -220,7 +220,6 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
-
       Path: /
 
   # Lambda function IAM policy
@@ -410,7 +409,6 @@ Resources:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
-
   JwtAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -495,7 +493,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
-
 
   BackofficeAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
