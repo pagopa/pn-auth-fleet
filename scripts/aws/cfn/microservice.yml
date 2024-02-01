@@ -493,6 +493,7 @@ Resources:
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   B2BAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -1083,7 +1084,7 @@ Resources:
           - - !GetAtt IoAuthorizerLambda.Arn
             - !GetAtt ApiKeyAuthorizerV2Lambda.Arn
             - !GetAtt JwtAuthorizerLambda.Arn
-            - !GetAtt B2bAuthorizerLambda.Arn            
+            - !GetAtt B2BAuthorizerLambda.Arn            
             - !GetAtt TokenExchangeLambda.Arn
         RestApiStageArns: !Join
           - ","
