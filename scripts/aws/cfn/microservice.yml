@@ -38,6 +38,7 @@ Parameters:
 
   B2BAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
+    Default: "300"
     Description: Cryptography keys cache entry duration in seconds
 
   BackofficeAuthorizerLambdaEnvironmentCacheTtl:
