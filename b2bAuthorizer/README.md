@@ -1,11 +1,10 @@
 ## Creazione file .env
 Creare il file _.env_ nella root del progetto settando le seguenti variabili d'ambiente:
-- KEY_ID
-- CACHE_TTL
+- CACHE_TTL_SEC
 
 Esempio file .env:
 ```
-    CACHE_TTL=3600
+    CACHE_TTL_SEC=3600
 ```
 
 ## Esecuzione build
