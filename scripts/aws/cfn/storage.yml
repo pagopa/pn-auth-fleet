@@ -144,16 +144,27 @@ Resources:
     Properties:
       TableName: !Sub "${ProjectName}-AuthJwtIssuers"
       AttributeDefinitions:
-        # primary key
         - AttributeName: "hashKey"
           AttributeType: "S"
         - AttributeName: "sortKey"
+          AttributeType: "S"
+        - AttributeName: "jwksCacheExpireSlot"
           AttributeType: "S"
       KeySchema:
         - AttributeName: "hashKey"
           KeyType: "HASH"
         - AttributeName: "sortKey"
           KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: "jwksCacheExpireSlotIndex"
+          KeySchema:
+            - 
+              AttributeName: "jwksCacheExpireSlot"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "INCLUDE"
+            NonKeyAttributes:
+              - "iss"
       BillingMode: "PAY_PER_REQUEST"
       TimeToLiveSpecification:
         AttributeName: "ttl"
