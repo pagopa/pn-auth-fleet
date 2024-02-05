@@ -190,12 +190,12 @@ Parameters:
 
   AuthJwtIssuersTableName:
     Type: String
-    Description: "Name of dynamodb table containing auth jwt issues data"
+    Description: "Name of dynamodb table containing auth jwt issuers data"
 
   AuthJwtIssuersTableArn:
     Type: String
-    Description: "ARN of dynamodb table containing auth jwt issues data"
-    
+    Description: "ARN of dynamodb table containing auth jwt issuers data"
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]

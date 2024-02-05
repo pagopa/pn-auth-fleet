@@ -188,9 +188,9 @@ Outputs:
 
   # Dynamo table
   AuthJwtIssuersTableName:
-    Description: Name of dynamodb table containing auth jwt issues data 
+    Description: Name of dynamodb table containing auth jwt issuers data 
     Value: !Ref AuthJwtIssuersTable
-    
+
   AuthJwtIssuersTableArn:
-    Description: ARN of dynamodb table containing auth jwt issues data 
+    Description: ARN of dynamodb table containing auth jwt issuers data 
     Value: !Sub '${AuthJwtIssuersTable.Arn}'
