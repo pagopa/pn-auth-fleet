@@ -188,6 +188,14 @@ Parameters:
     Default: 0
     Description: "Interval in minutes to refresh JWKS cache. 0 means no refresh"
 
+  AuthJwtIssuersTableName:
+    Type: String
+    Description: "Name of dynamodb table containing auth jwt issues data"
+
+  AuthJwtIssuersTableArn:
+    Type: String
+    Description: "ARN of dynamodb table containing auth jwt issues data"
+    
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
