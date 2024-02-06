@@ -1,4 +1,4 @@
-const { AllowedIssuerDao } = require('./modules/dao/AllowedIssuerDao')
+const { AllowedIssuerDao } = require('./app/modules/dao/AllowedIssuerDao')
 
 module.exports = {
     AllowedIssuerDao
