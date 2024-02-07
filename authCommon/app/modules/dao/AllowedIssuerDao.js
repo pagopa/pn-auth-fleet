@@ -51,7 +51,7 @@ function getJwksCacheEntities(jwksItems, nowInSeconds, cfg, renewTimeSeconds){
     })
 }
 
-async function getIssuerInfoAndJwksCache(iss, renewTimeSeconds = 60){
+async function getIssuerInfoAndJwksCache(iss, renewTimeSeconds){
 
     const query = {
         TableName: process.env.AUTH_JWT_ISSUER_TABLE,
