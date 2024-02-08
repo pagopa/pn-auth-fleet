@@ -158,7 +158,7 @@ async function listJwksCacheExpiringAtMinute(expiringMinute){
         ExpressionAttributeValues: {
             ':expiringMinute': expiringMinute
         },
-        ConsistentRead: true
+        // ConsistentRead: true // not supported by GSI
     }
 
     const queryCommand = new QueryCommand(queryInput)
