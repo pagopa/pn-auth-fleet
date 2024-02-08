@@ -4,8 +4,8 @@ const { UrlDownloader } = require('pn-auth-common')
 
 
 async function handleEvent(event) {
-    const minimumMinutesInThePast = process.env.JWKS_REFRESH_INTERVAL_MINUTES;
-    const jwksDownloadRetryIntervalMinutes = process.env.JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES;
+    const minimumMinutesInThePast = parseInt(process.env.JWKS_REFRESH_INTERVAL_MINUTES);
+    const jwksDownloadRetryIntervalMinutes = parseInt(process.env.JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES);
     const date = Date.now();
     const initialTimeInMillis = date;
     let pivotTimeInMillis = date;
@@ -18,7 +18,7 @@ async function handleEvent(event) {
             }
             catch (e) {
                 console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
-                const rescheduleTime = pivotTimeInMillis + jwksDownloadRetryIntervalMinutes * 60 * 1000;
+                const rescheduleTime = pivotTimeInMillis + (jwksDownloadRetryIntervalMinutes * 60 * 1000);
                 await AllowedIssuerDao.postponeJwksCacheEntryValidation( allowedIssuerId, transformInDate(rescheduleTime) )
             }
         }
