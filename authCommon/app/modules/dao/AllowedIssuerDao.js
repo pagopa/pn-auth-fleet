@@ -3,7 +3,7 @@ const { QueryCommand, GetCommand, TransactWriteCommand, UpdateItemCommand} = req
 const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME } = require('./constants');
 const crypto = require('crypto')
 
-async function getISSFromHashKey(hashKey){
+function getISSFromHashKey(hashKey){
     return hashKey.split('~')[1]
 }
 
