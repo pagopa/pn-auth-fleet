@@ -1,20 +1,22 @@
 const { AllowedIssuerDao } = require('pn-auth-common')
 const { UrlDownloader } = require('pn-auth-common')
 
+const JWKS_REFRESH_INTERVAL_MINUTES = process.env.JWKS_REFRESH_INTERVAL_MINUTES ? parseInt(process.env.JWKS_REFRESH_INTERVAL_MINUTES) : 2;
+
 async function handleEvent(event) {
     const date = Date.now();
     const initialTimeInMillis = date;
     let pivotTimeInMillis = date;
     let issuersToRenew = await AllowedIssuerDao.listJwksCacheExpiringAtMinute( transformInDate(pivotTimeInMillis) )
-    while(issuersToRenew.length > 0 || initialTimeInMillis-pivotTimeInMillis < process.env.JWKS_REFRESH_INTERVAL_MINUTES) {
+    while(issuersToRenew.length > 0 || initialTimeInMillis-pivotTimeInMillis < JWKS_REFRESH_INTERVAL_MINUTES * 60 * 1000) {
         for ( allowedIssuerToRenew of issuersToRenew ) {
             const allowedIssuerId = allowedIssuerToRenew.hashKey.split('~')[1]
             try {
                 await AllowedIssuerDao.addJwksCacheEntry( allowedIssuerId, UrlDownloader.downloadUrl )
             }
-            catch {
-                const rescheduleTime = pivotTimeInMillis + (process.env.JWKS_REFRESH_INTERVAL_MINUTES * 1000);
-                console.log(rescheduleTime)
+            catch (e) {
+                console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
+                const rescheduleTime = pivotTimeInMillis + JWKS_REFRESH_INTERVAL_MINUTES * 60 * 1000;
                 await AllowedIssuerDao.postponeJwksCacheEntryValidation( allowedIssuerToRenew.hashKey, transformInDate(rescheduleTime) )
             }
         }

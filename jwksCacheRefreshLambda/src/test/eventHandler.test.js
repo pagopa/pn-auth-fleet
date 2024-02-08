@@ -63,7 +63,6 @@ describe('EventHandler Testing', () => {
 
             eventHandlerModule.__set__('AllowedIssuerDao', allowedIssuerDaoMock);
             eventHandlerModule.__set__('UrlDownloader', UrlDownloaderMock);
-            process.env.JWKS_REFRESH_INTERVAL_MINUTES = '5';
             const res = await eventHandlerModule.handleEvent(event)
             expect(res).to.not.be.null;
             expect(res).to.not.be.undefined;
