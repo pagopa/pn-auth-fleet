@@ -11,7 +11,7 @@ async function handleEvent(event) {
     let pivotTimeInMillis = date;
     let issuersToRenew = await AllowedIssuerDao.listJwksCacheExpiringAtMinute( transformInDate(pivotTimeInMillis) )
     while(issuersToRenew.length > 0 || initialTimeInMillis-pivotTimeInMillis < minimumMinutesInThePast * 60 * 1000) {
-        for ( allowedIssuerToRenew of issuersToRenew ) {
+        for ( const allowedIssuerToRenew of issuersToRenew ) {
             const allowedIssuerId = allowedIssuerToRenew.iss
             try {
                 await AllowedIssuerDao.addJwksCacheEntry( allowedIssuerId, UrlDownloader.downloadUrl )
