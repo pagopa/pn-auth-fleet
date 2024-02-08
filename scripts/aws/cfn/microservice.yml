@@ -188,6 +188,11 @@ Parameters:
     Default: 0
     Description: "Interval in minutes to refresh JWKS cache. 0 means no refresh"
 
+  JWKSDownloadRetryIntervalMinutes:
+    Type: Number
+    Default: 2
+    Description: "Interval in minutes to retry download JWKS cache"
+
   AuthJwtIssuersTableName:
     Type: String
     Description: "Name of dynamodb table containing auth jwt issuers data"
@@ -530,6 +535,10 @@ Resources:
         Mode: Active
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+      Environment:
+        Variables:
+          JWKS_REFRESH_INTERVAL_MINUTES: !Ref JWKSRefreshIntervalMinutes
+          JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES: !Ref JWKSDownloadRetryIntervalMinutes
 
   # Lambda function role
   JWKSCacheRefreshLambdaRole:

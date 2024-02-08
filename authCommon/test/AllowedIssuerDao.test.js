@@ -229,4 +229,17 @@ describe('AllowedIssuerDAO Testing', () => {
         console.log('result', result)
         expect(result).not.to.undefined;
     });
+
+    it('postponeJwksCacheEntryValidation', async () => {
+        let date = new Date(dateInMillis).toISOString();
+        dateString = date.slice(0, 16) + 'Z';
+        ddbMock.on(PutItemCommand).resolves({
+            ConsumedCapacity: {
+                TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+                CapacityUnits: 1,
+            }
+        });
+        const result = await AllowedIssuerDAO.postponeJwksCacheEntryValidation('ISS~https://interop.pagopa.it', dateString);
+        expect(result).not.to.undefined;
+    });
 });

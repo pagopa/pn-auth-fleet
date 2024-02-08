@@ -1,5 +1,5 @@
 const { ddbDocClient } = require('./DynamoDbClient')
-const { QueryCommand, GetCommand, TransactWriteCommand } = require("@aws-sdk/lib-dynamodb");
+const { QueryCommand, GetCommand, TransactWriteCommand, UpdateItemCommand} = require("@aws-sdk/lib-dynamodb");
 const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME } = require('./constants');
 const crypto = require('crypto')
 
@@ -153,7 +153,8 @@ async function listJwksCacheExpiringAtMinute(expiringMinute){
         KeyConditionExpression:  JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME+' = :expiringMinute',
         ExpressionAttributeValues: {
             ':expiringMinute': expiringMinute
-        }
+        },
+        ConsistentRead: true
     }
 
     const queryCommand = new QueryCommand(queryInput)
@@ -163,9 +164,27 @@ async function listJwksCacheExpiringAtMinute(expiringMinute){
     return result.Items
 }
 
+async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
+    const updateItemInput = {
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        Item: {
+            "hashKey": buildHashKeyForAllowedIssuer(iss),
+            "sortKey": CFG,
+            "jwksCacheExpireSlot": jwksCacheExpireSlot,
+            "modificationTimeEpochMs": Date.now()
+        }
+    }
+
+    const updateItemCommand = new UpdateItemCommand(updateItemInput)
+
+    return await ddbDocClient.send(updateItemCommand)
+}
+
+
 
 module.exports = {
     getIssuerInfoAndJwksCache,
     addJwksCacheEntry,
-    listJwksCacheExpiringAtMinute
+    listJwksCacheExpiringAtMinute,
+    postponeJwksCacheEntryValidation
 }
