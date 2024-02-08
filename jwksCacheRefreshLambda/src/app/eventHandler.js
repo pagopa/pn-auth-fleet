@@ -10,11 +10,13 @@ async function handleEvent(event) {
     const initialTimeInMillis = date;
     let pivotTimeInMillis = date;
     let issuersToRenew = await AllowedIssuerDao.listJwksCacheExpiringAtMinute( transformInDate(pivotTimeInMillis) )
+    console.log('Issuers to renew at '+transformInDate(pivotTimeInMillis), issuersToRenew)
     while(issuersToRenew.length > 0 || initialTimeInMillis-pivotTimeInMillis < minimumMinutesInThePast * 60 * 1000) {
         for ( const allowedIssuerToRenew of issuersToRenew ) {
             const allowedIssuerId = allowedIssuerToRenew.iss
             try {
                 await AllowedIssuerDao.addJwksCacheEntry( allowedIssuerId, UrlDownloader.downloadUrl )
+                console.log('JWKS cache entry added for issuer ' + allowedIssuerId)
             }
             catch (e) {
                 console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
@@ -24,6 +26,7 @@ async function handleEvent(event) {
         }
         pivotTimeInMillis = removeSingleMinute(pivotTimeInMillis)
         issuersToRenew = await AllowedIssuerDao.listJwksCacheExpiringAtMinute( transformInDate(pivotTimeInMillis) )
+        console.log('Issuers to renew at '+transformInDate(pivotTimeInMillis), issuersToRenew)
     }
     return {
         statusCode: 200,
