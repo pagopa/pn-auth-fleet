@@ -107,7 +107,8 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBody, modificationTimeEpo
                     Item: {
                         hashKey: buildHashKeyForAllowedIssuer(iss),
                         sortKey: CFG,
-                        jwksCacheExpireSlot: jwksCacheExpireSlotWithMinutesPrecision
+                        jwksCacheExpireSlot: jwksCacheExpireSlotWithMinutesPrecision,
+                        modificationTimeEpochMs: modificationTimeEpochMs,
                     }
                 }
             },

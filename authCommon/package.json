@@ -1,5 +1,5 @@
 {
-  "name": "authcommon",
+  "name": "pn-auth-common",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
