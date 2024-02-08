@@ -559,6 +559,9 @@ Resources:
         Variables:
           JWKS_REFRESH_INTERVAL_MINUTES: !Ref JWKSRefreshIntervalMinutes
           JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES: !Ref JWKSDownloadRetryIntervalMinutes
+          AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
+          FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
+          JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
 
   # Lambda function role
   JWKSCacheRefreshLambdaRole:
