@@ -201,6 +201,16 @@ Parameters:
     Type: String
     Description: "ARN of dynamodb table containing auth jwt issuers data"
 
+  JwksDownloaderFollowRedirect:
+    Type: String
+    Description: "Follow redirect for jwks downloader"
+    Default: "false"
+  
+  JwksDownloaderContentLimitBytes:
+    Type: Number
+    Description: "Limit of bytes for jwks downloader"
+    Default: '51200'
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -463,7 +473,9 @@ Resources:
         S3Key: !Sub "${BucketBasePath}/b2bAuthorizer.zip"
       Environment:
         Variables:
-          CACHE_TTL: !Ref B2BAuthorizerLambdaEnvironmentCacheTtl
+          AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
+          FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
+          JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
@@ -505,6 +517,14 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaReadAndWriteDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Effect: Allow
+                Resource: !Ref AuthJwtIssuersTableArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
@@ -575,6 +595,14 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaReadAndWriteDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Effect: Allow
+                Resource: !Ref AuthJwtIssuersTableArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
