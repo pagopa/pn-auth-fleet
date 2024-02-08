@@ -1,10 +1,13 @@
 const { expect } = require("chai");
 const issuer = require('./resources/issuerConfig.json')
-
 const rewire = require('rewire');
 const eventHandlerModule = rewire("../app/eventHandler.js");
 
 describe('EventHandler Testing', () => {
+    before(() => {
+        process.env.JWKS_REFRESH_INTERVAL_MINUTES = '5';
+        process.env.JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES = '2';
+    });
     it('Should complete without errors', async () => {
         const event = ''
         let callCount = 0;
@@ -35,7 +38,7 @@ describe('EventHandler Testing', () => {
         expect(res.statusCode).to.equal(200);
     });
 
-    it('Should complete without errors simulating postpone', async () => {
+    it('Should complete without errors simulating postpone event', async () => {
             const event = ''
             let callCount = 0;
 

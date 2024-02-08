@@ -164,12 +164,14 @@ async function listJwksCacheExpiringAtMinute(expiringMinute){
     return result.Items
 }
 
-async function postponeJwksCacheEntryValidation(hashKey, jwksCacheExpireSlot){
+async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
     const updateItemInput = {
         TableName: process.env.AUTH_JWT_ISSUER_TABLE,
         Item: {
-            "hashKey": hashKey,
-            "jwksCacheExpireSlot": jwksCacheExpireSlot
+            "hashKey": buildHashKeyForAllowedIssuer(iss),
+            "sortKey": CFG,
+            "jwksCacheExpireSlot": jwksCacheExpireSlot,
+            "modificationTimeEpochMs": Date.now()
         }
     }
 

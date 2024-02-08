@@ -8,6 +8,7 @@
     "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it",
     "ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl": "300",
     "EnhancedWebSecurityEnabled": "true",
-    "JWKSRefreshIntervalMinutes": "5"
+    "JWKSRefreshIntervalMinutes": "5",
+    "JWKSDownloadRetryIntervalMinutes": "2"
   }
 }
