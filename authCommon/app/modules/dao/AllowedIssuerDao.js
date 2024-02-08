@@ -1,6 +1,6 @@
 const { ddbDocClient } = require('./DynamoDbClient')
 const { QueryCommand, GetCommand, TransactWriteCommand, UpdateItemCommand} = require("@aws-sdk/lib-dynamodb");
-const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME } = require('./constants');
+const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
 const crypto = require('crypto')
 
 function getISSFromHashKey(hashKey){
@@ -102,13 +102,16 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBody, modificationTimeEpo
     return {
         TransactItems: [
             {
-                Put: {
+                Update: {
                     TableName: process.env.AUTH_JWT_ISSUER_TABLE,
-                    Item: {
+                    Key: {
                         hashKey: buildHashKeyForAllowedIssuer(iss),
-                        sortKey: CFG,
-                        jwksCacheExpireSlot: jwksCacheExpireSlotWithMinutesPrecision,
-                        modificationTimeEpochMs: modificationTimeEpochMs,
+                        sortKey: CFG
+                    },
+                    UpdateExpression: 'SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs',
+                    ExpressionAttributeValues: {
+                        ':jwksCacheExpireSlot': jwksCacheExpireSlotWithMinutesPrecision,
+                        ':modificationTimeEpochMs': modificationTimeEpochMs
                     }
                 }
             },
@@ -150,7 +153,7 @@ async function addJwksCacheEntry(iss, downloadUrlFn){
 async function listJwksCacheExpiringAtMinute(expiringMinute){
     const queryInput = {
         TableName: process.env.AUTH_JWT_ISSUER_TABLE,
-        IndexName: process.env.AUTH_JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME,
+        IndexName: JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME,
         KeyConditionExpression:  JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME+' = :expiringMinute',
         ExpressionAttributeValues: {
             ':expiringMinute': expiringMinute
@@ -168,11 +171,14 @@ async function listJwksCacheExpiringAtMinute(expiringMinute){
 async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
     const updateItemInput = {
         TableName: process.env.AUTH_JWT_ISSUER_TABLE,
-        Item: {
+        Key: {
             "hashKey": buildHashKeyForAllowedIssuer(iss),
-            "sortKey": CFG,
-            "jwksCacheExpireSlot": jwksCacheExpireSlot,
-            "modificationTimeEpochMs": Date.now()
+            "sortKey": CFG
+        },
+        UpdateExpression: 'SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs',
+        ExpressionAttributeValues: {
+            ":jwksCacheExpireSlot": jwksCacheExpireSlot,
+            ":modificationTimeEpochMs": Date.now()
         }
     }
 
