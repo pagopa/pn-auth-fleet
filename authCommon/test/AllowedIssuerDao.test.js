@@ -1,6 +1,6 @@
 const rewire = require('rewire');
 const { mockClient } = require("aws-sdk-client-mock");
-const { DynamoDBDocumentClient, GetCommand, QueryCommand, TransactWriteCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, TransactWriteCommand } = require("@aws-sdk/lib-dynamodb");
 const { expect } = require("chai");
 const fs = require('fs')
 const { ISS_PREFIX, JWKS_CACHE_PREFIX } = require('../app/modules/dao/constants');
@@ -174,10 +174,9 @@ describe('AllowedIssuerDAO Testing', () => {
 
         const result = prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
         expect(result.TransactItems.length).equal(2);
-        expect(result.TransactItems[0].Put.Item).to.deep.equal({
-            hashKey: 'ISS~https://interop.pagopa.it',
-            sortKey: 'CFG',
-            jwksCacheExpireSlot: jwtExpireSlot
+        expect(result.TransactItems[0].Update.ExpressionAttributeValues).to.deep.equal({
+            ':jwksCacheExpireSlot': jwtExpireSlot,
+            ':modificationTimeEpochMs': modificationTimeEpochMs
         })
 
         expect(result.TransactItems[1].Put.Item).to.deep.equal({
@@ -231,9 +230,9 @@ describe('AllowedIssuerDAO Testing', () => {
     });
 
     it('postponeJwksCacheEntryValidation', async () => {
-        let date = new Date(dateInMillis).toISOString();
-        dateString = date.slice(0, 16) + 'Z';
-        ddbMock.on(PutItemCommand).resolves({
+        let date = new Date().toISOString();
+        const dateString = date.slice(0, 16) + 'Z';
+        ddbMock.on(UpdateCommand).resolves({
             ConsumedCapacity: {
                 TableName: process.env.AUTH_JWT_ISSUER_TABLE,
                 CapacityUnits: 1,

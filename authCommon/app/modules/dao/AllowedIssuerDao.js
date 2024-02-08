@@ -1,5 +1,5 @@
 const { ddbDocClient } = require('./DynamoDbClient')
-const { QueryCommand, GetCommand, TransactWriteCommand, UpdateItemCommand} = require("@aws-sdk/lib-dynamodb");
+const { QueryCommand, GetCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
 const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
 const crypto = require('crypto')
 
@@ -177,14 +177,14 @@ async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
         },
         UpdateExpression: 'SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs',
         ExpressionAttributeValues: {
-            ":jwksCacheExpireSlot": jwksCacheExpireSlot,
-            ":modificationTimeEpochMs": Date.now()
+            ':jwksCacheExpireSlot': jwksCacheExpireSlot,
+            ':modificationTimeEpochMs': Date.now()
         }
     }
 
-    const updateItemCommand = new UpdateItemCommand(updateItemInput)
+    const updateCommand = new UpdateCommand(updateItemInput)
 
-    return await ddbDocClient.send(updateItemCommand)
+    return await ddbDocClient.send(updateCommand)
 }
 
 
