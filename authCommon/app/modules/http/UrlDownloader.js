@@ -5,7 +5,8 @@ async function downloadUrl(url) {
     // add param to follow redirect
     const config = {
         followRedirect: process.env.JWKS_FOLLOW_REDIRECT === 'true',
-        contentType: 'application/json'
+        contentType: 'application/json',
+        responseType: 'arraybuffer'
     }
 
     const maxContentLength = parseInt(process.env.JWKS_CONTENT_LIMIT_BYTES)
@@ -19,7 +20,8 @@ async function downloadUrl(url) {
 
     try {
         const response = await axios.get(url, config);
-        return response.data;
+        const byteArray = Buffer.from(response.data, 'binary');
+        return byteArray;
     } catch(err){
         console.warn(err)
         // if AxiosError

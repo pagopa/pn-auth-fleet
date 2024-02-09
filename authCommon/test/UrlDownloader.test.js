@@ -8,27 +8,31 @@ const Downloader = rewire("../app/modules/http/UrlDownloader");
 process.env.JWKS_CONTENT_LIMIT_BYTES = '51200';
 process.env.JWKS_FOLLOW_REDIRECT = 'true';
 
+const getFilaAsByteArray = (fileName) => {
+    return Buffer.from(fs.readFileSync(fileName, 'binary'));
+}
+
 describe('Url Downloader Testing', () => {
 
     it('should download url', async () => {
-        const response = fs.readFileSync('test/resources/jwks.json')
+        const response = getFilaAsByteArray('test/resources/jwks.json')
         const axiosMock = {
             get: (url, config) => {
-                return Promise.resolve({ data: JSON.parse(response)});
+                return Promise.resolve({ data: response });
             }
         }
         Downloader.__set__('axios', axiosMock);
 
         const result = await Downloader.downloadUrl('https://interop.pagopa.it/.well-known.json');
-        expect(result).to.deep.equal(JSON.parse(response));
+        expect(result).to.deep.equal(response);
     })
 
     it('should raise an exception if the protocol is not supported', async () => {
-        const response = fs.readFileSync('test/resources/jwks.json')
+        const response = getFilaAsByteArray('test/resources/jwks.json')
 
         const axiosMock = {
             get: (url, config) => {
-                return Promise.resolve({ data: JSON.parse(response) });
+                return Promise.resolve({ data: response });
             }
         }
         Downloader.__set__('axios', axiosMock);
