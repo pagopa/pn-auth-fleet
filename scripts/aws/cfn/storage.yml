@@ -158,8 +158,7 @@ Resources:
       GlobalSecondaryIndexes:
         - IndexName: "jwksCacheExpireSlotIndex"
           KeySchema:
-            - 
-              AttributeName: "jwksCacheExpireSlot"
+            - AttributeName: "jwksCacheExpireSlot"
               KeyType: "HASH"
           Projection:
             ProjectionType: "INCLUDE"
@@ -172,6 +171,29 @@ Resources:
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
 
+  AuthJwtAttributesTable:
+    Type: AWS::DynamoDB::Table
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain 
+    Properties:
+      TableName: !Sub "${ProjectName}-AuthJwtAttributes"
+      AttributeDefinitions:
+        - AttributeName: "hashKey"
+          AttributeType: "S"
+        - AttributeName: "sortKey"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "hashKey"
+          KeyType: "HASH"
+        - AttributeName: "sortKey"
+          KeyType: "RANGE"
+      BillingMode: "PAY_PER_REQUEST"
+      TimeToLiveSpecification:
+        AttributeName: "ttl"
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+        
 Outputs:
   PnAuthFleetJwtSignKeyId:
     Value: !Ref PnAuthFleetJwtSignKey
@@ -205,3 +227,11 @@ Outputs:
   AuthJwtIssuersTableArn:
     Description: ARN of dynamodb table containing auth jwt issuers data 
     Value: !Sub '${AuthJwtIssuersTable.Arn}'
+
+  AuthJwtAttributesTableName:
+    Description: Name of dynamodb table containing auth jwt attributes data 
+    Value: !Ref AuthJwtAttributesTable
+
+  AuthJwtattributesTableArn:
+    Description: ARN of dynamodb table containing auth jwt attributes data 
+    Value: !Sub '${AuthJwtAttributesTable.Arn}'

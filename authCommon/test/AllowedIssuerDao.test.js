@@ -12,6 +12,11 @@ process.env.AUTH_JWT_ISSUER_TABLE = 'AUTH_JWT_ISSUER_TABLE';
 process.env.JWKS_CONTENT_LIMIT_BYTES = '51200';
 process.env.JWKS_FOLLOW_REDIRECT = 'true';
 
+const getFilaAsByteArray = (fileName) => {
+    return Buffer.from(fs.readFileSync(fileName, 'binary'));
+}
+
+
 describe('AllowedIssuerDAO Testing', () => {
     beforeEach(() => {
         ddbMock.reset();
@@ -49,7 +54,7 @@ describe('AllowedIssuerDAO Testing', () => {
 
     it('computeSha256', () => {
         const expectedSha = 'f6b1e529f0ded402c63cc7a1ec9b6556a1c9ec6e5b79ef31087c1efedf4aa160';
-        const input = fs.readFileSync('test/resources/jwks.json');
+        const input = getFilaAsByteArray('test/resources/jwks.json');
 
         const computeSha256 = AllowedIssuerDAO.__get__('computeSha256');
         const result = computeSha256(input);
@@ -163,7 +168,7 @@ describe('AllowedIssuerDAO Testing', () => {
     it('prepareTransactionInput', () => {
         const prepareTransactionInput = AllowedIssuerDAO.__get__('prepareTransactionInput');
         const cfg = JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
-        const jwks = fs.readFileSync('test/resources/jwks.json');
+        const jwks = getFilaAsByteArray('test/resources/jwks.json');
         const url = 'https://interop.pagopa.it';
         const sha256 = 'f6b1e529f0ded402c63cc7a1ec9b6556a1c9ec6e5b79ef31087c1efedf4aa160'
         const modificationTimeEpochMs = 1630454401000;
@@ -173,6 +178,7 @@ describe('AllowedIssuerDAO Testing', () => {
         const cacheMaxUsageEpochSec = 1630514401
 
         const result = prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
+
         expect(result.TransactItems.length).equal(2);
         expect(result.TransactItems[0].Update.ExpressionAttributeValues).to.deep.equal({
             ':jwksCacheExpireSlot': jwtExpireSlot,
@@ -222,7 +228,7 @@ describe('AllowedIssuerDAO Testing', () => {
         });
 
         const downloadUrlFn = async () => {
-            return JSON.parse(fs.readFileSync('test/resources/jwks.json'));
+            return getFilaAsByteArray('test/resources/jwks.json');
         }
         const result = await AllowedIssuerDAO.addJwksCacheEntry('https://interop.pagopa.it', downloadUrlFn);
         console.log('result', result)

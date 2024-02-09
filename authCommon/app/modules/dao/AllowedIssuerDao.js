@@ -15,9 +15,13 @@ function buildSortKeyForJwksCache(url, sha256){
     return JWKS_CACHE_PREFIX+'~' + url + "~" + sha256
 }
 
-function computeSha256(data){
+function computeSha256String(data){
     // return sha256 as string
     return crypto.createHash('sha256').update(data).digest('hex')
+}
+
+function computeSha256(binaryData){
+    return crypto.createHash('sha256').update(binaryData).digest('hex')
 }
 
 function isJWKSExpired(jwksCacheItem, cfg, renewTimeSeconds, nowInSeconds){
@@ -90,8 +94,8 @@ async function getConfigByISS(iss){
     return result.Item
 }
 
-function prepareTransactionInput(cfg, downloadUrl, jwksBody, modificationTimeEpochMs){
-    const sha256 = computeSha256(jwksBody)
+function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationTimeEpochMs){
+    const sha256 = computeSha256(jwksBinaryBody)
     const jwksCacheExpireSlot = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheRenewSec
     const cacheMaxUsageEpochSec = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheMaxDurationSec
     
@@ -126,7 +130,7 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBody, modificationTimeEpo
                         contentHash: sha256,
                         cacheRenewEpochSec: jwksCacheExpireSlot,
                         cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
-                        JWKSBody: jwksBody,
+                        JWKSBody: jwksBinaryBody,
                         modificationTimeEpochMs: modificationTimeEpochMs,
                         ttl: cacheMaxUsageEpochSec
                     }
@@ -139,11 +143,10 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBody, modificationTimeEpo
 async function addJwksCacheEntry(iss, downloadUrlFn){
     const cfg = await getConfigByISS(iss)
 
-    const jwksBodyAsJson = await downloadUrlFn(cfg.JWKSUrl)
-    const jwksBody = JSON.stringify(jwksBodyAsJson)
+    const jwksBodyByteArray = await downloadUrlFn(cfg.JWKSUrl)
     const modificationTimeEpochMs = Date.now()
 
-    const txInput = prepareTransactionInput(cfg, cfg.JWKSUrl, jwksBody, modificationTimeEpochMs)
+    const txInput = prepareTransactionInput(cfg, cfg.JWKSUrl, jwksBodyByteArray, modificationTimeEpochMs)
 
     const txCommand = new TransactWriteCommand(txInput)
 
