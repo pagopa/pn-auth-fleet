@@ -1,10 +1,11 @@
 const { JwtAttributesDao } = require('pn-auth-common')
 
 async function DatabaseAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg ) {
-    const jwtAttributes = await JwtAttributesDao.listJwtAttributes(jwt, attrResolverCfg)
-    for ( const jwtAttr of jwtAttributes ) {
-        for ( const k in jwtAttr.contextAttributes ) {
-            context[k] = jwtAttr.contextAttributes[k]
+    const jwtAttribute = await JwtAttributesDao.listJwtAttributes(jwt, attrResolverCfg)
+    if ( jwtAttribute ) {
+        for ( k in jwtAttribute.contextAttributes ) {
+            console.log(k)
+            context[k] = jwtAttribute.contextAttributes[k]
         }
     }
     context["cx_jti"] = jwt.kid;
@@ -16,4 +17,4 @@ async function DatabaseAttributeResolver( jwt, lambdaEvent, context, attrResolve
 }
 
 
-module.exports = DatabaseResolveFunction;
+module.exports = DatabaseAttributeResolver;
