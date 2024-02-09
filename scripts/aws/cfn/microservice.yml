@@ -197,9 +197,17 @@ Parameters:
     Type: String
     Description: "Name of dynamodb table containing auth jwt issuers data"
 
+  AuthJwtAttributesTableName:
+    Type: String
+    Description: "Name of dynamodb table containing auth jwt attributes data"
+
   AuthJwtIssuersTableArn:
     Type: String
     Description: "ARN of dynamodb table containing auth jwt issuers data"
+
+  AuthJwtattributesTableArn:
+    Type: String
+    Description: "ARN of dynamodb table containing auth jwt attributes data"
 
   JwksDownloaderFollowRedirect:
     Type: String
@@ -474,6 +482,7 @@ Resources:
       Environment:
         Variables:
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
+          AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtIssuersTableName
           FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
@@ -524,7 +533,9 @@ Resources:
                   - dynamodb:PutItem
                   - dynamodb:UpdateItem
                 Effect: Allow
-                Resource: !Ref AuthJwtIssuersTableArn
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Ref AuthJwtattributesTableArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
