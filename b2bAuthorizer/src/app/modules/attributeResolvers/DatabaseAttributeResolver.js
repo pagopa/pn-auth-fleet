@@ -7,4 +7,4 @@ async function DatabaseAttributeResolver( jwt, lambdaEvent, context, attrResolve
     }
 }
 
-module.exports = DatabaseResolveFunction;
+module.exports = DatabaseAttributeResolver;

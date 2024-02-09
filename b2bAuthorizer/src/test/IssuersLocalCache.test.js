@@ -19,10 +19,11 @@ describe('IssuersLocalCache', () => {
 
   it('getOrLoad should return cacheItem if it is valid', async () => {
     const IssuersLocalCache = rewire('../app/modules/cache/IssuersLocalCache');
+    const now = Date.now();
     const AllowedIssuerDao = {
       getIssuerInfoAndJwksCache: async (iss, renewTimeSeconds) => ({
         cfg: {
-          modificationTimeEpochMs: Date.now()
+          modificationTimeEpochMs: now
         }
       })
     }
@@ -31,7 +32,7 @@ describe('IssuersLocalCache', () => {
     const cacheItem = await cache.getOrLoad('iss');
     expect(cacheItem).to.deep.equal({
       cfg: {
-        modificationTimeEpochMs: Date.now()
+        modificationTimeEpochMs: now
       }
     });
   });
