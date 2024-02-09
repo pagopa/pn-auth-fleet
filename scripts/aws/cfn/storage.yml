@@ -182,10 +182,6 @@ Resources:
           AttributeType: "S"
         - AttributeName: "sortKey"
           AttributeType: "S"
-        - AttributeName: "issuer"
-          AttributeType: "S"
-        - AttributeName: "issuerRelatedKey"
-          AttributeType: "S"
       KeySchema:
         - AttributeName: "hashKey"
           KeyType: "HASH"
