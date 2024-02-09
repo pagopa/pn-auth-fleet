@@ -21,9 +21,17 @@ describe('AllowedIssuerDAO Testing', () => {
 
     it('listJwtAttributes', async () => {
         ddbMock.on(QueryCommand).resolves({
-            Items: [
-                { hashKey: 'hashKey', sortKey: 'sortKey', iss: 'https://interop.pagopa.it' }
-            ]
+            Items: [{ 
+                hashKey: 'hashKey', 
+                sortKey: 'sortKey', 
+                ttl: 123, 
+                issuer: "issuer",
+                issuerRelatedKey: "issuerRelatedKey",
+                contextAttributes: {},
+                cacheMaxUsageEpochSec: 123,
+                resolver: "DATABASE",
+                modificationTimeEpochMs: 123
+            }]
         });
         const jwt = fs.readFileSync('test/resources/jwt.json')
         const attrResolverCfg = {
