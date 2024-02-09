@@ -4,7 +4,7 @@ const { UrlDownloader } = require('pn-auth-common')
 
 
 async function handleEvent(event) {
-    const minimumMinutesInThePast = parseInt(process.env.JWKS_REFRESH_INTERVAL_MINUTES);
+    const minimumMinutesInThePast = parseInt(process.env.JWKS_REFRESH_INTERVAL_MINUTES)+1;
     const jwksDownloadRetryIntervalMinutes = parseInt(process.env.JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES);
     const date = Date.now();
     const initialTimeInMillis = date;
