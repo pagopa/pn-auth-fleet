@@ -3,7 +3,8 @@ const { QueryCommand } = require("@aws-sdk/lib-dynamodb");
 const { ATTR_PREFIX } = require('./constants');
 
 function buildHashKeyForAttributeResolver(jwt, attrResolverCfg){
-    return ATTR_PREFIX + "~" + jwt.iss + "~" + attrResolverCfg.keyAttributeName + "~" + jwtEssentalFields[ attrResolverCfg.keyAttributeName ]
+  console.log(attrResolverCfg)
+    return ATTR_PREFIX + "~" + jwt.iss + "~" + attrResolverCfg.keyAttributeName + "~" + jwt[ attrResolverCfg.keyAttributeName ]
 }
 
 async function listJwtAttributes(jwt, attrResolverCfg) {
