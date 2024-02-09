@@ -4,7 +4,6 @@ async function DatabaseAttributeResolver( jwt, lambdaEvent, context, attrResolve
     const jwtAttribute = await JwtAttributesDao.listJwtAttributes(jwt, attrResolverCfg)
     if ( jwtAttribute ) {
         for ( k in jwtAttribute.contextAttributes ) {
-            console.log(k)
             context[k] = jwtAttribute.contextAttributes[k]
         }
     }
