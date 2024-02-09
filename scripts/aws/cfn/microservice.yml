@@ -205,7 +205,7 @@ Parameters:
     Type: String
     Description: "ARN of dynamodb table containing auth jwt issuers data"
 
-  AuthJwtattributesTableArn:
+  AuthJwtAttributesTableArn:
     Type: String
     Description: "ARN of dynamodb table containing auth jwt attributes data"
 
@@ -535,7 +535,7 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - !Ref AuthJwtIssuersTableArn
-                  - !Ref AuthJwtattributesTableArn
+                  - !Ref AuthJwtAttributesTableArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
