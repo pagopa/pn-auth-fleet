@@ -232,6 +232,6 @@ Outputs:
     Description: Name of dynamodb table containing auth jwt attributes data 
     Value: !Ref AuthJwtAttributesTable
 
-  AuthJwtattributesTableArn:
+  AuthJwtAttributesTableArn:
     Description: ARN of dynamodb table containing auth jwt attributes data 
     Value: !Sub '${AuthJwtAttributesTable.Arn}'

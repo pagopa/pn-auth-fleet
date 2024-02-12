@@ -1,0 +1,15 @@
+{ 
+    "hashKey": "hashKey", 
+    "sortKey": "sortKey", 
+    "ttl": 123, 
+    "issuer": "issuer",
+    "issuerRelatedKey": "issuerRelatedKey",
+    "contextAttributes": {
+        "key": "jwtAttributes",
+        "key1": "value1",
+        "key2": "value2"
+    },
+    "cacheMaxUsageEpochSec": 123,
+    "resolver": "DATABASE",
+    "modificationTimeEpochMs": 123
+}

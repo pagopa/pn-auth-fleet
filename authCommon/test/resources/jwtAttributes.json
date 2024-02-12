@@ -1,0 +1,11 @@
+{
+    "hashKey": "hashKey",
+    "sortKey": "sortKey",
+    "ttl": 1707497811,
+    "issuer": "issuer",
+    "issuerRelatedKey": "issuerRelatedKey",
+    "contextAttributes": {},
+    "cacheMaxUsageEpochSec": 1707497811,
+    "resolver": "DATABASE",
+    "modificationTimeEpochMs": 123
+}
