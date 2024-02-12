@@ -1,12 +1,3 @@
-## Creazione file .env
-Creare il file _.env_ nella root del progetto settando le seguenti variabili d'ambiente:
-- CACHE_TTL_SEC
-
-Esempio file .env:
-```
-    CACHE_TTL_SEC=3600
-```
-
 ## Esecuzione build
 
 Il comando di seguito genera uno zip nella directory build contenente tutte e sole le dipendenze necessarie all'ambiente di produzione
@@ -32,3 +23,7 @@ Il comando di seguito permette di eseguire la routine dei test per poi generare 
 L'handler della lambda è presente nel file index.js
 
 
+## Creazione nuovo AttributeResolver
+Aggiornare il file di configurazione `src/app/config/attributeResolversCfg.json`, aggiungendo il nuovo elemento che avrà come chiave il nome dell'AttributeResolver e come attributo obbligatorio il `fileName` ossia, il nome del file che esporterà la funzione di risoluzione.
+
+**Nota** Il path del file è relativo alla directory `src/app/modules/attributeResolvers`.

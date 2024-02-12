@@ -1,0 +1,8 @@
+{
+    "DATABASE": {
+        "fileName": "DatabaseAttributeResolver",
+        "cfg": {
+            "allowedKeys": ["kid", "purposeId", "client_id"]
+        }
+    }
+}
