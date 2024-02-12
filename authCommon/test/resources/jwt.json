@@ -1,0 +1,8 @@
+{
+    "aud": "string",
+    "iss": "string",
+    "kid": "string",
+    "purposeId": "string",
+    "client_id": "string",
+    "jti": "string"
+}
