@@ -36,7 +36,7 @@ class PolicyService {
         }
         
         if(!context.sourceChannel){
-          this.#logger.warn('sourceChannel not found in stageVariables');
+          this.#logger.warn('sourceChannel not found in context');
           return false;
         }
         // W.I. 1.6 In futuro potrebbe essere necessario un mapping
