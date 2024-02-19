@@ -35,6 +35,12 @@ Parameters:
   JwtAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
+
+  B2BAuthorizerLambdaEnvironmentCacheTtl:
+    Type: String
+    Default: "300"
+    Description: Cryptography keys cache entry duration in seconds
+
   BackofficeAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Default: "120"
@@ -153,6 +159,12 @@ Parameters:
   JwtAuthorizerLambdaName:
     Type: String
 
+  JWKSCacheRefreshLambdaName:
+    Type: String
+
+  B2BAuthorizerLambdaName:
+    Type: String
+
   BackofficeAuthorizerLambdaName:
     Type: String
 
@@ -171,9 +183,46 @@ Parameters:
       - true
       - false
 
+  JWKSRefreshIntervalMinutes:
+    Type: Number
+    Default: 0
+    Description: "Interval in minutes to refresh JWKS cache. 0 means no refresh"
+
+  JWKSDownloadRetryIntervalMinutes:
+    Type: Number
+    Default: 2
+    Description: "Interval in minutes to retry download JWKS cache"
+
+  AuthJwtIssuersTableName:
+    Type: String
+    Description: "Name of dynamodb table containing auth jwt issuers data"
+
+  AuthJwtAttributesTableName:
+    Type: String
+    Description: "Name of dynamodb table containing auth jwt attributes data"
+
+  AuthJwtIssuersTableArn:
+    Type: String
+    Description: "ARN of dynamodb table containing auth jwt issuers data"
+
+  AuthJwtAttributesTableArn:
+    Type: String
+    Description: "ARN of dynamodb table containing auth jwt attributes data"
+
+  JwksDownloaderFollowRedirect:
+    Type: String
+    Description: "Follow redirect for jwks downloader"
+    Default: "false"
+  
+  JwksDownloaderContentLimitBytes:
+    Type: Number
+    Description: "Limit of bytes for jwks downloader"
+    Default: '51200'
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
+  HasToRefreshJWKSCache: !Not [!Equals [!Ref JWKSRefreshIntervalMinutes, 0]]
 
 Resources:
   ###             API KEY AUTHORIZERV2 LAMBDA             ###
@@ -219,6 +268,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
       Path: /
 
   # Lambda function IAM policy
@@ -324,6 +374,7 @@ Resources:
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   # Data vault Service security group
   DataVaultServiceSecurityGroup:
@@ -405,6 +456,7 @@ Resources:
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   JwtAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -412,6 +464,168 @@ Resources:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
       Parameters:
         FunctionName: !Ref JwtAuthorizerLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###               B2B AUTHORIZER LAMBDA               ###
+  #########################################################
+
+  # Lambda function
+  B2BAuthorizerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref B2BAuthorizerLambdaName
+      Runtime: nodejs18.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer.zip"
+      Environment:
+        Variables:
+          AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
+          AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtIssuersTableName
+          FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
+          JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+      Role: !GetAtt B2BAuthorizerLambdaRole.Arn
+      TracingConfig:
+        Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+
+  # Lambda function role
+  B2BAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-b2bAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "*"
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaReadAndWriteDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Ref AuthJwtAttributesTableArn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+
+  B2BAuthorizerLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref B2BAuthorizerLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###             JWKS CACHE REFRESH LAMBDA             ###
+  #########################################################
+
+  # Lambda function
+  JWKSCacheRefreshLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref JWKSCacheRefreshLambdaName
+      Runtime: nodejs18.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/jwksCacheRefreshLambda.zip"
+      Role: !GetAtt JWKSCacheRefreshLambdaRole.Arn
+      TracingConfig:
+        Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+      Environment:
+        Variables:
+          JWKS_REFRESH_INTERVAL_MINUTES: !Ref JWKSRefreshIntervalMinutes
+          JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES: !Ref JWKSDownloadRetryIntervalMinutes
+          AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
+          FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
+          JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+
+  # Lambda function role
+  JWKSCacheRefreshLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-jwksCacheRefreshLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "*"
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaReadAndWriteDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Effect: Allow
+                Resource: !Ref AuthJwtIssuersTableArn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+
+  JWKSCacheRefreshLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref JWKSCacheRefreshLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   ###             BACKOFFICE AUTHORIZER LAMBDA            ###
@@ -489,6 +703,7 @@ Resources:
                 Resource: "arn:aws:s3:::*/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   BackofficeAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -548,6 +763,7 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
       Path: /
 
   # Lambda function IAM policy
@@ -928,6 +1144,7 @@ Resources:
           - - !GetAtt IoAuthorizerLambda.Arn
             - !GetAtt ApiKeyAuthorizerV2Lambda.Arn
             - !GetAtt JwtAuthorizerLambda.Arn
+            - !GetAtt B2BAuthorizerLambda.Arn            
             - !GetAtt TokenExchangeLambda.Arn
         RestApiStageArns: !Join
           - ","
@@ -941,6 +1158,8 @@ Resources:
             - !GetAtt IoAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwtAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt BackofficeAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt B2BAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt JWKSCacheRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
         LogGroupsNames: !Join
@@ -949,4 +1168,28 @@ Resources:
             - !Sub "/aws/lambda/${IoAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${JwtAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${BackofficeAuthorizerLambdaName}"
+            - !Sub "/aws/lambda/${JWKSCacheRefreshLambdaName}"
+            - !Sub "/aws/lambda/${B2BAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${TokenExchangeLambdaName}"
+
+  # Event Bridge rule to trigger JWKSCacheRefreshLambda every JWKSCacheRefreshIntervalInMinutes minutes
+  JWKSCacheRefreshEventRule:
+    Type: AWS::Events::Rule
+    Condition: HasToRefreshJWKSCache
+    Properties:
+      Description: "Rule to trigger JWKSCacheRefreshLambda every JWKSRefreshIntervalMinutes minutes"
+      ScheduleExpression: !Sub "rate(${JWKSRefreshIntervalMinutes} minutes)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt JWKSCacheRefreshLambda.Arn
+          Id: !Sub "${ProjectName}-JWKSCacheRefreshLambda"
+
+  # Permission of the lambda to be invoked by event bridge rule
+  JWKSCacheRefreshLambdaSchedulePermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasToRefreshJWKSCache
+    Properties:
+      FunctionName: !Ref JWKSCacheRefreshLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt JWKSCacheRefreshEventRule.Arn

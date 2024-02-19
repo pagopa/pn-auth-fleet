@@ -1,0 +1,11 @@
+{
+    "hashKey": "ISS~https://interop.pagopa.it",
+    "sortKey": "JWKS_CACHE~https://interop.pagopa.it/.well-known.json~f6b1e529f0ded402c63cc7a1ec9b6556a1c9ec6e5b79ef31087c1efedf4aa160",
+    "JWKSUrl": "https://interop.pagopa.it/.well-known.json",
+    "ttl": 0,
+    "contentHash": "f6b1e529f0ded402c63cc7a1ec9b6556a1c9ec6e5b79ef31087c1efedf4aa160",
+    "cacheRenewEpochSec": 0,
+    "cacheMaxUsageEpochSec": 0,
+    "JWKSBody": "{\"keys\":[{\"kty\":\"RSA\",\"n\": \"qU2Bp7xgkXBQI2w2PZ5LZGo34TIjoir-ul0x4jZ_d9hN6q-zQpmAqIxjrfHLwtTqNNug5majcgOw7mYZoeN92SZU3DrGepS1UkwYHOQEPH5OvUZ3260Ek0lqjwlBYZ92muFnO6OCHFY3v11NIvNGsOeJUkXRDzwN6Rvmumyji0ukoJfOMqJMbN0U2hm7xmv07yiJxJ8sw-0A9ojmYwUU-ctFqJLipzNVeuX6R-4uJ5L9ryIOu6Mbe4XTWtWdtV_J-yr6f-bLmezpAb8gOkvTslrxqsZds30c4EC5-9kWZIm-cV_mMdx402QAet7SomTZOnUfmfvoziLNL8mPjFmTMQ\",\"e\":\"AQAB\",\"alg\":\"RS256\",\"kid\":\"199d08d2-9971-4979-a78d-e6f7a544f296\"}]}",
+    "modificationTimeEpochMs": 0
+}
