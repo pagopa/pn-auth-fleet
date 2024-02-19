@@ -17,7 +17,8 @@ class JwtService {
   #findValidKeys(keyId, jwksCache){
     let validKeys = []
     jwksCache.forEach(jwksCacheItem => {
-      const jwksBody = jwksCacheItem.JWKSBody.toString()
+      const buff = Buffer.from(jwksCacheItem.JWKSBody);
+      const jwksBody = buff.toString();
       const jwks = JSON.parse(jwksBody)
       validKeys = validKeys.concat(jwks.keys.filter(key => key.kid === keyId))
     })  

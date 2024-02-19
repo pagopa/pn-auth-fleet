@@ -12,7 +12,7 @@ async function listJwtAttributes(jwt, attrResolverCfg) {
       TableName: process.env.AUTH_JWT_ATTRIBUTE_TABLE,
       Key: {
         hashKey: buildHashKeyForAttributeResolver(jwt, attrResolverCfg),
-        sortKey: ''
+        sortKey: 'NA'
       }
     };
     const getCommand = new GetCommand(getCommandInput)

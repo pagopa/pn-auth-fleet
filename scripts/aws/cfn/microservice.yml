@@ -492,7 +492,7 @@ Resources:
       Environment:
         Variables:
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
-          AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtIssuersTableName
+          AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtAttributesTableName
           FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
           RENEW_TIME_SECONDS: !Ref B2bAuthorizerRenewTimeSeconds
