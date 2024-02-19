@@ -20,7 +20,16 @@ const attributeResolvers = new AttributeResolversMap();
 const jwtService = new JwtService();
 
 const getJWTFromLambdaEvent = (lambdaEvent) => {
-  return lambdaEvent?.authorizationToken?.replace("Bearer ", "");
+  let authorizationHeader = lambdaEvent.headers?.authorization;
+  if(!authorizationHeader) {
+    authorizationHeader = lambdaEvent.headers?.Authorization;
+  }
+
+  if(!authorizationHeader) {
+    return null;
+  }
+
+  return authorizationHeader.replace("Bearer ", "");
 }
 
 const prepareContextForLogger = (lambdaEvent) => {

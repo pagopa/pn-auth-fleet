@@ -9,7 +9,9 @@ describe("test eventHandler", () => {
 
   it("should return an exception if jwt token is missing", async () => {
     const event = {
-      authorizationToken: null,
+      headers: {
+
+      }
     };
     try {
       await EventHandler.handleEvent(event);
@@ -21,7 +23,9 @@ describe("test eventHandler", () => {
 
   it("should return an exception if issuer is not found", async () => {
     const event = {
-      authorizationToken: 'Bearer ' + jwtWithoutIss,
+      headers:{
+        authorization: 'Bearer ' + jwtWithoutIss,
+      } 
     };
 
     try {
@@ -34,12 +38,12 @@ describe("test eventHandler", () => {
 
   it("should return an allow policy", async () => {
     const event = {
-      authorizationToken: 'Bearer ' + validJWT,
       stageVariables: {
         IntendedUsage: 'RADD'
       },
       headers: {
         "X-Amzn-Trace-Id": "Root=1-5f8d0f9e-5d0b7f8c7f0d6d4b0c0a0b0c",
+        Authorization: 'Bearer ' + validJWT
       },
       requestContext: {
         domainName: "api.radd.dev.notifichedigitali.it"
@@ -110,12 +114,12 @@ describe("test eventHandler", () => {
 
   it("should return an allow policy with cache refresh", async () => {
     const event = {
-      authorizationToken: 'Bearer ' + validJWT,
       stageVariables: {
         IntendedUsage: 'RADD'
       },
       headers: {
         "X-Amzn-Trace-Id": "Root=1-5f8d0f9e-5d0b7f8c7f0d6d4b0c0a0b0c",
+        Authorization: 'Bearer ' + validJWT
       },
       requestContext: {
         domainName: "api.radd.dev.notifichedigitali.it"
@@ -196,12 +200,12 @@ describe("test eventHandler", () => {
 
   it("should return an a generic error during jwt validation", async () => {
     const event = {
-      authorizationToken: 'Bearer ' + validJWT,
       stageVariables: {
         IntendedUsage: 'RADD'
       },
       headers: {
         "X-Amzn-Trace-Id": "Root=1-5f8d0f9e-5d0b7f8c7f0d6d4b0c0a0b0c",
+        Authorization: 'Bearer ' + validJWT
       },
       requestContext: {
         domainName: "api.radd.dev.notifichedigitali.it"
