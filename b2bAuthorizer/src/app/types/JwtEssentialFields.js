@@ -40,7 +40,14 @@ class JwtEssentialFields {
         return this.#jti;
     }
 
-    static fromObject(obj) {
-        return new JwtEssentialFields(obj.aud, obj.iss, obj.kid, obj.purposeId, obj.client_id, obj.jti);
+    static fromJWT(jwt) {
+        let kid = jwt.header.kid
+        if(!kid){
+            kid = jwt.payload.kid
+        }
+
+        return new JwtEssentialFields(jwt.payload.aud, jwt.payload.iss, kid, jwt.payload.purposeId, jwt.payload.client_id, jwt.payload.jti);
     }
 }
+
+module.exports = JwtEssentialFields;

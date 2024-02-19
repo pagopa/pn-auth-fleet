@@ -219,6 +219,14 @@ Parameters:
     Description: "Limit of bytes for jwks downloader"
     Default: '51200'
 
+  B2bAuthorizerRenewTimeSeconds:
+    Type: Number
+    Description: "JWKS renew time in seconds for b2b authorizer"
+  
+  B2bAuthorizerInternalCacheTtlSeconds:
+    Type: Number
+    Description: "Internal cache ttl in seconds for b2b authorizer"
+    
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -485,6 +493,8 @@ Resources:
           AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtIssuersTableName
           FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+          RENEW_TIME_SECONDS: !Ref B2bAuthorizerRenewTimeSeconds
+          INTERNAL_CACHE_TTL_SECONDS: !Ref B2bAuthorizerInternalCacheTtlSeconds
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
