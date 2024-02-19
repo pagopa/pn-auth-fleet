@@ -221,10 +221,12 @@ Parameters:
 
   B2bAuthorizerRenewTimeSeconds:
     Type: Number
+    Default: '180'
     Description: "JWKS renew time in seconds for b2b authorizer"
   
   B2bAuthorizerInternalCacheTtlSeconds:
     Type: Number
+    Default: '600'
     Description: "Internal cache ttl in seconds for b2b authorizer"
     
 Conditions:
