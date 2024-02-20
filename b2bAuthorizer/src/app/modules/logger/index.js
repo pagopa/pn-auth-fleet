@@ -18,15 +18,18 @@ class Logger {
     }
 
     log(message, meta = {}) {
-        console.log(message, { ...this.#context, ...meta });
+        const logMeta =  { ...this.#context, ...meta } || {}
+        console.log(message, JSON.stringify(logMeta, null, 2));
     }
 
     warn(message, meta = {}) {
-        console.warn(message, { ...this.#context, ...meta });
+        const logMeta =  { ...this.#context, ...meta } || {}
+        console.warn(message, JSON.stringify(logMeta, null, 2));
     }
 
     error(message, meta = {}) {
-        console.error(message, { ...this.#context, ...meta });
+        const logMeta =  { ...this.#context, ...meta } || {}
+        console.error(message, JSON.stringify(logMeta, null, 2));
     }
 }
 

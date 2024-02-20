@@ -132,4 +132,19 @@ describe('PolicyService', () => {
             ]
         });
     });
+
+    it('should return context for iam', () => {
+        const ctx = {
+            sourceChannel: 'RADD',
+            allowedApplicationRoles: [ 'user', 'admin'],
+            applicationRole: 'user'
+        }
+        const context = policyService.normalizeContextForIAMPolicy(ctx);
+
+        expect(context).to.deep.equal({
+            sourceChannel: 'RADD',
+            allowedApplicationRoles: "[\"user\",\"admin\"]",
+            applicationRole: 'user'
+        });
+    });
 });

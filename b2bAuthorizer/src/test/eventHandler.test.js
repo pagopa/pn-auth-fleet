@@ -105,7 +105,7 @@ describe("test eventHandler", () => {
         sourceChannel: "RADD",
         cx_jti: 'test-kid',
         applicationRole: "user",
-        allowedApplicationRoles: ["user"]
+        allowedApplicationRoles: "[\"user\"]"
       },
       usageIdentifierKey: null
     })
@@ -191,7 +191,7 @@ describe("test eventHandler", () => {
         sourceChannel: "RADD",
         cx_jti: 'test-kid',
         applicationRole: "user",
-        allowedApplicationRoles: ["user"]
+        allowedApplicationRoles: "[\"user\"]"
       },
       usageIdentifierKey: null
     })

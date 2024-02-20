@@ -56,7 +56,7 @@ class PolicyService {
       
         return context.allowedApplicationRoles.includes(context.applicationRole);
     }
-      
+
     generatePolicyDocument(context, lambdaEvent) {
         const intendedUsage = lambdaEvent?.stageVariables?.IntendedUsage;
       
@@ -69,6 +69,18 @@ class PolicyService {
         }
       
         return defaultAllowPolicyDocument;
+    }
+
+    normalizeContextForIAMPolicy(context){
+      const iamPolicyContext = { ...context };
+      for(const key in iamPolicyContext){
+        // if context[key] is an array or an object, we need to convert it to string
+        if(typeof iamPolicyContext[key] === 'object'){
+          iamPolicyContext[key] = JSON.stringify(iamPolicyContext[key]);
+        }
+      }
+
+      return iamPolicyContext
     }
 }
 

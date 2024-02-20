@@ -26,23 +26,24 @@ describe('AllowedIssuerDAO Testing', () => {
 
     it('listJwtAttributes without errors', async () => {
         let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'))
+        item.cacheMaxUsageEpochSec = Math.round(Date.now()/1000) + 600
+
         ddbMock.on(GetCommand).resolves({
             Item: item
         });
         const jwt = fs.readFileSync('test/resources/jwt.json')
         const attrResolverCfg = {
-                "keyAttributeName": "kid"
+                "keyAttributeName": "iss"
             }
         const listJwtAttributes = JwtAttributesDao.__get__('listJwtAttributes');
         
         const result = await listJwtAttributes(jwt, attrResolverCfg);     
-        
+        console.log(result);
         expect(result.hashkey).equal(item.hashkey);
     });
 
     it('listJwtAttributes with cacheMaxUsageEpochSec > now', async () => {
         let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'));
-        item['cacheMaxUsageEpochSec'] = Date.now()
         ddbMock.on(GetCommand).resolves({
             Item: item
         });
@@ -54,7 +55,7 @@ describe('AllowedIssuerDAO Testing', () => {
         
         const result = await listJwtAttributes(jwt, attrResolverCfg);     
 
-        expect(result).is.undefined
+        expect(result).is.null;
     });
 
 });
