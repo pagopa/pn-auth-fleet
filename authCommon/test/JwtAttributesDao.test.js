@@ -38,7 +38,6 @@ describe('AllowedIssuerDAO Testing', () => {
         const listJwtAttributes = JwtAttributesDao.__get__('listJwtAttributes');
         
         const result = await listJwtAttributes(jwt, attrResolverCfg);     
-        console.log(result);
         expect(result.hashkey).equal(item.hashkey);
     });
 
