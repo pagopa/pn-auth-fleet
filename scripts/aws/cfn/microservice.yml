@@ -538,16 +538,21 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
-              - Sid: AllowLambdaReadAndWriteDynamoDb
+              - Sid: AllowLambdaWriteDynamoDb
                 Action:
-                  - dynamodb:Query
-                  - dynamodb:GetItem
                   - dynamodb:PutItem
                   - dynamodb:UpdateItem
                 Effect: Allow
                 Resource: 
                   - !Ref AuthJwtIssuersTableArn
+              - Sid: AllowLambdaReadDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: 
                   - !Ref AuthJwtAttributesTableArn
+                  - !Ref AuthJwtIssuersTableArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy

@@ -16,7 +16,7 @@ describe('Logger', () => {
 
         logger.log('message');
 
-        expect( consoleLogStub.calledWith('message', { key: 'value'}) ).to.be.true;
+        expect( consoleLogStub.calledWith('message', JSON.stringify({ key: 'value'}, null, 2)) ).to.be.true;
 
         consoleLogStub.restore();
     });
@@ -29,7 +29,7 @@ describe('Logger', () => {
 
         logger.warn('message');
 
-        expect( consoleWarnStub.calledWith('message', { key: 'value'}) ).to.be.true;
+        expect( consoleWarnStub.calledWith('message', JSON.stringify({ key: 'value'}, null, 2)) ).to.be.true;
 
         consoleWarnStub.restore();
     });
@@ -41,7 +41,7 @@ describe('Logger', () => {
 
         logger.error('message');
 
-        expect( consoleErrorStub.calledWith('message', { key: 'value'}) ).to.be.true;
+        expect( consoleErrorStub.calledWith('message', JSON.stringify({ key: 'value'}, null, 2)) ).to.be.true;
 
         consoleErrorStub.restore();
     });
@@ -53,13 +53,13 @@ describe('Logger', () => {
 
         logger.error('message');
 
-        expect( consoleErrorStub.calledWith('message', { key: 'value'}) ).to.be.true;
+        expect( consoleErrorStub.calledWith('message', JSON.stringify({ key: 'value'}, null, 2)) ).to.be.true;
 
         logger.removeFromContext('key');
 
         logger.error('message');
 
-        expect( consoleErrorStub.calledWith('message', {}) ).to.be.true;
+        expect( consoleErrorStub.calledWith('message', JSON.stringify({}, null, 2)) ).to.be.true;
 
         consoleErrorStub.restore();
     });
@@ -72,13 +72,13 @@ describe('Logger', () => {
 
         logger.error('message');
 
-        expect( consoleErrorStub.calledWith('message', { key: 'value', key1: 'value1'}) ).to.be.true;
+        expect( consoleErrorStub.calledWith('message', JSON.stringify({ key: 'value', key1: 'value1'}, null, 2)) ).to.be.true;
 
         logger.clearContext();
 
         logger.error('message');
 
-        expect( consoleErrorStub.calledWith('message', {}) ).to.be.true;
+        expect( consoleErrorStub.calledWith('message', JSON.stringify({}, null, 2)) ).to.be.true;
         
         consoleErrorStub.restore();
     });
@@ -94,12 +94,12 @@ describe('Logger', () => {
             meta2: 'meta2'
         });
 
-        expect( consoleErrorStub.calledWith('message', {
+        expect( consoleErrorStub.calledWith('message', JSON.stringify({
             key: 'value',
             key1: 'value1',
             meta1: 'meta1',
             meta2: 'meta2'
-        }) ).to.be.true;
+        }, null, 2)) ).to.be.true;
         
         consoleErrorStub.restore();
     });
