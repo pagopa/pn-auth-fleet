@@ -59,8 +59,9 @@ async function getIssuerInfoAndJwksCache(iss, renewTimeSeconds){
 
     const query = {
         TableName: process.env.AUTH_JWT_ISSUER_TABLE,
-        Key: {
-            hashKey: buildHashKeyForAllowedIssuer(iss)
+        KeyConditionExpression: 'hashKey = :hashKey',
+        ExpressionAttributeValues: {
+            ':hashKey': buildHashKeyForAllowedIssuer(iss)
         }
     }
 

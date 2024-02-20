@@ -20,7 +20,16 @@ const attributeResolvers = new AttributeResolversMap();
 const jwtService = new JwtService();
 
 const getJWTFromLambdaEvent = (lambdaEvent) => {
-  return lambdaEvent?.authorizationToken?.replace("Bearer ", "");
+  let authorizationHeader = lambdaEvent.headers?.authorization;
+  if(!authorizationHeader) {
+    authorizationHeader = lambdaEvent.headers?.Authorization;
+  }
+
+  if(!authorizationHeader) {
+    return null;
+  }
+
+  return authorizationHeader.replace("Bearer ", "");
 }
 
 const prepareContextForLogger = (lambdaEvent) => {
@@ -80,16 +89,20 @@ async function handleEvent(event) {
     
     const policyDocument = policyService.generatePolicyDocument( context, event )
     logger.addToContext('policyDocument', policyDocument);
+    const iamPolicyContext = policyService.normalizeContextForIAMPolicy( context );
 
-    logger.log("Authorization flow complete")
-
-    return {
+    const ret = {
       principalId: "user-" + decodedJwtToken.payload.jti,
       policyDocument: policyDocument,
-      context: context,
+      context: iamPolicyContext,
       usageIdentifierKey: usageIdentifierKey
     }
 
+    logger.log("Authorization flow complete", {
+      ret: ret
+    })
+
+    return ret
   } catch(e){
     logger.error(e.message, e);
     throw e;
