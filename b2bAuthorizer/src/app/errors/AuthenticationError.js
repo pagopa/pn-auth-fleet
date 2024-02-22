@@ -1,8 +1,21 @@
 class AuthenticationError extends Error {
-  constructor(message) {
+
+  meta = {}
+
+  constructor(message, meta = {}) {
     super(message);
     this.name = "AuthenticationError";
+    this.meta = meta;
   }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      meta: this.meta
+    }
+  }
+  
 }
 
 

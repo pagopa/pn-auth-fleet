@@ -6,6 +6,7 @@ const { expect } = require('chai');
 const Logger = require('../app/modules/logger');
 const logger = new Logger();
 const sinon = require('sinon');
+const AuthenticationError = require('../app/errors/AuthenticationError');
 
 describe('Logger', () => {
 
@@ -103,4 +104,18 @@ describe('Logger', () => {
         
         consoleErrorStub.restore();
     });
+
+    it('should map AuthenticationException to error', () => {
+        consoleErrorStub = sinon.stub(console, 'error');
+
+        const json = new AuthenticationError('AuthenticationException', { key: 'value'}).toJSON()
+        logger.clearContext();
+        logger.error('message', json);
+
+        console.log(consoleErrorStub.getCall(0));
+
+        expect( consoleErrorStub.calledWith('message', JSON.stringify(json, null, 2)) ).to.be.true;
+        
+        consoleErrorStub.restore();
+    }); 
 });
