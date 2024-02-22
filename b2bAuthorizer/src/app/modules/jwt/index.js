@@ -51,12 +51,17 @@ class JwtService {
         validated = true;
         break;
       } catch (err) {
-        console.error("Error validating token with keyId: "+keyId, err);
+        console.warn("Error validating token with keyId: "+keyId, {
+          err,
+          jwks: validKeys[i]
+        });
       }
     }
 
     if(!validated) {
-      throw new AuthenticationError("Unable to validate token with any of the keys");
+      throw new AuthenticationError("Unable to validate token with any of the keys", {
+        validKeys
+      });
     }
   }
 
