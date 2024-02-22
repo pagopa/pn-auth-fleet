@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test-build": "npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
-    "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
+    "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x coverage -x '*.env'  -x '*.gitignore'",
     "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
@@ -14,6 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "aws-sdk-client-mock": "^3.0.0",
+    "@aws-sdk/client-kms": "^3.410.0",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "lambda-tester": "^4.0.1",
@@ -23,7 +24,6 @@
     "sonarqube-scanner": "^3.3.0"
   },
   "dependencies": {
-    "@aws-sdk/client-kms": "^3.410.0",
     "jsonwebtoken": "^9.0.0"
   }
 }

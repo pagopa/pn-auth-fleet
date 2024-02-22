@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test-build": "npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
-    "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
+    "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x .nyc_output -x '*.env' -x coverage -x '*.gitignore'",
     "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
@@ -14,6 +14,9 @@
   "license": "ISC",
   "devDependencies": {
     "aws-sdk-client-mock": "^3.0.0",
+    "@aws-sdk/client-api-gateway": "^3.252.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.252.0",
+    "@aws-sdk/client-s3": "^3.252.0",
     "chai": "^4.3.6",
     "lambda-tester": "^4.0.1",
     "mocha": "^9.2.2",
@@ -23,9 +26,6 @@
     "sonarqube-scanner": "^3.3.0"
   },
   "dependencies": {
-    "@aws-sdk/client-api-gateway": "^3.252.0",
-    "@aws-sdk/client-cognito-identity-provider": "^3.252.0",
-    "@aws-sdk/client-s3": "^3.252.0",
     "aws-jwt-verify": "^3.3.0",
     "js-yaml": "^4.1.0"
   }
