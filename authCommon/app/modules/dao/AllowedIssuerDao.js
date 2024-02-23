@@ -42,6 +42,9 @@ function getJwksCacheEntities(jwksItems, nowInSeconds, cfg, renewTimeSeconds){
     // add expired and rank props
     .map((item, index) => {
         const isExpired = isJWKSExpired(item, cfg, renewTimeSeconds, nowInSeconds)
+        const buff = Buffer.from(item.JWKSBody);
+        item.JWKSBody = buff.toString();
+ 
         return {
             expired: isExpired,
             rank: index,

@@ -124,10 +124,12 @@ describe('AllowedIssuerDAO Testing', () => {
 
     it('getJwksCacheEntities', () => {
         const getJwksCacheEntities = AllowedIssuerDAO.__get__('getJwksCacheEntities');
+        const jwksBody = fs.readFileSync('test/resources/jwks.json');
+        const jwksBodyStr = Buffer.from(jwksBody).toString();
         const jwksItems = [
-            { sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454398 },
-            { sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454401 },
-            { sortKey: JWKS_CACHE_PREFIX+'~https://interop1.pagopa.it~sha256', JWKSUrl: 'https://interop1.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454400 },
+            { sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', JWKSBody: jwksBody, cacheRenewEpochSec: 1630454398 },
+            { sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', JWKSBody: jwksBody, cacheRenewEpochSec: 1630454401 },
+            { sortKey: JWKS_CACHE_PREFIX+'~https://interop1.pagopa.it~sha256', JWKSUrl: 'https://interop1.pagopa.it/.well-known.json', JWKSBody: jwksBody, cacheRenewEpochSec: 1630454400 },
         ]
 
         const cfg = {
@@ -141,19 +143,22 @@ describe('AllowedIssuerDAO Testing', () => {
         const result = getJwksCacheEntities(jwksItems, nowInSeconds, cfg, renewTimeSeconds);
 
         expect(result).to.deep.equal([
-            { expired: false, rank: 0, sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454401 },
-            { expired: true, rank: 1, sortKey: JWKS_CACHE_PREFIX+'~https://interop1.pagopa.it~sha256', JWKSUrl: 'https://interop1.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454400 },
-            { expired: true, rank: 2, sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454398 },
+            { expired: false, rank: 0, sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', JWKSBody: jwksBodyStr, cacheRenewEpochSec: 1630454401 },
+            { expired: true, rank: 1, sortKey: JWKS_CACHE_PREFIX+'~https://interop1.pagopa.it~sha256', JWKSUrl: 'https://interop1.pagopa.it/.well-known.json', JWKSBody: jwksBodyStr, cacheRenewEpochSec: 1630454400 },
+            { expired: true, rank: 2, sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', JWKSBody: jwksBodyStr, cacheRenewEpochSec: 1630454398 },
         ]);
     });
 
     it('getIssuerInfoAndJwksCache', async () => {
+
+        const jwksBody = fs.readFileSync('test/resources/jwks.json');
+
         ddbMock.on(QueryCommand).resolves({
             Items: [
                 { hashKey: ISS_PREFIX+'~https://interop.pagopa.it', sortKey: 'CFG', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454401 },
-                { hashKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it', sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256_1', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454398 },
-                { hashKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it', sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256_2', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454401 },
-                { hashKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it', sortKey: JWKS_CACHE_PREFIX+'~https://interop1.pagopa.it~sha25_3', JWKSUrl: 'https://interop1.pagopa.it/.well-known.json', cacheRenewEpochSec: 1630454400 },
+                { hashKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it', sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256_1', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', JWKSBody: jwksBody, cacheRenewEpochSec: 1630454398 },
+                { hashKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it', sortKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it~sha256_2', JWKSUrl: 'https://interop.pagopa.it/.well-known.json', JWKSBody: jwksBody, cacheRenewEpochSec: 1630454401 },
+                { hashKey: JWKS_CACHE_PREFIX+'~https://interop.pagopa.it', sortKey: JWKS_CACHE_PREFIX+'~https://interop1.pagopa.it~sha25_3', JWKSUrl: 'https://interop1.pagopa.it/.well-known.json', JWKSBody: jwksBody, cacheRenewEpochSec: 1630454400 },
             ]
         });
         
