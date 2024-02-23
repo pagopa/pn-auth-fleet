@@ -32,10 +32,7 @@ class JwtService {
       throw new AuthenticationError("Audience not found in JWT");
     }
     const lambdaEventDomain = lambdaEvent?.requestContext?.domainName; 
-    if(decodedJwtToken.payload.aud !== 'https://'+lambdaEventDomain){
-      throw new AuthenticationError("Audience not matching the domainName");
-    }
-
+    
     const keyId = decodedJwtToken.header.kid;
     const validKeys = this.#findValidKeys(keyId, issuerInfo.jwksCache)
     let validated = false;
