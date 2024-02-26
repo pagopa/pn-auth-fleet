@@ -229,6 +229,36 @@ Parameters:
     Default: '600'
     Description: "Internal cache ttl in seconds for b2b authorizer"
     
+  B2BAuthorizerDataPointsToAlarm:
+    Type: Number
+    Default: 1
+    Description: "Number of data points to alarm for b2b authorizer"
+
+  B2BAuthorizerEvaluationPeriods:
+    Type: Number
+    Default: 60
+    Description: "Number of evaluation periods (1 minute) for b2b authorizer"
+
+  B2BAuthorizerAlarmFilterPattern:
+    Type: String
+    Default: "ERROR"
+    Description: "Filter pattern for b2b authorizer alarm"
+
+  JWKSCacheRefreshDataPointsToAlarm:
+    Type: Number
+    Default: 1
+    Description: "Number of data points to alarm for jwks cache refresh"
+
+  JWKSCacheRefreshEvaluationPeriods:
+    Type: Number
+    Default: 60
+    Description: "Number of evaluation periods (1 minute) for jwks cache refresh"
+
+  JWKSCacheRefreshAlarmFilterPattern:
+    Type: String
+    Default: "ERROR"
+    Description: "Filter pattern for jwks cache refresh alarm"
+    
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -564,6 +594,9 @@ Resources:
       Parameters:
         FunctionName: !Ref B2BAuthorizerLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        DataPointsToAlarm: !Ref B2BAuthorizerDataPointsToAlarm
+        EvaluationPeriods: !Ref B2BAuthorizerEvaluationPeriods
+        FilterPattern: !Ref B2BAuthorizerAlarmFilterPattern
 
   ###             JWKS CACHE REFRESH LAMBDA             ###
   #########################################################
@@ -644,6 +677,9 @@ Resources:
       Parameters:
         FunctionName: !Ref JWKSCacheRefreshLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        DataPointsToAlarm: !Ref JWKSCacheRefreshDataPointsToAlarm
+        EvaluationPeriods: !Ref JWKSCacheRefreshEvaluationPeriods
+        FilterPattern: !Ref JWKSCacheRefreshAlarmFilterPattern
 
   ###             BACKOFFICE AUTHORIZER LAMBDA            ###
   #########################################################

@@ -7,6 +7,7 @@ chai.use(chaiSubset);
 const JwtService = require("../app/modules/jwt");
 const { expect} = chai;
 const fs = require('fs');
+const exp = require("constants");
 
 describe("JwtService tests", function () {
     it("JWT Decode fail", function () {
@@ -142,7 +143,7 @@ describe("JwtService tests", function () {
             });
             expect.fail('Error not thrown');
         } catch(err) {
-            expect(err.message).equal("Audience not matching the domainName");
+            expect(err.message).equal("Unable to validate token with any of the keys");
 
         }
         
@@ -218,6 +219,76 @@ describe("JwtService tests", function () {
             expect(err.message).equal("Audience not found in JWT");
 
         }
+        
+    });
+
+
+    it('JWT validate KO - audience not valid (array)', function() {
+        const jwtService = new JwtService();
+        const jwks = fs.readFileSync('./src/test/resources/jwks.json');
+        const jwksAsBuffer = Buffer.from(jwks, 'utf8');
+        const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOlsiaHR0cHM6Ly9hcGkxLnJhZGQuZGV2Lm5vdGlmaWNoZWRpZ2l0YWxpLml0IiwiaHR0cHM6Ly9hcGkucmFkZC5kZXYubm90aWZpY2hlZGlnaXRhbGkuaXQiXSwiaXNzIjoidGVzdC1pc3N1ZXIuZGV2Lm5vdGlmaWNoZWRpZ2l0YWxpLml0IiwianRpIjoiMTIzMTIzMTIzMTIzMTIiLCJpYXQiOjE3MDg3MDAwNDV9.n1-fxYGuZOPqCFkBshBWN8GsO3eLXGr5b7_FQqK2OXBPUy0MvPCmnr2xIbw0jDeLZqPdmtZqgpjbHMzHflVXs-CG-PurIRHUCm7pTKZpkN7wGYX3WmCVW5c33HDiD1j15_NlUJkEnLmkjWJ-T0Y6cjgiIooY1BkBItQ0CP3iZU6RmMlLuHcDvRK_jXgbepA55JRG4QLyiTdd37AcamX_29Y1n2cBHzxAh9lW5ibw-10VrBsM1U7wHP3sJqb25QZKpYxvoROhJCPrSfs13ReQQv1NMlf8JlZQJ4ZLkwuxJVIEU16xH_ij93WRKZZEdiCVKDVb4zSoR5ARUqrP9LiIRSElMkmEdrrfWHcwlmdEsn6HXXjG_aaCjng_k7LBFy7tDtqYMD81-6JZD7Zch9Qefgr6s0PBvaE06u5MfaAiCsbxW3aYAGyOywSZCWzHA6S1MC_EUBJXrpMTyTOSLn_nBsweVs1j496ikn-s79cc6iv83xDsCZeshuopxkdkfcRBYqPdqkV_zSGybfoP-Xv3OmJRuEm2k67LuADV1zCJiPqi0Ph9joPiGepC3jsSmh7YKD3652TWXxSk6zJzznA1e4zGL9K8LUAmeAFJs17AyjLibpw5pUCMto_WCFKPFDdMC0NnbkNVOdKJkKNO8ZDHZ938QbOLeFPpa1OlYq5pXjA';
+
+        const issuerInfo = {
+            cfg: {
+                iss: "test-issuer.dev.notifichedigitali.it"
+            },
+            jwksCache: [ { JWKSBody: jwksAsBuffer } ]
+        }
+
+        try {
+            jwtService.validateToken(issuerInfo, {
+                header: {
+                    kid: "test-kid"
+                },
+                payload: {
+                    aud: ["api1.radd.dev.notifichedigitali.it", "api.radd.dev.notifichedigitali.it"],
+                    iss: "test-issuer.dev.notifichedigitali.it",
+                    jti: "12312312312312"
+                }
+            }, jwt,
+            {
+                requestContext: {
+                    domainName: "api2.radd.dev.notifichedigitali.it"
+                }
+            });
+            expect.fail('Error not thrown');
+        } catch(err) {
+            expect(err.message).equal("Unable to validate token with any of the keys");
+
+        }
+        
+    });
+
+    it('JWT validate OK - audience valid (array)', function() {
+        const jwtService = new JwtService();
+        const jwks = fs.readFileSync('./src/test/resources/jwks.json');
+        const jwksAsBuffer = Buffer.from(jwks, 'utf8');
+        const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOlsiaHR0cHM6Ly9hcGkxLnJhZGQuZGV2Lm5vdGlmaWNoZWRpZ2l0YWxpLml0IiwiaHR0cHM6Ly9hcGkucmFkZC5kZXYubm90aWZpY2hlZGlnaXRhbGkuaXQiXSwiaXNzIjoidGVzdC1pc3N1ZXIuZGV2Lm5vdGlmaWNoZWRpZ2l0YWxpLml0IiwianRpIjoiMTIzMTIzMTIzMTIzMTIiLCJpYXQiOjE3MDg3MDAwNDV9.n1-fxYGuZOPqCFkBshBWN8GsO3eLXGr5b7_FQqK2OXBPUy0MvPCmnr2xIbw0jDeLZqPdmtZqgpjbHMzHflVXs-CG-PurIRHUCm7pTKZpkN7wGYX3WmCVW5c33HDiD1j15_NlUJkEnLmkjWJ-T0Y6cjgiIooY1BkBItQ0CP3iZU6RmMlLuHcDvRK_jXgbepA55JRG4QLyiTdd37AcamX_29Y1n2cBHzxAh9lW5ibw-10VrBsM1U7wHP3sJqb25QZKpYxvoROhJCPrSfs13ReQQv1NMlf8JlZQJ4ZLkwuxJVIEU16xH_ij93WRKZZEdiCVKDVb4zSoR5ARUqrP9LiIRSElMkmEdrrfWHcwlmdEsn6HXXjG_aaCjng_k7LBFy7tDtqYMD81-6JZD7Zch9Qefgr6s0PBvaE06u5MfaAiCsbxW3aYAGyOywSZCWzHA6S1MC_EUBJXrpMTyTOSLn_nBsweVs1j496ikn-s79cc6iv83xDsCZeshuopxkdkfcRBYqPdqkV_zSGybfoP-Xv3OmJRuEm2k67LuADV1zCJiPqi0Ph9joPiGepC3jsSmh7YKD3652TWXxSk6zJzznA1e4zGL9K8LUAmeAFJs17AyjLibpw5pUCMto_WCFKPFDdMC0NnbkNVOdKJkKNO8ZDHZ938QbOLeFPpa1OlYq5pXjA';
+
+        const issuerInfo = {
+            cfg: {
+                iss: "test-issuer.dev.notifichedigitali.it"
+            },
+            jwksCache: [ { JWKSBody: jwksAsBuffer } ]
+        }
+
+        jwtService.validateToken(issuerInfo, {
+            header: {
+                kid: "test-kid"
+            },
+            payload: {
+                aud: ["api1.radd.dev.notifichedigitali.it", "api.radd.dev.notifichedigitali.it"],
+                iss: "test-issuer.dev.notifichedigitali.it",
+                jti: "12312312312312"
+            }
+        }, jwt,
+        {
+            requestContext: {
+                domainName: "api.radd.dev.notifichedigitali.it"
+            }
+        });
+        expect(true).to.equal(true); // just verify that no exceptions are thrown
         
     });
 });

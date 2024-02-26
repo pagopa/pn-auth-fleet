@@ -65,7 +65,7 @@ async function handleEvent(event) {
     }
 
     let issuerInfo = await issuersCache.getOrLoad( issuerId )
-    logger.addToContext('issuerInfo', issuerInfo);
+    logger.addToContext('issuerInfo', issuerInfo.cfg);
     try {
       jwtService.validateToken( issuerInfo, decodedJwtToken, jwtToken, event );  // throw AutenticationError if something goes wrong
     }
@@ -104,7 +104,11 @@ async function handleEvent(event) {
 
     return ret
   } catch(e){
-    logger.error(e.message, e);
+    if(e instanceof AuthenticationError){
+      logger.error(e.message, e.toJSON());
+    } else {
+      logger.error(e.message, e);
+    }
     throw e;
   }
 }
