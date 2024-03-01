@@ -294,15 +294,15 @@ Resources:
 
  # Lib Layer Declaration
   ApiKeyAuthorizerV2Layer:
-  Type: AWS::Lambda::LayerVersion
-  Properties:
-    CompatibleRuntimes:
-      - nodejs18.x
-    Content:
-      S3Bucket: !Ref LambdasBucketName
-      S3Key: !Sub "${BucketBasePath}/apikeyAuthorizerV2_libs.zip"
-    Description: NodeJs Libs layer
-    LayerName: apikeyAuthorizerV2-libs-layer
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/apikeyAuthorizerV2_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: apikeyAuthorizerV2-libs-layer
 
   # Lambda function role
   ApiKeyAuthorizerV2LambdaRole:
@@ -393,15 +393,15 @@ Resources:
 
  # Lib Layer Declaration
   IoAuthorizerLayer:
-  Type: AWS::Lambda::LayerVersion
-  Properties:
-    CompatibleRuntimes:
-      - nodejs18.x
-    Content:
-      S3Bucket: !Ref LambdasBucketName
-      S3Key: !Sub "${BucketBasePath}/ioAuthorizer_libs.zip"
-    Description: NodeJs Libs layer
-    LayerName: ioAuthorizer-libs-layer
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/ioAuthorizer_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: ioAuthorizer-libs-layer
 
   # Lambda function role
   IoAuthorizerLambdaRole:
@@ -488,15 +488,15 @@ Resources:
 
  # Lib Layer Declaration
   JwtAuthorizerLayer:
-  Type: AWS::Lambda::LayerVersion
-  Properties:
-    CompatibleRuntimes:
-      - nodejs18.x
-    Content:
-      S3Bucket: !Ref LambdasBucketName
-      S3Key: !Sub "${BucketBasePath}/jwtAuthorizer_libs.zip"
-    Description: NodeJs Libs layer
-    LayerName: jwtAuthorizer-libs-layer
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/jwtAuthorizer_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: jwtAuthorizer-libs-layer
 
   # Lambda function role
   JwtAuthorizerLambdaRole:
@@ -575,15 +575,15 @@ Resources:
 
  # Lib Layer Declaration
   B2BAuthorizerLayer:
-  Type: AWS::Lambda::LayerVersion
-  Properties:
-    CompatibleRuntimes:
-      - nodejs18.x
-    Content:
-      S3Bucket: !Ref LambdasBucketName
-      S3Key: !Sub "${BucketBasePath}/b2bAuthorizer_libs.zip"
-    Description: NodeJs Libs layer
-    LayerName: b2bAuthorizer-libs-layer
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: b2bAuthorizer-libs-layer
 
   # Lambda function role
   B2BAuthorizerLambdaRole:
@@ -679,15 +679,15 @@ Resources:
 
  # Lib Layer Declaration
   JWKSCacheRefreshLayer:
-  Type: AWS::Lambda::LayerVersion
-  Properties:
-    CompatibleRuntimes:
-      - nodejs18.x
-    Content:
-      S3Bucket: !Ref LambdasBucketName
-      S3Key: !Sub "${BucketBasePath}/jwksCacheRefreshLambda_libs.zip"
-    Description: NodeJs Libs layer
-    LayerName: jwksCacheRefreshLambda-libs-layer
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/jwksCacheRefreshLambda_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: jwksCacheRefreshLambda-libs-layer
 
   # Lambda function role
   JWKSCacheRefreshLambdaRole:
@@ -773,15 +773,15 @@ Resources:
 
  # Lib Layer Declaration
   BackofficeAuthorizerLayer:
-  Type: AWS::Lambda::LayerVersion
-  Properties:
-    CompatibleRuntimes:
-      - nodejs18.x
-    Content:
-      S3Bucket: !Ref LambdasBucketName
-      S3Key: !Sub "${BucketBasePath}/backofficeAuthorizer_libs.zip"
-    Description: NodeJs Libs layer
-    LayerName: backofficeAuthorizer-libs-layer
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/backofficeAuthorizer_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: backofficeAuthorizer-libs-layer
 
   # Lambda function role
   BackofficeAuthorizerLambdaRole:
@@ -881,15 +881,15 @@ Resources:
 
 # Lib Layer Declaration
   TokenExchangeLayer:
-  Type: AWS::Lambda::LayerVersion
-  Properties:
-    CompatibleRuntimes:
-      - nodejs18.x
-    Content:
-      S3Bucket: !Ref LambdasBucketName
-      S3Key: !Sub "${BucketBasePath}/tokenExchange_libs.zip"
-    Description: NodeJs Libs layer
-    LayerName: tokenExchange-libs-layer
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/tokenExchange_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: tokenExchange-libs-layer
 
 
   # Lambda function role
