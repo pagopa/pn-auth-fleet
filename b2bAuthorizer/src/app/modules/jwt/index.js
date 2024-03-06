@@ -37,7 +37,7 @@ class JwtService {
   validateToken(issuerInfo, decodedJwtToken, jwt, lambdaEvent){
     // validate aud
     if(!decodedJwtToken.payload.aud){
-      throw new AuthenticationError("Audience not found in JWT");
+      throw new AuthenticationError("Audience not found in JWT", {}, false);
     }
     const lambdaEventDomain = lambdaEvent?.requestContext?.domainName; 
     
@@ -73,7 +73,7 @@ class JwtService {
     if(!validated) {
       throw new AuthenticationError("Unable to validate token with any of the keys", {
         validKeys
-      });
+      }); // this is a retriable error
     }
   }
 
