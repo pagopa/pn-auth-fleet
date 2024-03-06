@@ -79,11 +79,11 @@ describe("JwtService tests", function () {
         const jwtService = new JwtService();
         const jwks = fs.readFileSync('./src/test/resources/jwks.json');
         const jwksAsBuffer = Buffer.from(jwks, 'utf8');
-        const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOiJodHRwczovL3Rlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6Imh0dHBzOi8vdGVzdC1pc3N1ZXIuZGV2Lm5vdGlmaWNoZWRpZ2l0YWxpLml0IiwianRpIjoiMTIzMTIzMTIzMTIzMTIiLCJpYXQiOjE3MDc5MjQ5ODIsImV4cCI6MTcwNzkyODU4Mn0.pWFl_CXG9Xrh3cqBo0uYW1HCTkAjeSesOT4Y3T17cBCNvwllvs7KVEMfYmEP06ceTDlr6v6puQWzcpVIKfYWPfJfLCJ6XYcA0U7AlthALFNpR3nNgaaQVB-pVYCIiLFkN-_kQLMAikvl4F4KLzWNTqw3vwFIMQ33DsOP_m_cvmoQY0SbwH1Z2O2q290j3mzkMbv12PdFirBmUhxgPdFuouM-nOHKqZWHyrjFdpcwItEZ1LYG5lJO_qgmIpl_cE9sF-Kc4F6zcoFmUjHEdN_xgoj3s4TgQyhld0xePVG4orUV8sbvh5U1WhQhKQlNBrpHC2FBzbs32LF5vG2KAEewFyD-3_kbIIqbahZvsXvndjbXcEKmnnlv0IDqL4wxd68QTvqQ769m8KgK7xeZvtDSB3ra1_f6vGq7ynT4BC51lIzUue3xd1mO2MBi9nFjhvsf0LNHcojwBbhu2unqlpZb7BmwLCepw_YyW45p5BoRhOXRDVfA9WadF96_VNFZG_6zdnMSMfhQQmFSqnog9BzwuTrPhMwp8_VvN_5thZaJ0sCrZpYtIlxcjgUXgrfABRAuOcWoeNj0N__OjQCdy-9biMDeLNirVGZNKIJgKrK1yilSmjHjkFMdz_b6cgP7Wjchvf0EJes5MBibGk2wkLZJsVlglCyv_aVALW8kE1KHdCE';
+        const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlRBLWtpZCJ9.eyJhdWQiOiJodHRwczovL2FwaS5yYWRkLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6InRlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImp0aSI6IjEyMzEyMzEyMzEyMzEyNTUiLCJpYXQiOjE3MDk3MjUxMzB9.kCYpIBX7gPPiTez2j-FdQZNYHWKg5jpxI_l-V0EyDjnxck13TAJ18UsUeWn-QFDJHGRT-fuXyWb_9sgc2nyR9p0JvJufFHTx2XGoLetdWCipjUQ6pOfCPx5aQsb-QFX2lDVvZXuutQ9LBZ_lXoNWxhXYFiT0AaVqn3RvtR0xTiGWTHRGvAdLCEsFhYoquTkGmzn-Ji46rMugg9poluUQ-sHsXPgPFdrsyY3wQsHh44c1T9WdN1wFn4fwI0QGoP8XWSGMYrKzxdpX1yqycPLfuZP4WDWhsSDKLBKRaakJRCmy3XwoOlYpZ5QpB3PvAiucLsQ_eGVxPsASB1MwaiORxSPr0CGstCT9u3_L4hRnP6B5n-WV-qaYniTHIHzK6CH16v2MhlXvCuTAqoMmZiT0qud3QEHAJgLL6b9x-jUo6-hHFu2WAXpx1LKVFNmEA9zmqcKHRvOZNkMTwouLsW2l3jbHd0NsNYqPwlnbMPHq6krxQ7ZhYNm93tbJOkH8jp9iZKQUjFf3OvqiLo6Z9qiUf_qrR_h0sRD5NUIeKK1oAQPEqvnCxBS8ARvetx0aS1rwbzfmGmGF_Rx7Tkg_wKsD30CZVQlq_R1KXhDfwG-l2Kgqxj14J10LlINFeUp7KyqJ6_a64QX7yBM_QSFFBBzavQVLUMd6G9Fqwqzce5fjYcc';
 
         const issuerInfo = {
             cfg: {
-                iss: "https://new-issuer.dev.notifichedigitali.it"
+                iss: "new-issuer.dev.notifichedigitali.it"
             },
             jwksCache: [ { JWKSBody: jwksAsBuffer } ]
         }
@@ -94,19 +94,19 @@ describe("JwtService tests", function () {
                     kid: "test-kid"
                 },
                 payload: {
-                    aud: "https://test-issuer.dev.notifichedigitali.it",
-                    iss: "https://test-issuer.dev.notifichedigitali.it",
+                    aud: "https://api.radd.dev.notifichedigitali.it",
+                    iss: "test-issuer.dev.notifichedigitali.it",
                     jti: "12312312312312"
                 }
             }, jwt,
             {
                 requestContext: {
-                    domainName: "test-issuer.dev.notifichedigitali.it"
+                    domainName: "api.radd.dev.notifichedigitali.it"
                 }
             });
             expect.fail('Error not thrown');
         } catch(err) {
-            expect(err.message).to.be.equal("Unable to validate token with any of the keys");
+            expect(err.message).to.be.equal("Error validating token with keyId: test-kid: jwt issuer invalid. expected: new-issuer.dev.notifichedigitali.it");
 
         }
         
@@ -116,7 +116,7 @@ describe("JwtService tests", function () {
         const jwtService = new JwtService();
         const jwks = fs.readFileSync('./src/test/resources/jwks.json');
         const jwksAsBuffer = Buffer.from(jwks, 'utf8');
-        const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOiJodHRwczovL3Rlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6Imh0dHBzOi8vdGVzdC1pc3N1ZXIuZGV2Lm5vdGlmaWNoZWRpZ2l0YWxpLml0IiwianRpIjoiMTIzMTIzMTIzMTIzMTIiLCJpYXQiOjE3MDc5MjQ5ODIsImV4cCI6MTcwNzkyODU4Mn0.pWFl_CXG9Xrh3cqBo0uYW1HCTkAjeSesOT4Y3T17cBCNvwllvs7KVEMfYmEP06ceTDlr6v6puQWzcpVIKfYWPfJfLCJ6XYcA0U7AlthALFNpR3nNgaaQVB-pVYCIiLFkN-_kQLMAikvl4F4KLzWNTqw3vwFIMQ33DsOP_m_cvmoQY0SbwH1Z2O2q290j3mzkMbv12PdFirBmUhxgPdFuouM-nOHKqZWHyrjFdpcwItEZ1LYG5lJO_qgmIpl_cE9sF-Kc4F6zcoFmUjHEdN_xgoj3s4TgQyhld0xePVG4orUV8sbvh5U1WhQhKQlNBrpHC2FBzbs32LF5vG2KAEewFyD-3_kbIIqbahZvsXvndjbXcEKmnnlv0IDqL4wxd68QTvqQ769m8KgK7xeZvtDSB3ra1_f6vGq7ynT4BC51lIzUue3xd1mO2MBi9nFjhvsf0LNHcojwBbhu2unqlpZb7BmwLCepw_YyW45p5BoRhOXRDVfA9WadF96_VNFZG_6zdnMSMfhQQmFSqnog9BzwuTrPhMwp8_VvN_5thZaJ0sCrZpYtIlxcjgUXgrfABRAuOcWoeNj0N__OjQCdy-9biMDeLNirVGZNKIJgKrK1yilSmjHjkFMdz_b6cgP7Wjchvf0EJes5MBibGk2wkLZJsVlglCyv_aVALW8kE1KHdCE';
+        const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlRBLWtpZCJ9.eyJhdWQiOiJodHRwczovL2FwaS5yYWRkLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6InRlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImp0aSI6IjEyMzEyMzEyMzEyMzEyNTUiLCJpYXQiOjE3MDk3MjUxMzB9.kCYpIBX7gPPiTez2j-FdQZNYHWKg5jpxI_l-V0EyDjnxck13TAJ18UsUeWn-QFDJHGRT-fuXyWb_9sgc2nyR9p0JvJufFHTx2XGoLetdWCipjUQ6pOfCPx5aQsb-QFX2lDVvZXuutQ9LBZ_lXoNWxhXYFiT0AaVqn3RvtR0xTiGWTHRGvAdLCEsFhYoquTkGmzn-Ji46rMugg9poluUQ-sHsXPgPFdrsyY3wQsHh44c1T9WdN1wFn4fwI0QGoP8XWSGMYrKzxdpX1yqycPLfuZP4WDWhsSDKLBKRaakJRCmy3XwoOlYpZ5QpB3PvAiucLsQ_eGVxPsASB1MwaiORxSPr0CGstCT9u3_L4hRnP6B5n-WV-qaYniTHIHzK6CH16v2MhlXvCuTAqoMmZiT0qud3QEHAJgLL6b9x-jUo6-hHFu2WAXpx1LKVFNmEA9zmqcKHRvOZNkMTwouLsW2l3jbHd0NsNYqPwlnbMPHq6krxQ7ZhYNm93tbJOkH8jp9iZKQUjFf3OvqiLo6Z9qiUf_qrR_h0sRD5NUIeKK1oAQPEqvnCxBS8ARvetx0aS1rwbzfmGmGF_Rx7Tkg_wKsD30CZVQlq_R1KXhDfwG-l2Kgqxj14J10LlINFeUp7KyqJ6_a64QX7yBM_QSFFBBzavQVLUMd6G9Fqwqzce5fjYcc';
 
         const issuerInfo = {
             cfg: {
@@ -143,7 +143,7 @@ describe("JwtService tests", function () {
             });
             expect.fail('Error not thrown');
         } catch(err) {
-            expect(err.message).equal("Unable to validate token with any of the keys");
+            expect(err.message).equal("Error validating token with keyId: test-kid: jwt audience invalid. expected: https://new-issuer.dev.notifichedigitali.it");
 
         }
         
@@ -153,7 +153,7 @@ describe("JwtService tests", function () {
         const jwtService = new JwtService();
         const jwks = fs.readFileSync('./src/test/resources/jwks.json');
         const jwksAsBuffer = Buffer.from(jwks, 'utf8');
-        const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOiJodHRwczovL3Rlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6Imh0dHBzOi8vdGVzdC1pc3N1ZXIuZGV2Lm5vdGlmaWNoZWRpZ2l0YWxpLml0IiwianRpIjoiMTIzMTIzMTIzMTIzMTIiLCJpYXQiOjE3MDc5MjQ5ODIsImV4cCI6MTcwNzkyODU4Mn0.pWFl_CXG9Xrh3cqBo0uYW1HCTkAjeSesOT4Y3T17cBCNvwllvs7KVEMfYmEP06ceTDlr6v6puQWzcpVIKfYWPfJfLCJ6XYcA0U7AlthALFNpR3nNgaaQVB-pVYCIiLFkN-_kQLMAikvl4F4KLzWNTqw3vwFIMQ33DsOP_m_cvmoQY0SbwH1Z2O2q290j3mzkMbv12PdFirBmUhxgPdFuouM-nOHKqZWHyrjFdpcwItEZ1LYG5lJO_qgmIpl_cE9sF-Kc4F6zcoFmUjHEdN_xgoj3s4TgQyhld0xePVG4orUV8sbvh5U1WhQhKQlNBrpHC2FBzbs32LF5vG2KAEewFyD-3_kbIIqbahZvsXvndjbXcEKmnnlv0IDqL4wxd68QTvqQ769m8KgK7xeZvtDSB3ra1_f6vGq7ynT4BC51lIzUue3xd1mO2MBi9nFjhvsf0LNHcojwBbhu2unqlpZb7BmwLCepw_YyW45p5BoRhOXRDVfA9WadF96_VNFZG_6zdnMSMfhQQmFSqnog9BzwuTrPhMwp8_VvN_5thZaJ0sCrZpYtIlxcjgUXgrfABRAuOcWoeNj0N__OjQCdy-9biMDeLNirVGZNKIJgKrK1yilSmjHjkFMdz_b6cgP7Wjchvf0EJes5MBibGk2wkLZJsVlglCyv_aVALW8kE1KHdCE';
+        const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlRBLWtpZCJ9.eyJhdWQiOiJodHRwczovL2FwaS5yYWRkLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6InRlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImp0aSI6IjEyMzEyMzEyMzEyMzEyNTUiLCJpYXQiOjE3MDk3MjUxMzB9.kCYpIBX7gPPiTez2j-FdQZNYHWKg5jpxI_l-V0EyDjnxck13TAJ18UsUeWn-QFDJHGRT-fuXyWb_9sgc2nyR9p0JvJufFHTx2XGoLetdWCipjUQ6pOfCPx5aQsb-QFX2lDVvZXuutQ9LBZ_lXoNWxhXYFiT0AaVqn3RvtR0xTiGWTHRGvAdLCEsFhYoquTkGmzn-Ji46rMugg9poluUQ-sHsXPgPFdrsyY3wQsHh44c1T9WdN1wFn4fwI0QGoP8XWSGMYrKzxdpX1yqycPLfuZP4WDWhsSDKLBKRaakJRCmy3XwoOlYpZ5QpB3PvAiucLsQ_eGVxPsASB1MwaiORxSPr0CGstCT9u3_L4hRnP6B5n-WV-qaYniTHIHzK6CH16v2MhlXvCuTAqoMmZiT0qud3QEHAJgLL6b9x-jUo6-hHFu2WAXpx1LKVFNmEA9zmqcKHRvOZNkMTwouLsW2l3jbHd0NsNYqPwlnbMPHq6krxQ7ZhYNm93tbJOkH8jp9iZKQUjFf3OvqiLo6Z9qiUf_qrR_h0sRD5NUIeKK1oAQPEqvnCxBS8ARvetx0aS1rwbzfmGmGF_Rx7Tkg_wKsD30CZVQlq_R1KXhDfwG-l2Kgqxj14J10LlINFeUp7KyqJ6_a64QX7yBM_QSFFBBzavQVLUMd6G9Fqwqzce5fjYcc';
 
         const issuerInfo = {
             cfg: {
@@ -254,8 +254,7 @@ describe("JwtService tests", function () {
             });
             expect.fail('Error not thrown');
         } catch(err) {
-            expect(err.message).equal("Unable to validate token with any of the keys");
-
+            expect(err.message).equal("Error validating token with keyId: test-kid: jwt audience invalid. expected: https://api2.radd.dev.notifichedigitali.it");
         }
         
     });

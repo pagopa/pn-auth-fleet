@@ -357,7 +357,8 @@ describe("test eventHandler", () => {
         message: 'Error validating token',
         meta: {
           validKeys: []
-        }
+        },
+        retriable: true
       });
       expect(e.message).to.be.equal('Error validating token');
     }

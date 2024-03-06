@@ -26,10 +26,18 @@ class JwtService {
     return validKeys
   }
 
+  #isSignatureError(jsonWebTokenError){
+    if(jsonWebTokenError.name === "JsonWebTokenError" && jsonWebTokenError.message === "invalid signature"){
+      return true;
+    }
+
+    return false
+  }
+
   validateToken(issuerInfo, decodedJwtToken, jwt, lambdaEvent){
     // validate aud
     if(!decodedJwtToken.payload.aud){
-      throw new AuthenticationError("Audience not found in JWT");
+      throw new AuthenticationError("Audience not found in JWT", {}, false);
     }
     const lambdaEventDomain = lambdaEvent?.requestContext?.domainName; 
     
@@ -52,13 +60,20 @@ class JwtService {
           err,
           jwks: validKeys[i]
         });
+
+        if(!this.#isSignatureError(err)){
+          throw new AuthenticationError("Error validating token with keyId: "+keyId+": "+err.message, {
+            err,
+            jwks: validKeys[i]
+          }, false); // generate a not retriable error
+        }
       }
     }
 
     if(!validated) {
       throw new AuthenticationError("Unable to validate token with any of the keys", {
         validKeys
-      });
+      }); // this is a retriable error
     }
   }
 
