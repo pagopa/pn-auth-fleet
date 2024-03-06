@@ -26,6 +26,14 @@ class JwtService {
     return validKeys
   }
 
+  #isSignatureError(jsonWebTokenError){
+    if(jsonWebTokenError.name === "JsonWebTokenError" && jsonWebTokenError.message === "invalid signature"){
+      return true;
+    }
+
+    return false
+  }
+
   validateToken(issuerInfo, decodedJwtToken, jwt, lambdaEvent){
     // validate aud
     if(!decodedJwtToken.payload.aud){
@@ -52,6 +60,13 @@ class JwtService {
           err,
           jwks: validKeys[i]
         });
+
+        if(!this.#isSignatureError(err)){
+          throw new AuthenticationError("Error validating token with keyId: "+keyId+": "+err.message, {
+            err,
+            jwks: validKeys[i]
+          }, false); // generate a not retriable error
+        }
       }
     }
 
