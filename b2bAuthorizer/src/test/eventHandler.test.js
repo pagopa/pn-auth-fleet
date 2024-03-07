@@ -1,56 +1,367 @@
 const { expect } = require("chai");
+const rewire = require("rewire");
+const EventHandler = rewire("../app/eventHandler");
+const fs = require('fs');
+const AuthenticationError = require("../app/errors/AuthenticationError");
 
-const { handleEvent } = require("../app/eventHandler");
-
+const jwtWithoutIss = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOiJodHRwczovL3Rlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImp0aSI6IjEyMzEyMzEyMzEyMzEyIiwiaWF0IjoxNzA3OTkxMDcyfQ.XPd60_xhB8VVunyZMm-CSM4avUtUlQSgOE3DMjDtpvCzV5zHd7XUNX_zzoJ0LWZpQIQ5-aigI40pNNqfNvvrty7dv06DUrt0wFUsVY_j2Uyg3wP0P-1eKAjNlJzh1a3Q-K9gx0upRTCnO8_tCxWS5XrP0wXpA36zAq0y30hs9OvDc97FdyheXb6phsOGBoWsenMHXlUcPjK_92JD7lVP-JO-G_bJNtN3V51HRdtuSjUSCEd_blXprUMDQCLDd6MhoHnZezgaxZgvFx06xwMlSm0YJiZp26BMBGgDPbe1brfLgMqFn6-AVWLIYm1YHdQ2nYWBt0Usiuz74K3mD8fDecRcc0th9hE2KiJ0B0kX0Rek16PjY1FgWBY1SAwAKBcansdMzzHLue7bLxdjmsoxQVCgbcrH6ytQWsKPxrHglbiqtGt9YbXzll7KtvRqi7jX0TuZchKApDCnjq0AzUVzVY__PmeP0hTCutaZHBynkPVDgDroUwGuzkGCm6Oda4GVf2JPd51CvD9cLPgjZLzF_HXDs2Hdjhk4Xzrc5KCCMXFN8n76UJ1R_nDFx-j5X3iMaotf6khi-B1ygiTEhR8pFLzOthfGleYZLi7geFX4S9OBMSyYjQCQEXU0lN02e5YtOKSfBNP1uT1bzFtF5LB7o1p7fDDZpjmTf2Ue7HoC--Q';
+const validJWT = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOiJodHRwczovL2FwaS5yYWRkLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6Imh0dHBzOi8vdGVzdC1pc3N1ZXIuZGV2Lm5vdGlmaWNoZWRpZ2l0YWxpLml0IiwianRpIjoiMTIzMTIzMTIzMTIzMTIiLCJpYXQiOjE3MDc5OTU1NDF9.TsOr145Jsl1nFiTF8NmPJK4I1RtkG_wi9IfOqH7D0zVgDvzQuUNwaExsIB-hF3V1PE4AxD8yUdTtVgizP9vD2aMeJnSfNcoSWje4oQnzco3bDYRrMwFuH_0BB7Moo9JzJ1XXT9TAWcpCAGamPSFA_5El1ARbcmnqrC2Ihhm0ic3fE5vD4mdqOW-Rmbt41f4Pbn7VDK7AE-y0rWywYhjdrosC1QLy1Z3HAImSr-_kPehYERJUz3yaoVUrREIe1X7xl4jOWib2H9W7Kt7IHktvn8h9j6W7XawSvaGI1R2ka8SersFQfVgOV8smneF8IxKGvI4giMx5Bo2YDnl2xTtAQc4_8lqYE3aMfBz3gBngT1ugRdkobwOVK5CbgCIH1lJmndmrZgKgEV7M3-oog0aTWFWO55Iv3KWBc72OFlmCsYozkGm4MdRDdZBzDD8C0VtDoTZq5MqN5QOlh5vvKF48h78T0WhYnjj-Be9guSWxMM5i7A7-UI70kZuQKD3TCKGqkdmqN7K8EBvu8j2kxYVY6HSfxg8S-_ISnQWriBwFA14-nxe1jNneyAvwaJeB04YPqHCYtW9Q_1WZytpthgJLmR7Wwhu7WvSLbg3lQ2DtthZzQ6ozziw5BGs8_vmyT22Km9ynNKUD9xozIF4qkcLK4mmWJVegwDpU2ySzHCzPd10'
 describe("test eventHandler", () => {
 
-  it("handle event without authorizationToken", async () => {
-    const result = await handleEvent({
-      type: "TOKEN",
-      authorizationToken: "",
-      methodArn:
-        "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/sent",
-    });
-    expect(result.principalId).to.be.equal("user");
-    expect(result.policyDocument.Statement).to.be.eql([
-      {
-        Action: "execute-api:Invoke",
-        Effect: "Deny",
-        Resource: "*",
-      },
-    ]);
-    expect(result.context).to.be.undefined;
-  });
+  it("should return an exception if jwt token is missing", async () => {
+    const event = {
+      headers: {
 
-  it("handle event with no errors (PF)", async () => {
-    const result = await handleEvent({
-      type: "TOKEN",
-      authorizationToken:
-        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEYiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY1MTc0NzY0NiwiZXhwIjoyNjUxNzUxMjQ2LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMkE2VjBCMTNCSE5DUEVaMzJTN0tRM1kifQ.jY8_5kYQuSERHPmhWaCDoc77KtrPP5p-g7_-2j8wLFwinVX6lnHG2IQi-Gll7S6o8WYqFED2yPydTlNMvtXgARVDMmZNDCzUPeSCMnhDb0UAy2TMxq89Avrl0ydd_KLHcjCw5WvyhBwCIAprakZXSza51Nk2WiBTJ1d-1_zWNg8NDTp7-hBbK90dgnU-w4HET8zp4f1Fnwos84JMbmAeu6wJuGuCn-h1znQer1BCr_tyl_YXQxwyMBYpKQVXLEsHHbmWJzyA8mETMigHNLFw4Y0C9vpjqiEuw2gFCnuSc-4A8WzlI4TuKsfyeCb3gpLDuqiSWvV-aQuu3iJTZ-_l2Q",
-      methodArn:
-        "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/received",
-    });
-    expect(result.principalId).to.be.equal("fake-user");
-    expect(result.policyDocument.Statement).to.be.eql([
-      {
-        Action: "execute-api:Invoke",
-        Effect: "Allow",
-        Resource:
-          "*",
+      }
+    };
+    try {
+      await EventHandler.handleEvent(event);
+      expect().fail('Expected an exception')
+    } catch(e) {
+      expect(e.message).to.be.equal("JWT Token not found in Authorization header");
+    }
+  })
+
+  it("should return an exception if issuer is not found", async () => {
+    const event = {
+      headers:{
+        authorization: 'Bearer ' + jwtWithoutIss,
+      } 
+    };
+
+    try {
+      await EventHandler.handleEvent(event);
+      expect().fail('Expected an exception')
+    } catch(e) {
+      expect(e.message).to.be.equal("Issuer not found in JWT");
+    }
+  })
+
+  it("should return an allow policy", async () => {
+    const event = {
+      stageVariables: {
+        IntendedUsage: 'RADD'
       },
-    ]);
-    expect(result.context).to.be.eql({
-      cx_type: "FAKE_cx_type",
-      cx_id: "FAKE_cx_id",
-      cx_groups: "FAKE_cx_groups",
-      cx_role: "FAKE_cx_role",
-      uid: "FAKE_uid",
-      cx_jti: "FAKE_cx_jti",
-      sourceChannel: "FAKE_sourceChannel",
-      sourceChannelDetails: null,
-      applicationRole: "FAKE_applicationRole",
-      allowedApplicationRoles: null,
-      callableApiTags: null
-    });
-  });
+      headers: {
+        "X-Amzn-Trace-Id": "Root=1-5f8d0f9e-5d0b7f8c7f0d6d4b0c0a0b0c",
+        Authorization: 'Bearer ' + validJWT
+      },
+      requestContext: {
+        domainName: "api.radd.dev.notifichedigitali.it"
+      }
+    };
+
+
+
+    // mock issuersCache
+    const jwks = fs.readFileSync('./src/test/resources/jwks.json');
+    const jwksAsBuffer = Buffer.from(jwks, 'utf8');
+    const issuersCache = {
+      getOrLoad: async (issuerId) => {
+        return {
+          cfg: {
+            iss: issuerId,
+            attributeResolversCfgs: [
+
+            ]
+          },
+          jwksCache: [ { JWKSBody: jwksAsBuffer } ]
+        }
+      }
+    }
+    EventHandler.__set__("issuersCache", issuersCache);
+
+
+    // mock attributeResolvers
+    const attributeResolvers = {
+      resolveAttributes: async (simpleJwt, lambdaEvent, issuerInfo) => {
+        return {
+          context: {
+            sourceChannel: "RADD",
+            cx_jti: simpleJwt.kid,
+            applicationRole: "user",
+            allowedApplicationRoles: ["user"]
+          },
+          usageIdentifierKey: null
+        }
+      }
+    }
+    EventHandler.__set__("attributeResolvers", attributeResolvers);
+
+    const result = await EventHandler.handleEvent(event);
+    
+    expect(result).to.deep.equal({
+      principalId: "user-12312312312312",
+      policyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "execute-api:Invoke",
+            Effect: "Allow",
+            Resource: "*"
+          }
+        ]
+      },
+      context: {
+        sourceChannel: "RADD",
+        cx_jti: 'test-kid',
+        applicationRole: "user",
+        allowedApplicationRoles: "[\"user\"]"
+      },
+      usageIdentifierKey: null
+    })
+
+  })
+
+  it("should return an allow policy with cache refresh", async () => {
+    const event = {
+      stageVariables: {
+        IntendedUsage: 'RADD'
+      },
+      headers: {
+        "X-Amzn-Trace-Id": "Root=1-5f8d0f9e-5d0b7f8c7f0d6d4b0c0a0b0c",
+        Authorization: 'Bearer ' + validJWT
+      },
+      requestContext: {
+        domainName: "api.radd.dev.notifichedigitali.it"
+      }
+    };
+
+
+
+    // mock issuersCache
+    const jwks = fs.readFileSync('./src/test/resources/jwks.json');
+    const jwksAsBuffer = Buffer.from(jwks, 'utf8');
+    const issuersCache = {
+      getOrLoad: async (issuerId) => {
+        return {
+          cfg: {
+            iss: issuerId,
+            attributeResolversCfgs: [
+
+            ]
+          },
+          jwksCache: [ ] // no jwks to make it fail at first
+        }
+      },
+      getWithForceRefresh: async (issuerId) => {
+        return {
+          cfg: {
+            iss: issuerId,
+            attributeResolversCfgs: [
+
+            ]
+          },
+          jwksCache: [ { JWKSBody: jwksAsBuffer } ]
+        }
+      }
+    }
+    EventHandler.__set__("issuersCache", issuersCache);
+
+    // mock attributeResolvers
+    const attributeResolvers = {
+      resolveAttributes: async (simpleJwt, lambdaEvent, issuerInfo) => {
+        return {
+          context: {
+            sourceChannel: "RADD",
+            cx_jti: simpleJwt.kid,
+            applicationRole: "user",
+            allowedApplicationRoles: ["user"]
+          },
+          usageIdentifierKey: null
+        }
+      }
+    }
+    EventHandler.__set__("attributeResolvers", attributeResolvers);
+
+    const result = await EventHandler.handleEvent(event);
+    
+    expect(result).to.deep.equal({
+      principalId: "user-12312312312312",
+      policyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "execute-api:Invoke",
+            Effect: "Allow",
+            Resource: "*"
+          }
+        ]
+      },
+      context: {
+        sourceChannel: "RADD",
+        cx_jti: 'test-kid',
+        applicationRole: "user",
+        allowedApplicationRoles: "[\"user\"]"
+      },
+      usageIdentifierKey: null
+    })
+
+  })
+
+  it("should return an a generic error during jwt validation", async () => {
+    const event = {
+      stageVariables: {
+        IntendedUsage: 'RADD'
+      },
+      headers: {
+        "X-Amzn-Trace-Id": "Root=1-5f8d0f9e-5d0b7f8c7f0d6d4b0c0a0b0c",
+        Authorization: 'Bearer ' + validJWT
+      },
+      requestContext: {
+        domainName: "api.radd.dev.notifichedigitali.it"
+      }
+    };
+
+    // mock jwtService
+    const jwtService = {
+      decodeToken: (jwt) => {
+        return {
+          header: {
+            kid: 'test-kid'
+          },
+          payload: {
+            iss: 'test-issuer',
+            aud: 'https://api.radd.dev.notifichedigitali.it'
+          }
+        }
+      },
+      validateToken: (issuerInfo, decodedJwtToken, jwt, lambdaEvent) => {
+        throw new Error('Error validating token');
+      },
+      extractEssentialFields: (decodedJwtToken) => {
+        return {
+          kid: 'test-kid'
+        }
+      }
+    }
+
+    EventHandler.__set__("jwtService", jwtService);
+
+    // mock issuersCache
+    const jwks = fs.readFileSync('./src/test/resources/jwks.json');
+    const jwksAsBuffer = Buffer.from(jwks, 'utf8');
+    const issuersCache = {
+      getOrLoad: async (issuerId) => {
+        return {
+          cfg: {
+            iss: issuerId,
+            attributeResolversCfgs: [
+
+            ]
+          },
+          jwksCache: [ ] // no jwks to make it fail at first
+        }
+      },
+      getWithForceRefresh: async (issuerId) => {
+        return {
+          cfg: {
+            iss: issuerId,
+            attributeResolversCfgs: [
+
+            ]
+          },
+          jwksCache: [ { JWKSBody: jwksAsBuffer } ]
+        }
+      }
+    }
+    EventHandler.__set__("issuersCache", issuersCache);
+
+    try {
+      await EventHandler.handleEvent(event); 
+      expect().fail('Expected an exception')
+    } catch(e){
+      expect(e.message).to.be.equal('Error validating token');
+    }
+    
+    
+
+  })
+
+  it("should return an a autentication error during jwt validation", async () => {
+    const event = {
+      stageVariables: {
+        IntendedUsage: 'RADD'
+      },
+      headers: {
+        "X-Amzn-Trace-Id": "Root=1-5f8d0f9e-5d0b7f8c7f0d6d4b0c0a0b0c",
+        Authorization: 'Bearer ' + validJWT
+      },
+      requestContext: {
+        domainName: "api.radd.dev.notifichedigitali.it"
+      }
+    };
+
+    // mock jwtService
+    const jwtService = {
+      decodeToken: (jwt) => {
+        return {
+          header: {
+            kid: 'test-kid'
+          },
+          payload: {
+            iss: 'test-issuer',
+            aud: 'https://api.radd.dev.notifichedigitali.it'
+          }
+        }
+      },
+      validateToken: (issuerInfo, decodedJwtToken, jwt, lambdaEvent) => {
+        throw new AuthenticationError('Error validating token', {
+          validKeys: []
+        });
+      },
+      extractEssentialFields: (decodedJwtToken) => {
+        return {
+          kid: 'test-kid'
+        }
+      }
+    }
+
+    EventHandler.__set__("jwtService", jwtService);
+
+    // mock issuersCache
+    const jwks = fs.readFileSync('./src/test/resources/jwks.json');
+    const jwksAsBuffer = Buffer.from(jwks, 'utf8');
+    const issuersCache = {
+      getOrLoad: async (issuerId) => {
+        return {
+          cfg: {
+            iss: issuerId,
+            attributeResolversCfgs: [
+
+            ]
+          },
+          jwksCache: [ ] // no jwks to make it fail at first
+        }
+      },
+      getWithForceRefresh: async (issuerId) => {
+        return {
+          cfg: {
+            iss: issuerId,
+            attributeResolversCfgs: [
+
+            ]
+          },
+          jwksCache: [ { JWKSBody: jwksAsBuffer } ]
+        }
+      }
+    }
+    EventHandler.__set__("issuersCache", issuersCache);
+
+    try {
+      await EventHandler.handleEvent(event); 
+      expect().fail('Expected an exception')
+    } catch(e){
+      expect(e.toJSON()).to.deep.equal({
+        name: 'AuthenticationError',
+        message: 'Error validating token',
+        meta: {
+          validKeys: []
+        },
+        retriable: true
+      });
+      expect(e.message).to.be.equal('Error validating token');
+    }
+    
+  })
 });

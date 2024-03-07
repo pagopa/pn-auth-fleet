@@ -15,11 +15,6 @@ function buildSortKeyForJwksCache(url, sha256){
     return JWKS_CACHE_PREFIX+'~' + url + "~" + sha256
 }
 
-function computeSha256String(data){
-    // return sha256 as string
-    return crypto.createHash('sha256').update(data).digest('hex')
-}
-
 function computeSha256(binaryData){
     return crypto.createHash('sha256').update(binaryData).digest('hex')
 }
@@ -59,8 +54,14 @@ async function getIssuerInfoAndJwksCache(iss, renewTimeSeconds){
 
     const query = {
         TableName: process.env.AUTH_JWT_ISSUER_TABLE,
-        Key: {
-            hashKey: buildHashKeyForAllowedIssuer(iss)
+        KeyConditionExpression: 'hashKey = :hashKey',
+        ExpressionAttributeValues: {
+            ':hashKey': buildHashKeyForAllowedIssuer(iss),
+            ':nowInSeconds': Math.floor(Date.now() / 1000)
+        },
+        FilterExpression: 'attribute_not_exists(#ttl) OR #ttl > :nowInSeconds',
+        ExpressionAttributeNames: {
+            '#ttl': 'ttl'
         }
     }
 

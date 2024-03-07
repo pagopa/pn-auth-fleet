@@ -219,6 +219,46 @@ Parameters:
     Description: "Limit of bytes for jwks downloader"
     Default: '51200'
 
+  B2bAuthorizerRenewTimeSeconds:
+    Type: Number
+    Default: '180'
+    Description: "JWKS renew time in seconds for b2b authorizer"
+  
+  B2bAuthorizerInternalCacheTtlSeconds:
+    Type: Number
+    Default: '600'
+    Description: "Internal cache ttl in seconds for b2b authorizer"
+    
+  B2BAuthorizerDataPointsToAlarm:
+    Type: Number
+    Default: 1
+    Description: "Number of data points to alarm for b2b authorizer"
+
+  B2BAuthorizerEvaluationPeriods:
+    Type: Number
+    Default: 60
+    Description: "Number of evaluation periods (1 minute) for b2b authorizer"
+
+  B2BAuthorizerAlarmFilterPattern:
+    Type: String
+    Default: "ERROR"
+    Description: "Filter pattern for b2b authorizer alarm"
+
+  JWKSCacheRefreshDataPointsToAlarm:
+    Type: Number
+    Default: 1
+    Description: "Number of data points to alarm for jwks cache refresh"
+
+  JWKSCacheRefreshEvaluationPeriods:
+    Type: Number
+    Default: 60
+    Description: "Number of evaluation periods (1 minute) for jwks cache refresh"
+
+  JWKSCacheRefreshAlarmFilterPattern:
+    Type: String
+    Default: "ERROR"
+    Description: "Filter pattern for jwks cache refresh alarm"
+    
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -482,9 +522,11 @@ Resources:
       Environment:
         Variables:
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
-          AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtIssuersTableName
+          AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtAttributesTableName
           FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+          RENEW_TIME_SECONDS: !Ref B2bAuthorizerRenewTimeSeconds
+          INTERNAL_CACHE_TTL_SECONDS: !Ref B2bAuthorizerInternalCacheTtlSeconds
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
@@ -526,16 +568,21 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
-              - Sid: AllowLambdaReadAndWriteDynamoDb
+              - Sid: AllowLambdaWriteDynamoDb
                 Action:
-                  - dynamodb:Query
-                  - dynamodb:GetItem
                   - dynamodb:PutItem
                   - dynamodb:UpdateItem
                 Effect: Allow
                 Resource: 
                   - !Ref AuthJwtIssuersTableArn
+              - Sid: AllowLambdaReadDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: 
                   - !Ref AuthJwtAttributesTableArn
+                  - !Ref AuthJwtIssuersTableArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
@@ -547,6 +594,9 @@ Resources:
       Parameters:
         FunctionName: !Ref B2BAuthorizerLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        DataPointsToAlarm: !Ref B2BAuthorizerDataPointsToAlarm
+        EvaluationPeriods: !Ref B2BAuthorizerEvaluationPeriods
+        FilterPattern: !Ref B2BAuthorizerAlarmFilterPattern
 
   ###             JWKS CACHE REFRESH LAMBDA             ###
   #########################################################
@@ -627,6 +677,9 @@ Resources:
       Parameters:
         FunctionName: !Ref JWKSCacheRefreshLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        DataPointsToAlarm: !Ref JWKSCacheRefreshDataPointsToAlarm
+        EvaluationPeriods: !Ref JWKSCacheRefreshEvaluationPeriods
+        FilterPattern: !Ref JWKSCacheRefreshAlarmFilterPattern
 
   ###             BACKOFFICE AUTHORIZER LAMBDA            ###
   #########################################################
