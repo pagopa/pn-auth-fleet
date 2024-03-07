@@ -70,7 +70,7 @@ async function handleEvent(event) {
       jwtService.validateToken( issuerInfo, decodedJwtToken, jwtToken, event );  // throw AutenticationError if something goes wrong
     }
     catch (err) {
-      if(err instanceof AuthenticationError){
+      if(err instanceof AuthenticationError && err.retriable){
         issuerInfo = await issuersCache.getWithForceRefresh( issuerId )
         logger.addToContext('issuerInfo', issuerInfo);
         jwtService.validateToken( issuerInfo, decodedJwtToken, jwtToken, event );  // throw AutenticationError if something goes wrong
