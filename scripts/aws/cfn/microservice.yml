@@ -249,6 +249,11 @@ Parameters:
     Default: 10
     Description: "Timeout for b2b authorizer lambda in seconds"
 
+  B2BAuthorizerLambdaMemorySize:
+    Type: Number
+    Default: 128
+    Description: "Memory size for b2b authorizer lambda"
+    
   JWKSCacheRefreshDataPointsToAlarm:
     Type: Number
     Default: 1
@@ -268,6 +273,11 @@ Parameters:
     Type: Number
     Default: 280
     Description: "Timeout for jwks cache refresh lambda in seconds"
+
+  JWKSCacheRefreshMemorySize:
+    Type: Number
+    Default: 128
+    Description: "Memory size for jwks cache refresh lambda"
 
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
@@ -539,6 +549,7 @@ Resources:
           INTERNAL_CACHE_TTL_SECONDS: !Ref B2bAuthorizerInternalCacheTtlSeconds
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
+      MemorySize: !Ref B2BAuthorizerLambdaMemorySize
       TracingConfig:
         Mode: Active
       Layers:
@@ -626,6 +637,7 @@ Resources:
       Timeout: !Ref JWKSCacheRefreshTimeout # less than 5 minutes event bridge period 
       TracingConfig:
         Mode: Active
+      MemorySize: !Ref JWKSCacheRefreshMemorySize
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
       Environment:
