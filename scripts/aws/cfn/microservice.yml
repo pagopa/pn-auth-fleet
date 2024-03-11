@@ -219,12 +219,12 @@ Parameters:
     Description: "Limit of bytes for jwks downloader"
     Default: '51200'
 
-  B2bAuthorizerRenewTimeSeconds:
+  B2BAuthorizerRenewTimeSeconds:
     Type: Number
     Default: '180'
     Description: "JWKS renew time in seconds for b2b authorizer"
   
-  B2bAuthorizerInternalCacheTtlSeconds:
+  B2BAuthorizerInternalCacheTtlSeconds:
     Type: Number
     Default: '600'
     Description: "Internal cache ttl in seconds for b2b authorizer"
@@ -253,6 +253,16 @@ Parameters:
     Type: Number
     Default: 128
     Description: "Memory size for b2b authorizer lambda"
+
+  B2BAuthorizerJWTMaxAgeInSeconds:
+    Type: Number
+    Default: 3600
+    Description: "Max age in seconds for JWT token"
+
+  B2BAuthorizerJWTClockToleranceInSeconds:
+    Type: Number
+    Default: 60
+    Description: "Clock skew in seconds for JWT token"
     
   JWKSCacheRefreshDataPointsToAlarm:
     Type: Number
@@ -545,8 +555,10 @@ Resources:
           AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtAttributesTableName
           FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
-          RENEW_TIME_SECONDS: !Ref B2bAuthorizerRenewTimeSeconds
-          INTERNAL_CACHE_TTL_SECONDS: !Ref B2bAuthorizerInternalCacheTtlSeconds
+          RENEW_TIME_SECONDS: !Ref B2BAuthorizerRenewTimeSeconds
+          INTERNAL_CACHE_TTL_SECONDS: !Ref B2BAuthorizerInternalCacheTtlSeconds
+          JWT_MAX_AGE_SECONDS: !Ref B2BAuthorizerJWTMaxAgeInSeconds
+          JWT_CLOCK_TOLERANCE_SECONDS: !Ref B2BAuthorizerJWTClockToleranceInSeconds
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize
