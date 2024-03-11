@@ -1,5 +1,10 @@
 const { expect } = require("chai");
 const rewire = require("rewire");
+const JWT_MAX_AGE_SECONDS_1_YEAR = 31536000;
+const JWT_CLOCK_TOLERANCE_SECONDS = 60;
+process.env.JWT_MAX_AGE_SECONDS = JWT_MAX_AGE_SECONDS_1_YEAR;
+process.env.JWT_CLOCK_TOLERANCE_SECONDS = JWT_CLOCK_TOLERANCE_SECONDS;
+
 const EventHandler = rewire("../app/eventHandler");
 const fs = require('fs');
 const AuthenticationError = require("../app/errors/AuthenticationError");
@@ -10,17 +15,9 @@ const jwtWithoutIss = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkI
 // https://github.com/pagopa/pn-troubleshooting/blob/main/jwt-auth/generate-jwt.js
 const jwt1yearValid = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOiJodHRwczovL2FwaS5yYWRkLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6InRlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImp0aSI6IjEyMzEyMzEyMzEyMzEyNTUiLCJpYXQiOjE3MTAxNTE3ODUsImV4cCI6MTc0MTcwOTM4NX0.DYs7wKmfL-xchc40W8ptr2ySDRhh5ZbKknGoJO96qYfjt3Pdp3RA-Sr4wHM8UbY3FjyLtMQgGccdvgOd20GFJrM0jOaRLiPAoMXSIiCYdVkOh0VHEnuFNVXbRdLFSUcGbxddr12bIo4MncJx0UuIF3gMze5fW6urNaBTmKLIK-uvhB5EmGENrjoChHdiHaScRk3-ufk5PIvQHK2l6Kvfjsa0SruZX13kOA9IlIdH9DxZ7LT10-wkffYS72ClhCVyiqkFBxy6J8gdzugi3L6gIPSN9MAJSmsYHENC6i2I7XjfqhO1iglNzqloV4ElGMTuKiqxe-koM_pOkM8UQ55yFAGWSmFWdFSwDc7pukdaXuXwcR4Rg6zFvyFHrwlO7IA_TRt77EYHmpen5LoFH2GCT4p-jUCG5GmDyIuplZMzRD3WCzk4geuOoUKeW75AN0_F5O2L7Iem-LYz4pqYaNzwu8uLYcrmZSKNSGzaiNvSlFDdLQpVwFu9k6GR0RU6Ll6iC7BLs85fXzaaSnP6Av0bnp1DOnW4FGxBl8WCSoV2vbLiICEOAJVm39BcsI1q2PQ8-3CwkYPuPKW2BFM_Bn_9g5wrajMhliV1oayPnnn2kn1qRRvaUb2CAlfumEBsHg0C0o0biDF_zo4eTX_g6KTuKFLPi-lzy6pLfQPq8rBBbro' // expires on March 11th 2025
 
-const JWT_MAX_AGE_SECONDS_1_YEAR = 31536000;
-const JWT_CLOCK_TOLERANCE_SECONDS = 60;
-
 describe("test eventHandler", () => {
 
-  beforeEach(() => {
-    process.env.JWT_MAX_AGE_SECONDS = JWT_MAX_AGE_SECONDS_1_YEAR;
-    process.env.JWT_CLOCK_TOLERANCE_SECONDS = JWT_CLOCK_TOLERANCE_SECONDS;
-  });
-
-  afterEach(() => {
+  after(() => {
     delete process.env.JWT_MAX_AGE_SECONDS;
     delete process.env.JWT_CLOCK_TOLERANCE_SECONDS;
   });
