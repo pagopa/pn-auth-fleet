@@ -17,7 +17,9 @@ const issuersCache = new IssuersLocalCache(
 const attributeResolvers = new AttributeResolversMap();
 
 // jwt Service initialization
-const jwtService = new JwtService();
+const maxAgeInSeconds = parseInt(process.env.JWT_MAX_AGE_SECONDS) || 3600; // default 1 hour
+const clockToleranceInSeconds = parseInt(process.env.JWT_CLOCK_TOLERANCE_SECONDS) || 60; // default 1 minute
+const jwtService = new JwtService(maxAgeInSeconds, clockToleranceInSeconds);
 
 const getJWTFromLambdaEvent = (lambdaEvent) => {
   let authorizationHeader = lambdaEvent.headers?.authorization;
@@ -105,11 +107,17 @@ async function handleEvent(event) {
     return ret
   } catch(e){
     if(e instanceof AuthenticationError){
-      logger.error(e.message, e.toJSON());
+      logger.warn(e.message, e.toJSON());
+      const ret = {
+        policyDocument: policyService.generateDenyPolicyDocument(),
+        context: {},
+        usageIdentifierKey: null
+      }
+      return ret
     } else {
       logger.error(e.message, e);
+      throw e;
     }
-    throw e;
   }
 }
 

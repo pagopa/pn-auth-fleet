@@ -82,6 +82,10 @@ class PolicyService {
 
       return iamPolicyContext
     }
+
+    generateDenyPolicyDocument(){
+      return defaultDenyAllPolicyDocument;
+    }
 }
 
 module.exports = PolicyService
