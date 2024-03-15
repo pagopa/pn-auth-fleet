@@ -40,7 +40,7 @@ class JwtEssentialFields {
         return this.#jti;
     }
 
-    asObject() {
+    toDiagnosticContext() {
         return {
             aud: this.#aud,
             iss: this.#iss,
