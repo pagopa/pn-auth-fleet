@@ -82,7 +82,7 @@ async function handleEvent(event) {
     }
     
     const simpleJwt = jwtService.extractEssentialFields( decodedJwtToken )
-    logger.addToContext('simpleJwt', simpleJwt);
+    logger.addToContext('simpleJwt', simpleJwt.toDiagnosticContext());
 
     const attributeResolution = await attributeResolvers.resolveAttributes( simpleJwt, event, issuerInfo.cfg.attributeResolversCfgs );
     logger.addToContext('attributeResolution', attributeResolution);

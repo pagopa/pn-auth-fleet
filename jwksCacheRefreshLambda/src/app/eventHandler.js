@@ -20,7 +20,7 @@ async function handleEvent(event) {
             }
             catch (e) {
                 console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
-                const rescheduleTime = pivotTimeInMillis + (jwksDownloadRetryIntervalMinutes * 60 * 1000);
+                const rescheduleTime = Date.now() + (jwksDownloadRetryIntervalMinutes * 60 * 1000);
                 await AllowedIssuerDao.postponeJwksCacheEntryValidation( allowedIssuerId, transformInDate(rescheduleTime) )
             }
         }
