@@ -427,10 +427,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -509,10 +505,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -587,10 +579,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -680,10 +668,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
