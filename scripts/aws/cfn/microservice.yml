@@ -613,6 +613,7 @@ Resources:
                 Resource: 
                   - !Ref AuthJwtAttributesTableArn
                   - !Ref AuthJwtIssuersTableArn
+                  - !Sub ${AuthJwtIssuersTableArn}*
       #ManagedPolicyArns:
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
