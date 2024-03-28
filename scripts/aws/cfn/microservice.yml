@@ -337,7 +337,7 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
       Path: /
 
@@ -438,8 +438,8 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      # ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   # Data vault Service security group
@@ -521,8 +521,8 @@ Resources:
                   - kms:GetPublicKey
                 Effect: Allow
                 Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${PnAuthFleetJwtSignKeyId}"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      #ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   JwtAuthorizerLambdaAlarms:
@@ -610,8 +610,8 @@ Resources:
                 Resource: 
                   - !Ref AuthJwtAttributesTableArn
                   - !Ref AuthJwtIssuersTableArn
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      #ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   B2BAuthorizerLambdaAlarms:
@@ -692,8 +692,8 @@ Resources:
                   - dynamodb:UpdateItem
                 Effect: Allow
                 Resource: !Ref AuthJwtIssuersTableArn
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      #ManagedPolicyArns:
+      #  - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
   JWKSCacheRefreshLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -779,8 +779,8 @@ Resources:
                 Action:
                   - "s3:GetObject"
                 Resource: "arn:aws:s3:::*/*"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      #ManagedPolicyArns:
+        #- arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   BackofficeAuthorizerLambdaAlarms:
@@ -839,8 +839,8 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      # ManagedPolicyArns:
+        #- arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
       Path: /
 
