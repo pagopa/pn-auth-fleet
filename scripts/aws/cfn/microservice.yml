@@ -357,7 +357,7 @@ Resources:
               - "dynamodb:GetItem"
               - "dynamodb:Query"
             Resource: 
-              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-apiKey
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-apiKey*
               - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-paAggregations
               - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-aggregates
           - Effect: Allow
@@ -694,7 +694,9 @@ Resources:
                   - dynamodb:PutItem
                   - dynamodb:UpdateItem
                 Effect: Allow
-                Resource: !Ref AuthJwtIssuersTableArn
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Sub ${AuthJwtIssuersTableArn}*
       #ManagedPolicyArns:
       #  - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
