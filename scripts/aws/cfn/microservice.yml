@@ -337,8 +337,8 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
       Path: /
 
   # Lambda function IAM policy
@@ -354,10 +354,12 @@ Resources:
           - Effect: Allow
             Sid: AllowDbQueries
             Action:
-              - "apigateway:*"
               - "dynamodb:GetItem"
               - "dynamodb:Query"
-            Resource: "*"
+            Resource: 
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-apiKey*
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-paAggregations
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-aggregates
           - Effect: Allow
             Sid: AllowDecrypt
             Action:
@@ -427,10 +429,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -443,8 +441,9 @@ Resources:
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   # Data vault Service security group
   DataVaultServiceSecurityGroup:
@@ -509,10 +508,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -524,9 +519,14 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+              - Sid: AllowKms
+                Action:
+                  - kms:GetPublicKey
+                Effect: Allow
+                Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${PnAuthFleetJwtSignKeyId}"
+      #ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   JwtAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -587,10 +587,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -617,9 +613,10 @@ Resources:
                 Resource: 
                   - !Ref AuthJwtAttributesTableArn
                   - !Ref AuthJwtIssuersTableArn
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+                  - !Sub ${AuthJwtIssuersTableArn}*
+      #ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   B2BAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -680,10 +677,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -702,9 +695,11 @@ Resources:
                   - dynamodb:PutItem
                   - dynamodb:UpdateItem
                 Effect: Allow
-                Resource: !Ref AuthJwtIssuersTableArn
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Sub ${AuthJwtIssuersTableArn}*
+      #ManagedPolicyArns:
+      #  - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
   JWKSCacheRefreshLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -790,9 +785,9 @@ Resources:
                 Action:
                   - "s3:GetObject"
                 Resource: "arn:aws:s3:::*/*"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+      #ManagedPolicyArns:
+        #- arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   BackofficeAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -850,9 +845,9 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+      # ManagedPolicyArns:
+        #- arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
       Path: /
 
   # Lambda function IAM policy
