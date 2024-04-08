@@ -43,12 +43,22 @@ describe("test eventHandler", () => {
       } 
     };
 
-    try {
-      await EventHandler.handleEvent(event);
-      expect().fail('Expected an exception')
-    } catch(e) {
-      expect(e.message).to.be.equal("Issuer not found in JWT");
-    }
+    const ret = await EventHandler.handleEvent(event);
+    expect(ret).to.deep.equal({
+      policyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "execute-api:Invoke",
+            Effect: "Deny",
+            Resource: "*"
+          }
+        ]
+      },
+      context: {
+      },
+      usageIdentifierKey: null
+    })
   })
 
   it("should return an allow policy", async () => {
