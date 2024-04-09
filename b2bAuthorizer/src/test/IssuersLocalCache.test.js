@@ -1,12 +1,30 @@
 const rewire = require('rewire');
 const { expect } = require("chai");
-
+const IssuerNotFoundError = require('pn-auth-common/app/modules/dao/IssuerNotFoundError');
 
 describe('IssuersLocalCache', () => {
-  it('getOrLoad should throw an error if AllowedIssuerDao returns null', async () => {
+  it('getOrLoad should throw an AuthenticationERror if AllowedIssuerDao returns IssuerNotFoundError', async () => {
     const IssuersLocalCache = rewire('../app/modules/cache/IssuersLocalCache');
     const AllowedIssuerDao = {
-      getIssuerInfoAndJwksCache: async (iss, renewTimeSeconds) => null
+      getIssuerInfoAndJwksCache: async (iss, renewTimeSeconds) => {
+        throw new IssuerNotFoundError('No Issuer configuration found for '+iss);
+      }
+    }
+    IssuersLocalCache.__set__('AllowedIssuerDao', AllowedIssuerDao);
+    const cache = new IssuersLocalCache(100, 100);
+    try {
+      await cache.getOrLoad('iss');
+    } catch (e) {
+      expect(e.name).to.equal('AuthenticationError');
+    }
+  });
+
+  it('getOrLoad should throw a generic error if AllowedIssuerDao returns null', async () => {
+    const IssuersLocalCache = rewire('../app/modules/cache/IssuersLocalCache');
+    const AllowedIssuerDao = {
+      getIssuerInfoAndJwksCache: async (iss, renewTimeSeconds) => {
+        return null
+      }
     }
     IssuersLocalCache.__set__('AllowedIssuerDao', AllowedIssuerDao);
     const cache = new IssuersLocalCache(100, 100);
