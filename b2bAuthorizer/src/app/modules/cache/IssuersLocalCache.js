@@ -1,4 +1,5 @@
-const { AllowedIssuerDao } = require('pn-auth-common')
+const { AllowedIssuerDao } = require('pn-auth-common');
+const AuthenticationError = require('../../errors/AuthenticationError');
 
 class IssuersLocalCache {
 
@@ -40,11 +41,20 @@ class IssuersLocalCache {
     async getOrLoad(iss) {
         let cacheItem = this.#getValidCacheItem(iss);
         if(!cacheItem) {
-           cacheItem = await AllowedIssuerDao.getIssuerInfoAndJwksCache(iss, this.#renewTimeSeconds);
-           if(!cacheItem) {
+            try {
+                cacheItem = await AllowedIssuerDao.getIssuerInfoAndJwksCache(iss, this.#renewTimeSeconds);
+            } catch(e){
+                if(e.name==='IssuerNotFoundError'){
+                    throw new AuthenticationError("Issuer not found", { iss: iss }, false);
+                } else {
+                    throw e;
+                }
+            }
+
+            if(!cacheItem) {
                throw new Error("Unable to get issuer info and jwks cache for "+iss)
-           }
-              this.#cacheStore.set(iss, cacheItem);
+            }
+            this.#cacheStore.set(iss, cacheItem);
         }
 
         return this.#cacheStore.get(iss);

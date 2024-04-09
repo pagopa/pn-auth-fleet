@@ -137,6 +137,68 @@ describe("test eventHandler", () => {
 
   })
 
+  it("should return a deny policy if the issuer is not found", async () => {
+    const event = {
+      stageVariables: {
+        IntendedUsage: 'RADD'
+      },
+      headers: {
+        "X-Amzn-Trace-Id": "Root=1-5f8d0f9e-5d0b7f8c7f0d6d4b0c0a0b0c",
+        Authorization: 'Bearer ' + jwt1yearValid
+      },
+      requestContext: {
+        domainName: "api.radd.dev.notifichedigitali.it"
+      }
+    };
+
+
+
+    // mock issuersCache
+    const jwks = fs.readFileSync('./src/test/resources/jwks.json');
+    const jwksAsBuffer = Buffer.from(jwks, 'utf8');
+    const issuersCache = {
+      getOrLoad: async (issuerId) => {
+        throw new AuthenticationError("Issuer not found", { iss: issuerId }, false);
+      }
+    }
+    EventHandler.__set__("issuersCache", issuersCache);
+
+
+    // mock attributeResolvers
+    const attributeResolvers = {
+      resolveAttributes: async (simpleJwt, lambdaEvent, issuerInfo) => {
+        return {
+          context: {
+            sourceChannel: "RADD",
+            cx_jti: simpleJwt.kid,
+            applicationRole: "user",
+            allowedApplicationRoles: ["user"]
+          },
+          usageIdentifierKey: null
+        }
+      }
+    }
+    EventHandler.__set__("attributeResolvers", attributeResolvers);
+
+    const ret = await EventHandler.handleEvent(event); 
+    expect(ret).to.deep.equal({
+      policyDocument: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "execute-api:Invoke",
+            Effect: "Deny",
+            Resource: "*"
+          }
+        ]
+      },
+      context: {
+      },
+      usageIdentifierKey: null
+    })
+
+  })
+
   it("should return an allow policy with cache refresh", async () => {
     const event = {
       stageVariables: {
