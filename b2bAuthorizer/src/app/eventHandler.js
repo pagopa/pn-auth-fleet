@@ -45,6 +45,14 @@ const prepareContextForLogger = (lambdaEvent) => {
   return context;
 }
 
+function getDecodedToken(jwtToken) {
+  try {
+    return jwtService.decodeToken(jwtToken);
+  } catch(e){
+    throw new AuthenticationError("Invalid JWT Token", { jwtToken: jwtToken }, false);
+  }
+}
+
 async function handleEvent(event) {
   const jwtToken = getJWTFromLambdaEvent(event);
   const authorizationContex = prepareContextForLogger(event);
@@ -58,12 +66,12 @@ async function handleEvent(event) {
       throw new Error("JWT Token not found in Authorization header");
     }
 
-    const decodedJwtToken = jwtService.decodeToken(jwtToken);
+    const decodedJwtToken = getDecodedToken(jwtToken);
 
     const issuerId = decodedJwtToken.payload.iss;
     if(!issuerId) {
       logger.addToContext('jwt', decodedJwtToken);
-      throw new Error("Issuer not found in JWT");
+      throw new AuthenticationError("Issuer not found in JWT", { iss: decodedJwtToken.payload.iss }, false);
     }
 
     let issuerInfo = await issuersCache.getOrLoad( issuerId )
