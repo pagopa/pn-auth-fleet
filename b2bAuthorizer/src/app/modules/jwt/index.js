@@ -5,6 +5,14 @@ const AuthenticationError = require("../../errors/AuthenticationError");
 
 class JwtService {
 
+  #maxAge; // seconds
+  #clockTolerance; // seconds
+
+  constructor(maxAge, clockTolerance){
+    this.#maxAge = maxAge;
+    this.#clockTolerance = clockTolerance;
+  }
+
   decodeToken(jwt){
     const decodedToken = jsonwebtoken.decode(jwt, { complete: true });
     if(!decodedToken){
@@ -52,6 +60,8 @@ class JwtService {
           algorithms: ['RS256'],
           issuer: issuerInfo.cfg.iss,
           audience: 'https://'+lambdaEventDomain,
+          clockTolerance: this.#clockTolerance, // seconds
+          maxAge: this.#maxAge // seconds
         });
         validated = true;
         break;
@@ -61,7 +71,7 @@ class JwtService {
           jwks: validKeys[i]
         });
 
-        if(!this.#isSignatureError(err)){
+        if( ! this.#isSignatureError(err) ){
           throw new AuthenticationError("Error validating token with keyId: "+keyId+": "+err.message, {
             err,
             jwks: validKeys[i]

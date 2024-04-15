@@ -17,7 +17,9 @@ const issuersCache = new IssuersLocalCache(
 const attributeResolvers = new AttributeResolversMap();
 
 // jwt Service initialization
-const jwtService = new JwtService();
+const maxAgeInSeconds = parseInt(process.env.JWT_MAX_AGE_SECONDS) || 3600; // default 1 hour
+const clockToleranceInSeconds = parseInt(process.env.JWT_CLOCK_TOLERANCE_SECONDS) || 60; // default 1 minute
+const jwtService = new JwtService(maxAgeInSeconds, clockToleranceInSeconds);
 
 const getJWTFromLambdaEvent = (lambdaEvent) => {
   let authorizationHeader = lambdaEvent.headers?.authorization;
@@ -43,6 +45,14 @@ const prepareContextForLogger = (lambdaEvent) => {
   return context;
 }
 
+function getDecodedToken(jwtToken) {
+  try {
+    return jwtService.decodeToken(jwtToken);
+  } catch(e){
+    throw new AuthenticationError("Invalid JWT Token", { jwtToken: jwtToken }, false);
+  }
+}
+
 async function handleEvent(event) {
   const jwtToken = getJWTFromLambdaEvent(event);
   const authorizationContex = prepareContextForLogger(event);
@@ -56,12 +66,12 @@ async function handleEvent(event) {
       throw new Error("JWT Token not found in Authorization header");
     }
 
-    const decodedJwtToken = jwtService.decodeToken(jwtToken);
+    const decodedJwtToken = getDecodedToken(jwtToken);
 
     const issuerId = decodedJwtToken.payload.iss;
     if(!issuerId) {
       logger.addToContext('jwt', decodedJwtToken);
-      throw new Error("Issuer not found in JWT");
+      throw new AuthenticationError("Issuer not found in JWT", { iss: decodedJwtToken.payload.iss }, false);
     }
 
     let issuerInfo = await issuersCache.getOrLoad( issuerId )
@@ -80,7 +90,7 @@ async function handleEvent(event) {
     }
     
     const simpleJwt = jwtService.extractEssentialFields( decodedJwtToken )
-    logger.addToContext('simpleJwt', simpleJwt);
+    logger.addToContext('simpleJwt', simpleJwt.toDiagnosticContext());
 
     const attributeResolution = await attributeResolvers.resolveAttributes( simpleJwt, event, issuerInfo.cfg.attributeResolversCfgs );
     logger.addToContext('attributeResolution', attributeResolution);
@@ -105,11 +115,17 @@ async function handleEvent(event) {
     return ret
   } catch(e){
     if(e instanceof AuthenticationError){
-      logger.error(e.message, e.toJSON());
+      logger.warn(e.message, e.toJSON());
+      const ret = {
+        policyDocument: policyService.generateDenyPolicyDocument(),
+        context: {},
+        usageIdentifierKey: null
+      }
+      return ret
     } else {
       logger.error(e.message, e);
+      throw e;
     }
-    throw e;
   }
 }
 

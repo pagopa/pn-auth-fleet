@@ -9,6 +9,7 @@
     "ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl": "300",
     "EnhancedWebSecurityEnabled": "true",
     "JWKSRefreshIntervalMinutes": "5",
-    "JWKSDownloadRetryIntervalMinutes": "2"
+    "JWKSDownloadRetryIntervalMinutes": "2",
+    "B2BAuthorizerJWTMaxAgeInSeconds": "31536000"
   }
 }

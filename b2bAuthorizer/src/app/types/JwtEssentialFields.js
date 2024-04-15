@@ -40,6 +40,17 @@ class JwtEssentialFields {
         return this.#jti;
     }
 
+    toDiagnosticContext() {
+        return {
+            aud: this.#aud,
+            iss: this.#iss,
+            kid: this.#kid,
+            purposeId: this.#purposeId,
+            client_id: this.#client_id,
+            jti: this.#jti
+        }
+    }
+    
     static fromJWT(jwt) {
         let kid = jwt.header.kid
         if(!kid){

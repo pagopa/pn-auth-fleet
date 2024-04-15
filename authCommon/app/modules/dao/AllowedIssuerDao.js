@@ -2,6 +2,7 @@ const { ddbDocClient } = require('./DynamoDbClient')
 const { QueryCommand, GetCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
 const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
 const crypto = require('crypto')
+const IssuerNotFoundError = require('./IssuerNotFoundError')
 
 function getISSFromHashKey(hashKey){
     return hashKey.split('~')[1]
@@ -70,6 +71,11 @@ async function getIssuerInfoAndJwksCache(iss, renewTimeSeconds){
     const result = await ddbDocClient.send(queryCommand)
 
     const cfg = result.Items.find(item => item.sortKey === CFG )
+
+    if(!cfg){
+        throw new IssuerNotFoundError('No Issuer configuration found for '+iss)
+    }
+
     const nowInSeconds = Math.floor(Date.now() / 1000)
     const jwksCacheEntities = getJwksCacheEntities(result.Items, nowInSeconds, cfg, renewTimeSeconds)
 

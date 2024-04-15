@@ -219,12 +219,12 @@ Parameters:
     Description: "Limit of bytes for jwks downloader"
     Default: '51200'
 
-  B2bAuthorizerRenewTimeSeconds:
+  B2BAuthorizerRenewTimeSeconds:
     Type: Number
     Default: '180'
     Description: "JWKS renew time in seconds for b2b authorizer"
   
-  B2bAuthorizerInternalCacheTtlSeconds:
+  B2BAuthorizerInternalCacheTtlSeconds:
     Type: Number
     Default: '600'
     Description: "Internal cache ttl in seconds for b2b authorizer"
@@ -253,6 +253,16 @@ Parameters:
     Type: Number
     Default: 128
     Description: "Memory size for b2b authorizer lambda"
+
+  B2BAuthorizerJWTMaxAgeInSeconds:
+    Type: Number
+    Default: 3600
+    Description: "Max age in seconds for JWT token"
+
+  B2BAuthorizerJWTClockToleranceInSeconds:
+    Type: Number
+    Default: 60
+    Description: "Clock skew in seconds for JWT token"
     
   JWKSCacheRefreshDataPointsToAlarm:
     Type: Number
@@ -340,8 +350,8 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
       Path: /
 
   # Lambda function IAM policy
@@ -357,10 +367,12 @@ Resources:
           - Effect: Allow
             Sid: AllowDbQueries
             Action:
-              - "apigateway:*"
               - "dynamodb:GetItem"
               - "dynamodb:Query"
-            Resource: "*"
+            Resource: 
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-apiKey*
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-paAggregations
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-aggregates
           - Effect: Allow
             Sid: AllowDecrypt
             Action:
@@ -443,10 +455,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -459,8 +467,9 @@ Resources:
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   # Data vault Service security group
   DataVaultServiceSecurityGroup:
@@ -538,10 +547,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -553,9 +558,14 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+              - Sid: AllowKms
+                Action:
+                  - kms:GetPublicKey
+                Effect: Allow
+                Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${PnAuthFleetJwtSignKeyId}"
+      #ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   JwtAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -584,8 +594,10 @@ Resources:
           AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtAttributesTableName
           FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
-          RENEW_TIME_SECONDS: !Ref B2bAuthorizerRenewTimeSeconds
-          INTERNAL_CACHE_TTL_SECONDS: !Ref B2bAuthorizerInternalCacheTtlSeconds
+          RENEW_TIME_SECONDS: !Ref B2BAuthorizerRenewTimeSeconds
+          INTERNAL_CACHE_TTL_SECONDS: !Ref B2BAuthorizerInternalCacheTtlSeconds
+          JWT_MAX_AGE_SECONDS: !Ref B2BAuthorizerJWTMaxAgeInSeconds
+          JWT_CLOCK_TOLERANCE_SECONDS: !Ref B2BAuthorizerJWTClockToleranceInSeconds
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize
@@ -627,10 +639,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -657,9 +665,10 @@ Resources:
                 Resource: 
                   - !Ref AuthJwtAttributesTableArn
                   - !Ref AuthJwtIssuersTableArn
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+                  - !Sub ${AuthJwtIssuersTableArn}*
+      #ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   B2BAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -733,10 +742,6 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
@@ -755,9 +760,11 @@ Resources:
                   - dynamodb:PutItem
                   - dynamodb:UpdateItem
                 Effect: Allow
-                Resource: !Ref AuthJwtIssuersTableArn
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Sub ${AuthJwtIssuersTableArn}*
+      #ManagedPolicyArns:
+      #  - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
   JWKSCacheRefreshLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -856,9 +863,9 @@ Resources:
                 Action:
                   - "s3:GetObject"
                 Resource: "arn:aws:s3:::*/*"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+      #ManagedPolicyArns:
+        #- arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
   BackofficeAuthorizerLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -930,9 +937,9 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+      # ManagedPolicyArns:
+        #- arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
       Path: /
 
   # Lambda function IAM policy
