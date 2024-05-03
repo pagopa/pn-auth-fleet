@@ -1,4 +1,4 @@
-const { DescribeKeyCommand, KMS, SignCommand } = require("@aws-sdk/client-kms");
+const { EncryptCommand, DescribeKeyCommand, KMS, SignCommand } = require("@aws-sdk/client-kms");
 const AWSXRay = require("aws-xray-sdk-core");
 const base64url = require("base64url");
 
@@ -9,10 +9,22 @@ async function generateToken(decodedToken) {
   const keyId = await getKeyId(keyAlias);
   console.debug("keyId from alias", keyId);
   const token_components = getTokenComponent(decodedToken, keyId);
-  console.debug("token_components", token_components);
   const res = await sign(token_components, keyId);
-  console.debug(`JWT token: [${res}]`);
+  const encryptedToken = await encryptToken(res);
+  console.debug(`JWT token: [${encryptedToken}]`);
   return res;
+}
+
+async function encryptToken(plainText) {
+  console.info("EncryptToken");
+  const encryptionTokenKeyId = process.env.ENCRYPTION_TOKEN_KEY_ID;
+  const input = {
+    "KeyId": encryptionTokenKeyId,
+    "Plaintext": plainText
+  };
+  const command = new EncryptCommand(input);
+  const response = await kms.send(command);
+  return response.CiphertextBlob;
 }
 
 async function getKeyId(keyAlias) {
@@ -85,7 +97,6 @@ async function sign(tokenParts, keyId) {
     .replace(/=/g, "");
   const token =
     tokenParts.header + "." + tokenParts.payload + "." + tokenParts.signature;
-  console.debug("token ", token);
   return token;
 }
 

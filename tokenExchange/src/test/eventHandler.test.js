@@ -41,6 +41,7 @@ const enrichedToken = {
 const revert = tokenGen.__set__({
   getSignature: () => ({ Signature: "signature" }),
   getKeyId: () => Promise.resolve("keyId"),
+  encryptToken: () => Promise.resolve("encryptedToken")
 });
 
 const { handleEvent } = proxyquire.noCallThru().load("../app/eventHandler.js", {

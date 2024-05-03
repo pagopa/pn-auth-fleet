@@ -150,6 +150,10 @@ Parameters:
     Type: String
     Description: JWT sign key ID
 
+  PnAuthFleetJwtEncryptKeyId:
+    Type: String
+    Description: JWT encrypt key ID
+
   ApiKeyAuthorizerV2LambdaName:
     Type: String
 
@@ -819,6 +823,7 @@ Resources:
           ALLOWED_ORIGIN: !Ref TokenExchangeLambdaEnvironmentAllowedOrigin
           ALLOWED_TAXIDS_PARAMETER: !Ref TokenExchangeLambdaEnvironmentAllowedTaxIdsParameter
           KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
+          ENCRYPT_TOKEN_KEY_ID: !Ref PnAuthFleetJwtEncryptKeyId
           JWKS_MAPPING: !Ref TokenExchangeLambdaEnvironmentJwksMapping
           ACCEPTED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAcceptedAudience
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
@@ -865,6 +870,10 @@ Resources:
               - "kms:Sign"
               - "kms:DescribeKey"
             Resource: "*"
+          - Effect: Allow
+            Action:
+              - "kms:Encrypt"
+            Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${PnAuthFleetJwtEncryptKeyId}"
           - Sid: AllowLambdaToCreateLogs
             Action:
               - logs:CreateLogStream

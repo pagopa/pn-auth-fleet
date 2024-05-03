@@ -134,6 +134,27 @@ Resources:
               AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
             Action: 'kms:*'
             Resource: '*'
+  
+  ####  SESSION TOKEN ENCRYPT KEY  ###
+  #######################################
+  PnAuthFleetJwtEncryptKey:
+    Type: 'AWS::KMS::Key'
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: RSA-2048 key to generate session token
+      KeySpec: RSA_2048
+      KeyUsage: SIGN_VERIFY
+      PendingWindowInDays: 7
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
 
   # pn-AuthFleet
 
@@ -197,6 +218,9 @@ Resources:
 Outputs:
   PnAuthFleetJwtSignKeyId:
     Value: !Ref PnAuthFleetJwtSignKey
+
+  PnAuthFleetJwtEncryptKeyId:
+    Value: !Ref PnAuthFleetJwtEncryptKey
 
   ApiKeyAuthorizerV2LambdaName:
     Value: !Sub '${ProjectName}-ApiKeyAuthorizerV2Lambda'
