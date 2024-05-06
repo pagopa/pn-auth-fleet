@@ -142,9 +142,9 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      Description: RSA-2048 key to generate session token
-      KeySpec: RSA_2048
-      KeyUsage: SIGN_VERIFY
+      Description: SYMMETRIC key to encrypt session token
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
       PendingWindowInDays: 7
       KeyPolicy:
         Version: 2012-10-17
