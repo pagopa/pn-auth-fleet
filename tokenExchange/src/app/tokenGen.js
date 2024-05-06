@@ -17,9 +17,9 @@ async function generateToken(decodedToken) {
 
 async function encryptToken(plainText) {
   console.info("EncryptToken");
-  const encryptionTokenKeyId = process.env.ENCRYPTION_TOKEN_KEY_ID;
+  const encryptTokenKeyId = process.env.ENCRYPT_TOKEN_KEY_ID;
   const input = {
-    "KeyId": encryptionTokenKeyId,
+    "KeyId": encryptTokenKeyId,
     "Plaintext": plainText
   };
   const command = new EncryptCommand(input);
