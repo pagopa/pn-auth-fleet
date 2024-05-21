@@ -217,7 +217,7 @@ Parameters:
   JwksDownloaderContentLimitBytes:
     Type: Number
     Description: "Limit of bytes for jwks downloader"
-    Default: '51200'
+    Default: '1038336'
 
   B2BAuthorizerRenewTimeSeconds:
     Type: Number
@@ -288,6 +288,11 @@ Parameters:
     Type: Number
     Default: 128
     Description: "Memory size for jwks cache refresh lambda"
+
+  JwksDynamoCacheContentLimit:
+    Type: Number
+    Description: "Maximum Limit of jwks to save on dynamo"
+    Default: '51200'
 
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
@@ -656,6 +661,7 @@ Resources:
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
           FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+          JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
 
   # Lambda function role
   JWKSCacheRefreshLambdaRole:
