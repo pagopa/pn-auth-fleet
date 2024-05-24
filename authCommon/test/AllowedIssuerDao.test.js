@@ -1,16 +1,20 @@
 const rewire = require('rewire');
 const { mockClient } = require("aws-sdk-client-mock");
 const { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, TransactWriteCommand } = require("@aws-sdk/lib-dynamodb");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { expect } = require("chai");
 const fs = require('fs')
 const { ISS_PREFIX, JWKS_CACHE_PREFIX } = require('../app/modules/dao/constants');
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
+const s3ClientMock = mockClient(S3Client);
 const AllowedIssuerDAO = rewire("../app/modules/dao/AllowedIssuerDao");
 
 process.env.AUTH_JWT_ISSUER_TABLE = 'AUTH_JWT_ISSUER_TABLE';
 process.env.JWKS_CONTENT_LIMIT_BYTES = '51200';
 process.env.JWKS_FOLLOW_REDIRECT = 'true';
+process.env.JWKS_DYNAMO_CACHE_CONTENT_LIMIT = '51200'
+process.env.JWKS_CONTENTS = 'bucket-name'
 
 const getFilaAsByteArray = (fileName) => {
     return Buffer.from(fs.readFileSync(fileName, 'binary'));
@@ -165,7 +169,7 @@ describe('AllowedIssuerDAO Testing', () => {
         expect(result.jwksCache.length).equal(3);
     });
 
-    it('prepareTransactionInput', () => {
+    it('prepareTransactionInput dynamo', async () => {
         const prepareTransactionInput = AllowedIssuerDAO.__get__('prepareTransactionInput');
         const cfg = JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
         const jwks = getFilaAsByteArray('test/resources/jwks.json');
@@ -176,8 +180,7 @@ describe('AllowedIssuerDAO Testing', () => {
         // jwtExpireSlot in ISOString 
         const jwtExpireSlot = '2021-09-01T01:00Z'
         const cacheMaxUsageEpochSec = 1630514401
-
-        const result = prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
+        const result = await prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
 
         expect(result.TransactItems.length).equal(2);
         expect(result.TransactItems[0].Update.ExpressionAttributeValues).to.deep.equal({
@@ -199,7 +202,47 @@ describe('AllowedIssuerDAO Testing', () => {
         })
     });
 
-    it('addJwksCacheEntry', async () => {
+    it('prepareTransactionInput s3', async () => {
+        const prepareTransactionInput = AllowedIssuerDAO.__get__('prepareTransactionInput');
+        s3ClientMock.on(PutObjectCommand, {
+            Bucket: 'bucket-name',
+            Key: 'key-name'
+        }).resolves({
+            
+        });
+        const cfg = JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
+        const buffer = Buffer.from(cfg.JWKSUrl).toString('base64');
+        const jwks = getFilaAsByteArray('test/resources/jwkss3.json');
+        const url = 'https://interop.pagopa.it';
+        const sha256 = 'acf5771d2705d19a972c501a3ec0c88051d1941bf1aaed33e53e0a7e4c8f0002'
+        const modificationTimeEpochMs = 1630454401000;
+        const jwtExpireSlotInSecond = 1630458001
+        // jwtExpireSlot in ISOString 
+        const jwtExpireSlot = '2021-09-01T01:00Z'
+        const cacheMaxUsageEpochSec = 1630514401
+        const result = await prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
+
+        expect(result.TransactItems.length).equal(2);
+        expect(result.TransactItems[0].Update.ExpressionAttributeValues).to.deep.equal({
+            ':jwksCacheExpireSlot': jwtExpireSlot,
+            ':modificationTimeEpochMs': modificationTimeEpochMs
+        })
+
+        expect(result.TransactItems[1].Put.Item).to.deep.equal({
+            hashKey: 'ISS~https://interop.pagopa.it',
+            sortKey: JWKS_CACHE_PREFIX+'~' + url + "~" + sha256,
+            contentHash: sha256,
+            JWKSUrl: cfg.JWKSUrl,
+            iss: 'https://interop.pagopa.it',
+            JWKSS3Url: 's3://bucket-name/jwks_cache_entries/ISS_https://interop.pagopa.it/source_url_urlSafeBase64_' + Buffer.from(cfg.JWKSUrl).toString('base64') + '/content_sha256_' + sha256 + '_jwks.json',
+            cacheRenewEpochSec: jwtExpireSlotInSecond,
+            cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
+            modificationTimeEpochMs: modificationTimeEpochMs,
+            ttl: cacheMaxUsageEpochSec
+        })
+    });
+
+    it('addJwksCacheEntryDynamo', async () => {
         ddbMock.on(GetCommand).resolves({
             Item: JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
         });
@@ -231,8 +274,22 @@ describe('AllowedIssuerDAO Testing', () => {
             return getFilaAsByteArray('test/resources/jwks.json');
         }
         const result = await AllowedIssuerDAO.addJwksCacheEntry('https://interop.pagopa.it', downloadUrlFn);
-        console.log('result', result)
         expect(result).not.to.undefined;
+    });
+
+    it('preparePutObjectInput', () => {
+        const preparePutObjectInput = AllowedIssuerDAO.__get__('preparePutObjectInput');
+        const bucketName = 'bucketName'
+        const cfg = JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
+        const jwksBodyByteArray = getFilaAsByteArray('test/resources/jwks.json');
+        const iss = cfg.hashKey.split('~')[1]
+        const safeUrlBase64 = Buffer.from(cfg.JWKSUrl).toString('base64');
+        const sha256 = 'f6b1e529f0ded402c63cc7a1ec9b6556a1c9ec6e5b79ef31087c1efedf4aa160'
+        const modificationTimeEpochMs = 1630454401000;
+
+        const result = preparePutObjectInput(bucketName, iss, sha256, cfg.JWKSUrl, jwksBodyByteArray, modificationTimeEpochMs);
+        expect(result).not.to.undefined;
+        expect(result.Key).to.deep.equal('/jwks_cache_entries/ISS_' + iss + '/source_url_urlSafeBase64_' + safeUrlBase64 + '/content_sha256_' + sha256 + '_jwks.json');
     });
 
     it('postponeJwksCacheEntryValidation', async () => {

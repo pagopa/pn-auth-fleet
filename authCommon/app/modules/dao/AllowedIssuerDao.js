@@ -1,5 +1,6 @@
 const { ddbDocClient } = require('./DynamoDbClient')
 const { QueryCommand, GetCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
 const crypto = require('crypto')
 const IssuerNotFoundError = require('./IssuerNotFoundError')
@@ -18,6 +19,15 @@ function buildSortKeyForJwksCache(url, sha256){
 
 function computeSha256(binaryData){
     return crypto.createHash('sha256').update(binaryData).digest('hex')
+}
+
+function computeSafeUrlBase64(url){
+    return Buffer.from(url).toString('base64');
+}
+
+function prepareKeyInput(iss, JWKSUrl, sha256){
+    const safeUrlBase64 = computeSafeUrlBase64(JWKSUrl)
+    return '/jwks_cache_entries/ISS_' + iss + '/source_url_urlSafeBase64_' + safeUrlBase64 + '/content_sha256_' + sha256 + '_jwks.json';
 }
 
 function isJWKSExpired(jwksCacheItem, cfg, renewTimeSeconds, nowInSeconds){
@@ -101,7 +111,22 @@ async function getConfigByISS(iss){
     return result.Item
 }
 
-function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationTimeEpochMs){
+function preparePutObjectInput(bucketName, iss, sha256, JWKSUrl, jwksBinaryBody, cacheMaxUsageEpochSec){
+    const keyInput = prepareKeyInput(iss, JWKSUrl, sha256)
+    const tags = 'cacheMaxUsageEpochSec='+cacheMaxUsageEpochSec;
+    
+    return input = { // PutObjectRequest
+        Bucket: bucketName,
+        Key: keyInput,
+        Tagging: tags,
+        Body: Buffer.from(jwksBinaryBody).toString()
+    }
+}
+
+async function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationTimeEpochMs){
+    const dynamoCacheLimit = process.env.JWKS_DYNAMO_CACHE_CONTENT_LIMIT
+    const bucketName = process.env.JWKS_CONTENTS
+    let dynamoJWKS = true;
     const sha256 = computeSha256(jwksBinaryBody)
     const jwksCacheExpireSlot = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheRenewSec
     const cacheMaxUsageEpochSec = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheMaxDurationSec
@@ -110,6 +135,15 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationT
     const jwksCacheExpireSlotWithMinutesPrecision = new Date(jwksCacheExpireSlot * 1000).toISOString().substring(0,16)+'Z'
     
     const iss = getISSFromHashKey(cfg.hashKey)
+
+    if(jwksBinaryBody.length > dynamoCacheLimit) {
+        const s3Client = new S3Client()
+        const input = preparePutObjectInput(bucketName, iss, sha256, cfg.JWKSUrl, jwksBinaryBody, cacheMaxUsageEpochSec)
+        const putObjectCommand = new PutObjectCommand(input)
+        await s3Client.send(putObjectCommand)
+        dynamoJWKS = false;
+    }
+
     return {
         TransactItems: [
             {
@@ -137,7 +171,7 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationT
                         contentHash: sha256,
                         cacheRenewEpochSec: jwksCacheExpireSlot,
                         cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
-                        JWKSBody: jwksBinaryBody,
+                        ...(dynamoJWKS ? { JWKSBody : jwksBinaryBody } : { JWKSS3Url : 's3://' + bucketName + prepareKeyInput(iss, cfg.JWKSUrl, sha256)}),
                         modificationTimeEpochMs: modificationTimeEpochMs,
                         ttl: cacheMaxUsageEpochSec
                     }
@@ -153,7 +187,7 @@ async function addJwksCacheEntry(iss, downloadUrlFn){
     const jwksBodyByteArray = await downloadUrlFn(cfg.JWKSUrl)
     const modificationTimeEpochMs = Date.now()
 
-    const txInput = prepareTransactionInput(cfg, cfg.JWKSUrl, jwksBodyByteArray, modificationTimeEpochMs)
+    const txInput = await prepareTransactionInput(cfg, cfg.JWKSUrl, jwksBodyByteArray, modificationTimeEpochMs)
 
     const txCommand = new TransactWriteCommand(txInput)
 
