@@ -21,6 +21,7 @@
     "rewire": "^7.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.577.0",
     "axios": "^1.6.7"
   }
 }
