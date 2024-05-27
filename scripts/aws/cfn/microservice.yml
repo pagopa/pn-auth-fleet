@@ -201,6 +201,10 @@ Parameters:
     Type: String
     Description: "Name of dynamodb table containing auth jwt attributes data"
 
+  JWKSCacheBucketName:
+    Type: String
+    Description: "Name of S3 bucket containing JWKS data"
+
   AuthJwtIssuersTableArn:
     Type: String
     Description: "ARN of dynamodb table containing auth jwt issuers data"
@@ -208,6 +212,10 @@ Parameters:
   AuthJwtAttributesTableArn:
     Type: String
     Description: "ARN of dynamodb table containing auth jwt attributes data"
+
+  JWKSCacheBucketArn:
+    Type: String
+    Description: "ARN of S3 bucket containing JWKS data"
 
   JwksDownloaderFollowRedirect:
     Type: String
@@ -288,6 +296,11 @@ Parameters:
     Type: Number
     Default: 128
     Description: "Memory size for jwks cache refresh lambda"
+
+  JwksDynamoCacheContentLimit:
+    Type: Number
+    Description: "Maximum Limit of jwks to save on dynamo"
+    Default: '51200'
 
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
@@ -559,6 +572,7 @@ Resources:
           INTERNAL_CACHE_TTL_SECONDS: !Ref B2BAuthorizerInternalCacheTtlSeconds
           JWT_MAX_AGE_SECONDS: !Ref B2BAuthorizerJWTMaxAgeInSeconds
           JWT_CLOCK_TOLERANCE_SECONDS: !Ref B2BAuthorizerJWTClockToleranceInSeconds
+          JWKS_CONTENTS: !Ref JWKSCacheBucketName
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize
@@ -614,6 +628,14 @@ Resources:
                   - !Ref AuthJwtAttributesTableArn
                   - !Ref AuthJwtIssuersTableArn
                   - !Sub ${AuthJwtIssuersTableArn}*
+              - Sid: AllowLambdaReadS3
+                Action:
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                Effect: Allow
+                Resource:
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
       #ManagedPolicyArns:
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
@@ -656,6 +678,8 @@ Resources:
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
           FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+          JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
+          JWKS_CONTENTS: !Ref JWKSCacheBucketName
 
   # Lambda function role
   JWKSCacheRefreshLambdaRole:
@@ -698,6 +722,23 @@ Resources:
                 Resource: 
                   - !Ref AuthJwtIssuersTableArn
                   - !Sub ${AuthJwtIssuersTableArn}*
+              - Sid: AllowLambdaReadS3
+                Action:
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                Effect: Allow
+                Resource:
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_sources"
+              - Sid: AllowLambdaWriteS3
+                Action:
+                  - "s3:PutObject"
+                Effect: Allow
+                Resource:
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
       #ManagedPolicyArns:
       #  - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 

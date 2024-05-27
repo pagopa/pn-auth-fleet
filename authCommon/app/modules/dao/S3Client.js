@@ -1,6 +1,5 @@
 // Create a service client module using ES6 syntax.
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const { Readable } = require('stream');
+const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 const s3Client = new S3Client({});
 
@@ -20,10 +19,10 @@ async function getObjectAsByteArray(bucketName, key){
     }
     const command = new GetObjectCommand(input)
     const data = await s3Client.send(command);
-
+    console.log(data)
     const byteArray = await streamToBuffer(data.Body);
 
-    return byteArray;
+    return Buffer.from(byteArray, "binary");
 }
 
 async function putObject(input){
@@ -32,4 +31,8 @@ async function putObject(input){
 }
 
 // Create the s3 client.
-exports.s3Client = s3Client;
+module.exports = {
+  s3Client,
+  getObjectAsByteArray,
+  putObject
+};
