@@ -1,9 +1,20 @@
 const { ddbDocClient } = require('./DynamoDbClient')
+const { s3Client } = require('./S3Client')
 const { QueryCommand, GetCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
 const crypto = require('crypto')
 const IssuerNotFoundError = require('./IssuerNotFoundError')
+
+const { Readable } = require('stream');
+
+async function streamToBuffer(stream) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        stream.on('data', chunk => chunks.push(chunk));
+        stream.on('error', reject);
+        stream.on('end', () => resolve(Buffer.concat(chunks)));
+    });
+}
 
 function getISSFromHashKey(hashKey){
     return hashKey.split('~')[1]
@@ -89,6 +100,24 @@ async function getIssuerInfoAndJwksCache(iss, renewTimeSeconds){
     const nowInSeconds = Math.floor(Date.now() / 1000)
     const jwksCacheEntities = getJwksCacheEntities(result.Items, nowInSeconds, cfg, renewTimeSeconds)
 
+    for(let i = 0; i < jwksCacheEntities.length; i++) {
+        const jwksCacheEntity = jwksCacheEntities[i];
+        try {
+            if(!jwksCacheEntity.JWKSBody) {
+                if(JWKSS3Url) {
+                    const splittedUrl = url.substring(5).split('/');
+                    const bucket = splittedUrl.shift();
+                    const key = splittedUrl.join('/')
+                    const jwksBinaryBody = s3Client.getObjectAsByteArray(bucket, key)
+                }
+                else {
+                    throw new Error('JWKS S3 url not found')
+                }
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
     return {
         cfg,
         jwksCache: jwksCacheEntities
