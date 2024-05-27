@@ -199,7 +199,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      BucketName: !Sub '${ProjectName}-JWKS-Cache-Bucket-${AWS::Region}-${AWS::AccountId}'
+      BucketName: !Sub '${ProjectName}-jwks-cache-bucket-${AWS::Region}-${AWS::AccountId}'
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
