@@ -630,8 +630,8 @@ Resources:
                   - !Sub ${AuthJwtIssuersTableArn}*
               - Sid: AllowLambdaReadS3
                 Action:
-                  - 's3:GetObject'
-                  - 's3:ListBucket'
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
                 Effect: Allow
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
@@ -724,8 +724,8 @@ Resources:
                   - !Sub ${AuthJwtIssuersTableArn}*
               - Sid: AllowLambdaReadS3
                 Action:
-                  - 's3:GetObject'
-                  - 's3:ListBucket'
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
                 Effect: Allow
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
@@ -734,7 +734,7 @@ Resources:
                   - !Sub "${JWKSCacheBucketArn}/jwks_sources"
               - Sid: AllowLambdaWriteS3
                 Action:
-                  - 's3:PutObject'
+                  - "s3:PutObject"
                 Effect: Allow
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
