@@ -93,8 +93,8 @@ async function getIssuerInfoAndJwksCache(iss, renewTimeSeconds){
         const jwksCacheEntity = jwksCacheEntities[i];
         try {
             if(!jwksCacheEntity.JWKSBody) {
-                if(JWKSS3Url) {
-                    const splittedUrl = JWKSS3Url.substring(5).split('/');
+                if(jwksCacheEntity.JWKSS3Url) {
+                    const splittedUrl = jwksCacheEntity.JWKSS3Url.substring(5).split('/');
                     const bucket = splittedUrl.shift();
                     const key = splittedUrl.join('/')
                     const jwksBinaryBody = getObjectAsByteArray(bucket, key)
@@ -149,7 +149,7 @@ async function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modific
     const sha256 = computeSha256(jwksBinaryBody)
     const jwksCacheExpireSlot = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheRenewSec
     const cacheMaxUsageEpochSec = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheMaxDurationSec
-    const jwksBinaryBodySize = Buffer.from(jwksBinaryBody)
+    const jwksBinaryBodySize = Buffer.from(jwksBinaryBody).length
     // convert jwksCacheExpireSlot in YYYY-MM-DDTHH:mmZ
     const jwksCacheExpireSlotWithMinutesPrecision = new Date(jwksCacheExpireSlot * 1000).toISOString().substring(0,16)+'Z'
     
@@ -162,7 +162,7 @@ async function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modific
         }
         catch (error) {
             console.warn(error)
-            throw new Error("problem to put JWKS in S3 " + downloadUrl)
+            throw new Error("Error uploading S3 object " + downloadUrl)
         }
         hasDynamoJWKS = false;
     }
