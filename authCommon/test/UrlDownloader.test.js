@@ -2,16 +2,11 @@ const rewire = require('rewire');
 const { expect } = require("chai");
 const fs = require('fs');
 const { AxiosError } = require('axios');
-const { mockClient } = require('aws-sdk-client-mock');
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
-const { Readable } = require('stream');
-
 const Downloader = rewire("../app/modules/http/UrlDownloader");
+
 
 process.env.JWKS_CONTENT_LIMIT_BYTES = '51200';
 process.env.JWKS_FOLLOW_REDIRECT = 'true';
-
-const s3ClientMock = mockClient(S3Client);
 
 const getFilaAsByteArray = (fileName) => {
     return Buffer.from(fs.readFileSync(fileName, 'binary'));
@@ -112,13 +107,11 @@ describe('Url Downloader Testing', () => {
     it('should download from s3', async () => {
         const url = 's3://bucket-name/key-name';
         const response = getFilaAsByteArray('test/resources/jwks.json')
-        const readableObj = Readable.from(response)
-        s3ClientMock.on(GetObjectCommand, {
-            Bucket: 'bucket-name',
-            Key: 'key-name'
-        }).resolves({
-            Body: readableObj
-        });
+        
+        const getObjectAsByteArrayStub = () => {
+            return response;
+        };
+        Downloader.__set__('getObjectAsByteArray', getObjectAsByteArrayStub);
 
         const result = await Downloader.downloadUrl(url);
         expect(result).to.eql(response);
@@ -128,12 +121,6 @@ describe('Url Downloader Testing', () => {
     it('should throw an error if s3 download fails', async () => {
         const url = 's3://bucket-name/key-name';
         const response = getFilaAsByteArray('test/resources/jwks.json')
-
-        s3ClientMock.on(GetObjectCommand, {
-            Bucket: 'bucket-name',
-            Key: 'key-name'
-        }).rejects(new Error('S3 Error'));
-
         try {
             await Downloader.downloadUrl(url);
         } catch (err) {

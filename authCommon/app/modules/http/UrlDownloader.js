@@ -1,16 +1,6 @@
 const axios = require('axios');
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getObjectAsByteArray } = require('../dao/S3Client')
 const { ContentLengthExceededError, UnsupportedProtocolError} = require('./errors');
-const { Readable } = require('stream');
-
-async function streamToBuffer(stream) {
-    return new Promise((resolve, reject) => {
-        const chunks = [];
-        stream.on('data', chunk => chunks.push(chunk));
-        stream.on('error', reject);
-        stream.on('end', () => resolve(Buffer.concat(chunks)));
-    });
-}
 
 async function downloadUrl(url) {
 
@@ -19,20 +9,9 @@ async function downloadUrl(url) {
         const splittedUrl = url.substring(5).split('/');
         const bucket = splittedUrl.shift();
         const key = splittedUrl.join('/')
-        
-        // initialize s3Client
-        const s3Client = new S3Client()
 
         try {
-            const input = {
-                Bucket: bucket,
-                Key: key
-            }
-            const command = new GetObjectCommand(input)
-            const data = await s3Client.send(command);
-
-            const byteArray = await streamToBuffer(data.Body);
-
+            const byteArray = await getObjectAsByteArray(bucket, key)
             return byteArray;
         }
         catch (err) {
