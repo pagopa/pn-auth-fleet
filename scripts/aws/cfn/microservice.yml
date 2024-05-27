@@ -225,7 +225,7 @@ Parameters:
   JwksDownloaderContentLimitBytes:
     Type: Number
     Description: "Limit of bytes for jwks downloader"
-    Default: '1038336'
+    Default: '51200'
 
   B2BAuthorizerRenewTimeSeconds:
     Type: Number
