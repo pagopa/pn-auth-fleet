@@ -26,13 +26,15 @@ async function getObjectAsByteArray(bucketName, key){
 }
 
 async function putObject(input){
-  const putObjectCommand = new PutObjectCommand(input)
-  await s3Client.send(putObjectCommand)
+    console.log(s3Client)
+    console.log(input)
+    const putObjectCommand = new PutObjectCommand(input)
+    await s3Client.send(putObjectCommand)
 }
 
 // Create the s3 client.
 module.exports = {
-  s3Client,
-  getObjectAsByteArray,
-  putObject
+    s3Client,
+    getObjectAsByteArray,
+    putObject
 };
