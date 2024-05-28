@@ -27,7 +27,7 @@ function computeSafeUrlBase64(url){
 
 function prepareKeyInput(iss, JWKSUrl, sha256){
     const safeUrlBase64 = computeSafeUrlBase64(JWKSUrl)
-    return '/jwks_cache_entries/ISS_' + iss + '/source_url_urlSafeBase64_' + safeUrlBase64 + '/content_sha256_' + sha256 + '_jwks.json';
+    return 'jwks_cache_entries/ISS_' + iss + '/source_url_urlSafeBase64_' + safeUrlBase64 + '/content_sha256_' + sha256 + '_jwks.json';
 }
 
 function isJWKSExpired(jwksCacheItem, cfg, renewTimeSeconds, nowInSeconds){
