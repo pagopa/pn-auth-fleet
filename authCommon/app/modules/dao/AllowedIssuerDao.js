@@ -97,8 +97,8 @@ async function getIssuerInfoAndJwksCache(iss, renewTimeSeconds){
                     const splittedUrl = jwksCacheEntity.JWKSS3Url.substring(5).split('/');
                     const bucket = splittedUrl.shift();
                     const key = splittedUrl.join('/')
-                    const jwksBinaryBody = await getObjectAsByteArray(bucket, key)
-                    jwksCacheEntities[i].JWKSBody = jwksBinaryBody
+                    const jwksBody = await getObjectAsByteArray(bucket, key)
+                    jwksCacheEntities[i].JWKSBody = jwksBody.toString('binary');
                 }
                 else {
                     throw new Error('JWKS S3 not found ', JWKSS3Url)
@@ -194,7 +194,7 @@ async function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modific
                         contentHash: sha256,
                         cacheRenewEpochSec: jwksCacheExpireSlot,
                         cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
-                        ...(hasDynamoJWKS ? { JWKSBody : jwksBinaryBody } : { JWKSS3Url : 's3://' + bucketName + prepareKeyInput(iss, cfg.JWKSUrl, sha256)}),
+                        ...(hasDynamoJWKS ? { JWKSBody : jwksBinaryBody } : { JWKSS3Url : 's3://' + bucketName + "/" + prepareKeyInput(iss, cfg.JWKSUrl, sha256)}),
                         modificationTimeEpochMs: modificationTimeEpochMs,
                         ttl: cacheMaxUsageEpochSec
                     }
