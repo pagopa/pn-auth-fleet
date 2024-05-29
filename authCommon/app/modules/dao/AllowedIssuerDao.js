@@ -97,7 +97,7 @@ async function getIssuerInfoAndJwksCache(iss, renewTimeSeconds){
                     const splittedUrl = jwksCacheEntity.JWKSS3Url.substring(5).split('/');
                     const bucket = splittedUrl.shift();
                     const key = splittedUrl.join('/')
-                    const jwksBinaryBody = getObjectAsByteArray(bucket, key)
+                    const jwksBinaryBody = await getObjectAsByteArray(bucket, key)
                     jwksCacheEntities[i].JWKSBody = jwksBinaryBody
                 }
                 else {
