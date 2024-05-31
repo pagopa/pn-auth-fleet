@@ -142,30 +142,15 @@ function preparePutObjectInput(bucketName, iss, sha256, JWKSUrl, jwksBinaryBody,
     }
 }
 
-async function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationTimeEpochMs){
-    const dynamoCacheLimit = process.env.JWKS_DYNAMO_CACHE_CONTENT_LIMIT
-    const bucketName = process.env.JWKS_CONTENTS
-    let hasDynamoJWKS = true;
+function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationTimeEpochMs, jwksS3Url){
     const sha256 = computeSha256(jwksBinaryBody)
     const jwksCacheExpireSlot = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheRenewSec
     const cacheMaxUsageEpochSec = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheMaxDurationSec
-    const jwksBinaryBodySize = Buffer.from(jwksBinaryBody).length
+    
     // convert jwksCacheExpireSlot in YYYY-MM-DDTHH:mmZ
     const jwksCacheExpireSlotWithMinutesPrecision = new Date(jwksCacheExpireSlot * 1000).toISOString().substring(0,16)+'Z'
     
     const iss = getISSFromHashKey(cfg.hashKey)
-
-    if(jwksBinaryBodySize > dynamoCacheLimit) {
-        const input = preparePutObjectInput(bucketName, iss, sha256, cfg.JWKSUrl, jwksBinaryBody, cacheMaxUsageEpochSec)
-        try {
-            await putObject(input)
-        }
-        catch (error) {
-            console.warn(error)
-            throw new Error("Error uploading S3 object " + downloadUrl)
-        }
-        hasDynamoJWKS = false;
-    }
 
     return {
         TransactItems: [
@@ -194,7 +179,7 @@ async function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modific
                         contentHash: sha256,
                         cacheRenewEpochSec: jwksCacheExpireSlot,
                         cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
-                        ...(hasDynamoJWKS ? { JWKSBody : jwksBinaryBody } : { JWKSS3Url : 's3://' + bucketName + "/" + prepareKeyInput(iss, cfg.JWKSUrl, sha256)}),
+                        ...(!jwksS3Url ? { JWKSBody : jwksBinaryBody } : { JWKSS3Url : jwksS3Url}),
                         modificationTimeEpochMs: modificationTimeEpochMs,
                         ttl: cacheMaxUsageEpochSec
                     }
@@ -206,11 +191,28 @@ async function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modific
 
 async function addJwksCacheEntry(iss, downloadUrlFn){
     const cfg = await getConfigByISS(iss)
-
+    const dynamoCacheLimit = process.env.JWKS_DYNAMO_CACHE_CONTENT_LIMIT
     const jwksBodyBinary = await downloadUrlFn(cfg.JWKSUrl)
+    const jwksBinaryBodySize = Buffer.from(jwksBodyBinary).length
     const modificationTimeEpochMs = Date.now()
+    let jwksS3Url;
 
-    const txInput = await prepareTransactionInput(cfg, cfg.JWKSUrl, jwksBodyBinary, modificationTimeEpochMs)
+    if(jwksBinaryBodySize > dynamoCacheLimit) {
+        const bucketName = process.env.JWKS_CONTENTS
+        const sha256 = computeSha256(jwksBodyBinary)
+        const cacheMaxUsageEpochSec = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheMaxDurationSec
+        const input = preparePutObjectInput(bucketName, iss, sha256, cfg.JWKSUrl, jwksBodyBinary, cacheMaxUsageEpochSec)
+        try {
+            await putObject(input)
+        }
+        catch (error) {
+            console.warn(error)
+            throw new Error("Error uploading S3 object " + cfg.JWKSUrl)
+        }
+        jwksS3Url = 's3://' + bucketName + "/" + prepareKeyInput(iss, cfg.JWKSUrl, sha256)
+    }
+
+    const txInput = prepareTransactionInput(cfg, cfg.JWKSUrl, jwksBodyBinary, modificationTimeEpochMs, jwksS3Url)
 
     const txCommand = new TransactWriteCommand(txInput)
 

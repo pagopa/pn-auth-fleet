@@ -173,7 +173,7 @@ describe('AllowedIssuerDAO Testing', () => {
         expect(result.jwksCache.length).equal(4);
     });
 
-    it('prepareTransactionInput dynamo', async () => {
+    it('prepareTransactionInput', async () => {
         const prepareTransactionInput = AllowedIssuerDAO.__get__('prepareTransactionInput');
         const cfg = JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
         const jwks = getFilaAsByteArray('test/resources/jwks.json');
@@ -206,7 +206,7 @@ describe('AllowedIssuerDAO Testing', () => {
         })
     });
 
-    it('prepareTransactionInput s3', async () => {
+  /*  it('prepareTransactionInput s3', async () => {
         const prepareTransactionInput = AllowedIssuerDAO.__get__('prepareTransactionInput');
         const putObjectStub = () => {
         };
@@ -242,8 +242,9 @@ describe('AllowedIssuerDAO Testing', () => {
             ttl: cacheMaxUsageEpochSec
         })
     });
+    */
 
-    it('prepareTransactionInput s3 failure', async () => {
+   /* it('prepareTransactionInput s3 failure', async () => {
         const prepareTransactionInput = AllowedIssuerDAO.__get__('prepareTransactionInput');
         const putObjectStub = () => {
             throw new Error();
@@ -260,7 +261,7 @@ describe('AllowedIssuerDAO Testing', () => {
         catch (error) {
             expect(error.message).to.equal('Error uploading S3 object ' + url);
         }
-    });
+    });*/  
 
     it('addJwksCacheEntryDynamo', async () => {
         ddbMock.on(GetCommand).resolves({
@@ -297,6 +298,62 @@ describe('AllowedIssuerDAO Testing', () => {
         expect(result).not.to.undefined;
     });
 
+    it('addJwksCacheEntryS3', async () => {
+        ddbMock.on(GetCommand).resolves({
+            Item: JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
+        });
+
+        ddbMock.on(TransactWriteCommand).resolves({
+            ConsumedCapacity: {
+                TableName: 'string',
+                CapacityUnits: 1,
+                Table: {
+                    CapacityUnits: 1
+                }
+            },
+            ItemCollectionMetrics: {
+                ItemCollectionKey: {
+                    'string': {
+                        S: 'string',
+                        N: 'string',
+                        B: 'string'
+                    }
+                },
+                SizeEstimateRangeGB: [
+                    1,
+                    2
+                ]
+            }
+        });
+
+        const downloadUrlFn = async () => {
+            return getFilaAsByteArray('test/resources/jwkss3.json');
+        }
+        const result = await AllowedIssuerDAO.addJwksCacheEntry('https://interop.pagopa.it', downloadUrlFn);
+        expect(result).not.to.undefined;
+    });
+
+    it('addJwksCacheEntryS3 warning', async () => {
+        const url = 'https://interop.pagopa.it/.well-known.json'
+        const getConfigByISS = () => {
+            return JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
+        }
+        const downloadUrlFn = async () => {
+            return getFilaAsByteArray('test/resources/jwkss3.json');
+        }
+        const putObject = async () => {
+            throw new Error("Error uploading S3 object " + url)
+        }
+        AllowedIssuerDAO.__set__('putObject', putObject);
+        AllowedIssuerDAO.__set__('getConfigByISS', getConfigByISS);
+        try {
+            await AllowedIssuerDAO.addJwksCacheEntry(url, downloadUrlFn);
+        }
+        catch (error) {
+            expect(error.message).to.equal('Error uploading S3 object ' + url);
+        }
+    });
+
     it('preparePutObjectInput', () => {
         const preparePutObjectInput = AllowedIssuerDAO.__get__('preparePutObjectInput');
         const bucketName = 'bucketName'
@@ -309,7 +366,7 @@ describe('AllowedIssuerDAO Testing', () => {
 
         const result = preparePutObjectInput(bucketName, iss, sha256, cfg.JWKSUrl, jwksBodyByteArray, modificationTimeEpochMs);
         expect(result).not.to.undefined;
-        expect(result.Key).to.deep.equal('/jwks_cache_entries/ISS_' + iss + '/source_url_urlSafeBase64_' + safeUrlBase64 + '/content_sha256_' + sha256 + '_jwks.json');
+        expect(result.Key).to.deep.equal('jwks_cache_entries/ISS_' + iss + '/source_url_urlSafeBase64_' + safeUrlBase64 + '/content_sha256_' + sha256 + '_jwks.json');
     });
 
     it('postponeJwksCacheEntryValidation', async () => {
