@@ -3,7 +3,8 @@ const fs = require('fs');
 const { mockClient } = require('aws-sdk-client-mock');
 const { GetObjectCommand, PutObjectCommand} = require("@aws-sdk/client-s3");
 const { Readable } = require('stream');
-const { s3Client, getObjectAsByteArray, putObject } = require('../app/modules/dao/S3Client'); 
+const { s3Client } = require('../app/modules/aws/Clients'); 
+const { getObjectAsByteArray, putObject } = require('../app/modules/aws/S3Functions'); 
 
 const s3ClientMock = mockClient(s3Client);
 

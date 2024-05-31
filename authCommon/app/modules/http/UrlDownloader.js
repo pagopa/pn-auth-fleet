@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getObjectAsByteArray } = require('../dao/S3Client')
+const { getObjectAsByteArray } = require('../aws/S3Functions')
 const { ContentLengthExceededError, UnsupportedProtocolError} = require('./errors');
 
 async function downloadUrl(url) {

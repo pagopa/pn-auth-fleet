@@ -7,9 +7,6 @@ const { ISS_PREFIX, JWKS_CACHE_PREFIX } = require('../app/modules/dao/constants'
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 const AllowedIssuerDAO = rewire("../app/modules/dao/AllowedIssuerDao");
-const { s3Client, getObjectAsByteArray } = require('../app/modules/dao/S3Client'); 
-
-const s3ClientMock = mockClient(s3Client);
 
 process.env.AUTH_JWT_ISSUER_TABLE = 'AUTH_JWT_ISSUER_TABLE';
 process.env.JWKS_CONTENT_LIMIT_BYTES = '51200';
