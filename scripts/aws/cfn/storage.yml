@@ -214,7 +214,21 @@ Resources:
         Enabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
-        
+
+  JWKSCacheBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub '${ProjectName}-jwks-cache-bucket-${AWS::Region}-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
 Outputs:
   PnAuthFleetJwtSignKeyId:
     Value: !Ref PnAuthFleetJwtSignKey
@@ -259,3 +273,11 @@ Outputs:
   AuthJwtAttributesTableArn:
     Description: ARN of dynamodb table containing auth jwt attributes data 
     Value: !Sub '${AuthJwtAttributesTable.Arn}'
+
+  JWKSCacheBucketName:
+    Description: Name of S3 bucket containing JWKS data
+    Value: !Ref JWKSCacheBucket
+
+  JWKSCacheBucketArn:
+    Description: ARN of S3 bucket containing JWKS data
+    Value: !Sub '${JWKSCacheBucket.Arn}'

@@ -10,6 +10,7 @@
     "EnhancedWebSecurityEnabled": "true",
     "JWKSRefreshIntervalMinutes": "5",
     "JWKSDownloadRetryIntervalMinutes": "2",
-    "B2BAuthorizerJWTMaxAgeInSeconds": "31536000"
+    "B2BAuthorizerJWTMaxAgeInSeconds": "31536000",
+    "JwksDownloaderContentLimitBytes": "2076672"
   }
 }
