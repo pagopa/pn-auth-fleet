@@ -263,6 +263,9 @@ Outputs:
   TokenExchangeLambdaName:
     Value: !Sub '${ProjectName}-tokenExchangeLambda'
 
+  TokenExchangeLambdaName:
+    Value: !Sub '${ProjectName}-jwksCacheForceRefreshLambda'
+
   # Dynamo table
   AuthJwtIssuersTableName:
     Description: Name of dynamodb table containing auth jwt issuers data 
