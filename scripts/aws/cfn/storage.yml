@@ -125,7 +125,7 @@ Resources:
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
       Parameters:
-        LogGroupName: !Sub '${ProjectName}-JwksCacheForceRefreshLambda'
+        LogGroupName: !Sub '${ProjectName}-jwksCacheForceRefreshLambda'
         LogGroupPrefix: '/aws/lambda'
         LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
@@ -263,7 +263,7 @@ Outputs:
   TokenExchangeLambdaName:
     Value: !Sub '${ProjectName}-tokenExchangeLambda'
 
-  TokenExchangeLambdaName:
+  JWKSCacheForceRefreshLambdaName:
     Value: !Sub '${ProjectName}-jwksCacheForceRefreshLambda'
 
   # Dynamo table
