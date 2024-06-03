@@ -1111,7 +1111,7 @@ Resources:
   JwksCacheForceRefreshLambdaEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
-      EventSourceArn: !Ref NotificationsDynamoTableStreamArn
+      EventSourceArn: !Ref JWKSCacheForceRefreshQueueARN
       StartingPosition: LATEST
       BatchSize: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingBatchSize}
       MaximumBatchingWindowInSeconds: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumBatchingWindowInSeconds}
