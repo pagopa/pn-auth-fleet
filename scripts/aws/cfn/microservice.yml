@@ -350,10 +350,6 @@ Parameters:
     Type: String
     Default: "ERROR"
     Description: "Filter pattern for jwks cache refresh alarm"
-
-  JWKSCacheForceRefreshAlarmFilterPattern:
-    Type: String
-    Description: "Filter pattern for jwks cache refresh alarm"
   
   JWKSCacheForceRefreshDLQAlarmARN:
     Type: String
