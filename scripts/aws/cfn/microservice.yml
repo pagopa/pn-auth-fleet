@@ -1483,10 +1483,10 @@ Resources:
             - !GetAtt B2BAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JWKSCacheRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
-            - !GetAtt JWKSCacheForceRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt JwksCacheForceRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
-            - !GetAtt JWKSCacheForceRefreshDLQAlarmARN.Arn
-            - !GetAtt JWKSCacheForceRefreshAlarmARN.Arn
+            - !GetAtt JWKSCacheForceRefreshDLQAlarmARN
+            - !GetAtt JWKSCacheForceRefreshAlarmARN
         LogGroupsNames: !Join
           - ","
           - - !Sub "/aws/lambda/${ApiKeyAuthorizerV2LambdaName}"
