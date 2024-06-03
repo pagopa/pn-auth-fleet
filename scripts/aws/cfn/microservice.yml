@@ -171,7 +171,7 @@ Parameters:
   TokenExchangeLambdaName:
     Type: String
 
-  JWKSCacheForceRefreshLambdaName:
+  JwksCacheForceRefreshLambdaName:
     Type: String
 
   TokenExchangeWafLimit:

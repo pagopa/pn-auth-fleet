@@ -263,7 +263,7 @@ Outputs:
   TokenExchangeLambdaName:
     Value: !Sub '${ProjectName}-tokenExchangeLambda'
 
-  JWKSCacheForceRefreshLambdaName:
+  JwksCacheForceRefreshLambdaName:
     Value: !Sub '${ProjectName}-jwksCacheForceRefreshLambda'
 
   # Dynamo table
