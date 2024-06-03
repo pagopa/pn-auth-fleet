@@ -1116,7 +1116,7 @@ Resources:
       BatchSize: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingBatchSize}
       MaximumBatchingWindowInSeconds: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumBatchingWindowInSeconds}
       MaximumConcurrency: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency}
-      FunctionName: !GetAtt JwksCacheForceRefreshLambdaLambda.Arn
+      FunctionName: !GetAtt JwksCacheForceRefreshLambda.Arn
        # Add an OnFailure destination on the event source mapping
       DestinationConfig:
         OnFailure:
