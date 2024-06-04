@@ -1107,6 +1107,7 @@ Resources:
                   - sqs:ChangeMessageVisibility
                   - sqs:GetQueueUrl
                   - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
                 Effect: Allow
                 Resource:
                   - !Ref JWKSCacheForceRefreshQueueARN
