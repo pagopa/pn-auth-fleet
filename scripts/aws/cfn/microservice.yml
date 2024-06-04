@@ -1047,7 +1047,7 @@ Resources:
           MINIMUM_INTERVAL_BETWEEN_FORCED_REFRESH_SEC: !Ref JwksCacheMinimumIntervalBetweenTwoForcedRefreshSec
           REDIS_ENDPOINT: !Ref RedisEndpoint
       Role: !GetAtt JwksCacheForceRefreshLambdaRole.Arn
-      Timeout: !Ref JwksCacheForceRefreshLambdaTimeout  #comm: solo come env variable perchè utilizzato dalla lambda?!?
+      ReservedConcurrentExecutions: !Ref JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency
       TracingConfig:
         Mode: Active
       Layers:
@@ -1139,7 +1139,6 @@ Resources:
       StartingPosition: LATEST
       BatchSize: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingBatchSize}
       MaximumBatchingWindowInSeconds: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumBatchingWindowInSeconds}
-      MaximumConcurrency: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency}
       FunctionName: !GetAtt JwksCacheForceRefreshLambda.Arn
        # Add an OnFailure destination on the event source mapping
       DestinationConfig:
