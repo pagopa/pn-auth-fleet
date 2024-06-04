@@ -1136,7 +1136,6 @@ Resources:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
       EventSourceArn: !Ref JWKSCacheForceRefreshQueueARN
-      StartingPosition: LATEST
       BatchSize: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingBatchSize}
       MaximumBatchingWindowInSeconds: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumBatchingWindowInSeconds}
       FunctionName: !GetAtt JwksCacheForceRefreshLambda.Arn
