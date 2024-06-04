@@ -1,7 +1,7 @@
 const { AllowedIssuerDao } = require('pn-auth-common');
-const { sendMessage } = require('pn-auth-common');
-const { uuid } = require('uuidv4');
+const { SqsHandler } = require('pn-auth-common');
 const AuthenticationError = require('../../errors/AuthenticationError');
+const crypto = require('crypto');
 
 class IssuersLocalCache {
 
@@ -38,9 +38,10 @@ class IssuersLocalCache {
         const bodyMessage = {
             "iss": iss,
             "requestTimestamp": new Date().toISOString(),
-            "uuid": uuid()
+            "uuid": crypto.randomUUID()
         }
-        await sendMessage(queueUrl, bodyMessage, messageDelay)
+        const result = await SqsHandler.sendMessage(queueUrl, bodyMessage, messageDelay)
+        return result;
     }
 
     #invalidateLocalCache(iss) {
