@@ -1039,7 +1039,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/jwksCacheForceRefresh.zip"
+        S3Key: !Sub "${BucketBasePath}/jwksCacheForceRefreshLambda.zip"
       Environment:
         Variables:
           JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS: !Ref JwksCacheForceRefreshLambdaTimeout
