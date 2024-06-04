@@ -1140,10 +1140,6 @@ Resources:
       BatchSize: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingBatchSize}
       MaximumBatchingWindowInSeconds: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumBatchingWindowInSeconds}
       FunctionName: !GetAtt JwksCacheForceRefreshLambda.Arn
-       # Add an OnFailure destination on the event source mapping
-      DestinationConfig:
-        OnFailure:
-          Destination: !Ref JWKSCacheForceRefreshDLQARN
 
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
   # ###########################################################
