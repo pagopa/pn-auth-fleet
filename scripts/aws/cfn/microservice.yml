@@ -1108,6 +1108,7 @@ Resources:
                   - sqs:GetQueueUrl
                   - sqs:ReceiveMessage
                   - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
                 Effect: Allow
                 Resource:
                   - !Ref JWKSCacheForceRefreshQueueARN
