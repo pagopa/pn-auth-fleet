@@ -394,6 +394,10 @@ Parameters:
     Type: String
     Description: 'ElasticCache Redis endpoint'
 
+  IdentifierUser1:
+    Type: String
+    Description: 'ElasticCache user id'
+    
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -1046,6 +1050,8 @@ Resources:
           MAXIMUM_CLOCK_DRIFT_SEC: !Ref MaximumClockDriftSec
           MINIMUM_INTERVAL_BETWEEN_FORCED_REFRESH_SEC: !Ref JwksCacheMinimumIntervalBetweenTwoForcedRefreshSec
           REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref IdentifierUser1
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
       Role: !GetAtt JwksCacheForceRefreshLambdaRole.Arn
       ReservedConcurrentExecutions: !Ref JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency
       TracingConfig:
