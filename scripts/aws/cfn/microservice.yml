@@ -378,6 +378,22 @@ Parameters:
     Default: '4'
     Description: 'Maximum concurrency for JwksCacheForceRefreshLambda'
 
+  RedisServerlessArn:
+    Type: String
+    Description: 'RedisServerless ARN'
+  
+  RedisServerlessName:
+    Type: String
+    Description: 'RedisServerless Name'
+  
+  ElasticCacheUser1Arn:
+    Type: String
+    Description: 'ElasticCacheUser for radd'
+
+  RedisEndpoint:
+    Type: String
+    Description: 'ElasticCache Redis endpoint'
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -1029,6 +1045,7 @@ Resources:
           JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS: !Ref JwksCacheForceRefreshLambdaTimeout
           MAXIMUM_CLOCK_DRIFT_SEC: !Ref MaximumClockDriftSec
           MINIMUM_INTERVAL_BETWEEN_FORCED_REFRESH_SEC: !Ref JwksCacheMinimumIntervalBetweenTwoForcedRefreshSec
+          REDIS_ENDPOINT: !Ref RedisEndpoint
       Role: !GetAtt JwksCacheForceRefreshLambdaRole.Arn
       Timeout: !Ref JwksCacheForceRefreshLambdaTimeout  #comm: solo come env variable perchè utilizzato dalla lambda?!?
       TracingConfig:
@@ -1093,6 +1110,13 @@ Resources:
                 Effect: Allow
                 Resource:
                   - !Ref JWKSCacheForceRefreshQueueARN
+              - Sid: RedisAuth
+                Action:
+                  - elasticache:Connect
+                Effect: Allow
+                Resource:
+                  - !Ref RedisServerlessArn
+                  - !Ref ElasticCacheUser1Arn
       #ManagedPolicyArns:
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
