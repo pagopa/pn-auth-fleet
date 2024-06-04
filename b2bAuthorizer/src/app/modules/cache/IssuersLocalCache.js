@@ -1,4 +1,6 @@
 const { AllowedIssuerDao } = require('pn-auth-common');
+const { sendMessage } = require('pn-auth-common');
+const { uuid } = require('uuidv4');
 const AuthenticationError = require('../../errors/AuthenticationError');
 
 class IssuersLocalCache {
@@ -31,7 +33,14 @@ class IssuersLocalCache {
     }
 
     async #emitRemoteJwksCacheInvalidationEventAndWait(iss) {
-        console.log('emitRemoteJwksCacheInvalidationEventAndWait not implemented: '+iss)
+        const messageDelay = 0;
+        const queueUrl = process.env.JWKS_FORCE_REFRESH_QUEUE_URL
+        const bodyMessage = {
+            "iss": iss,
+            "requestTimestamp": new Date().toISOString(),
+            "uuid": uuid()
+        }
+        await sendMessage(queueUrl, bodyMessage, messageDelay)
     }
 
     #invalidateLocalCache(iss) {

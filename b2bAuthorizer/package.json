@@ -28,6 +28,7 @@
   "dependencies": {
     "jsonwebtoken": "^9.0.2",
     "jwk-to-pem": "^2.0.5",
-    "pn-auth-common": "file:../authCommon"
+    "pn-auth-common": "file:../authCommon",
+    "uuidv4": "^6.2.13"
   }
 }

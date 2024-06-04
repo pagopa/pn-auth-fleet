@@ -154,6 +154,8 @@ describe('IssuersLocalCache', () => {
       })
     }
     IssuersLocalCache.__set__('AllowedIssuerDao', AllowedIssuerDao);
+    const sendMessage = () => {};
+    IssuersLocalCache.__set__('sendMessage', sendMessage);
     const cache = new IssuersLocalCache(100, 100);
     const cacheItem1 = await cache.getOrLoad('issKey');
 

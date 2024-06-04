@@ -299,6 +299,10 @@ Outputs:
   JWKSCacheForceRefreshQueueARN:
     Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.QueueARN
     Description: JWKSCacheForceRefresh queue arn
+
+  JWKSCacheForceRefreshQueueURL:
+    Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.QueueURL
+    Description: JWKSCacheForceRefresh queue arn
   
   JWKSCacheForceRefreshDLQName:
     Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.DeadLetterQueueName

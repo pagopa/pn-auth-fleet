@@ -183,7 +183,7 @@ describe('AllowedIssuerDAO Testing', () => {
         const jwtExpireSlotInSecond = 1630458001
         // jwtExpireSlot in ISOString 
         const jwtExpireSlot = '2021-09-01T01:00Z'
-        const cacheMaxUsageEpochSec = 1630514401
+        const cacheMaxUsageEpochSec = 1630458001
         const result = await prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
 
         expect(result.TransactItems.length).equal(2);
@@ -205,64 +205,7 @@ describe('AllowedIssuerDAO Testing', () => {
             ttl: cacheMaxUsageEpochSec
         })
     });
-
-  /*  it('prepareTransactionInput s3', async () => {
-        const prepareTransactionInput = AllowedIssuerDAO.__get__('prepareTransactionInput');
-        const putObjectStub = () => {
-        };
-        AllowedIssuerDAO.__set__('putObject', putObjectStub);
-        const cfg = JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
-        const buffer = Buffer.from(cfg.JWKSUrl).toString('base64');
-        const jwks = getFilaAsByteArray('test/resources/jwkss3.json');
-        const url = 'https://interop.pagopa.it';
-        const sha256 = 'acf5771d2705d19a972c501a3ec0c88051d1941bf1aaed33e53e0a7e4c8f0002'
-        const modificationTimeEpochMs = 1630454401000;
-        const jwtExpireSlotInSecond = 1630458001
-        // jwtExpireSlot in ISOString 
-        const jwtExpireSlot = '2021-09-01T01:00Z'
-        const cacheMaxUsageEpochSec = 1630514401
-        const result = await prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
-
-        expect(result.TransactItems.length).equal(2);
-        expect(result.TransactItems[0].Update.ExpressionAttributeValues).to.deep.equal({
-            ':jwksCacheExpireSlot': jwtExpireSlot,
-            ':modificationTimeEpochMs': modificationTimeEpochMs
-        })
-
-        expect(result.TransactItems[1].Put.Item).to.deep.equal({
-            hashKey: 'ISS~https://interop.pagopa.it',
-            sortKey: JWKS_CACHE_PREFIX+'~' + url + "~" + sha256,
-            contentHash: sha256,
-            JWKSUrl: cfg.JWKSUrl,
-            iss: 'https://interop.pagopa.it',
-            JWKSS3Url: 's3://bucket-name/jwks_cache_entries/ISS_https://interop.pagopa.it/source_url_urlSafeBase64_' + Buffer.from(cfg.JWKSUrl).toString('base64') + '/content_sha256_' + sha256 + '_jwks.json',
-            cacheRenewEpochSec: jwtExpireSlotInSecond,
-            cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
-            modificationTimeEpochMs: modificationTimeEpochMs,
-            ttl: cacheMaxUsageEpochSec
-        })
-    });
-    */
-
-   /* it('prepareTransactionInput s3 failure', async () => {
-        const prepareTransactionInput = AllowedIssuerDAO.__get__('prepareTransactionInput');
-        const putObjectStub = () => {
-            throw new Error();
-        };
-        AllowedIssuerDAO.__set__('putObject', putObjectStub);
-        const cfg = JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
-        const jwks = getFilaAsByteArray('test/resources/jwkss3.json');
-        const sha256 = 'acf5771d2705d19a972c501a3ec0c88051d1941bf1aaed33e53e0a7e4c8f0002'
-        const url = 's3://bucket-name/jwks_cache_entries/ISS_https://interop.pagopa.it/source_url_urlSafeBase64_' + Buffer.from(cfg.JWKSUrl).toString('base64') + '/content_sha256_' + sha256 + '_jwks.json';
-        const modificationTimeEpochMs = 1630454401000;
-        try {
-            const result = await prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
-        }
-        catch (error) {
-            expect(error.message).to.equal('Error uploading S3 object ' + url);
-        }
-    });*/  
-
+    
     it('addJwksCacheEntryDynamo', async () => {
         ddbMock.on(GetCommand).resolves({
             Item: JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
