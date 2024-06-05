@@ -183,7 +183,7 @@ describe('AllowedIssuerDAO Testing', () => {
         const jwtExpireSlotInSecond = 1630458001
         // jwtExpireSlot in ISOString 
         const jwtExpireSlot = '2021-09-01T01:00Z'
-        const cacheMaxUsageEpochSec = 1630514401
+        const cacheMaxUsageEpochSec = 1630458001
         const result = await prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
 
         expect(result.TransactItems.length).equal(2);
