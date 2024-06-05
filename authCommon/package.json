@@ -12,7 +12,6 @@
     "@aws-sdk/client-dynamodb": "^3.506.0",
     "@aws-sdk/client-s3": "^3.577.0",
     "@aws-sdk/client-sqs": "^3.588.0",
-    "@aws-sdk/credential-providers": "^3.590.0",
     "@aws-sdk/hash-node": "^3.374.0",
     "@aws-sdk/lib-dynamodb": "^3.506.0",
     "@aws-sdk/signature-v4": "^3.374.0",
@@ -30,6 +29,6 @@
   "dependencies": {
     "@sesamecare-oss/redlock": "^1.2.1",
     "axios": "^1.6.7",
-    "redlock": "4.2.0"
+    "redis": "^4.6.14"
   }
 }
