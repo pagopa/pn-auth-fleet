@@ -1064,10 +1064,10 @@ Resources:
       Role: !GetAtt JwksCacheForceRefreshLambdaRole.Arn
       ReservedConcurrentExecutions: !Ref JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency
       VpcConfig:
-        SecurityGroupIds:
+        SecurityGroupIds: 
           - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref SubnetsIds
-      Timeout: !ref JwksCacheForceRefreshLambdaTimeout
+      Timeout: !Ref JwksCacheForceRefreshLambdaTimeout
       TracingConfig:
         Mode: Active
       Layers:
