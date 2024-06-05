@@ -17,7 +17,7 @@ async function connectRedis() {
 async function lockFunction(iss){
     const redlock = new Redlock([redisClient]);
     console.log("Acquiring lock on iss: " + iss)
-    const lock = await redlock.acquire(iss, INITIAL_LOCK_TTL_SEC)
+    const lock = await redlock.acquire("b2bauth::" + iss, INITIAL_LOCK_TTL_SEC)
     return lock;
 }
 
