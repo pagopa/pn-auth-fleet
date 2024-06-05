@@ -16,8 +16,6 @@ class Signer {
 
   async getAuthToken() {
     
-    console.log('conf', this.configuration)
-    
     const signer = new SignatureV4({
       service: this.service,
       region: this.configuration.region,

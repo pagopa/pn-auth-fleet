@@ -1,13 +1,11 @@
 
-const { RedisHandler } = require('pn-auth-common');
-const { AllowedIssuerDao, UrlDownloader } = require('pn-auth-common');
+const { RedisHandler, AllowedIssuerDao, UrlDownloader } = require('pn-auth-common');
 
-const intervalBetweenForcedRefreshSec = parseInt(process.env.MINIMUM_INTERVAL_BETWEEN_FORCED_REFESH_SEC)
+const intervalBetweenForcedRefreshSec = parseInt(process.env.MINIMUM_INTERVAL_BETWEEN_FORCED_REFRESH_SEC)
 
 async function handleEvent(event) {
     let issToRefresh = event.iss;
     let requestUuid = event.uuid;
-    var lock;
 
     console.log("request uuid: " + requestUuid)
     await RedisHandler.connectRedis()
@@ -16,14 +14,14 @@ async function handleEvent(event) {
         // Perform Redis operations
         if(lock) {
             await AllowedIssuerDao.addJwksCacheEntry(issToRefresh, UrlDownloader.downloadUrl)
-            await lock.extend(intervalBetweenForcedRefreshSec)
+            await RedisHandler.extendLockFunction(issToRefresh, intervalBetweenForcedRefreshSec)
         }
         else {
             console.log("Lock already exists for issuer " + issToRefresh)
         }
     } catch (error) {
-        await lock.release();
         console.log("Error during Cache Refresh " + error);
+        await RedisHandler.unlockFunction(issToRefresh);
     } finally {
         await RedisHandler.disconnectRedis();
     }

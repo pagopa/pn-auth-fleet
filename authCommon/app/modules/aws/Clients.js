@@ -3,9 +3,11 @@ const { S3Client } = require("@aws-sdk/client-s3");
 const { SQSClient } = require("@aws-sdk/client-sqs");
 const { createClient } = require('redis');
 const { Signer } = require('./Signer')
+const { fromNodeProviderChain } = require("@aws-sdk/credential-providers")
 
 const AUTHTOKEN_DURATION = 900
 const REDIS_URL_CONST = 'rediss://' + process.env.REDIS_ENDPOINT + ":6379"
+
 let redisConnection = {
   client: null,
   expiration: null
