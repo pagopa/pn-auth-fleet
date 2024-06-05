@@ -1,6 +1,6 @@
 // Create a service client module using ES6 syntax.
 const { getRedisClient } = require('./Clients');
-const { Redlock } = require('redlock');
+const { Redlock } = require('node-redlock');
 
 const INITIAL_LOCK_TTL_SEC = parseInt(process.env.JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS) 
                            + parseInt(process.env.MAXIMUM_CLOCK_DRIFT_SEC);
