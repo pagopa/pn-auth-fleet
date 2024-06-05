@@ -390,17 +390,21 @@ Parameters:
     Type: String
     Description: 'RedisServerless Name'
   
-  ElasticCacheUser1Arn:
+  ElasticacheUserArn1:
     Type: String
-    Description: 'ElasticCacheUser for radd'
+    Description: 'ElastiCacheUser for radd'
 
   RedisEndpoint:
     Type: String
-    Description: 'ElasticCache Redis endpoint'
+    Description: 'ElastiCache Redis endpoint'
 
-  IdentifierUser1:
+  ElasticacheUserId1:
     Type: String
-    Description: 'ElasticCache user id'
+    Description: 'ElastiCache user id'
+    
+  ElasticacheSecurityGroup:
+    Type: String
+    Description: 'Elastic cache security Group'
     
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
@@ -1059,6 +1063,11 @@ Resources:
           REDIS_SERVER_NAME: !Ref RedisServerlessName
       Role: !GetAtt JwksCacheForceRefreshLambdaRole.Arn
       ReservedConcurrentExecutions: !Ref JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref ElasticacheSecurityGroup
+        SubnetIds: !Ref SubnetsIds
+      Timeout: !ref JwksCacheForceRefreshLambdaTimeout
       TracingConfig:
         Mode: Active
       Layers:
@@ -1129,7 +1138,9 @@ Resources:
                 Effect: Allow
                 Resource:
                   - !Ref RedisServerlessArn
-                  - !Ref ElasticCacheUser1Arn
+                  - !Ref ElasticacheUserArn1
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
       #ManagedPolicyArns:
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy

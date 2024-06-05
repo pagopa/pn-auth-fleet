@@ -19,12 +19,12 @@ async function getRedisClient(forceRefresh = false){
     const credentials = await fromNodeProviderChain()()
     const sign = new Signer({
       region: process.env.AWS_REGION,
-      hostname: process.env.REDIS_HOSTNAME,
+      hostname: process.env.REDIS_SERVER_NAME,
       username: process.env.USER_ID_REDIS,
       credentials: credentials,
       expiresIn: AUTHTOKEN_DURATION
     });
-    redisConnection.expiration = new Date.now() + ((AUTHTOKEN_DURATION - 100) *1000) //seconds
+    redisConnection.expiration = Date.now() + ((AUTHTOKEN_DURATION - 100) *1000) //seconds
 
     const presignedUrl = await sign.getAuthToken();
   
