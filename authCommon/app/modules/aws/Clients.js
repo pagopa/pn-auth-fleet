@@ -5,7 +5,7 @@ const { createClient } = require('redis');
 const { Signer } = require('./Signer')
 
 const AUTHTOKEN_DURATION = 900
-
+const REDIS_URL_CONST = 'rediss://' + process.env.REDIS_ENDPOINT + ":6379"
 let redisConnection = {
   client: null,
   expiration: null
@@ -29,7 +29,7 @@ async function getRedisClient(forceRefresh = false){
     const presignedUrl = await sign.getAuthToken();
   
     const redisConfig = {
-      url: process.env.REDIS_ENDPOINT,
+      url: REDIS_URL_CONST,
       password: presignedUrl,
       username: process.env.USER_ID_REDIS,
       socket: {
