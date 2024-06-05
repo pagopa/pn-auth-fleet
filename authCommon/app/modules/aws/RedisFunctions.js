@@ -1,6 +1,6 @@
 // Create a service client module using ES6 syntax.
 const { getRedisClient } = require('./Clients');
-const { Redlock } = require('node-redlock');
+const { default: Redlock } = require("redlock");
 
 const INITIAL_LOCK_TTL_SEC = parseInt(process.env.JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS) 
                            + parseInt(process.env.MAXIMUM_CLOCK_DRIFT_SEC);
@@ -17,7 +17,7 @@ async function connectRedis() {
 async function lockFunction(iss){
     const redlock = new Redlock([redisClient]);
     console.log("Acquiring lock on iss: " + iss)
-    const lock = await redlock.acquire("b2bauth::" + iss, INITIAL_LOCK_TTL_SEC)
+    const lock = await redlock.acquire("b2bauth:" + iss, INITIAL_LOCK_TTL_SEC)
     return lock;
 }
 
