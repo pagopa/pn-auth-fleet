@@ -1,6 +1,6 @@
 const { SignatureV4 } = require('@aws-sdk/signature-v4');
 const { formatUrl } = require('@aws-sdk/util-format-url');
-const { getRuntimeConfig  } = require('./runtimeConfig');
+const { getRuntimeConfig  } = require('../config/runtimeConfig');
 
 /**
  * The signer class that generates an auth token to a database.
@@ -12,7 +12,6 @@ class Signer {
 
   constructor(configuration) {
     this.configuration = getRuntimeConfig(configuration);
-    
   }
 
   async getAuthToken() {
@@ -29,7 +28,7 @@ class Signer {
     const request = {
       method: 'GET',
       protocol: this.protocol,
-      hostname: 'pn-redis-serverless-rbac',
+      hostname: process.env.REDIS_SERVER_NAME,
       path: '/',
       query: {
         Action: 'connect',
@@ -37,7 +36,7 @@ class Signer {
         ResourceType: 'ServerlessCache'
       },
       headers: {
-        host: `pn-redis-serverless-rbac`,
+        host: process.env.REDIS_SERVER_NAME,
       },
     };
     

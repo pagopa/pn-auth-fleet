@@ -2,30 +2,46 @@
 const { S3Client } = require("@aws-sdk/client-s3");
 const { SQSClient } = require("@aws-sdk/client-sqs");
 const { createClient } = require('redis');
+const { Signer } = require('./Signer')
 
-async function initializeRedis(){
-  const credentials = await fromNodeProviderChain()()
-  const sign = new Signer({
-    region: process.env.AWS_REGION,
-    hostname: process.env.REDIS_HOSTNAME,
-    username: process.env.USER_ID_REDIS,
-    credentials: credentials
-  });
-  const presignedUrl = await sign.getAuthToken();
+const AUTHTOKEN_DURATION = 900
 
-  const redisConfig = {
-    url: process.env.REDIS_ENDPOINT,
-    password: presignedUrl,
-    username: process.env.USER_ID_REDIS,
-    socket: {
-      tls: true,
-      rejectUnauthorized: false,
-    },
-  };
+let redisConnection = {
+  client: null,
+  expiration: null
+}
+
+async function getRedisClient(forceRefresh = false){
+  if(!forceRefresh && redisConnection.client && Date.now() > redisConnection.expiration) {
+    return redisConnection.client
+  }
+  else {
+    const credentials = await fromNodeProviderChain()()
+    const sign = new Signer({
+      region: process.env.AWS_REGION,
+      hostname: process.env.REDIS_HOSTNAME,
+      username: process.env.USER_ID_REDIS,
+      credentials: credentials,
+      expiresIn: AUTHTOKEN_DURATION
+    });
+    redisConnection.expiration = new Date.now() + ((AUTHTOKEN_DURATION - 100) *1000) //seconds
+
+    const presignedUrl = await sign.getAuthToken();
   
-  return createClient(redisConfig);
+    const redisConfig = {
+      url: process.env.REDIS_ENDPOINT,
+      password: presignedUrl,
+      username: process.env.USER_ID_REDIS,
+      socket: {
+        tls: true,
+        rejectUnauthorized: false,
+      },
+    };
+    redisConnection.client = createClient(redisConfig);
+    return redisConnection.client;
+  }
 }
 
 exports.s3Client = new S3Client({})
 exports.sqsClient = new SQSClient({})
-exports.redisClient = initializeRedis();
+exports.getRedisClient = getRedisClient
