@@ -1,6 +1,7 @@
-const { redisClient } = require('pn-auth-common/aws');
+
+const { RedisHandler } = require('pn-auth-common');
 const { AllowedIssuerDao, UrlDownloader } = require('pn-auth-common');
-const { default: Redlock } = require("redlock");
+
 
 const INITIAL_LOCK_TTL_SEC = process.env.JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS 
                            + process.env.MAXIMUM_CLOCK_DRIFT_SEC;
@@ -10,11 +11,10 @@ async function handleEvent(event) {
     let requestUuid = event.uuid;
     var lock;
 
-    console.log("Connecting to Redis...")
-    await redisClient.connect();
-    const redlock = new Redlock([redisClient]);
+    await RedisHandler.connectRedis()
+    
     try {
-        let lock = await redlock.acquire(issToRefresh, INITIAL_LOCK_TTL_SEC)
+        let lock = await RedisHandler.lockFunction(issToRefresh)
         // Perform Redis operations
         if(lock) {
             await AllowedIssuerDao.addJwksCacheEntry(issToRefresh, UrlDownloader.downloadUrl)
@@ -37,6 +37,5 @@ async function handleEvent(event) {
     };
     return response;
   }
-
 
 module.exports = { handleEvent };

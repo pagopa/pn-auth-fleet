@@ -28,6 +28,10 @@ Parameters:
     Type: Number
     Default: 14
 
+  AlarmSNSTopicName:
+    Type: String
+    Description: 'Topic alarm'
+
 Resources:
 
   ApiKeyAuthorizerV2LambdaLogGroup:
@@ -114,6 +118,18 @@ Resources:
         LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
 
+  JwksCacheForceRefreshLambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain    
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-jwksCacheForceRefreshLambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+        
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
   # ###########################################################
   PnAuthFleetJwtSignKey:
@@ -208,6 +224,20 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  JWKSCacheForceRefreshQueue:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain    
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/sqs-queue.yaml"
+      Parameters:
+        QueueName: !Sub '${ProjectName}-jwks_cache_force_refresh_queue'
+        HasDLQ:  "true"
+        AlarmSNSTopicName: !Ref AlarmSNSTopicName
+        VisibilityTimeout: 182  #Constraint to https://pagopa.atlassian.net/wiki/spaces/PN/pages/898170899/SRS+AuthN+B2B+migliorie+runbook+e+monitoring#Work-Item-2.1---%5BINFRA%5D-creare-coda-e-nuova-lambda
+        QueueHasAlarm: "false"
+        DelaySeconds: 0
+  
 Outputs:
   PnAuthFleetJwtSignKeyId:
     Value: !Ref PnAuthFleetJwtSignKey
@@ -233,6 +263,9 @@ Outputs:
   TokenExchangeLambdaName:
     Value: !Sub '${ProjectName}-tokenExchangeLambda'
 
+  JwksCacheForceRefreshLambdaName:
+    Value: !Sub '${ProjectName}-jwksCacheForceRefreshLambda'
+
   # Dynamo table
   AuthJwtIssuersTableName:
     Description: Name of dynamodb table containing auth jwt issuers data 
@@ -257,3 +290,32 @@ Outputs:
   JWKSCacheBucketArn:
     Description: ARN of S3 bucket containing JWKS data
     Value: !Sub '${JWKSCacheBucket.Arn}'
+
+  #SQS
+  JWKSCacheForceRefreshQueueName:
+    Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.QueueName
+    Description: JWKSCacheForceRefresh queue name
+
+  JWKSCacheForceRefreshQueueARN:
+    Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.QueueARN
+    Description: JWKSCacheForceRefresh queue arn
+
+  JWKSCacheForceRefreshQueueURL:
+    Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.QueueURL
+    Description: JWKSCacheForceRefresh queue arn
+  
+  JWKSCacheForceRefreshDLQName:
+    Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.DeadLetterQueueName
+    Description: JWKSCacheForceRefresh-DLQ queue name
+  
+  JWKSCacheForceRefreshDLQARN:
+    Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.DeadLetterQueueARN
+    Description: JWKSCacheForceRefresh-DLQ queue ARN
+  
+  JWKSCacheForceRefreshDLQAlarmARN:
+    Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.SqsDLQAlarmArn
+    Description: JWKSCacheForceRefresh-DLQ alarm ARN
+  
+  JWKSCacheForceRefreshAlarmARN:
+    Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.SqsAgeAlarmArn  
+    Description: JWKSCacheForceRefresh-DLQ age alarm ARN

@@ -25,7 +25,6 @@
     "sonarqube-scanner": "^3.3.0"
   },
   "dependencies": {
-    "pn-auth-common": "file:../authCommon",
-    "redlock": "^5.0.0-beta.2"
+    "pn-auth-common": "file:../authCommon"
   }
 }

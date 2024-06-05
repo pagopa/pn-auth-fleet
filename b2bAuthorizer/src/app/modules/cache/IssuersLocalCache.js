@@ -1,5 +1,7 @@
 const { AllowedIssuerDao } = require('pn-auth-common');
+const { SqsHandler } = require('pn-auth-common');
 const AuthenticationError = require('../../errors/AuthenticationError');
+const crypto = require('crypto');
 
 class IssuersLocalCache {
 
@@ -31,7 +33,15 @@ class IssuersLocalCache {
     }
 
     async #emitRemoteJwksCacheInvalidationEventAndWait(iss) {
-        console.log('emitRemoteJwksCacheInvalidationEventAndWait not implemented: '+iss)
+        const messageDelay = 0;
+        const queueUrl = process.env.JWKS_FORCE_REFRESH_QUEUE_URL
+        const bodyMessage = {
+            "iss": iss,
+            "requestTimestamp": new Date().toISOString(),
+            "uuid": crypto.randomUUID()
+        }
+        const result = await SqsHandler.sendMessage(queueUrl, bodyMessage, messageDelay)
+        return result;
     }
 
     #invalidateLocalCache(iss) {
