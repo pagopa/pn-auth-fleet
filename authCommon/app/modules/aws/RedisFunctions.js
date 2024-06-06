@@ -10,6 +10,10 @@ function sleep(seconds) {
   return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
 
+function prepareTtlInUnixLikeMs(date, ttlSec) {
+    return date + (ttlSec * 1000)
+}
+
 async function connectRedis() {
     console.log("Connecting to Redis")
     const c = await getRedisClient()
@@ -20,21 +24,27 @@ async function connectRedis() {
 
 async function lockFunction(iss){
     console.log("Acquiring lock on iss: " + iss)
-    const result = await redisClient.set("b2bauth:" + iss, 'locked', { NX: true, EX: INITIAL_LOCK_TTL_SEC });
+    const result = await redisClient.set("b2bauth:" + iss, 'locked', { NX: true, PXAT: prepareTtlInUnixLikeMs(Date.now(), INITIAL_LOCK_TTL_SEC)});
     console.log("Lock is " + result)
     return result === 'OK';
 }
 
 async function unlockFunction(iss){
     console.log("Release lock on iss: " + iss)
-    const result = await redisClient.del("b2bauth:" + iss);
+    const value = await redisClient.get("b2bauth:" + iss)
+    let result
+    if(value) {
+        result = await redisClient.del("b2bauth:" + iss);
+    }
     console.log("Release lock is " + result)
 }
 
 async function extendLockFunction(iss, extendTime) {
     console.log("Extending lock on iss: " + iss)
-    const result = await redisClient.set("b2bauth:" + iss, 'locked', { XX: true, EX: extendTime });
-    return result === 1; // 1 if the timeout was set, 0 if the key does not exist
+    let ttl = await redisClient.ttl("b2bauth:" + iss);
+    result = await redisClient.set("b2bauth:" + iss, 'locked', { XX: true, PXAT: prepareTtlInUnixLikeMs(ttl, extendTime)});
+    console.log("Extend is " + result)
+    return result === 'OK';
 }
 
 async function disconnectRedis(){
