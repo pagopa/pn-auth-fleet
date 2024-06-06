@@ -236,10 +236,8 @@ Resources:
               - "s3:GetObject"
               - "s3:ListBucket"            
             Resource:
-              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_cache_entries/*"
-              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_cache_entries"
-              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_sources/*"
-              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_sources"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/*"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}"
             Principal:
               AWS: 
                 - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
