@@ -1071,7 +1071,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds: 
           - !Ref ElasticacheSecurityGroup
-        SubnetIds: !Ref SubnetsIds
+        SubnetIds: !Ref VpcEgressSubnetsIds
       Timeout: !Ref JwksCacheForceRefreshLambdaTimeout
       TracingConfig:
         Mode: Active
