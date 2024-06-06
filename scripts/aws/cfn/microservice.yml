@@ -405,6 +405,10 @@ Parameters:
   ElasticacheSecurityGroup:
     Type: String
     Description: 'Elastic cache security Group'
+
+  VpcEgressSubnetsIds:
+    Type: String
+    Description: 'Elastic cache security Group'
     
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
@@ -1067,7 +1071,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds: 
           - !Ref ElasticacheSecurityGroup
-        SubnetIds: !Ref SubnetsIds
+        SubnetIds: !Ref VpcEgressSubnetsIds
       Timeout: !Ref JwksCacheForceRefreshLambdaTimeout
       TracingConfig:
         Mode: Active
