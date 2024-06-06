@@ -236,13 +236,13 @@ Resources:
               - "s3:GetObject"
               - "s3:ListBucket"            
             Resource:
-              - !Sub "${JWKSCacheBucket.Arn}/jwks_cache_entries/*"
-              - !Sub "${JWKSCacheBucket.Arn}/jwks_cache_entries"
-              - !Sub "${JWKSCacheBucket.Arn}/jwks_sources/*"
-              - !Sub "${JWKSCacheBucket.Arn}/jwks_sources"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_cache_entries/*"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_cache_entries"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_sources/*"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_sources"
             Principal:
               AWS: 
-                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function"
+                - !Sub "arn:${AWS::Partition}:iam::${PnCoreAwsAccountId}:root"
             Condition:
               ArnLike:
                 aws:PrincipalArn: 
@@ -253,11 +253,11 @@ Resources:
               - "s3:PutObject"
               - "s3:PutObjectTagging"
             Resource: 
-              - !Sub "${JWKSCacheBucket.Arn}/jwks_cache_entries/*"
-              - !Sub "${JWKSCacheBucket.Arn}/jwks_cache_entries"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_cache_entries/*"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_cache_entries"
             Principal:
               AWS: 
-                - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function"
+                - !Sub "arn:${AWS::Partition}:iam::${PnCoreAwsAccountId}:root"
             Condition:
               ArnLike:
                 aws:PrincipalArn:
