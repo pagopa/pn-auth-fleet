@@ -44,6 +44,8 @@ async function getRedisClient(forceRefresh = false){
   }
 }
 
-exports.s3Client = new S3Client({})
-exports.sqsClient = new SQSClient({})
-exports.getRedisClient = getRedisClient
+module.exports = {
+  s3Client: new S3Client({}),
+  sqsClient: new SQSClient({}),
+  getRedisClient: getRedisClient
+};

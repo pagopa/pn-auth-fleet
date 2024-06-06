@@ -22,7 +22,7 @@ async function handleEvent(event) {
     } catch (error) {
         console.log("Error during Cache Refresh " + error);
         await RedisHandler.unlockFunction(issToRefresh, redisValue);
-        throw new Error(error);
+        throw new Error(error.message);
     } finally {
         await RedisHandler.disconnectRedis();
     }
