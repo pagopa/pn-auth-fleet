@@ -242,7 +242,7 @@ Resources:
               - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_sources"
             Principal:
               AWS: 
-                - !Sub "arn:${AWS::Partition}:iam::${PnCoreAwsAccountId}:root"
+                - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
             Condition:
               ArnLike:
                 aws:PrincipalArn: 
@@ -257,7 +257,7 @@ Resources:
               - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_cache_entries"
             Principal:
               AWS: 
-                - !Sub "arn:${AWS::Partition}:iam::${PnCoreAwsAccountId}:root"
+                - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
             Condition:
               ArnLike:
                 aws:PrincipalArn:
