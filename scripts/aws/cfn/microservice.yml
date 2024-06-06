@@ -386,6 +386,14 @@ Parameters:
     Default: '4'
     Description: 'Maximum concurrency for JwksCacheForceRefreshLambda'
 
+  JwksFollowRedirect:
+    Type: String
+    Default: false
+    Description: Enable additional WAF Web rules
+    AllowedValues:
+      - true
+      - false
+
   RedisServerlessArn:
     Type: String
     Description: 'RedisServerless ARN'
@@ -798,7 +806,7 @@ Resources:
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
           JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
           JWKS_CONTENTS: !Ref JWKSCacheBucketName
-
+          JWKS_FOLLOW_REDIRECT: !Ref JwksFollowRedirect
   # Lambda function role
   JWKSCacheRefreshLambdaRole:
     Type: AWS::IAM::Role
@@ -1070,6 +1078,7 @@ Resources:
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
           JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
           JWKS_CONTENTS: !Ref JWKSCacheBucketName
+          JWKS_FOLLOW_REDIRECT: !Ref JwksFollowRedirect
       Role: !GetAtt JwksCacheForceRefreshLambdaRole.Arn
       ReservedConcurrentExecutions: !Ref JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency
       VpcConfig:
