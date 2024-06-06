@@ -1,4 +1,3 @@
-const { rewire } = require("rewire");
 const { getRedisClient } = require("../app/modules/aws/Clients");
 const { expect } = require("chai");
 const { Hash } = require('@aws-sdk/hash-node');
