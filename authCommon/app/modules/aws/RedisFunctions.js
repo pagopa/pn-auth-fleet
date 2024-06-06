@@ -3,16 +3,9 @@ const { getRedisClient } = require('./Clients');
 
 const INITIAL_LOCK_TTL_SEC = parseInt(process.env.JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS) 
                            + parseInt(process.env.MAXIMUM_CLOCK_DRIFT_SEC);
-const keyStart = "b2bauth::"        
+
+const KEY_START = "b2bauth::"        
 let redisClient;
-
-function sleep(seconds) {
-  return new Promise(resolve => setTimeout(resolve, seconds * 1000));
-}
-
-function prepareTtlInUnixLikeMs(date, ttlSec) {
-    return date + (ttlSec * 1000)
-}
 
 async function connectRedis() {
     console.log("Connecting to Redis")
@@ -24,27 +17,33 @@ async function connectRedis() {
 
 async function lockFunction(iss, value){
     console.log("Acquiring lock on iss: " + iss)
-    const result = await redisClient.set(keyStart + iss, value, { NX: true, PXAT: prepareTtlInUnixLikeMs(Date.now(), INITIAL_LOCK_TTL_SEC)});
+    const result = await redisClient.set(KEY_START + iss, value, { NX: true, EX: INITIAL_LOCK_TTL_SEC});
     console.log("Lock is " + result)
     return result === 'OK';
 }
 
-async function unlockFunction(iss){
+async function unlockFunction(iss, value){
     console.log("Releasing lock on iss: " + iss)
-    const value = await redisClient.get(keyStart + iss)
+    const tmp = await redisClient.get(KEY_START + iss)
     let result
-    if(value) {
-        result = await redisClient.del(keyStart + iss);
+    if(tmp) {
+        if(tmp == value) {
+            result = await redisClient.del(KEY_START + iss);
+            console.log("Release lock is " + result)
+        }
+        else {
+            console.log("Value " + value + " is not consistent")
+        }
     }
-    console.log("Release lock is " + result)
+    else {
+        console.log("Key " + iss + " is not exists")
+    }
 }
 
 async function extendLockFunction(iss, value, extendTime) {
     console.log("Extending lock on iss: " + iss)
-    let ttl = await redisClient.ttl(keyStart + iss);
-    let result = await redisClient.set(keyStart + iss, value, { XX: true, PXAT: prepareTtlInUnixLikeMs(ttl, extendTime)});
-    console.log("Extend is " + result)
-    return result === 'OK';
+    let result = await redisClient.set(KEY_START + iss, value, { XX: true, EX: extendTime});
+    console.log("Extend result " + result)
 }
 
 async function disconnectRedis(){

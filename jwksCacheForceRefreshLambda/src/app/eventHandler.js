@@ -5,23 +5,24 @@ const intervalBetweenForcedRefreshSec = parseInt(process.env.MINIMUM_INTERVAL_BE
 
 async function handleEvent(event) {
     let issToRefresh = event.iss;
-    let requestUuid = event.uuid;
+    let redisValue = Date.now() + "#"+ event.uuid;
 
-    console.log("request uuid: " + requestUuid)
+    console.log("request uuid: " + redisValue)
     await RedisHandler.connectRedis()
     try {
-        let lock = await RedisHandler.lockFunction(issToRefresh, requestUuid)
+        let lock = await RedisHandler.lockFunction(issToRefresh, redisValue)
         // Perform Redis operations
         if(lock) {
             await AllowedIssuerDao.addJwksCacheEntry(issToRefresh, UrlDownloader.downloadUrl)
-            await RedisHandler.extendLockFunction(issToRefresh, requestUuid, intervalBetweenForcedRefreshSec)
+            await RedisHandler.extendLockFunction(issToRefresh, redisValue, intervalBetweenForcedRefreshSec)
         }
         else {
             console.log("Lock already exists for issuer " + issToRefresh)
         }
     } catch (error) {
         console.log("Error during Cache Refresh " + error);
-        await RedisHandler.unlockFunction(issToRefresh);
+        await RedisHandler.unlockFunction(issToRefresh, redisValue);
+        throw new Error(error);
     } finally {
         await RedisHandler.disconnectRedis();
     }
