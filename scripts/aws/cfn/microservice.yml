@@ -407,7 +407,7 @@ Parameters:
     Description: 'Elastic cache security Group'
 
   VpcEgressSubnetsIds:
-    Type: String
+    Type: CommaDelimitedList
     Description: 'VPC subnet with internet access'
     
 Conditions:
@@ -1071,7 +1071,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds: 
           - !Ref ElasticacheSecurityGroup
-        SubnetIds: !Split [ ",", !Ref VpcEgressSubnetsIds]
+        SubnetIds: !Ref VpcEgressSubnetsIds
       Timeout: !Ref JwksCacheForceRefreshLambdaTimeout
       TracingConfig:
         Mode: Active
