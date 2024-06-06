@@ -10,11 +10,11 @@ async function handleEvent(event) {
     console.log("request uuid: " + requestUuid)
     await RedisHandler.connectRedis()
     try {
-        let lock = await RedisHandler.lockFunction(issToRefresh)
+        let lock = await RedisHandler.lockFunction(issToRefresh, requestUuid)
         // Perform Redis operations
         if(lock) {
             await AllowedIssuerDao.addJwksCacheEntry(issToRefresh, UrlDownloader.downloadUrl)
-            await RedisHandler.extendLockFunction(issToRefresh, intervalBetweenForcedRefreshSec)
+            await RedisHandler.extendLockFunction(issToRefresh, requestUuid, intervalBetweenForcedRefreshSec)
         }
         else {
             console.log("Lock already exists for issuer " + issToRefresh)

@@ -124,6 +124,10 @@ Parameters:
     Type: List<AWS::EC2::Subnet::Id>
     Description: "subnets ids comma separated list. Where to deploy the microservice"
 
+  VpcEgressSubnetsIds:
+    Type: CommaDelimitedList
+    Description: 'VPC subnet with internet access'
+
   VpcId:
     Type: String
     Description: "VpcId where the microservice is going to be deployed"
@@ -406,9 +410,6 @@ Parameters:
     Type: String
     Description: 'Elastic cache security Group'
 
-  VpcEgressSubnetsIds:
-    Type: CommaDelimitedList
-    Description: 'VPC subnet with internet access'
     
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
@@ -1066,6 +1067,9 @@ Resources:
           USER_ID_REDIS: !Ref ElasticacheUserId1
           REDIS_SERVER_NAME: !Ref RedisServerlessName
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
+          JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+          JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
+          JWKS_CONTENTS: !Ref JWKSCacheBucketName
       Role: !GetAtt JwksCacheForceRefreshLambdaRole.Arn
       ReservedConcurrentExecutions: !Ref JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency
       VpcConfig:
