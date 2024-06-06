@@ -1061,6 +1061,7 @@ Resources:
           REDIS_ENDPOINT: !Ref RedisEndpoint
           USER_ID_REDIS: !Ref ElasticacheUserId1
           REDIS_SERVER_NAME: !Ref RedisServerlessName
+          AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
       Role: !GetAtt JwksCacheForceRefreshLambdaRole.Arn
       ReservedConcurrentExecutions: !Ref JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency
       VpcConfig:
@@ -1139,6 +1140,21 @@ Resources:
                 Resource:
                   - !Ref RedisServerlessArn
                   - !Ref ElasticacheUserArn1
+              - Sid: AllowLambdaWriteDynamoDb
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+              - Sid: AllowLambdaReadDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Sub ${AuthJwtIssuersTableArn}*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
       #ManagedPolicyArns:

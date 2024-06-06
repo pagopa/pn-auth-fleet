@@ -42,7 +42,7 @@ async function unlockFunction(iss){
 async function extendLockFunction(iss, extendTime) {
     console.log("Extending lock on iss: " + iss)
     let ttl = await redisClient.ttl("b2bauth:" + iss);
-    result = await redisClient.set("b2bauth:" + iss, 'locked', { XX: true, PXAT: prepareTtlInUnixLikeMs(ttl, extendTime)});
+    let result = await redisClient.set("b2bauth:" + iss, 'locked', { XX: true, PXAT: prepareTtlInUnixLikeMs(ttl, extendTime)});
     console.log("Extend is " + result)
     return result === 'OK';
 }
