@@ -1,6 +1,5 @@
 const { expect } = require("chai");
 const rewire = require("rewire");
-const redis = require("redis-mock");
 const eventHandlerModule = rewire("../app/eventHandler");
 
 describe("test eventHandler success", () => {
