@@ -3,6 +3,12 @@ const { SqsHandler } = require('pn-auth-common');
 const AuthenticationError = require('../../errors/AuthenticationError');
 const crypto = require('crypto');
 
+function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
 class IssuersLocalCache {
 
     #renewTimeSeconds;
@@ -41,6 +47,7 @@ class IssuersLocalCache {
             "uuid": crypto.randomUUID()
         }
         const result = await SqsHandler.sendMessage(queueUrl, bodyMessage, messageDelay)
+        await sleep(parseInt(process.env.JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS) * 1000)
         return result;
     }
 
