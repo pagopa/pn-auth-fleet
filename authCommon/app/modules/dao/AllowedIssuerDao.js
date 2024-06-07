@@ -218,7 +218,7 @@ async function addJwksCacheEntry(iss, downloadUrlFn){
     let jwksS3Url;
 
     if(jwksBinaryBodySize > dynamoCacheLimit) {
-        await uploadJWKS(jwksBodyBinary, iss, cfg, modificationTimeEpochMs)
+        jwksS3Url = await uploadJWKS(jwksBodyBinary, iss, cfg, modificationTimeEpochMs)
     }
 
     const txInput = prepareTransactionInput(cfg, cfg.JWKSUrl, jwksBodyBinary, modificationTimeEpochMs, jwksS3Url)

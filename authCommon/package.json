@@ -12,7 +12,11 @@
     "@aws-sdk/client-dynamodb": "^3.506.0",
     "@aws-sdk/client-s3": "^3.577.0",
     "@aws-sdk/client-sqs": "^3.588.0",
+    "@aws-sdk/credential-providers": "^3.590.0",
+    "@aws-sdk/hash-node": "^3.374.0",
     "@aws-sdk/lib-dynamodb": "^3.506.0",
+    "@aws-sdk/signature-v4": "^3.374.0",
+    "@aws-sdk/util-format-url": "^3.577.0",
     "aws-sdk-client-mock": "^3.0.0",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
@@ -23,6 +27,7 @@
     "rewire": "^7.0.0"
   },
   "dependencies": {
-    "axios": "^1.6.7"
+    "axios": "^1.6.7",
+    "redis": "^4.6.14"
   }
 }

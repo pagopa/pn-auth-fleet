@@ -224,6 +224,44 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  JWKSCacheBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref JWKSCacheBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "s3:Get*"
+              - "s3:List*"            
+            Resource:
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/*"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}"
+            Principal:
+              AWS: 
+                - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+            Condition:
+              ArnLike:
+                aws:PrincipalArn: 
+                  - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/pn-jwksCacheForceRefreshLambdaRole"
+                  - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/pn-jwksCacheRefreshLambdaRole"
+          - Effect: Allow
+            Action:
+              - "s3:PutObject"
+              - "s3:PutObjectTagging"
+            Resource: 
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_cache_entries/*"
+              - !Sub "arn:aws:s3:::${JWKSCacheBucket}/jwks_cache_entries"
+            Principal:
+              AWS: 
+                - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+            Condition:
+              ArnLike:
+                aws:PrincipalArn:
+                  - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/pn-jwksCacheForceRefreshLambdaRole"
+                  - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/pn-jwksCacheRefreshLambdaRole"
+
   JWKSCacheForceRefreshQueue:
     Type: AWS::CloudFormation::Stack
     UpdateReplacePolicy: Retain
