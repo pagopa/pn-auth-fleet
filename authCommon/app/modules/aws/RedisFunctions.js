@@ -16,18 +16,18 @@ async function connectRedis() {
 
 async function lockFunction(iss, value){
     console.log("Acquiring lock on iss " + iss + " with value " + value)
-    const result = await redisClient.set(REDIS_KEY + iss, value, { NX: true, EX: INITIAL_LOCK_TTL_SEC});
+    const result = await redisClient.set(REDIS_KEY_NS + iss, value, { NX: true, EX: INITIAL_LOCK_TTL_SEC});
     console.log("Lock is " + result)
     return result === 'OK';
 }
 
 async function unlockFunction(iss, value){
     console.log("Releasing lock on iss " + iss + " with value " + value)
-    const tmp = await redisClient.get(REDIS_KEY + iss)
+    const tmp = await redisClient.get(REDIS_KEY_NS + iss)
     let result
     if(tmp) {
         if(tmp == value) {
-            result = await redisClient.del(REDIS_KEY + iss);
+            result = await redisClient.del(REDIS_KEY_NS + iss);
             console.log("Release lock is " + result)
         }
         else {
@@ -41,7 +41,7 @@ async function unlockFunction(iss, value){
 
 async function extendLockFunction(iss, value, extendTime) {
     console.log("Extending lock on iss " + iss + " with value " + value)
-    let result = await redisClient.set(REDIS_KEY + iss, value, { XX: true, EX: extendTime});
+    let result = await redisClient.set(REDIS_KEY_NS + iss, value, { XX: true, EX: extendTime});
     console.log("Extend result " + result)
 }
 
