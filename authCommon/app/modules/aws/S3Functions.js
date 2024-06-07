@@ -18,15 +18,12 @@ async function getObjectAsByteArray(bucketName, key){
     }
     const command = new GetObjectCommand(input)
     const data = await s3Client.send(command);
-    console.log(data)
     const byteArray = await streamToBuffer(data.Body);
 
     return Buffer.from(byteArray, "binary");
 }
 
 async function putObject(input){
-    console.log(s3Client)
-    console.log(input)
     const putObjectCommand = new PutObjectCommand(input)
     await s3Client.send(putObjectCommand)
 }
