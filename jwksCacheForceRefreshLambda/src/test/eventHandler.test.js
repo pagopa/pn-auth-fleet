@@ -5,10 +5,15 @@ const eventHandlerModule = rewire("../app/eventHandler");
 describe("test eventHandler success", () => {
 
   it("should eventHandler with success", async () => {
-    const event = {
+    const body = {
         "iss": "dev-issuer.dev2.notifichedigitali.it",
         "requestTimestamp": "2024-06-05T10:38:49.283Z",
         "uuid": "639efa7e-8321-473c-bf84-c4fe1ba69e52"
+    }
+    const event = {
+      Records: [{
+        body: JSON.stringify(body)
+      }]
     }
     const connectRedisStub = async () => {}
     eventHandlerModule.__set__('RedisHandler.connectRedis', connectRedisStub);
@@ -54,10 +59,15 @@ describe("test eventHandler success", () => {
   })
 
   it("should get locked issuer", async () => {
-    const event = {
+    const body = {
         "iss": "dev-issuer.dev2.notifichedigitali.it",
         "requestTimestamp": "2024-06-05T10:38:49.283Z",
         "uuid": "639efa7e-8321-473c-bf84-c4fe1ba69e52"
+    }
+    const event = {
+      Records: [{
+        body: JSON.stringify(body)
+      }]
     }
     const connectRedisStub = async () => {}
     eventHandlerModule.__set__('RedisHandler.connectRedis', connectRedisStub);
@@ -103,10 +113,15 @@ describe("test eventHandler success", () => {
   })
 
   it("should get fails and get exception issuer", async () => {
-    const event = {
+    const body = {
         "iss": "dev-issuer.dev2.notifichedigitali.it",
         "requestTimestamp": "2024-06-05T10:38:49.283Z",
         "uuid": "639efa7e-8321-473c-bf84-c4fe1ba69e52"
+    }
+    const event = {
+      Records: [{
+        body: JSON.stringify(body)
+      }]
     }
     const connectRedisStub = async () => {}
     eventHandlerModule.__set__('RedisHandler.connectRedis', connectRedisStub);
