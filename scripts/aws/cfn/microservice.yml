@@ -259,9 +259,10 @@ Parameters:
     Default: "ERROR"
     Description: "Filter pattern for b2b authorizer alarm"
 
+  #Always JwksCacheForceRefreshLambdaTimeout+10
   B2BAuthorizerLambdaTimeout:
     Type: Number
-    Default: 10
+    Default: 25
     Description: "Timeout for b2b authorizer lambda in seconds"
 
   B2BAuthorizerLambdaMemorySize:
@@ -320,7 +321,7 @@ Parameters:
     Description: "Maximum Clock drift in seconds"
     Default: '2'
 
-  #Can't be higher than 30
+  #Can't be higher than 30. Remember to modify B2BAuthorizerLambdaTimeout also
   JwksCacheForceRefreshLambdaTimeout: 
     Type: Number
     Description: "Refresh Timeout for JWKSCacheForceRefresh lambda"
