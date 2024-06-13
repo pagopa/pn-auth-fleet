@@ -22,23 +22,31 @@ class JwtService {
     return decodedToken;
   }
 
+  #getValidJWKSFromString(jwksAsString){
+    let jwks;
+    try { 
+      jwks = JSON.parse(jwksAsString)
+      if(!jwks.keys || !jwks.keys instanceof Array){
+        throw new Error("JWKS keys not found or not an array")
+      }
+    }
+    catch (error) {
+      console.warn("JWKS syntactically incorrect: "+jwksAsString, error)
+      jwks = { 
+        keys: []
+      }
+    }
+
+    return jwks;
+  }
+
   #findValidKeys(keyId, jwksCache){
     let validKeys = []
     jwksCache.forEach(jwksCacheItem => {
       const buff = Buffer.from(jwksCacheItem.JWKSBody);
       const jwksBody = buff.toString();
-      let jwks = {
-        keys: []
-      };
-      try { 
-        jwks = JSON.parse(jwksBody)
-        if(jwks.keys && jwks.keys instanceof Array) {
-          validKeys = validKeys.concat(jwks.keys.filter(key => key.kid === keyId))
-        }
-      }
-      catch (error) {
-        console.warn("JWKS body not parsable", error)
-      }
+      const jwks = this.#getValidJWKSFromString(jwksBody);
+      validKeys = validKeys.concat(jwks.keys.filter(key => key.kid === keyId))
     })  
 
     return validKeys
