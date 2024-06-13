@@ -27,7 +27,15 @@ class JwtService {
     jwksCache.forEach(jwksCacheItem => {
       const buff = Buffer.from(jwksCacheItem.JWKSBody);
       const jwksBody = buff.toString();
-      const jwks = JSON.parse(jwksBody)
+      let jwks = {
+        keys: []
+      };
+      try { 
+        jwks = JSON.parse(jwksBody)
+      }
+      catch (error) {
+        console.warn("JWKS body not parsable", error)
+      }
       validKeys = validKeys.concat(jwks.keys.filter(key => key.kid === keyId))
     })  
 
