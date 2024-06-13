@@ -32,11 +32,13 @@ class JwtService {
       };
       try { 
         jwks = JSON.parse(jwksBody)
+        if(jwks.keys && jwks.keys instanceof Array) {
+          validKeys = validKeys.concat(jwks.keys.filter(key => key.kid === keyId))
+        }
       }
       catch (error) {
         console.warn("JWKS body not parsable", error)
       }
-      validKeys = validKeys.concat(jwks.keys.filter(key => key.kid === keyId))
     })  
 
     return validKeys
