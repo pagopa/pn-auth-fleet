@@ -2,8 +2,8 @@ const rewire = require('rewire');
 const { expect } = require("chai");
 const fs = require('fs');
 const { AxiosError } = require('axios');
-
 const Downloader = rewire("../app/modules/http/UrlDownloader");
+
 
 process.env.JWKS_CONTENT_LIMIT_BYTES = '51200';
 process.env.JWKS_FOLLOW_REDIRECT = 'true';
@@ -104,4 +104,27 @@ describe('Url Downloader Testing', () => {
         }
     });
 
+    it('should download from s3', async () => {
+        const url = 's3://bucket-name/key-name';
+        const response = getFilaAsByteArray('test/resources/jwks.json')
+        
+        const getObjectAsByteArrayStub = () => {
+            return response;
+        };
+        Downloader.__set__('getObjectAsByteArray', getObjectAsByteArrayStub);
+
+        const result = await Downloader.downloadUrl(url);
+        expect(result).to.eql(response);
+    })
+
+
+    it('should throw an error if s3 download fails', async () => {
+        const url = 's3://bucket-name/key-name';
+        const response = getFilaAsByteArray('test/resources/jwks.json')
+        try {
+            await Downloader.downloadUrl(url);
+        } catch (err) {
+            expect(err.message).to.equal('Error downloading S3 object from URL: ' + url);
+        }
+    })
 });
