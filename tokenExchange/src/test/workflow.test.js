@@ -20,6 +20,7 @@ const revert = tokenGen.__set__({
     return { Signature: "signature" };
   },
   getKeyId: () => Promise.resolve("keyId"),
+  encryptToken: () => Promise.resolve("encryptedToken")
 });
 
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {

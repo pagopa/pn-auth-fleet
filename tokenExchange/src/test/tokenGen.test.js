@@ -4,6 +4,7 @@ const {
   KMSClient,
   SignCommand,
   DescribeKeyCommand,
+  EncryptCommand,
 } = require("@aws-sdk/client-kms");
 
 const { generateToken } = require("../app/tokenGen");
@@ -52,6 +53,9 @@ describe("test tokenGen", () => {
         KeyId: "keyId",
       },
     });
+    kmsClientMock.on(EncryptCommand).resolves({
+      CiphertextBlob: "encryptedToken"
+    })
     // this is "signature" in bytes array
     const binarySignature = new Uint8Array([
       73,
