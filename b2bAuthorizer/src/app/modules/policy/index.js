@@ -53,9 +53,7 @@ class PolicyService {
         return context.allowedApplicationRoles.includes(context.applicationRole);
     }
 
-    generatePolicyDocument(context, lambdaEvent) {
-        const intendedUsage = lambdaEvent?.stageVariables?.IntendedUsage;
-      
+    generatePolicyDocument(context) {
         if (!this.#validateSourceChannel(context)) {
           return defaultDenyAllPolicyDocument;
         }
