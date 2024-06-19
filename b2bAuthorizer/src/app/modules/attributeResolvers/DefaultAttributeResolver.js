@@ -1,4 +1,4 @@
-const { INTENDED_USAGE_2_APPLICATION_ROLE, INTENDED_USAGE_2_SOURCE_CHANNEL } = require('../config/constants');
+const { INTENDED_USAGE_2_APPLICATION_ROLE, INTENDED_USAGE_2_SOURCE_CHANNEL } = require('../../config/constants');
 
 function mapIntendedUsageToApplicationRole( intendedUsage ) {
     return INTENDED_USAGE_2_APPLICATION_ROLE[intendedUsage];
