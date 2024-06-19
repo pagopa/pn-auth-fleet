@@ -1,3 +1,5 @@
+const DefaultAttributeResolver = require('./DefaultAttributeResolver');
+
 class AttributeResolversMap {
 
     #attributeResolversMapping = new Map()
@@ -24,7 +26,8 @@ class AttributeResolversMap {
     }
 
     async resolveAttributes(jwt, lambdaEvent, attributeResolversCfgs = []) {
-        let context = {}
+        let context = DefaultAttributeResolver(jwt, lambdaEvent, {}, {})
+        const initialApplicationRole = context.applicationRole;
         let usageIdentifierKey = null;
 
         for( let i=0; i< attributeResolversCfgs.length; i++ ) {
@@ -41,6 +44,7 @@ class AttributeResolversMap {
             context = singleResolution.context;
             usageIdentifierKey = singleResolution.usageIdentifierKey;
         }
+        context.applicationRole = initialApplicationRole;
         return { context, usageIdentifierKey }
     }
 }
