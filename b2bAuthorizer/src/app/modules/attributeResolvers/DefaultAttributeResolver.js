@@ -20,16 +20,17 @@ function computeSourceChannelDetails( sourceChannel, jwt, lambdaEvent ) {
     return sourceChannelDetails;
   }
 
-async function DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg ) {
+function DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg ) {
     const intendedUsage = lambdaEvent?.stageVariables?.IntendedUsage;
     if(intendedUsage === undefined) {
-      throw new Error("Error on intendedUsage!!!")
+      throw new Error("Missing intendedUsage lambda event!")
     }
     context.applicationRole = mapIntendedUsageToApplicationRole( intendedUsage )
     context.sourceChannel = mapIntendedUsageToSourceChannel( intendedUsage )
     context.sourceChannelDetails = computeSourceChannelDetails( context.sourceChannel, jwt, lambdaEvent )
     return {
-      context: context
+      context: context,
+      usageIdentifierKey: null
     }
 }
 

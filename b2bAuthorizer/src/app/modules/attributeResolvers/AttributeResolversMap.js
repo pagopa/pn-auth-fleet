@@ -26,10 +26,9 @@ class AttributeResolversMap {
     }
 
     async resolveAttributes(jwt, lambdaEvent, attributeResolversCfgs = []) {
-        let context = DefaultAttributeResolver(jwt, lambdaEvent, {}, {})
+        let { context, usageIdentifierKey } = DefaultAttributeResolver(jwt, lambdaEvent, {}, {})
         const initialApplicationRole = context.applicationRole;
-        let usageIdentifierKey = null;
-
+        
         for( let i=0; i< attributeResolversCfgs.length; i++ ) {
             const attributeResolverCfg = attributeResolversCfgs[i];
             const attributeResolver = this.#getAttributeResolver( attributeResolverCfg.name );

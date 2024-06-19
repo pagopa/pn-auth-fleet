@@ -22,7 +22,7 @@ describe('DefaultAttributeResolver', () => {
     expect(result.context['sourceChannelDetails']).to.equal("")
   });
 
-  it('DefaultAttributeResolver should return context with B2B no interop', async () => {
+  it('DefaultAttributeResolver should return context with B2B no interop', () => {
     const jwt = {
       "kid": "string"
     }
@@ -31,13 +31,13 @@ describe('DefaultAttributeResolver', () => {
       key: "value"
     } 
     const attrResolverCfg = ""
-    const result = await DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg );
+    const result = DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg );
     expect(result.context['sourceChannel']).to.equal("B2B")
     expect(result.context['applicationRole']).to.equal("MITTENTE")
     expect(result.context['sourceChannelDetails']).to.equal("NONINTEROP")
   });
 
-  it('DefaultAttributeResolver should return context with B2B with interop', async () => {
+  it('DefaultAttributeResolver should return context with B2B with interop', () => {
     const jwt = {
       "iss": "test",
       "kid": "string"
@@ -47,13 +47,13 @@ describe('DefaultAttributeResolver', () => {
       key: "value"
     } 
     const attrResolverCfg = ""
-    const result = await DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg );
+    const result = DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg );
     expect(result.context['sourceChannel']).to.equal("B2B")
     expect(result.context['applicationRole']).to.equal("MITTENTE")
     expect(result.context['sourceChannelDetails']).to.equal("INTEROP")
   });
 
-  it("DefaultAttributeResolver should return an exception if intended usage is missing", async () => {
+  it("DefaultAttributeResolver should return an exception if intended usage is missing", () => {
     const jwt = {
       "iss": "test",
       "kid": "string"
@@ -64,10 +64,10 @@ describe('DefaultAttributeResolver', () => {
     } 
     const attrResolverCfg = ""
     try {
-      await await DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg );
+      DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg );
       expect().fail('Expected an exception')
     } catch(e) {
-      expect(e.message).to.be.equal("Error on intendedUsage!!!");
+      expect(e.message).to.be.equal("Missing intendedUsage lambda event!");
     }
   })
 })
