@@ -22,7 +22,9 @@ function computeSourceChannelDetails( sourceChannel, jwt, lambdaEvent ) {
 
 async function DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg ) {
     const intendedUsage = lambdaEvent?.stageVariables?.IntendedUsage;
-
+    if(intendedUsage === undefined) {
+      throw new Error("Error on intendedUsage!!!")
+    }
     context.applicationRole = mapIntendedUsageToApplicationRole( intendedUsage )
     context.sourceChannel = mapIntendedUsageToSourceChannel( intendedUsage )
     context.sourceChannelDetails = computeSourceChannelDetails( context.sourceChannel, jwt, lambdaEvent )

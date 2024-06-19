@@ -8,7 +8,6 @@ process.env.PDND_JWT_ISSUER = 'test'
 
 describe('DefaultAttributeResolver', () => {
   it('DefaultAttributeResolver should return context with RADD', async () => {
-    const jwtAttributes = JSON.parse(fs.readFileSync('src/test/resources/jwtAttributes.json'))
     const jwt = {
       "kid": "string"
     }
@@ -24,7 +23,6 @@ describe('DefaultAttributeResolver', () => {
   });
 
   it('DefaultAttributeResolver should return context with B2B no interop', async () => {
-    const jwtAttributes = JSON.parse(fs.readFileSync('src/test/resources/jwtAttributes.json'))
     const jwt = {
       "kid": "string"
     }
@@ -40,7 +38,6 @@ describe('DefaultAttributeResolver', () => {
   });
 
   it('DefaultAttributeResolver should return context with B2B with interop', async () => {
-    const jwtAttributes = JSON.parse(fs.readFileSync('src/test/resources/jwtAttributes.json'))
     const jwt = {
       "iss": "test",
       "kid": "string"
@@ -55,4 +52,22 @@ describe('DefaultAttributeResolver', () => {
     expect(result.context['applicationRole']).to.equal("MITTENTE")
     expect(result.context['sourceChannelDetails']).to.equal("INTEROP")
   });
+
+  it("DefaultAttributeResolver should return an exception if intended usage is missing", async () => {
+    const jwt = {
+      "iss": "test",
+      "kid": "string"
+    }
+    const lambdaEvent = {}
+    const context = {
+      key: "value"
+    } 
+    const attrResolverCfg = ""
+    try {
+      await await DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg );
+      expect().fail('Expected an exception')
+    } catch(e) {
+      expect(e.message).to.be.equal("Error on intendedUsage!!!");
+    }
+  })
 })
