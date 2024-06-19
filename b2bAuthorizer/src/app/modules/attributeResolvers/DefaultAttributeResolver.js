@@ -11,7 +11,7 @@ function mapIntendedUsageToSourceChannel( intendedUsage ) {
 function computeSourceChannelDetails( sourceChannel, jwt, lambdaEvent ) {
     var sourceChannelDetails;
     if( sourceChannel ==  "B2B"  ) {
-      let usingInterop = process.env.PDND_JWT_ISSUER.equals( jwt.iss )
+      let usingInterop = process.env.PDND_JWT_ISSUER == jwt.iss 
       sourceChannelDetails = usingInterop ? "INTEROP" : "NONINTEROP";
     }
     else {
@@ -21,11 +21,14 @@ function computeSourceChannelDetails( sourceChannel, jwt, lambdaEvent ) {
   }
 
 async function DefaultAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg ) {
-    const intendedUsage = lambdaEvent?.stageVariables?.intendedUsage;
+    const intendedUsage = lambdaEvent?.stageVariables?.IntendedUsage;
 
     context.applicationRole = mapIntendedUsageToApplicationRole( intendedUsage )
     context.sourceChannel = mapIntendedUsageToSourceChannel( intendedUsage )
     context.sourceChannelDetails = computeSourceChannelDetails( context.sourceChannel, jwt, lambdaEvent )
+    return {
+      context: context
+    }
 }
 
 module.exports = DefaultAttributeResolver;
