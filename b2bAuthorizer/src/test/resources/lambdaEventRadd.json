@@ -1,0 +1,11 @@
+{ 
+    "stageVariables": {
+        "IntendedUsage": "RADD",
+        "NetworkLoadBalancerLink": "xxxxxx",
+        "DnsName": "api.radd.notifichedigitali.it",
+        "ServiceApiPath": "radd-net",
+        "ProjectName": "pn",
+        "MicroServiceUniqueName": "pn-radd-alt",
+        "ApplicationLoadBalancerDomain": "domain.com"
+      }
+}

@@ -1,0 +1,8 @@
+{ 
+    "stageVariables": {
+        "IntendedUsage": "B2B",
+        "NetworkLoadBalancerLink": "xxxxxx",
+        "ProjectName": "pn",
+        "ApplicationLoadBalancerDomain": "domain.com"
+      }
+}
