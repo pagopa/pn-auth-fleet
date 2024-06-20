@@ -84,14 +84,18 @@ async function main() {
     if(step.toUpperCase() == "A"){
       console.log("Step A Uppercasing application role and allowed application roles in context attributes")
       //Allowed application roles
-      let allowedApplicationRoles = []
-      contextAttributes.allowedApplicationRoles.forEach(element => {
-        allowedApplicationRoles.push(element.toUpperCase())
-      });
-      contextAttributes.allowedApplicationRoles = allowedApplicationRoles
+      if(contextAttributes.allowedApplicationRoles) {
+        let allowedApplicationRoles = []
+        contextAttributes.allowedApplicationRoles.forEach(element => {
+          allowedApplicationRoles.push(element.toUpperCase())
+        });
+        contextAttributes.allowedApplicationRoles = allowedApplicationRoles
+      }
       //Application role
-      let applicationRole = contextAttributes.applicationRole.toUpperCase()
-      contextAttributes.applicationRole = applicationRole
+      if(contextAttributes.applicationRole){
+        let applicationRole = contextAttributes.applicationRole.toUpperCase()
+        contextAttributes.applicationRole = applicationRole
+      }
     }
     else if(step.toUpperCase() == "B") {
       console.log("Step B removing application role in context attributes")
