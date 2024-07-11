@@ -4,5 +4,6 @@ module.exports = {
     ATTR_PREFIX: 'ATTRS',
     JWKS_CACHE_PREFIX: 'JWKS_CACHE',
     JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME: 'jwksCacheExpireSlot',
-    JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME: 'jwksCacheExpireSlotIndex' 
+    JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME: 'jwksCacheExpireSlotIndex',
+    REDIS_KEY_NS: 'b2bauth::'  
 }

@@ -124,6 +124,10 @@ Parameters:
     Type: List<AWS::EC2::Subnet::Id>
     Description: "subnets ids comma separated list. Where to deploy the microservice"
 
+  VpcEgressSubnetsIds:
+    Type: CommaDelimitedList
+    Description: 'VPC subnet with internet access'
+
   VpcId:
     Type: String
     Description: "VpcId where the microservice is going to be deployed"
@@ -173,6 +177,9 @@ Parameters:
     Type: String
 
   TokenExchangeLambdaName:
+    Type: String
+
+  JwksCacheForceRefreshLambdaName:
     Type: String
 
   TokenExchangeWafLimit:
@@ -256,9 +263,10 @@ Parameters:
     Default: "ERROR"
     Description: "Filter pattern for b2b authorizer alarm"
 
+  #Always JwksCacheForceRefreshLambdaTimeout+10
   B2BAuthorizerLambdaTimeout:
     Type: Number
-    Default: 10
+    Default: 25
     Description: "Timeout for b2b authorizer lambda in seconds"
 
   B2BAuthorizerLambdaMemorySize:
@@ -306,6 +314,116 @@ Parameters:
     Description: "Maximum Limit of jwks to save on dynamo"
     Default: '51200'
 
+  #Can't be lower than JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS + MAXIMUM_CLOCK_DRIFT_SEC
+  JwksCacheMinimumIntervalBetweenTwoForcedRefreshSec:
+    Type: Number
+    Description: "Minimum interval between two forced refresh"
+    Default: '120'
+
+  MaximumClockDriftSec:
+    Type: Number
+    Description: "Maximum Clock drift in seconds"
+    Default: '2'
+
+  #Can't be higher than 30. Remember to modify B2BAuthorizerLambdaTimeout also
+  JwksCacheForceRefreshLambdaTimeout: 
+    Type: Number
+    Description: "Refresh Timeout for JWKSCacheForceRefresh lambda"
+    Default: '15' 
+
+  #Value defined in https://pagopa.atlassian.net/wiki/spaces/PN/pages/1048904039/Work+Package+2+-+dettaglio+di+analisi#Vincoli-sui-timeout
+  JWKSCacheForceRefreshQueueVisibilityTimeout: 
+    Type: Number
+    Description: "VisibilityTimeout for JWKSCacheForceRefresh queue"
+    Default: '92' 
+
+  JWKSCacheForceRefreshQueueARN:
+    Type: String
+    Description: 'Target queue ARN for jwks cache force refresh lambda'
+
+  JWKSCacheForceRefreshQueueURL:
+    Type: String
+    Description: 'Target queue URL for jwks cache force refresh lambda'
+
+  JWKSCacheForceRefreshQueueName:
+    Type: String
+    Description: 'Queue name for jwks cache force refresh lambda'
+
+  JWKSCacheForceRefreshDataPointsToAlarm:
+    Type: Number
+    Default: 1
+    Description: "Number of data points to alarm for jwks cache refresh"
+
+  JWKSCacheForceRefreshEvaluationPeriods:
+    Type: Number
+    Default: 60
+    Description: "Number of evaluation periods (1 minute) for jwks cache refresh"
+
+  JWKSCacheForceRefreshAlarmFilterPattern:
+    Type: String
+    Default: "ERROR"
+    Description: "Filter pattern for jwks cache refresh alarm"
+  
+  JWKSCacheForceRefreshDLQAlarmARN:
+    Type: String
+    Description: 'DLQ Alarm ARN for JWKSCacheForceRefresh-DLQ'
+
+  JWKSCacheForceRefreshAlarmARN:
+    Type: String
+    Description: 'DLQ Alarm ARN for JWKSCacheForceRefresh-DLQ'
+
+  JWKSCacheForceRefreshDLQARN:
+    Type: String
+    Description: 'DLQ ARN for JWKSCacheForceRefresh-DLQ'
+
+  JwksCacheForceRefreshLambdaEventSourceMappingBatchSize:
+    Type: Number
+    Default: '1'
+    Description: 'Batch size of JwksCacheForceRefreshLambda'
+
+  JwksCacheForceRefreshLambdaEventSourceMappingMaximumBatchingWindowInSeconds:
+    Type: Number
+    Default: '0'
+    Description: 'Batch windows of JwksCacheForceRefreshLambda'
+
+  JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency:
+    Type: Number
+    Default: '4'
+    Description: 'Maximum concurrency for JwksCacheForceRefreshLambda'
+
+  JwksFollowRedirect:
+    Type: String
+    Default: false
+    Description: Enable additional WAF Web rules
+    AllowedValues:
+      - true
+      - false
+
+  RedisServerlessArn:
+    Type: String
+    Description: 'RedisServerless ARN'
+  
+  RedisServerlessName:
+    Type: String
+    Description: 'RedisServerless Name'
+  
+  ElasticacheUserArn1:
+    Type: String
+    Description: 'ElastiCacheUser for radd'
+
+  RedisEndpoint:
+    Type: String
+    Description: 'ElastiCache Redis endpoint'
+
+  ElasticacheUserId1:
+    Type: String
+    Description: 'ElastiCache user id'
+    
+  ElasticacheSecurityGroup:
+    Type: String
+    Description: 'Elastic cache security Group'
+
+    
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -577,6 +695,9 @@ Resources:
           JWT_MAX_AGE_SECONDS: !Ref B2BAuthorizerJWTMaxAgeInSeconds
           JWT_CLOCK_TOLERANCE_SECONDS: !Ref B2BAuthorizerJWTClockToleranceInSeconds
           JWKS_CONTENTS: !Ref JWKSCacheBucketName
+          JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS: !Ref JwksCacheForceRefreshLambdaTimeout
+          JWKS_FORCE_REFRESH_QUEUE_VISIBILITY_TIMEOUT_SECONDS: !Ref JWKSCacheForceRefreshQueueVisibilityTimeout
+          JWKS_FORCE_REFRESH_QUEUE_URL: !Ref JWKSCacheForceRefreshQueueURL
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize
@@ -640,6 +761,12 @@ Resources:
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+              - Sid: AllowSendMessageSQS
+                Action:
+                  - sqs:SendMessage
+                Effect: Allow
+                Resource:
+                  - !Ref JWKSCacheForceRefreshQueueARN
       #ManagedPolicyArns:
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
@@ -684,7 +811,7 @@ Resources:
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
           JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
           JWKS_CONTENTS: !Ref JWKSCacheBucketName
-
+          JWKS_FOLLOW_REDIRECT: !Ref JwksFollowRedirect
   # Lambda function role
   JWKSCacheRefreshLambdaRole:
     Type: AWS::IAM::Role
@@ -935,6 +1062,150 @@ Resources:
       Parameters:
         FunctionName: !Ref TokenExchangeLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###          JWKS CACHE FORCE REFRESH LAMBDA          ###
+  #########################################################
+
+  # Lambda function
+  JwksCacheForceRefreshLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref JwksCacheForceRefreshLambdaName
+      Runtime: nodejs18.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/jwksCacheForceRefreshLambda.zip"
+      Environment:
+        Variables:
+          JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS: !Ref JwksCacheForceRefreshLambdaTimeout
+          MAXIMUM_CLOCK_DRIFT_SEC: !Ref MaximumClockDriftSec
+          MINIMUM_INTERVAL_BETWEEN_FORCED_REFRESH_SEC: !Ref JwksCacheMinimumIntervalBetweenTwoForcedRefreshSec
+          REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref ElasticacheUserId1
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
+          AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
+          JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+          JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
+          JWKS_CONTENTS: !Ref JWKSCacheBucketName
+          JWKS_FOLLOW_REDIRECT: !Ref JwksFollowRedirect
+      Role: !GetAtt JwksCacheForceRefreshLambdaRole.Arn
+      ReservedConcurrentExecutions: !Ref JwksCacheForceRefreshLambdaEventSourceMappingMaximumConcurrency
+      VpcConfig:
+        SecurityGroupIds: 
+          - !Ref ElasticacheSecurityGroup
+        SubnetIds: !Ref VpcEgressSubnetsIds
+      Timeout: !Ref JwksCacheForceRefreshLambdaTimeout
+      TracingConfig:
+        Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+
+  # Lambda function role
+  JwksCacheForceRefreshLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-jwksCacheForceRefreshLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaReadS3
+                Action:
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                Effect: Allow
+                Resource:
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_sources"
+              - Sid: AllowLambdaWriteS3
+                Action:
+                  - "s3:PutObject"
+                  - "s3:PutObjectTagging"
+                Effect: Allow
+                Resource:
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+              - Sid: AllowReadSQS
+                Action:
+                  - sqs:ChangeMessageVisibility
+                  - sqs:GetQueueUrl
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Effect: Allow
+                Resource:
+                  - !Ref JWKSCacheForceRefreshQueueARN
+              - Sid: RedisAuth
+                Action:
+                  - elasticache:Connect
+                Effect: Allow
+                Resource:
+                  - !Ref RedisServerlessArn
+                  - !Ref ElasticacheUserArn1
+              - Sid: AllowLambdaWriteDynamoDb
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+              - Sid: AllowLambdaReadDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Sub ${AuthJwtIssuersTableArn}*
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      #ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+
+  JwksCacheForceRefreshLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref JwksCacheForceRefreshLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        DataPointsToAlarm: !Ref JWKSCacheForceRefreshDataPointsToAlarm
+        EvaluationPeriods: !Ref JWKSCacheForceRefreshEvaluationPeriods
+        FilterPattern: !Ref JWKSCacheForceRefreshAlarmFilterPattern
+
+  JwksCacheForceRefreshLambdaEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !Ref JWKSCacheForceRefreshQueueARN
+      BatchSize: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingBatchSize}
+      MaximumBatchingWindowInSeconds: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumBatchingWindowInSeconds}
+      FunctionName: !GetAtt JwksCacheForceRefreshLambda.Arn
 
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
   # ###########################################################
@@ -1281,6 +1552,7 @@ Resources:
             - !GetAtt JwtAuthorizerLambda.Arn
             - !GetAtt B2BAuthorizerLambda.Arn            
             - !GetAtt TokenExchangeLambda.Arn
+            - !GetAtt JwksCacheForceRefreshLambda.Arn
         RestApiStageArns: !Join
           - ","
           - - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
@@ -1296,7 +1568,10 @@ Resources:
             - !GetAtt B2BAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JWKSCacheRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt JwksCacheForceRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
+            - !Ref JWKSCacheForceRefreshDLQAlarmARN
+            - !Ref JWKSCacheForceRefreshAlarmARN
         LogGroupsNames: !Join
           - ","
           - - !Sub "/aws/lambda/${ApiKeyAuthorizerV2LambdaName}"
@@ -1306,6 +1581,7 @@ Resources:
             - !Sub "/aws/lambda/${JWKSCacheRefreshLambdaName}"
             - !Sub "/aws/lambda/${B2BAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${TokenExchangeLambdaName}"
+            - !Sub "/aws/lambda/${JwksCacheForceRefreshLambdaName}"
 
   # Event Bridge rule to trigger JWKSCacheRefreshLambda every JWKSCacheRefreshIntervalInMinutes minutes
   JWKSCacheRefreshEventRule:
