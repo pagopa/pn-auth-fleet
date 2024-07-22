@@ -1,0 +1,14 @@
+{  
+    "jwt": {
+            "header": {
+            "alg": "RS256",
+            "typ": "JWT",
+            "kid": "test-kid"
+        },
+            "payload": {
+            "aud": "https://test-issuer.dev.notifichedigitali.it",
+            "jti": "12312312312312",
+            "iat": 1707991072
+        }
+    }
+}

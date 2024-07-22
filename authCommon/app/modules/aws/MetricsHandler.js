@@ -8,7 +8,7 @@ class MetricsHandler {
         this.#metrics = new Metrics({ namespace: 'PnAuthFleet/B2bAuthorizer', serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME });
     }
 
-    createMetric(metricName, unit, value, dimension, metadata) {
+    addMetric(metricName, unit, value, dimension, metadata) {
         switch (unit) {
             case 'count':
                 unit = MetricUnit.Count
@@ -22,9 +22,9 @@ class MetricsHandler {
         metadata ? this.#metrics.addDimension(metadata.name, metadata.value) : null
     }
     
-    createMultipleMetric(metrics) {
+    addMultipleMetrics(metrics) {
         metrics.forEach(metric => {
-            this.createMetric(metric.metricName, metric.unit, metric.value, metric.dimension, metric.metadata)
+            this.addMetric(metric.metricName, metric.unit, metric.value, metric.dimension, metric.metadata)
         });
     }
     
