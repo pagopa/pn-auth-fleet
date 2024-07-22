@@ -4,6 +4,7 @@ const Logger = require("./modules/logger");
 const JwtService = require("./modules/jwt");
 const PolicyService = require("./modules/policy");
 const AuthenticationError = require("./errors/AuthenticationError");
+const { MetricsHandler } = require('pn-auth-common');
 
 // cache initialization
 const renewTimeSeconds = parseInt(process.env.RENEW_TIME_SECONDS);
@@ -16,10 +17,22 @@ const issuersCache = new IssuersLocalCache(
 // attribute resolvers map
 const attributeResolvers = new AttributeResolversMap();
 
+// metric handler
+const metricsHandler = new MetricsHandler();
+
 // jwt Service initialization
 const maxAgeInSeconds = parseInt(process.env.JWT_MAX_AGE_SECONDS) || 3600; // default 1 hour
 const clockToleranceInSeconds = parseInt(process.env.JWT_CLOCK_TOLERANCE_SECONDS) || 60; // default 1 minute
 const jwtService = new JwtService(maxAgeInSeconds, clockToleranceInSeconds);
+
+const prepareMetricsJwtData = (decodedJwtToken, isValid) => {
+  const metrics = [
+    {metricName: "JWT_lifetime", unit: "seconds", value: decodedJwtToken.payload?.exp - decodedJwtToken.payload?.iat, dimension: {name:"issuer", value: decodedJwtToken.payload?.iss}, metadata: undefined},
+    {metricName: "JWT_lifepercent", unit: "seconds", value: (decodedJwtToken.payload?.exp - new Date()) / (decodedJwtToken.payload?.exp - decodedJwtToken.payload?.iat), dimension: {name:"issuer", value: decodedJwtToken.payload?.iss}, metadata: undefined},
+    {metricName: isValid ? "JWT_valid": "JWT_invalid", unit: "count", value: 1, dimension: {name:"issuer", value: decodedJwtToken.payload?.iss}, metadata: undefined},
+  ]
+  return metrics;
+}
 
 const getJWTFromLambdaEvent = (lambdaEvent) => {
   let authorizationHeader = lambdaEvent.headers?.authorization;
@@ -58,7 +71,8 @@ async function handleEvent(event) {
   const authorizationContex = prepareContextForLogger(event);
   const logger = new Logger(authorizationContex);
   const policyService = new PolicyService(logger);
-
+  let decodedJwtToken;
+  let issuerId;
   try {
 
     if (!jwtToken) {
@@ -66,11 +80,12 @@ async function handleEvent(event) {
       throw new Error("JWT Token not found in Authorization header");
     }
 
-    const decodedJwtToken = getDecodedToken(jwtToken);
+    decodedJwtToken = getDecodedToken(jwtToken);
 
-    const issuerId = decodedJwtToken.payload.iss;
+    issuerId = decodedJwtToken.payload.iss;
     if(!issuerId) {
       logger.addToContext('jwt', decodedJwtToken);
+      metricsHandler.createMetric("Unknown_iss", "count", 1, undefined, undefined)
       throw new AuthenticationError("Issuer not found in JWT", { iss: decodedJwtToken.payload.iss }, false);
     }
 
@@ -85,10 +100,13 @@ async function handleEvent(event) {
         logger.addToContext('issuerInfo', issuerInfo);
         jwtService.validateToken( issuerInfo, decodedJwtToken, jwtToken, event );  // throw AutenticationError if something goes wrong
       } else {
+        const metrics = prepareMetricsJwtData(decodedJwtToken, false)
+        metricsHandler.createMultipleMetric(metrics)
         throw err;
       }
     }
-    
+    const metrics = prepareMetricsJwtData(decodedJwtToken, true)
+    metricsHandler.createMultipleMetric(metrics)
     const simpleJwt = jwtService.extractEssentialFields( decodedJwtToken )
     logger.addToContext('simpleJwt', simpleJwt.toDiagnosticContext());
 
@@ -121,11 +139,18 @@ async function handleEvent(event) {
         context: {},
         usageIdentifierKey: null
       }
+      if(issuerId) {
+        metricsHandler.createMetric("Unknown_iss", "count", 1, undefined, {name: "iss", value: issuerId}, undefined, undefined)
+      }
+      prepareMetricsJwtData(decodedJwtToken)
       return ret
     } else {
       logger.error(e.message, e);
       throw e;
     }
+  }
+  finally {
+    metricsHandler.publishMetrics()
   }
 }
 
