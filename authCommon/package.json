@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@aws-lambda-powertools/metrics": "^2.2.0",
     "@aws-sdk/client-dynamodb": "^3.506.0",
     "@aws-sdk/client-s3": "^3.577.0",
     "@aws-sdk/client-sqs": "^3.588.0",
@@ -28,6 +27,7 @@
     "rewire": "^7.0.0"
   },
   "dependencies": {
+    "@aws-lambda-powertools/metrics": "^2.2.0",
     "axios": "^1.6.7",
     "redis": "^4.6.14"
   }
