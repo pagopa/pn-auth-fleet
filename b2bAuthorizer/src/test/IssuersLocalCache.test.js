@@ -154,6 +154,10 @@ describe('IssuersLocalCache', () => {
       })
     }
     IssuersLocalCache.__set__('AllowedIssuerDao', AllowedIssuerDao);
+    const SqsHandler = {
+      sendMessage: async (iss, messageBody, delaySeconds) => ({})
+    }
+    IssuersLocalCache.__set__('SqsHandler', SqsHandler);
     const cache = new IssuersLocalCache(100, 100);
     const cacheItem1 = await cache.getOrLoad('issKey');
 
