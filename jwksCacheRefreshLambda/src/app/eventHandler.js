@@ -34,13 +34,13 @@ async function handleEvent(event) {
             issuersToRenew = await AllowedIssuerDao.listJwksCacheExpiringAtMinute( transformInDate(pivotTimeInMillis) )
             console.log('Issuers to renew at '+transformInDate(pivotTimeInMillis), issuersToRenew)
         }
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: 'OK' }),
+        }
     }
     finally {
         metricsHandler.publishMetrics()
-    }
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ message: 'OK' }),
     }
 }
 
