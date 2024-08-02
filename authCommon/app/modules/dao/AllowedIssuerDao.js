@@ -166,10 +166,10 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationT
     const sha256 = computeSha256(jwksBinaryBody)
     const jwksCacheExpireSlot = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheRenewSec
     const cacheMaxUsageEpochSec = computeCacheMaxUsageEpochSec(modificationTimeEpochMs, cfg.JWKSCacheRenewSec)
-    
     // convert jwksCacheExpireSlot in YYYY-MM-DDTHH:mmZ
     const jwksCacheExpireSlotWithMinutesPrecision = new Date(jwksCacheExpireSlot * 1000).toISOString().substring(0,16)+'Z'
-    
+    const jwksCacheOriginalExpireEpochSeconds = jwksCacheExpireSlot
+
     const iss = getISSFromHashKey(cfg.hashKey)
 
     return {
@@ -181,10 +181,11 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationT
                         hashKey: buildHashKeyForAllowedIssuer(iss),
                         sortKey: CFG
                     },
-                    UpdateExpression: 'SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs',
+                    UpdateExpression: 'SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs, jwksCacheOriginalExpireEpochSeconds = :jwksCacheOriginalExpireEpochSeconds',
                     ExpressionAttributeValues: {
                         ':jwksCacheExpireSlot': jwksCacheExpireSlotWithMinutesPrecision,
-                        ':modificationTimeEpochMs': modificationTimeEpochMs
+                        ':modificationTimeEpochMs': modificationTimeEpochMs,
+                        ':jwksCacheOriginalExpireEpochSeconds': jwksCacheOriginalExpireEpochSeconds
                     }
                 }
             },
@@ -199,6 +200,7 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationT
                         contentHash: sha256,
                         cacheRenewEpochSec: jwksCacheExpireSlot,
                         cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
+                        jwksCacheOriginalExpireEpochSeconds: jwksCacheOriginalExpireEpochSeconds,
                         ...(!jwksS3Url ? { JWKSBody : jwksBinaryBody } : { JWKSS3Url : jwksS3Url}),
                         modificationTimeEpochMs: modificationTimeEpochMs,
                         ttl: cacheMaxUsageEpochSec
