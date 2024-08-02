@@ -21,7 +21,7 @@ async function handleEvent(event) {
                     await AllowedIssuerDao.addJwksCacheEntry( allowedIssuerId, UrlDownloader.downloadUrl )
                     const renewTimeMetricValue = Math.floor(Date.now() / 1000) - allowedIssuerToRenew.jwksCacheOriginalExpireEpochSeconds
                     const metric = prepareJWKSRenewTimeMetric(allowedIssuerId, renewTimeMetricValue)
-                    metricsHandler.addMetric(metric)
+                    metricsHandler.addMetric(metric.metricName, metric.unit, metric.value, metric.dimension, metric.metadata)
                     console.log('JWKS cache entry added for issuer ' + allowedIssuerId)
                 }
                 catch (e) {
