@@ -13,34 +13,30 @@ async function handleEvent(event) {
     let pivotTimeInMillis = date;
     let issuersToRenew = await AllowedIssuerDao.listJwksCacheExpiringAtMinute( transformInDate(pivotTimeInMillis) )
     console.log('Issuers to renew at '+transformInDate(pivotTimeInMillis), issuersToRenew)
-    try {
-        while(issuersToRenew.length > 0 || initialTimeInMillis-pivotTimeInMillis < minimumMinutesInThePast * 60 * 1000) {
-            for ( const allowedIssuerToRenew of issuersToRenew ) {
-                const allowedIssuerId = allowedIssuerToRenew.iss
-                try {
-                    await AllowedIssuerDao.addJwksCacheEntry( allowedIssuerId, UrlDownloader.downloadUrl )
-                    const renewTimeMetricValue = Math.floor(Date.now() / 1000) - allowedIssuerToRenew.jwksCacheOriginalExpireEpochSeconds
-                    const metric = prepareJWKSRenewTimeMetric(allowedIssuerId, renewTimeMetricValue)
-                    metricsHandler.addMetric(metric)
-                    console.log('JWKS cache entry added for issuer ' + allowedIssuerId)
-                }
-                catch (e) {
-                    console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
-                    const rescheduleTime = Date.now() + (jwksDownloadRetryIntervalMinutes * 60 * 1000);
-                    await AllowedIssuerDao.postponeJwksCacheEntryValidation( allowedIssuerId, transformInDate(rescheduleTime) )
-                }
+    while(issuersToRenew.length > 0 || initialTimeInMillis-pivotTimeInMillis < minimumMinutesInThePast * 60 * 1000) {
+        for ( const allowedIssuerToRenew of issuersToRenew ) {
+            const allowedIssuerId = allowedIssuerToRenew.iss
+            try {
+                await AllowedIssuerDao.addJwksCacheEntry( allowedIssuerId, UrlDownloader.downloadUrl )
+                const renewTimeMetricValue = Math.floor(Date.now() / 1000) - allowedIssuerToRenew.jwksCacheOriginalExpireEpochSeconds
+                const metric = prepareJWKSRenewTimeMetric(allowedIssuerId, renewTimeMetricValue)
+                metricsHandler.addMetric(metric)
+                console.log('JWKS cache entry added for issuer ' + allowedIssuerId)
             }
-            pivotTimeInMillis = removeSingleMinute(pivotTimeInMillis)
-            issuersToRenew = await AllowedIssuerDao.listJwksCacheExpiringAtMinute( transformInDate(pivotTimeInMillis) )
-            console.log('Issuers to renew at '+transformInDate(pivotTimeInMillis), issuersToRenew)
+            catch (e) {
+                console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
+                const rescheduleTime = Date.now() + (jwksDownloadRetryIntervalMinutes * 60 * 1000);
+                await AllowedIssuerDao.postponeJwksCacheEntryValidation( allowedIssuerId, transformInDate(rescheduleTime) )
+            }
         }
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: 'OK' }),
-        }
+        pivotTimeInMillis = removeSingleMinute(pivotTimeInMillis)
+        issuersToRenew = await AllowedIssuerDao.listJwksCacheExpiringAtMinute( transformInDate(pivotTimeInMillis) )
+        console.log('Issuers to renew at '+transformInDate(pivotTimeInMillis), issuersToRenew)
     }
-    finally {
-        metricsHandler.publishMetrics()
+    metricsHandler.publishMetrics()
+    return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'OK' }),
     }
 }
 
