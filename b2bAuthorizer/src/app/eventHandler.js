@@ -79,7 +79,7 @@ async function handleEvent(event) {
     if(!issuerId) {
       logger.addToContext('jwt', decodedJwtToken);
       const metric = prepareMetric("Unknown_iss", decodedJwtToken)
-      metricsHandler.addMetric(metric)
+      metricsHandler.addMetric(metric.metricName, metric.unit, metric.value, metric.dimension, metric.metadata)
       throw new AuthenticationError("Issuer not found in JWT", { iss: decodedJwtToken.payload.iss }, false);
     }
 
@@ -135,7 +135,7 @@ async function handleEvent(event) {
       }
       if(issuerId) {
         const metric = prepareMetric("Unknown_iss", decodedJwtToken)
-        metricsHandler.addMetric(metric)
+        metricsHandler.addMetric(metric.metricName, metric.unit, metric.value, metric.dimension, metric.metadata)
       }
       const metrics = prepareMetricsJwtData(decodedJwtToken, false)
       metricsHandler.addMultipleMetrics(metrics)
