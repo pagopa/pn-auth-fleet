@@ -180,6 +180,7 @@ Resources:
             ProjectionType: "INCLUDE"
             NonKeyAttributes:
               - "iss"
+              - "jwksCacheOriginalExpireEpochSeconds"
       BillingMode: "PAY_PER_REQUEST"
       TimeToLiveSpecification:
         AttributeName: "ttl"
