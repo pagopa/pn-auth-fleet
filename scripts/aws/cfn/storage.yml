@@ -172,7 +172,15 @@ Resources:
         - AttributeName: "sortKey"
           KeyType: "RANGE"
       GlobalSecondaryIndexes:
-        - IndexName: "jwksCacheExpireSlotIndex"
+        - IndexName: "jwksCacheExpireSlotIndex" #TO REMOVE
+          KeySchema:
+            - AttributeName: "jwksCacheExpireSlot"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "INCLUDE"
+            NonKeyAttributes:
+              - "iss"
+        - IndexName: "jwksCacheExpireSlotUpdatedIndex"
           KeySchema:
             - AttributeName: "jwksCacheExpireSlot"
               KeyType: "HASH"
