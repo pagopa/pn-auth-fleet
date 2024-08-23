@@ -6,6 +6,7 @@ class JwtEssentialFields {
     #purposeId;
     #client_id;
     #jti;
+    #virtual_key
 
     constructor(aud, iss, kid, purposeId, client_id, jti) {
         this.#aud = aud;
@@ -14,6 +15,7 @@ class JwtEssentialFields {
         this.#purposeId = purposeId;
         this.#client_id = client_id;
         this.#jti = jti;
+        this.#virtual_key = virtual_key
     }
 
     get aud() {
@@ -40,6 +42,11 @@ class JwtEssentialFields {
         return this.#jti;
     }
 
+      get virtual_key() {
+            return this.#virtual_key;
+        }
+
+
     toDiagnosticContext() {
         return {
             aud: this.#aud,
@@ -48,6 +55,7 @@ class JwtEssentialFields {
             purposeId: this.#purposeId,
             client_id: this.#client_id,
             jti: this.#jti
+            virtual_key: this.#virtual_key
         }
     }
     
@@ -57,7 +65,7 @@ class JwtEssentialFields {
             kid = jwt.payload.kid
         }
 
-        return new JwtEssentialFields(jwt.payload.aud, jwt.payload.iss, kid, jwt.payload.purposeId, jwt.payload.client_id, jwt.payload.jti);
+        return new JwtEssentialFields(jwt.payload.aud, jwt.payload.iss, kid, jwt.payload.purposeId, jwt.payload.client_id, jwt.payload.jti, jwt.payload.virtual_key);
     }
 }
 
