@@ -1487,9 +1487,9 @@ Resources:
         - !Ref AlarmSNSTopicArn
       OKActions:
         - !Ref AlarmSNSTopicArn
-      DatapointsToAlarm: 1
+      DatapointsToAlarm: 7
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 5
+      EvaluationPeriods: 10
       Threshold: 1
       TreatMissingData: notBreaching
       Metrics:
