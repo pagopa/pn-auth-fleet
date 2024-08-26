@@ -117,6 +117,7 @@ Resources:
         LogGroupPrefix: '/aws/lambda'
         LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+        LogEnableMasking: true
 
   JwksCacheForceRefreshLambdaLogGroup:
     Type: AWS::CloudFormation::Stack
