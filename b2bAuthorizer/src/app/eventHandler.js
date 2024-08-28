@@ -65,7 +65,7 @@ async function handleEvent(event) {
       console.warn("jwtToken is null");
       throw new Error("JWT Token not found in Authorization header");
     }
-
+    
     const decodedJwtToken = getDecodedToken(jwtToken);
 
     const issuerId = decodedJwtToken.payload.iss;
@@ -91,13 +91,14 @@ async function handleEvent(event) {
     
     const simpleJwt = jwtService.extractEssentialFields( decodedJwtToken )
     logger.addToContext('simpleJwt', simpleJwt.toDiagnosticContext());
-
+    
     const attributeResolution = await attributeResolvers.resolveAttributes( simpleJwt, event, issuerInfo.cfg.attributeResolversCfgs );
     logger.addToContext('attributeResolution', attributeResolution);
     const context = attributeResolution.context;
     const usageIdentifierKey = attributeResolution.usageIdentifierKey;
     
-    const policyDocument = policyService.generatePolicyDocument( context, event )
+    //Viene generata la policy a partire dal context
+    const policyDocument = await policyService.generatePolicyDocument( context, event )
     logger.addToContext('policyDocument', policyDocument);
     const iamPolicyContext = policyService.normalizeContextForIAMPolicy( context );
 

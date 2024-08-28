@@ -1,3 +1,5 @@
+const customPolicy = require("./customPolicy.js");
+
 const defaultDenyAllPolicyDocument = {
     Version: "2012-10-17",
     Statement: [
@@ -57,7 +59,7 @@ class PolicyService {
         return context.allowedApplicationRoles.includes(context.applicationRole);
     }
 
-    generatePolicyDocument(context, lambdaEvent) {
+    async generatePolicyDocument(context, lambdaEvent) {
         const intendedUsage = lambdaEvent?.stageVariables?.IntendedUsage;
       
         if (!this.#validateIntendedUsage(context, intendedUsage)) {
@@ -67,9 +69,14 @@ class PolicyService {
         if(!this.#validateApplicationRoles(context)){
           return defaultDenyAllPolicyDocument;
         }
+
+        if(context.callableApiTags){
+          return await customPolicy.getCustomPolicyDocument(lambdaEvent, context.callableApiTags);
+        }
       
         return defaultAllowPolicyDocument;
     }
+
 
     normalizeContextForIAMPolicy(context){
       const iamPolicyContext = { ...context };

@@ -8,7 +8,7 @@ class JwtEssentialFields {
     #jti;
     #virtual_key
 
-    constructor(aud, iss, kid, purposeId, client_id, jti) {
+    constructor(aud, iss, kid, purposeId, client_id, jti, virtual_key) {
         this.#aud = aud;
         this.#iss = iss;
         this.#kid = kid;
@@ -54,7 +54,7 @@ class JwtEssentialFields {
             kid: this.#kid,
             purposeId: this.#purposeId,
             client_id: this.#client_id,
-            jti: this.#jti
+            jti: this.#jti,
             virtual_key: this.#virtual_key
         }
     }
