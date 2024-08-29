@@ -94,8 +94,6 @@ async function handleEvent(event) {
         logger.addToContext('issuerInfo', issuerInfo);
         jwtService.validateToken( issuerInfo, decodedJwtToken, jwtToken, event );  // throw AutenticationError if something goes wrong
       } else {
-        const metrics = prepareMetricsJwtData(decodedJwtToken, false)
-        metricsHandler.addMultipleMetrics(metrics)
         throw err;
       }
     }
@@ -109,7 +107,7 @@ async function handleEvent(event) {
     const context = attributeResolution.context;
     const usageIdentifierKey = attributeResolution.usageIdentifierKey;
     
-    const policyDocument = policyService.generatePolicyDocument( context, event )
+    const policyDocument = policyService.generatePolicyDocument( context )
     logger.addToContext('policyDocument', policyDocument);
     const iamPolicyContext = policyService.normalizeContextForIAMPolicy( context );
 

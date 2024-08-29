@@ -17,9 +17,9 @@ class MetricsHandler {
                 unit = MetricUnit.Seconds
                 break;
         }
-        this.#metrics.addMetric(metricName, unit, value)
         dimension ? this.#metrics.addDimension(dimension.name, dimension.value) : null
         metadata ? this.#metrics.addDimension(metadata.name, metadata.value) : null
+        this.#metrics.addMetric(metricName, unit, value)
     }
     
     addMultipleMetrics(metrics) {

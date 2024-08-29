@@ -1,12 +1,13 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
+const fs = require('fs')
 
 describe('AttributeResolversMap', () => {
 
     it('should raise exception if resolve name not found', async () => {
         const jwt = {};
-        const lambdaEvent = {};
+        const lambdaEvent = JSON.parse(fs.readFileSync('src/test/resources/lambdaEventB2B.json'))
         const attributeResolversCfgs = [
             {
                 name: 'NOT_EXISTING',
@@ -31,7 +32,7 @@ describe('AttributeResolversMap', () => {
 
     it('should return context', async () => {
         const jwt = {};
-        const lambdaEvent = {};
+        const lambdaEvent = JSON.parse(fs.readFileSync('src/test/resources/lambdaEventB2B.json'))
         const attributeResolversCfgs = [
             {
                 name: 'DATABASE',
@@ -55,7 +56,7 @@ describe('AttributeResolversMap', () => {
 
     it('should return exception if usageIdentifier has conflicts', async () => {
         const jwt = {};
-        const lambdaEvent = {};
+        const lambdaEvent = JSON.parse(fs.readFileSync('src/test/resources/lambdaEventB2B.json'))
         const attributeResolversCfgs = [
             {
                 name: 'DATABASE',
