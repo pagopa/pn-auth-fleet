@@ -1,14 +1,15 @@
 function prepareIssuerDimension( decodedJwtToken ) {
     if(!decodedJwtToken.payload) {
-        return {};
+        return null;
     }
     const issuerId = decodedJwtToken.payload.iss
-    if(!issuerId) {
+    if(issuerId) {
         return {
             name: "issuer",
             value: issuerId
         }
     }
+    return null;
 }
 
 function prepareJWTlifetime( decodedJwtToken ) {
@@ -27,7 +28,7 @@ function prepareJWTlifepercent( decodedJwtToken ) {
     const timestamp = new Date().getTime() / 1000
     const exp = decodedJwtToken.payload.exp
     const iat = decodedJwtToken.payload.iat
-    return (iat - timestamp) / (exp - iat)
+    return (timestamp - iat) / (exp - iat)
 }
 function prepareMetric(metricName, decodedJwtToken) {
     let value;
@@ -47,7 +48,7 @@ function prepareMetric(metricName, decodedJwtToken) {
             break;
         case 'JWT_valid':
             dimension = prepareIssuerDimension(decodedJwtToken)
-        case 'JWT_valid':
+        case 'JWT_invalid':
             dimension = prepareIssuerDimension(decodedJwtToken)
         default: //always count and 1
             value = 1;
