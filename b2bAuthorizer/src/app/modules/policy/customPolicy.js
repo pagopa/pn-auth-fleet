@@ -1,5 +1,6 @@
 const s3Utils = require("../middleware/s3Utils.js");
 const apiGatewayUtils = require("../middleware/apiGatewayUtils.js");
+const { AuthPolicy } = require("./authPolicy.js");
 
 async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
     const apiOptions = getApiOption(lambdaEvent);
@@ -13,6 +14,7 @@ async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
         bucketKey,
         callableApiTags
     );
+
     // let policyDocument = {
     //     Version: "2012-10-17",
     //     Statement: []
@@ -30,7 +32,15 @@ async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
     //     }
     // }
 
-    return policyDocument;
+    const policy = new AuthPolicy(apiOptions.accountId, apiOptions);
+
+    if(resources){
+        for (let i = 0; i < resources.length; i++) {
+            policy.allowMethod(resources[i].method, resources[i].path);
+        }
+    }
+
+    return policy.build();
 }
 
 function getApiOption(lambdaEvent){

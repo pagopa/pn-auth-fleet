@@ -8,13 +8,14 @@ const customPolicy = require("../app/modules/policy/customPolicy.js");
 
 const policyService = new PolicyService(new Logger());
 
-before(() => {
+beforeEach(() => {
     getCustomPolicyDocument = sinon.stub(
       customPolicy,
       "getCustomPolicyDocument"
     );
 });
-after(() => {
+
+afterEach(() => {
     sinon.restore();
 });
 
@@ -174,8 +175,8 @@ describe('PolicyService', () => {
 
         const ctx = {
             sourceChannel: 'B2BPG', 
-            allowedApplicationRoles: "[\"user\",\"admin\"]", //come saranno configurati nel nostro caso?
-            applicationRole: 'user', //come saranno configurati nel nostro caso?
+            allowedApplicationRoles: "[\"user\",\"admin\"]",
+            applicationRole: 'user', 
             callableApiTags: 'REFINEMENT'
         }
         const policy = await policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'B2BPG' } });

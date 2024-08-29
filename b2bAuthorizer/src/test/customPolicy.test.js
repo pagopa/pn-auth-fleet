@@ -24,7 +24,7 @@ describe("Test auth policy", () => {
       sinon.restore();
     });
   
-    it.only("allow method", async () => {
+    it("allow method", async () => {
       getAllowedResourcesFromS3Stub.callsFake(() => [
         {
           path: "/test",
@@ -42,7 +42,6 @@ describe("Test auth policy", () => {
       };
       let callableApiTags = ["REFINEMENT", "BASE"]
       let policy = await getCustomPolicyDocument(lambdaEvent, callableApiTags)
-      console.log('the policy is ', policy)
 
       let policyExpected = {
         Version: '2012-10-17',

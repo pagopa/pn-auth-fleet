@@ -18,7 +18,7 @@
  * @class AuthPolicy
  * @constructor
  */
-function AuthPolicy(principal, awsAccountId, apiOptions) {
+function AuthPolicy(awsAccountId, apiOptions) {
   /**
    * The AWS account id the policy will be generated for. This is used to create
    * the method ARNs.
@@ -27,15 +27,6 @@ function AuthPolicy(principal, awsAccountId, apiOptions) {
    * @type {String}
    */
   this.awsAccountId = awsAccountId;
-
-  /**
-   * The principal used for the policy, this should be a unique identifier for
-   * the end user.
-   *
-   * @property principalId
-   * @type {String}
-   */
-  this.principalId = principal;
 
   /**
    * The policy version used for the evaluation. This should always be "2012-10-17"
@@ -319,7 +310,7 @@ AuthPolicy.prototype = (function () {
      * @method build
      * @return {Object} The policy object that can be serialized to JSON.
      */
-    build: function (context = {}) {
+    build: function () {
       if (
         (!this.allowMethods || this.allowMethods.length === 0) &&
         (!this.denyMethods || this.denyMethods.length === 0)
@@ -328,7 +319,6 @@ AuthPolicy.prototype = (function () {
       }
 
       const policy = {};
-      policy.principalId = this.principalId;
       const doc = {};
       doc.Version = this.version;
       doc.Statement = [];
@@ -340,10 +330,7 @@ AuthPolicy.prototype = (function () {
         getStatementsForEffect.call(this, "Deny", this.denyMethods)
       );
 
-      policy.policyDocument = doc;
-      policy.context = context;
-
-      return policy;
+      return doc;
     },
   };
 })();
