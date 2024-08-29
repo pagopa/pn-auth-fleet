@@ -29,18 +29,14 @@ class PolicyService {
         
     }
 
-    #validateIntendedUsage(context, intendedUsage) {
-        if (!intendedUsage) {
-            this.#logger.warn('IntendedUsage not found in stageVariables');
-            return false;
-        }
+    #validateSourceChannel(context) {
         
         if(!context.sourceChannel){
           this.#logger.warn('sourceChannel not found in context');
           return false;
         }
         // W.I. 1.6 In futuro potrebbe essere necessario un mapping
-        return intendedUsage.toLowerCase() === context.sourceChannel.toLowerCase();
+        return true;
     }
       
     #validateApplicationRoles(context) {
@@ -57,10 +53,8 @@ class PolicyService {
         return context.allowedApplicationRoles.includes(context.applicationRole);
     }
 
-    generatePolicyDocument(context, lambdaEvent) {
-        const intendedUsage = lambdaEvent?.stageVariables?.IntendedUsage;
-      
-        if (!this.#validateIntendedUsage(context, intendedUsage)) {
+    generatePolicyDocument(context) {
+        if (!this.#validateSourceChannel(context)) {
           return defaultDenyAllPolicyDocument;
         }
       

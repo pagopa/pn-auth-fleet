@@ -694,6 +694,7 @@ Resources:
           JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS: !Ref JwksCacheForceRefreshLambdaTimeout
           JWKS_FORCE_REFRESH_QUEUE_VISIBILITY_TIMEOUT_SECONDS: !Ref JWKSCacheForceRefreshQueueVisibilityTimeout
           JWKS_FORCE_REFRESH_QUEUE_URL: !Ref JWKSCacheForceRefreshQueueURL
+          PDND_JWT_ISSUER: !Ref ApikeyAuthorizerV2PDNDIssuer
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize

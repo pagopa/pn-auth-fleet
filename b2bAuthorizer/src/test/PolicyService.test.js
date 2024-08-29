@@ -11,22 +11,7 @@ const policyService = new PolicyService(new Logger());
 describe('PolicyService', () => {
 
     it('should return a deny policy if intended usage mismatch', () => {
-        const policy = policyService.generatePolicyDocument({ sourceChannel: 'RADD' }, { stageVariables: { IntendedUsage: 'B2B' } });
-
-        expect(policy).to.deep.equal({
-            Version: '2012-10-17',
-            Statement: [
-                {
-                    Action: 'execute-api:Invoke',
-                    Effect: 'Deny',
-                    Resource: '*'
-                }
-            ]
-        });
-    });
-
-    it('should return a deny policy if intended usage is missing', () => {
-        const policy = policyService.generatePolicyDocument({ sourceChannel: 'RADD' }, { stageVariables: { } });
+        const policy = policyService.generatePolicyDocument({ sourceChannel: 'RADD' });
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -41,7 +26,7 @@ describe('PolicyService', () => {
     });
 
     it('should return a deny policy if intended usage is missing in context', () => {
-        const policy = policyService.generatePolicyDocument({  }, { stageVariables: { IntendedUsage: 'RADD' } });
+        const policy = policyService.generatePolicyDocument({  });
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -61,7 +46,7 @@ describe('PolicyService', () => {
             allowedApplicationRoles: [ 'user'],
             applicationRole: 'admin'
         }
-        const policy = policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
+        const policy = policyService.generatePolicyDocument(ctx);
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -80,7 +65,7 @@ describe('PolicyService', () => {
             sourceChannel: 'RADD',
             applicationRole: 'admin'
         }
-        const policy = policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
+        const policy = policyService.generatePolicyDocument(ctx);
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -99,7 +84,7 @@ describe('PolicyService', () => {
             sourceChannel: 'RADD',
             allowedApplicationRoles: [ 'user']
         }
-        const policy = policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
+        const policy = policyService.generatePolicyDocument(ctx);
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -119,7 +104,7 @@ describe('PolicyService', () => {
             allowedApplicationRoles: [ 'user', 'admin'],
             applicationRole: 'user'
         }
-        const policy = policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
+        const policy = policyService.generatePolicyDocument(ctx);
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
