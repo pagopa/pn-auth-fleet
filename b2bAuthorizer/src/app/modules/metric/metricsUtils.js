@@ -1,19 +1,33 @@
 function prepareIssuerDimension( decodedJwtToken ) {
-    const issuerId = decodedJwtToken.payload?.iss
+    if(!decodedJwtToken.payload) {
+        return {};
+    }
+    const issuerId = decodedJwtToken.payload.iss
     if(!issuerId) {
         return {
             name: "issuer",
-            value: decodedJwtToken.payload?.iss
+            value: issuerId
         }
     }
 }
 
 function prepareJWTlifetime( decodedJwtToken ) {
-    return decodedJwtToken.payload?.exp - decodedJwtToken.payload?.iat
+    if(!decodedJwtToken.payload) {
+        return 0;
+    }
+    const exp = decodedJwtToken.payload.exp
+    const iat = decodedJwtToken.payload.iat
+    return exp - iat
 }
 
 function prepareJWTlifepercent( decodedJwtToken ) {
-    return (decodedJwtToken.payload?.exp - new Date()) / (decodedJwtToken.payload?.exp - decodedJwtToken.payload?.iat)
+    if(!decodedJwtToken.payload) {
+        return 0;
+    }
+    const timestamp = new Date().getTime() / 1000
+    const exp = decodedJwtToken.payload.exp
+    const iat = decodedJwtToken.payload.iat
+    return (iat - timestamp) / (exp - iat)
 }
 function prepareMetric(metricName, decodedJwtToken) {
     let value;
@@ -50,6 +64,9 @@ function prepareMetric(metricName, decodedJwtToken) {
 }
 
 const prepareMetricsJwtData = (decodedJwtToken, isValid) => {
+    if(!decodedJwtToken) {
+        return []
+    }
     const metrics = [
         prepareMetric("JWT_lifetime", decodedJwtToken),
         prepareMetric("JWT_lifepercent", decodedJwtToken),

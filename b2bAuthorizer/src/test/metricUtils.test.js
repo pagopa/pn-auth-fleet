@@ -24,4 +24,12 @@ describe("test metricUtils", () => {
       value: 1
     })
   })
+
+  it("decodedJwtToken is undefined in prepare JWT data metric", async () => {
+    const decodedJwtToken = undefined;
+    const metrics = prepareMetricsJwtData(decodedJwtToken, false)
+    expect(metrics).is.not.undefined
+    expect(metrics).to.be.an('array')
+    expect(metrics.length).to.be.equal(0)
+  })
 });
