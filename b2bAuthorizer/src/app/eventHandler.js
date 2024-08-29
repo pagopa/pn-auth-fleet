@@ -107,7 +107,7 @@ async function handleEvent(event) {
     const context = attributeResolution.context;
     const usageIdentifierKey = attributeResolution.usageIdentifierKey;
     
-    const policyDocument = policyService.generatePolicyDocument( context, event )
+    const policyDocument = policyService.generatePolicyDocument( context )
     logger.addToContext('policyDocument', policyDocument);
     const iamPolicyContext = policyService.normalizeContextForIAMPolicy( context );
 
