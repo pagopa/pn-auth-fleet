@@ -267,11 +267,58 @@ async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
     return await ddbDocClient.send(updateCommand)
 }
 
+async function upsertJwtIssuer(jwtIssuerUpsertDTO){
 
+}
+
+async function deleteJwtIssuer(jwtIssuerDeleteDTO){
+    const deleteItemInput = {
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        Key: {
+            hashKey: buildHashKeyForAllowedIssuer(jwtIssuerDeleteDTO.iss),
+            sortKey: CFG
+        }
+    }
+
+    const deleteCommand = new DeleteCommand(deleteItemInput)
+
+    await ddbDocClient.send(deleteCommand)
+    await deleteJwksCacheByIss(jwtIssuerDeleteDTO.iss)
+}
+
+async function deleteJwksCacheByIss(iss){
+    const queryInput = {
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        KeyConditionExpression: 'hashKey = :hashKey
+    }
+
+    const queryCommand = new QueryCommand(queryInput)
+
+    const result = await ddbDocClient.send(queryCommand)
+
+    const jwksCacheItems = result.Items.filter(item => item.sortKey.indexOf(JWKS_CACHE_PREFIX)===0)
+
+    for(const item of jwksCacheItems){
+        const deleteItemInput = {
+            TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+            Key: {
+                hashKey: item.hashKey,
+                sortKey: item.sortKey
+            }
+        }
+
+        const deleteCommand = new DeleteCommand(deleteItemInput)
+
+        await ddbDocClient.send(deleteCommand)
+    }
+
+}
 
 module.exports = {
     getIssuerInfoAndJwksCache,
     addJwksCacheEntry,
     listJwksCacheExpiringAtMinute,
-    postponeJwksCacheEntryValidation
+    postponeJwksCacheEntryValidation,
+    upsertJwtIssuer,
+    deleteJwtIssuer
 }
