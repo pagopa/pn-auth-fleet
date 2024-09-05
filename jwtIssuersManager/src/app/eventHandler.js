@@ -1,4 +1,4 @@
-const { makeCommand } = require("./command/index,js");
+const { makeCommand } = require("./command");
 const { validateBody } = require("./validator");
 
 async function handleEvent(event) {

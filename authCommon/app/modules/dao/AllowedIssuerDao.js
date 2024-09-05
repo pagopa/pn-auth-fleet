@@ -1,6 +1,6 @@
 const { ddbDocClient } = require('./DynamoDbClient')
 const { getObjectAsByteArray, putObject } = require('../aws/S3Functions')
-const { QueryCommand, GetCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
+const { QueryCommand, GetCommand, DeleteCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
 const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
 const crypto = require('crypto')
 const IssuerNotFoundError = require('./IssuerNotFoundError')
@@ -319,6 +319,7 @@ module.exports = {
     addJwksCacheEntry,
     listJwksCacheExpiringAtMinute,
     postponeJwksCacheEntryValidation,
+    getConfigByISS,
     upsertJwtIssuer,
     deleteJwtIssuer
 }

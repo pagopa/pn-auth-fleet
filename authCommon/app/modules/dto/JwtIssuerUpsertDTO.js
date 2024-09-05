@@ -40,4 +40,7 @@ class JwtIssuerUpsertDTO {
         return this.#JWKSUrl;
     }
 
+    static fromObject(obj) {
+        return new JwtIssuerUpsertDTO(obj.iss, obj.attributeResolversCfgs, obj.JWKSCacheMaxDurationSec, obj.JWKSCacheRenewSec, obj.JWKSBody, obj.JWKSUrl);
+    }
 }

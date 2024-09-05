@@ -11,6 +11,10 @@ class JwtIssuerDeleteDTO {
     get iss() {
         return this.#iss;
     }
+
+    static fromObject(obj) {
+        return new JwtIssuerDeleteDTO(obj.iss);
+    }
     
 }
 
