@@ -269,6 +269,48 @@ async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
 
 async function upsertJwtIssuer(jwtIssuerUpsertDTO){
 
+    const key = {
+        hashKey: buildHashKeyForAllowedIssuer(jwtIssuerUpsertDTO.iss),
+        sortKey: CFG
+    }
+
+    let updateExpression = ''
+    let expressionAttributeValues = {}
+
+    if(jwtIssuerUpsertDTO.attributeResolversCfgs){
+        updateExpression += 'SET attributeResolversCfgs = :attributeResolversCfgs'
+        expressionAttributeValues[':attributeResolversCfgs'] = jwtIssuerUpsertDTO.attributeResolversCfgs
+    }
+
+    if(jwtIssuerUpsertDTO.JWKSCacheMaxDurationSec){
+        updateExpression += (updateExpression ? ', ' : 'SET ') + 'JWKSCacheMaxDurationSec = :JWKSCacheMaxDurationSec'
+        expressionAttributeValues[':JWKSCacheMaxDurationSec'] = jwtIssuerUpsertDTO.JWKSCacheMaxDurationSec
+    }
+
+    if(jwtIssuerUpsertDTO.JWKSCacheRenewSec){
+        updateExpression += (updateExpression ? ', ' : 'SET ') + 'JWKSCacheRenewSec = :JWKSCacheRenewSec'
+        expressionAttributeValues[':JWKSCacheRenewSec'] = jwtIssuerUpsertDTO.JWKSCacheRenewSec
+    }
+
+    if(jwtIssuerUpsertDTO.JWKSUrl){
+        updateExpression += (updateExpression ? ', ' : 'SET ') + 'JWKSUrl = :JWKSUrl'
+        expressionAttributeValues[':JWKSUrl'] = jwtIssuerUpsertDTO.JWKSUrl
+    }
+
+    // set modifi
+    const modificationTimeEpochMs = Date.now()
+    updateExpression += (updateExpression ? ', ' : 'SET ') + 'modificationTimeEpochMs = :modificationTimeEpochMs'
+    expressionAttributeValues[':modificationTimeEpochMs'] = modificationTimeEpochMs
+
+    // update or insert
+    const updateCommand = new UpdateCommand({
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        Key: key,
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: expressionAttributeValues
+    })
+
+    await ddbDocClient.send(updateCommand)
 }
 
 async function deleteJwtIssuer(jwtIssuerDeleteDTO){
@@ -289,7 +331,10 @@ async function deleteJwtIssuer(jwtIssuerDeleteDTO){
 async function deleteJwksCacheByIss(iss){
     const queryInput = {
         TableName: process.env.AUTH_JWT_ISSUER_TABLE,
-        KeyConditionExpression: 'hashKey = :hashKey
+        KeyConditionExpression: 'hashKey = :hashKey',
+        ExpressionAttributeValues: {
+            ':hashKey': buildHashKeyForAllowedIssuer(iss)
+        }
     }
 
     const queryCommand = new QueryCommand(queryInput)

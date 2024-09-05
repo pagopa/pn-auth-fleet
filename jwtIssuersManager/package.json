@@ -4,7 +4,8 @@
   "description": "lambda che gestisce la creazione e la cancellazione dei jwtIssuers.",
   "main": "index.js",
   "scripts": {
-    "test-build": "(cd ../../authCommon && npm ci) && npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
+    "test-build-full": "(cd ../../authCommon && npm ci) && npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
+    "test-build": "(cd ../../authCommon && npm ci) && npm run-script build",
     "build": "(cd ../../authCommon && npm prune --production) && npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
     "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config",
     "coverage": "nyc report --reporter=lcov",

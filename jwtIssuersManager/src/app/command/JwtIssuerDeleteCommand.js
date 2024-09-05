@@ -5,7 +5,7 @@ class JwtIssuerDeleteCommand {
     #jwtIssuerDeleteCommandInput;
 
     constructor(jwtIssuerDeleteCommandInput) {
-        this.jwtIssuerDeleteCommandInput = jwtIssuerDeleteCommandInput;
+        this.#jwtIssuerDeleteCommandInput = jwtIssuerDeleteCommandInput;
     }
 
     async execute() {
