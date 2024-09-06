@@ -1,6 +1,6 @@
 const { ddbDocClient } = require('./DynamoDbClient')
 const { getObjectAsByteArray, putObject } = require('../aws/S3Functions')
-const { QueryCommand, GetCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
+const { QueryCommand, GetCommand, DeleteCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
 const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
 const crypto = require('crypto')
 const IssuerNotFoundError = require('./IssuerNotFoundError')
@@ -267,11 +267,104 @@ async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
     return await ddbDocClient.send(updateCommand)
 }
 
+async function upsertJwtIssuer(jwtIssuerUpsertDTO){
 
+    const key = {
+        hashKey: buildHashKeyForAllowedIssuer(jwtIssuerUpsertDTO.iss),
+        sortKey: CFG
+    }
+
+    let updateExpression = ''
+    let expressionAttributeValues = {}
+
+    if(jwtIssuerUpsertDTO.attributeResolversCfgs){
+        updateExpression += 'SET attributeResolversCfgs = :attributeResolversCfgs'
+        expressionAttributeValues[':attributeResolversCfgs'] = jwtIssuerUpsertDTO.attributeResolversCfgs
+    }
+
+    if(jwtIssuerUpsertDTO.JWKSCacheMaxDurationSec){
+        updateExpression += (updateExpression ? ', ' : 'SET ') + 'JWKSCacheMaxDurationSec = :JWKSCacheMaxDurationSec'
+        expressionAttributeValues[':JWKSCacheMaxDurationSec'] = jwtIssuerUpsertDTO.JWKSCacheMaxDurationSec
+    }
+
+    if(jwtIssuerUpsertDTO.JWKSCacheRenewSec){
+        updateExpression += (updateExpression ? ', ' : 'SET ') + 'JWKSCacheRenewSec = :JWKSCacheRenewSec'
+        expressionAttributeValues[':JWKSCacheRenewSec'] = jwtIssuerUpsertDTO.JWKSCacheRenewSec
+    }
+
+    if(jwtIssuerUpsertDTO.JWKSUrl){
+        updateExpression += (updateExpression ? ', ' : 'SET ') + 'JWKSUrl = :JWKSUrl'
+        expressionAttributeValues[':JWKSUrl'] = jwtIssuerUpsertDTO.JWKSUrl
+    }
+
+    // set modifi
+    const modificationTimeEpochMs = Date.now()
+    updateExpression += (updateExpression ? ', ' : 'SET ') + 'modificationTimeEpochMs = :modificationTimeEpochMs'
+    expressionAttributeValues[':modificationTimeEpochMs'] = modificationTimeEpochMs
+
+    // update or insert
+    const updateCommand = new UpdateCommand({
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        Key: key,
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: expressionAttributeValues
+    })
+
+    await ddbDocClient.send(updateCommand)
+}
+
+async function deleteJwtIssuer(jwtIssuerDeleteDTO){
+    const deleteItemInput = {
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        Key: {
+            hashKey: buildHashKeyForAllowedIssuer(jwtIssuerDeleteDTO.iss),
+            sortKey: CFG
+        }
+    }
+
+    const deleteCommand = new DeleteCommand(deleteItemInput)
+
+    await ddbDocClient.send(deleteCommand)
+    await deleteJwksCacheByIss(jwtIssuerDeleteDTO.iss)
+}
+
+async function deleteJwksCacheByIss(iss){
+    const queryInput = {
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        KeyConditionExpression: 'hashKey = :hashKey',
+        ExpressionAttributeValues: {
+            ':hashKey': buildHashKeyForAllowedIssuer(iss)
+        }
+    }
+
+    const queryCommand = new QueryCommand(queryInput)
+
+    const result = await ddbDocClient.send(queryCommand)
+
+    const jwksCacheItems = result.Items.filter(item => item.sortKey.indexOf(JWKS_CACHE_PREFIX)===0)
+
+    for(const item of jwksCacheItems){
+        const deleteItemInput = {
+            TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+            Key: {
+                hashKey: item.hashKey,
+                sortKey: item.sortKey
+            }
+        }
+
+        const deleteCommand = new DeleteCommand(deleteItemInput)
+
+        await ddbDocClient.send(deleteCommand)
+    }
+
+}
 
 module.exports = {
     getIssuerInfoAndJwksCache,
     addJwksCacheEntry,
     listJwksCacheExpiringAtMinute,
-    postponeJwksCacheEntryValidation
+    postponeJwksCacheEntryValidation,
+    getConfigByISS,
+    upsertJwtIssuer,
+    deleteJwtIssuer
 }

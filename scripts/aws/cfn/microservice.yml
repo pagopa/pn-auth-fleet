@@ -419,7 +419,30 @@ Parameters:
     Type: String
     Description: 'Elastic cache security Group'
 
+  JwtIssuersManagerLambdaName:
+    Type: String
+    Description: 'Jwt Issuers Manager Lambda Name'
     
+  JWTIssuersManagerLambdaTimeout:
+    Type: Number
+    Default: 20
+    Description: "Timeout for JWT Issuers Manager lambda in seconds"
+
+  JWTIssuersManagerDataPointsToAlarm:
+    Type: Number
+    Default: 1
+    Description: "Number of data points to alarm for jwks cache refresh"
+
+  JWTIssuersManagerEvaluationPeriods:
+    Type: Number
+    Default: 60
+    Description: "Number of evaluation periods (1 minute) for jwks cache refresh"
+
+  JWTIssuersManagerAlarmFilterPattern:
+    Type: String
+    Default: "ERROR"
+    Description: "Filter pattern for jwks cache refresh alarm"
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -1615,3 +1638,120 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt JWKSCacheRefreshEventRule.Arn
+
+  ## JWT Issuers Manager Lambda
+  JWTIssuersManagerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref JwtIssuersManagerLambdaName
+      Runtime: nodejs18.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/jwtIssuersManager.zip"
+      Environment:
+        Variables:
+          AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
+          AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtAttributesTableName
+          JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+          JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
+          JWKS_CONTENTS: !Ref JWKSCacheBucketName
+          JWKS_FOLLOW_REDIRECT: !Ref JwksFollowRedirect
+          JWKS_B2BDEST_PREFIX: 'jwks_b2bdest_sources'
+      Role: !GetAtt JWTIssuersManagerLambdaRole.Arn
+      Timeout: !Ref JWTIssuersManagerLambdaTimeout
+      TracingConfig:
+        Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+
+  # Lambda function role
+  JWTIssuersManagerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-jwtIssuersManagerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaReadS3
+                Action:
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                Effect: Allow
+                Resource:
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_sources"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
+              - Sid: AllowLambdaWriteS3
+                Action:
+                  - "s3:PutObject"
+                Effect: Allow
+                Resource:
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_entries/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_entries"
+              - Sid: AllowLambdaWriteDynamoDb
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Ref AuthJwtAttributesTableArn
+              - Sid: AllowLambdaReadDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Sub ${AuthJwtIssuersTableArn}*
+      #ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+
+  JWTIssuersManagerLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref JWTIssuersManagerLambda
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        DataPointsToAlarm: !Ref JWTIssuersManagerDataPointsToAlarm
+        EvaluationPeriods: !Ref JWTIssuersManagerEvaluationPeriods
+        FilterPattern: !Ref JWTIssuersManagerAlarmFilterPattern
+
+  # Add lambda permission to be invoked by a role of the current AWS account; the role must be specified using a condition and not as principal
+  JWTIssuersManagerLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref JWTIssuersManagerLambda
+      Action: lambda:InvokeFunction
+      Principal: "ecs-tasks.amazonaws.com"
+      SourceArn: !Sub arn:aws:iam::${AWS::AccountId}:role/pn-apikey-manager-TaskRole
