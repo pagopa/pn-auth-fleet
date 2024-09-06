@@ -18,11 +18,11 @@ async function handleEvent(event) {
   const command = makeCommand(body);
 
   // call command handler
-  const res = await command.execute();
+  await command.execute();
   
   return {
     statusCode: 200,
-    body: JSON.stringify({ message: "Event handled" , response: res}),
+    body: JSON.stringify({ message: "Event handled"}),
   };
 }
 

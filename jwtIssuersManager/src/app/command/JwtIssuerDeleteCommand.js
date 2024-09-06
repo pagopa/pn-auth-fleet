@@ -15,6 +15,10 @@ class JwtIssuerDeleteCommand {
             throw new Error('Issuer not found '+iss);
         }
 
+        if(issuer.JWKSUrl.indexOf('s3://')<0){
+            throw new Error("Unsupported issuer with public JWKS url");
+        }
+        
         const jwtIssuerDeleteDTO = DTO.JwtIssuerDeleteDTO.fromObject(this.#jwtIssuerDeleteCommandInput);
         await AllowedIssuerDao.deleteJwtIssuer(jwtIssuerDeleteDTO);
         await JwtAttributesDao.deleteJwtAttributesByJwtIssuer(issuer);

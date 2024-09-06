@@ -1638,6 +1638,7 @@ Resources:
           JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
           JWKS_CONTENTS: !Ref JWKSCacheBucketName
           JWKS_FOLLOW_REDIRECT: !Ref JwksFollowRedirect
+          JWKS_B2BDEST_PREFIX: 'jwks_b2bdest_sources'
       Role: !GetAtt JWTIssuersManagerLambdaRole.Arn
       Timeout: !Ref JWTIssuersManagerLambdaTimeout
       TracingConfig:

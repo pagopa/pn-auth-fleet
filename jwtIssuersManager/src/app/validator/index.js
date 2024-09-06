@@ -51,7 +51,7 @@ function validateBody(body){
     }
 
     if(actionType === 'UPSERT'){
-        if(!attributeResolversCfgs){
+        /*if(!attributeResolversCfgs){
             errors.push(['attributeResolversCfgs is required']);
         }
 
@@ -61,7 +61,7 @@ function validateBody(body){
 
         if(!JWKSCacheRenewSec){
             errors.push(['JWKSCacheRenewSec is required']);
-        }
+        }*/
 
         if(!JWKSBody){
             errors.push(['JWKSBody is required']);
