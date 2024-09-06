@@ -883,6 +883,8 @@ Resources:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
                   - !Sub "${JWKSCacheBucketArn}/jwks_sources/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_sources"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
               - Sid: AllowLambdaWriteS3
                 Action:
                   - "s3:PutObject"
@@ -891,6 +893,8 @@ Resources:
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
       #ManagedPolicyArns:
       #  - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
@@ -1157,6 +1161,8 @@ Resources:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
                   - !Sub "${JWKSCacheBucketArn}/jwks_sources/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_sources"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
               - Sid: AllowLambdaWriteS3
                 Action:
                   - "s3:PutObject"
@@ -1165,6 +1171,8 @@ Resources:
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
               - Sid: AllowReadSQS
                 Action:
                   - sqs:ChangeMessageVisibility
