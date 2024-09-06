@@ -18,7 +18,7 @@ class MetricsHandler {
                 break;
         }
         dimension ? this.#metrics.addDimension(dimension.name, dimension.value) : null
-        metadata ? this.#metrics.addDimension(metadata.name, metadata.value) : null
+        metadata ? this.#metrics.addMetadata(metadata.name, metadata.value) : null
         this.#metrics.addMetric(metricName, unit, value)
     }
     

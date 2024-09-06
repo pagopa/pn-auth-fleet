@@ -184,12 +184,14 @@ describe('AllowedIssuerDAO Testing', () => {
         // jwtExpireSlot in ISOString 
         const jwtExpireSlot = '2021-09-01T01:00Z'
         const cacheMaxUsageEpochSec = 1630458001
+        const jwksCacheOriginalExpireEpochSeconds = 1630458001
         const result = await prepareTransactionInput(cfg, url, jwks, modificationTimeEpochMs);
 
         expect(result.TransactItems.length).equal(2);
         expect(result.TransactItems[0].Update.ExpressionAttributeValues).to.deep.equal({
             ':jwksCacheExpireSlot': jwtExpireSlot,
-            ':modificationTimeEpochMs': modificationTimeEpochMs
+            ':modificationTimeEpochMs': modificationTimeEpochMs,
+            ':jwksCacheOriginalExpireEpochSeconds': jwksCacheOriginalExpireEpochSeconds
         })
 
         expect(result.TransactItems[1].Put.Item).to.deep.equal({
@@ -202,7 +204,8 @@ describe('AllowedIssuerDAO Testing', () => {
             cacheRenewEpochSec: jwtExpireSlotInSecond,
             cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
             modificationTimeEpochMs: modificationTimeEpochMs,
-            ttl: cacheMaxUsageEpochSec
+            ttl: cacheMaxUsageEpochSec,
+            jwksCacheOriginalExpireEpochSeconds: jwksCacheOriginalExpireEpochSeconds
         })
     });
     
