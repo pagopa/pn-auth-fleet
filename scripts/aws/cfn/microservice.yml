@@ -1727,3 +1727,12 @@ Resources:
         DataPointsToAlarm: !Ref JWTIssuersManagerDataPointsToAlarm
         EvaluationPeriods: !Ref JWTIssuersManagerEvaluationPeriods
         FilterPattern: !Ref JWTIssuersManagerAlarmFilterPattern
+
+  # Add lambda permission to be invoked by a role of the current AWS account; the role must be specified using a condition and not as principal
+  JWTIssuersManagerLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref JWTIssuersManagerLambda
+      Action: lambda:InvokeFunction
+      Principal: "ecs-tasks.amazonaws.com"
+      SourceArn: !Sub arn:aws:iam::${AWS::AccountId}:role/pn-apikey-manager-TaskRole
