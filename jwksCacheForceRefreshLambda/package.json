@@ -12,7 +12,6 @@
     "build:single": "(cd ../authCommon && npm prune --production) && npm prune --production && rm -f ./function.zip && npm run-script zip:full",
     "build:multiLayer": "(cd ../authCommon && npm prune --production) && rm -rf nodejs && mkdir -p nodejs && npm prune --production  && cp -Lrf node_modules nodejs && rm -f ./code_layer.zip && npm run-script zip:code && rm -f ./lib_layer.zip && npm run-script zip:libs",
     "build": "npm run-script build:single && npm run-script build:multiLayer",
-
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
   },
