@@ -359,6 +359,35 @@ async function deleteJwksCacheByIss(iss){
 
 }
 
+async function listRaddIssuers() {
+    const getCommandInput = {
+      TableName: process.env.AUTH_JWT_TABLE,
+      ExpressionAttributeValues: {
+        ":sortKey": "CFG"
+      },
+      FilterExpression: "sortKey = :sortKey"
+    };
+  
+    const getCommand = new GetCommand(getCommandInput)
+    const result = await ddbDocClient.send(getCommand);
+    if (!result.Item) {
+      console.log("No RADD Resolvers found.");
+      return [];
+    }
+    let raddIssuerList = [];
+    result.Item.forEach(currentItem => {
+      if (!currentItem.hasOwnProperty("attributeResolversCfgs")) return;
+      currentItem.forEach(currentResolverCfg => {
+        if (!currentResolverCfg.hasOwnProperty("NAME")) return;
+        if (currentResolverCfg["NAME"] == "DATABASE") {
+          currentItem.keyAttributeName = currentResolverCfg?.cfg?.keyAttributeName;
+          raddIssuerList.push(currentItem);
+        }
+      });
+    });
+    return raddIssuerList;
+}
+
 module.exports = {
     getIssuerInfoAndJwksCache,
     addJwksCacheEntry,
@@ -366,5 +395,6 @@ module.exports = {
     postponeJwksCacheEntryValidation,
     getConfigByISS,
     upsertJwtIssuer,
-    deleteJwtIssuer
+    deleteJwtIssuer,
+    listRaddIssuers
 }
