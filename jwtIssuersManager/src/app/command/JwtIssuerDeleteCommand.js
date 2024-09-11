@@ -11,8 +11,8 @@ class JwtIssuerDeleteCommand {
     async execute() {
         const issuer = await AllowedIssuerDao.getConfigByISS(this.#jwtIssuerDeleteCommandInput.iss);
         
-        if(!issuer){
-            throw new Error('Issuer not found '+iss);
+        if(!issuer && issuer.length == 0){
+            throw new Error('Issuer not found '+ this.#jwtIssuerDeleteCommandInput.iss);
         }
 
         if(issuer.JWKSUrl.indexOf('s3://')<0){
