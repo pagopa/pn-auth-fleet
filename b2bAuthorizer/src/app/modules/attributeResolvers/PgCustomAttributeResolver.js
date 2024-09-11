@@ -9,9 +9,9 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
   checkPGConsent(context["cx_id"]);
 
   await Promise.all([
-    await retrieveAllowedIssuerAndEnrichContext(context, jwt.iss),
-    await retrieveUserRoleAndEnrichContext(context, jwt.iss, uid),
-    await retrieveUserGroupsAndEnrichContext(context, jwt.iss, uid)
+    retrieveAllowedIssuerAndEnrichContext(context, jwt.iss),
+    retrieveUserRoleAndEnrichContext(context, jwt.iss, uid),
+    retrieveUserGroupsAndEnrichContext(context, jwt.iss, uid)
   ]);
     
   return {
