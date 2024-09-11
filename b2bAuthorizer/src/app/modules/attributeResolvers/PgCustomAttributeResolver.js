@@ -2,22 +2,46 @@ const dynamoFunctions = require("./dynamoFunctions.js");
 const { AllowedIssuerDao } = require('pn-auth-common');
 
 async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg ) {
-    context["cx_jti"] = jwt.kid;
-    context["sourceChannel"] = lambdaEvent?.stageVariables?.IntendedUsage;
+  context["cx_jti"] = jwt.kid;
+  context["sourceChannel"] = lambdaEvent?.stageVariables?.IntendedUsage;
+    
+  const uid = await retrieveVirtualKeyAndEnrichContext(context, jwt.iss);
+  checkPGConsent(context["cx_id"]);
 
-    //PARALLELIZZARE LE SEGUENTI 3 CHIAMATA
-    await retrieveAllowedIssuerAndEnrichContext(context, jwt.iss);
-    const uid = await retrieveVirtualKeyAndEnrichContext(context, jwt.iss)
-    await checkPGConsent(jwt.iss);
-
-    //FUNCTION VINCOLATE ALLA RISPOSTA DI retrieveVirtualKeyAndEnrichContext (PARALLELIZZABILI)
-    await retrieveUserRoleAndEnrichContext(context, jwt.iss, uid)
+  await Promise.all([
+    await retrieveAllowedIssuerAndEnrichContext(context, jwt.iss),
+    await retrieveUserRoleAndEnrichContext(context, jwt.iss, uid),
     await retrieveUserGroupsAndEnrichContext(context, jwt.iss, uid)
+  ]);
+    
+  return {
+    context: context,
+    usageIdentifierKey: null
+  }
+}
 
-    return {
-        context: context,
-        usageIdentifierKey: null
-    }
+async function retrieveVirtualKeyAndEnrichContext(context, iss) {
+  const apiKeyDynamo = await dynamoFunctions.getApiKeyByIndex(virtualKey);
+
+   if (!checkStatus(apiKeyDynamo.status)) {
+     throw new AuthenticationError(
+       `Key is not allowed with status ${apiKeyDynamo.status}`
+     );
+   }
+
+   if(apiKeyDynamo.scope != "CLIENTID"){
+       throw new AuthenticationError("virtualKey Scope not allowed for this operation");
+   }
+
+   if(apiKeyDynamo.cxId != jwt.iss){
+       throw new AuthenticationError("virtualKey is not associated to the PG");
+   }
+
+   context["uid"] = apiKeyDynamo.uid;
+   context["cx_id"] = apiKeyDynamo.cxId;
+   context["cx_type"] = apiKeyDynamo.cxType;
+
+   return apiKeyDynamo.uid;
 }
 
 async function retrieveUserRoleAndEnrichContext(context, iss, uid) {
@@ -41,36 +65,13 @@ async function retrieveAllowedIssuerAndEnrichContext(context, iss) {
     context["callableApiTags"] = attributeResolversCfg.cfg.purposes;
 }
 
-function checkPGConsent(jwt.iss){
+function checkPGConsent(cxid){
     //chiamata a user-attributes verso una nuova API ancora da definire ed esporre
     if(!consent){
       throw new AuthenticationError("User has not given consent to use the service");
     }
 }
 
-function retrieveVirtualKeyAndEnrichContext(context, iss) {
-   const apiKeyDynamo = await dynamoFunctions.getApiKeyByIndex(virtualKey);
-
-    if (!checkStatus(apiKeyDynamo.status)) {
-      throw new AuthenticationError(
-        `Key is not allowed with status ${apiKeyDynamo.status}`
-      );
-    }
-
-    if(apiKeyDynamo.scope != "CLIENTID"){
-        throw new AuthenticationError("virtualKey Scope not allowed for this operation");
-    }
-
-    if(apiKeyDynamo.cxId != jwt.iss){
-        throw new AuthenticationError("virtualKey is not associated to the PG");
-    }
-
-    context["uid"] = apiKeyDynamo.uid;
-    context["cx_id"] = apiKeyDynamo.cxId;
-    context["cx_type"] = apiKeyDynamo.cxType;
-
-    return apiKeyDynamo.uid;
-}
 
 function checkStatus(status) {
   return status === "ENABLED" || status === "ROTATED";
