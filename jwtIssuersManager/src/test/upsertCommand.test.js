@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const fs = require('fs');
-const { UrlDownloader, AllowedIssuerDao, DTO, S3Functions } = require('pn-auth-common');
+const { AllowedIssuerDao, DTO, S3Functions } = require('pn-auth-common');
 
 const JwtIssuerUpsertCommand = require('../app/command/JwtIssuerUpsertCommand')
 
@@ -18,7 +18,7 @@ AllowedIssuerDao.upsertJwtIssuer = async function (dto) {
   console.log('upsertJwtIssuer chiamato con:', dto);
 };
 
-AllowedIssuerDao.addJwksCacheEntry = async function (iss, urlDownloaderFn) {
+AllowedIssuerDao.addJwksCacheEntry = async function (iss, Fn) {
   console.log('addJwksCacheEntry chiamato con:', iss);
 };
 
