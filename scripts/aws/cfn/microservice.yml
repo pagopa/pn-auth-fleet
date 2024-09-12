@@ -693,6 +693,12 @@ Resources:
   ###               B2B AUTHORIZER LAMBDA               ###
   #########################################################
 
+  B2BAuthorizerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-b2b-authorizer-SecGrp
+      VpcId: !Ref VpcId
+
   # Lambda function
   B2BAuthorizerLambda:
     Type: AWS::Lambda::Function
@@ -702,7 +708,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer.zip"
+        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer_code.zip"
       Environment:
         Variables:
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
@@ -723,6 +729,10 @@ Resources:
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize
       TracingConfig:
         Mode: Active
+      VpcConfig:
+        SecurityGroupIds: 
+          - !Ref B2BAuthorizerSecurityGroup
+        SubnetIds: !Ref SubnetsIds        
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
@@ -787,7 +797,8 @@ Resources:
                 Effect: Allow
                 Resource:
                   - !Ref JWKSCacheForceRefreshQueueARN
-      #ManagedPolicyArns:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
