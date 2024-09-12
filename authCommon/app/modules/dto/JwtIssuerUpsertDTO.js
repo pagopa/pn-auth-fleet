@@ -40,7 +40,13 @@ class JwtIssuerUpsertDTO {
         return this.#JWKSUrl;
     }
 
+    set JWKSUrl(jwksUrl) {
+        this.#JWKSUrl = jwksUrl;
+    }
+
     static fromObject(obj) {
         return new JwtIssuerUpsertDTO(obj.iss, obj.attributeResolversCfgs, obj.JWKSCacheMaxDurationSec, obj.JWKSCacheRenewSec, obj.JWKSBody, obj.JWKSUrl);
     }
 }
+
+module.exports = JwtIssuerUpsertDTO;

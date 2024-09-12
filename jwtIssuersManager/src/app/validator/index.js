@@ -1,36 +1,9 @@
-/*
-
-{
-"actionType" : "UPSERT"
-"iss": "", //issuer generato al punto 3
- "attributeResolversCfgs": [
-  {
-   "cfg": {
-    "keyAttributeName": "virtual_key"
-   },
-   "name": "DATABASE" //definito se è possibile implementare la cache del context
-  },
-  {
-   "cfg": {
-    "purposes": ["REFINEMENT","BASE","MANDATE"]
-   },
-   "name": "PGCUSTOM"
-  }
- ],
- "JWKSCacheMaxDurationSec": 172800,
- "JWKSCacheRenewSec": 300,
- "JWKSBody": //body '', 
-}
-
-{
-"actionType" : "DELETE",
-"iss": ""
-}
-*/
+const { DELETE_ACTION_TYPE, UPSERT_ACTION_TYPE } = require('../config/constants');
 
 function validateBody(body){
 
     const errors = []
+    const actionTypeAllowedValues = [UPSERT_ACTION_TYPE, DELETE_ACTION_TYPE];
     const {actionType, iss, attributeResolversCfgs, JWKSCacheMaxDurationSec, JWKSCacheRenewSec, JWKSBody} = body;
 
     if(!actionType){
@@ -40,14 +13,13 @@ function validateBody(body){
     if(!iss){
         errors.push(['iss is required']);
     }
-
-    const actionTypeAllowedValues = [UPSERT_ACTION_TYPE, DELETE_ACTION_TYPE];
-    if(!actionTypeAllowedValues.includes(actionType)){
-        errors.push(['actionType must be one of '+actionTypeAllowedValues.join(',')]);
-    }
-
+    
     if(errors.length>0){
         return errors;
+    }
+
+    if(!actionTypeAllowedValues.includes(actionType)){
+        errors.push(['actionType must be one of '+actionTypeAllowedValues.join(', ')]);
     }
 
     if(actionType === 'UPSERT'){
@@ -62,7 +34,6 @@ function validateBody(body){
         if(!JWKSCacheRenewSec){
             errors.push(['JWKSCacheRenewSec is required']);
         }*/
-
         if(!JWKSBody){
             errors.push(['JWKSBody is required']);
         }
