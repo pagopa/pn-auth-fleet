@@ -1714,8 +1714,8 @@ Resources:
                   - "s3:PutObjectTagging"
                 Effect: Allow
                 Resource:
-                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_entries/*"
-                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_entries"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
               - Sid: AllowLambdaWriteDynamoDb
                 Action:
                   - dynamodb:PutItem
