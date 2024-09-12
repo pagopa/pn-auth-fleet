@@ -13,9 +13,9 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
   checkPGConsent(context);
 
   await Promise.all([
-    retrieveAllowedIssuerAndEnrichContext(context, jwt.iss),
-    retrieveUserRoleAndEnrichContext(context, jwt.iss, uid),
-    retrieveUserGroupsAndEnrichContext(context, jwt.iss, uid)
+    retrieveAllowedIssuerAndEnrichContext(context),
+    retrieveUserRoleAndEnrichContext(context, uid),
+    retrieveUserGroupsAndEnrichContext(context, uid)
   ]);
     
   return {
@@ -48,19 +48,35 @@ async function retrieveVirtualKeyAndEnrichContext(context, iss) {
    return apiKeyDynamo.uid;
 }
 
-async function retrieveUserRoleAndEnrichContext(context, iss, uid) {
+async function retrieveUserRoleAndEnrichContext(context, uid) {
     //chiamata a external-registries "/ext-registry-private/pg/v1/user"
     //inserire nel context user.product.productRole
-    context["cx_role"] = "";
+    const userRoleUrl = `${basePath}/ext-registry-private/pg/v1/user`;
+    const userRoleResponse = await axios.get(userRoleUrl, {
+      headers: {
+        'x-pagopa-pn-uid': uid,
+        'x-pagopa-pn-cx-id': context["cx_id"]
+      }
+    });
+    context["cx_role"] = userRoleResponse.data.product.productRole;
 }
 
-async function retrieveUserGroupsAndEnrichContext(context, iss, uid) {
+async function retrieveUserGroupsAndEnrichContext(context, uid) {
     //chiamata a external-registries "/ext-registry-private/pg/v1/user-groups"
-    //inserire nel context la lista di groupId
-    context["cx_groups"] = "";
+    const userGroupUrl = `${basePath}/ext-registry-private/pg/v1/user-groups`;
+    const userGroupResponse = await axios.get(userGroupUrl, {
+      headers: {
+        'x-pagopa-pn-cx-id': context["cx_id"],
+        'x-pagopa-pn-uid': uid
+      },
+      params: {
+        statusFilter: ACTIVE
+      }
+    });
+    context["cx_groups"] = userGroupResponse.data;
 }
 
-async function retrieveAllowedIssuerAndEnrichContext(context, iss) {
+async function retrieveAllowedIssuerAndEnrichContext(context) {
    const allowedIssuer = await AllowedIssuerDao.getConfigByISS(jwt.iss);
     if (!allowedIssuer) {
       throw new AuthenticationError("Issuer not allowed");
