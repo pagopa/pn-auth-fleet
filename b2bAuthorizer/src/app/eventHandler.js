@@ -90,7 +90,6 @@ async function handleEvent(event) {
     }
     catch (err) {
       if(err instanceof AuthenticationError && err.retriable){
-        console.log("I")
         issuerInfo = await issuersCache.getWithForceRefresh(issuerId,  issuerInfo.cfg.jwksCacheOriginalExpireEpochSeconds);
         logger.addToContext('issuerInfo', issuerInfo);
         jwtService.validateToken( issuerInfo, decodedJwtToken, jwtToken, event );  // throw AutenticationError if something goes wrong
