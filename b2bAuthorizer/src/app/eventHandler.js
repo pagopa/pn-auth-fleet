@@ -4,7 +4,7 @@ const Logger = require("./modules/logger");
 const JwtService = require("./modules/jwt");
 const PolicyService = require("./modules/policy");
 const AuthenticationError = require("./errors/AuthenticationError");
-const { MetricsHandler } = require('pn-auth-common');
+const { MetricsHandler, JwtIssuerRefreshDTO } = require('pn-auth-common');
 const { prepareMetric, prepareMetricsJwtData } = require('./modules/metric/metricsUtils')
 
 // cache initialization
@@ -90,7 +90,7 @@ async function handleEvent(event) {
     }
     catch (err) {
       if(err instanceof AuthenticationError && err.retriable){
-        issuerInfo = await issuersCache.getWithForceRefresh( issuerId )
+        issuerInfo = await issuersCache.getWithForceRefresh(issuerId,  issuerInfo.cfg.jwksCacheOriginalExpireEpochSeconds);
         logger.addToContext('issuerInfo', issuerInfo);
         jwtService.validateToken( issuerInfo, decodedJwtToken, jwtToken, event );  // throw AutenticationError if something goes wrong
       } else {
