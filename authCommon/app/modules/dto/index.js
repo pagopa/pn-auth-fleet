@@ -1,4 +1,5 @@
 module.exports = {
     JwtIssuerDeleteDTO: require('./JwtIssuerDeleteDTO'),
-    JwtIssuerUpsertDTO: require('./JwtIssuerUpsertDTO')
+    JwtIssuerUpsertDTO: require('./JwtIssuerUpsertDTO'),
+    JwtIssuerRefreshDTO: require('./JwtIssuerRefreshDTO')
 }

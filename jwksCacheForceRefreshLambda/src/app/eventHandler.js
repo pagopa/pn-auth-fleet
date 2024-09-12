@@ -14,6 +14,7 @@ async function handleEvent(event) {
         const msgBodyStr = record.body;
         const msg = JSON.parse(msgBodyStr);
         let issToRefresh = msg.iss;
+        let issCacheExpiration = msg.cacheExpiredTS;
         let redisValue = Date.now() + "#" + msg.uuid;
 
         console.log("request uuid: " + redisValue)
@@ -24,8 +25,7 @@ async function handleEvent(event) {
             if (lock) {
                 await AllowedIssuerDao.addJwksCacheEntry(issToRefresh, UrlDownloader.downloadUrl)
                 await RedisHandler.extendLockFunction(issToRefresh, redisValue, intervalBetweenForcedRefreshSec);
-                const issData = getConfigByISS(iss);
-                const renewTimeMetricValue = Math.floor(Date.now() / 1000) - issData.jwksCacheOriginalExpireEpochSeconds
+                const renewTimeMetricValue = Math.floor(Date.now() / 1000) - issCacheExpiration;
                 const metric = prepareJWKSRenewTimeMetric(issToRefresh, renewTimeMetricValue);
                 metricsHandler.addMetric(metric.metricName, metric.unit, metric.value, metric.dimension, metric.metadata);
             }
