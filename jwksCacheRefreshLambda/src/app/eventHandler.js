@@ -1,7 +1,4 @@
-const { AllowedIssuerDao } = require('pn-auth-common')
-const { UrlDownloader } = require('pn-auth-common')
-const { prepareJWKSRenewTimeMetric } = require('./modules/metric/metricsUtils')
-const { MetricsHandler } = require('pn-auth-common');
+const { UrlDownloader, MetricsHandler, AllowedIssuerDao, prepareJWKSRenewTimeMetric } = require('pn-auth-common');
 
 const metricsHandler = new MetricsHandler();
 

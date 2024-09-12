@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { prepareJWKSRenewTimeMetric }  = require("../app/modules/metric/metricsUtils")
+const { prepareJWKSRenewTimeMetric }  = require("../app/modules/utils/metricsUtils")
 const fs = require('fs');
 // dev notes: if you need to refresh JWT token, you can use the following code with the key stored in secret of Dev Core "test/pn-auth-fleet-unit-test-radd-jwt-key":
 // https://github.com/pagopa/pn-troubleshooting/blob/main/jwt-auth/generate-jwt.js

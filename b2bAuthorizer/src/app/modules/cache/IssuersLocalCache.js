@@ -38,7 +38,7 @@ class IssuersLocalCache {
         return null
     }
 
-    async #emitRemoteJwksCacheInvalidationEventAndWait(iss, lastRefresh) {
+    async #emitRemoteJwksCacheInvalidationEventAndWait(iss, cacheExpirationTime) {
         const messageDelay = 0;
         const queueUrl = process.env.JWKS_FORCE_REFRESH_QUEUE_URL
         const bodyMessage = {

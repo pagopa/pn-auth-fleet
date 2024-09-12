@@ -1,12 +1,11 @@
 
-const { RedisHandler, AllowedIssuerDao, UrlDownloader } = require('pn-auth-common');
+const { RedisHandler, AllowedIssuerDao, UrlDownloader, MetricsHandler, prepareJWKSRenewTimeMetric } = require('pn-auth-common');
 
 const intervalBetweenForcedRefreshSec = parseInt(process.env.MINIMUM_INTERVAL_BETWEEN_FORCED_REFRESH_SEC)
 
-const { MetricsHandler } = require('pn-auth-common');
+
 
 const metricsHandler = new MetricsHandler();
-
 
 async function handleEvent(event) {
     for (const record of event.Records) {
