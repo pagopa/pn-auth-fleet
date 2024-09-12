@@ -1,12 +1,16 @@
 const dynamoFunctions = require("./dynamoFunctions.js");
 const { AllowedIssuerDao } = require('pn-auth-common');
+const axios = require("axios");
+
+const basePath = ''; //definire variabile esterna
+const consentType = ''; //definire variabile esterna/globale
 
 async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg ) {
-  context["cx_jti"] = jwt.kid;
+  context["cx_jti"] = jwt.jti + "@" + jwt.iss;
   context["sourceChannel"] = lambdaEvent?.stageVariables?.IntendedUsage;
     
   const uid = await retrieveVirtualKeyAndEnrichContext(context, jwt.iss);
-  checkPGConsent(context["cx_id"]);
+  checkPGConsent(context);
 
   await Promise.all([
     retrieveAllowedIssuerAndEnrichContext(context, jwt.iss),
@@ -65,11 +69,28 @@ async function retrieveAllowedIssuerAndEnrichContext(context, iss) {
     context["callableApiTags"] = attributeResolversCfg.cfg.purposes;
 }
 
-function checkPGConsent(cxid){
-    //chiamata a user-attributes verso una nuova API ancora da definire ed esporre
-    if(!consent){
-      throw new AuthenticationError("User has not given consent to use the service");
+async function checkPGConsent(context){
+  ///ext-registry-private/privacynotice/{consentsType}/{portalType}:
+  const versionUrl = `${basePath}/ext-registry-private/privacynotice/${consentType}/PG`;
+  const versionResponse = await axios.get(versionUrl);
+
+  const version = versionResponse.data.version; 
+
+  //chiamata a user-attributes verso API: /pg-consents/v1/consents/{consentType}
+  const consentsUrl = `${basePath}/pg-consents/v1/consents/${consentType}`;
+  const consent = await axios.get(consentsUrl, {
+    headers: {
+      'x-pagopa-pn-cx-id': context["cx_id"],
+      'x-pagopa-pn-cx-type': context["cx_type"]
+    },
+    params: {
+      version: version
     }
+  });
+
+  if(!consent || consent.data.accepted !== true){
+     throw new AuthenticationError("User has not given consent to use the service");
+  }
 }
 
 
