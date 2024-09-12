@@ -1711,6 +1711,7 @@ Resources:
               - Sid: AllowLambdaWriteS3
                 Action:
                   - "s3:PutObject"
+                  - "s3:PutObjectTagging"
                 Effect: Allow
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_entries/*"
