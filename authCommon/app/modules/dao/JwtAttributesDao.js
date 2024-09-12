@@ -7,10 +7,7 @@ function buildHashKeyForAttributeResolver(jwt, attrResolverCfg){
 }
 
 function buildHashKeyFromAuthIssuer(jwtIssuer){
-  if(attrResolverCfg.keyAttributeName === 'iss') {
-    return ATTR_PREFIX + "~" + jwtIssuer.iss + "~" + attrResolverCfg.keyAttributeName + "~" + jwtIssuer.iss
-  }
-  console.log('attrResolverCfg is not iss')
+  return ATTR_PREFIX + "~" + jwtIssuer.iss + "~iss~" + jwtIssuer.iss
 }
 
 async function listJwtAttributes(jwt, attrResolverCfg) {
