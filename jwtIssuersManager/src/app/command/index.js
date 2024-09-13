@@ -1,4 +1,5 @@
-const { UPSERT_ACTION_TYPE, DELETE_ACTION_TYPE } = require('../constants')
+const { UPSERT_ACTION_TYPE, DELETE_ACTION_TYPE } = require('../config/constants')
+
 const JwtIssuerDeleteCommand = require('./JwtIssuerDeleteCommand')
 const JwtIssuerUpsertCommand = require('./JwtIssuerUpsertCommand')
 

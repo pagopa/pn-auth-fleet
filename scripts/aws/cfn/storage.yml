@@ -326,6 +326,9 @@ Outputs:
   JwksCacheForceRefreshLambdaName:
     Value: !Sub '${ProjectName}-jwksCacheForceRefreshLambda'
 
+  PnRaddBaseliningLambdaName:  
+    Value: !Sub '${ProjectName}-AuthFleetRaddBaselining'
+
   JwtIssuersManagerLambdaName:
     Value: !Sub '${ProjectName}-jwtIssuersManager'
 

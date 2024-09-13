@@ -1,7 +1,7 @@
 const { ddbDocClient } = require('./DynamoDbClient')
 const { getObjectAsByteArray, putObject } = require('../aws/S3Functions')
-const { QueryCommand, GetCommand, DeleteCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
-const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
+const { QueryCommand, GetCommand, DeleteCommand, TransactWriteCommand, UpdateCommand, ScanCommand} = require("@aws-sdk/lib-dynamodb");
+const { CFG, RADD_RESOLVER_NAME, RESOLVER_NAME_FIELD, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
 const crypto = require('crypto')
 const IssuerNotFoundError = require('./IssuerNotFoundError')
 
@@ -360,26 +360,27 @@ async function deleteJwksCacheByIss(iss){
 }
 
 async function listRaddIssuers() {
-    const getCommandInput = {
-      TableName: process.env.AUTH_JWT_TABLE,
-      ExpressionAttributeValues: {
-        ":sortKey": "CFG"
-      },
-      FilterExpression: "sortKey = :sortKey"
-    };
-  
-    const getCommand = new GetCommand(getCommandInput)
-    const result = await ddbDocClient.send(getCommand);
-    if (!result.Item) {
+    const command = new ScanCommand({
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        ExpressionAttributeValues: {
+          ":sortKey": CFG
+        },
+        FilterExpression: "sortKey = :sortKey"
+      });
+
+
+    const result = await ddbDocClient.send(command);
+    if (!result.Items) {
       console.log("No RADD Resolvers found.");
       return [];
     }
+
     let raddIssuerList = [];
-    result.Item.forEach(currentItem => {
+    result.Items.forEach(currentItem => {
       if (!currentItem.hasOwnProperty("attributeResolversCfgs")) return;
-      currentItem.forEach(currentResolverCfg => {
-        if (!currentResolverCfg.hasOwnProperty("NAME")) return;
-        if (currentResolverCfg["NAME"] == "DATABASE") {
+      currentItem.attributeResolversCfgs.forEach(currentResolverCfg => {
+        if (!currentResolverCfg.hasOwnProperty(RESOLVER_NAME_FIELD)) return;
+        if (currentResolverCfg[RESOLVER_NAME_FIELD] == RADD_RESOLVER_NAME) {
           currentItem.keyAttributeName = currentResolverCfg?.cfg?.keyAttributeName;
           raddIssuerList.push(currentItem);
         }

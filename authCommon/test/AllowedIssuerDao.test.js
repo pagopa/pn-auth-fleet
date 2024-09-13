@@ -1,9 +1,9 @@
 const rewire = require('rewire');
 const { mockClient } = require("aws-sdk-client-mock");
-const { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, TransactWriteCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, ScanCommand, TransactWriteCommand } = require("@aws-sdk/lib-dynamodb");
 const { expect } = require("chai");
 const fs = require('fs')
-const { ISS_PREFIX, JWKS_CACHE_PREFIX } = require('../app/modules/dao/constants');
+const { ISS_PREFIX, JWKS_CACHE_PREFIX, CFG, RADD_RESOLVER_NAME } = require('../app/modules/dao/constants');
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 const AllowedIssuerDAO = rewire("../app/modules/dao/AllowedIssuerDao");
@@ -172,6 +172,115 @@ describe('AllowedIssuerDAO Testing', () => {
 
         expect(result.jwksCache.length).equal(4);
     });
+
+    it('listRaddIssuers: no data  from DB', async () => {
+        const response = getFilaAsByteArray('test/resources/jwks.json')
+        ddbMock.on(ScanCommand).resolves({
+            Items: [ ]
+        });
+
+ 
+        const result = await AllowedIssuerDAO.listRaddIssuers();
+        expect(result).to.not.be.null;
+        expect(result.length).to.be.equals(0);
+    });
+
+    it('listRaddIssuers: No data  after filtering', async () => {
+        const response = getFilaAsByteArray('test/resources/jwks.json')
+        ddbMock.on(ScanCommand).resolves({
+            Items: [
+                {
+                    hashKey: "ISS~dev-issuer.dev.notifichedigitali.it",
+                    sortKey: CFG,
+                    attributeResolversCfgs: [
+                     {
+                      cfg: {
+                       keyAttributeName: "iss"
+                      },
+                      name: RADD_RESOLVER_NAME + "x"
+                     }
+                    ],
+                    iss: "dev-issuer.dev.notifichedigitali.it",
+                    jwksCacheExpireSlot: "2024-07-22T12:30Z",
+                    JWKSCacheMaxDurationSec: 172800,
+                    JWKSCacheRenewSec: 300,
+                    JWKSUrl: "https://raw.githubusercontent.com/pagopa/pn-auth-fleet/a7e24a84c5be8dbca9c681a5a81e10102262fc30/b2bAuthorizer/src/test/resources/jwks.json",
+                    modificationTimeEpochMs: 1721651159846
+                   },
+                   {
+                    hashKey: "ISS~dev-issuer.dev.notifichedigitali2.it",
+                    sortKey: CFG,
+                    attributeResolversCfgs: [
+                     {
+                      cfg: {
+                       keyAttributeName: "iss"
+                      },
+                      name: RADD_RESOLVER_NAME + "x"
+                     }
+                    ],
+                    iss: "dev-issuer.dev.notifichedigitali.it",
+                    jwksCacheExpireSlot: "2024-07-22T12:30Z",
+                    JWKSCacheMaxDurationSec: 172800,
+                    JWKSCacheRenewSec: 300,
+                    JWKSUrl: "https://raw.githubusercontent.com/pagopa/pn-auth-fleet/a7e24a84c5be8dbca9c681a5a81e10102262fc30/b2bAuthorizer/src/test/resources/jwks.json",
+                    modificationTimeEpochMs: 1721651159846
+                   }
+                           ]
+        });
+
+        const result = await AllowedIssuerDAO.listRaddIssuers();
+        expect(result).to.not.be.null;
+        expect(result.length).to.be.equals(0);
+    });
+
+    it('listRaddIssuers: data  after filtering', async () => {
+        const response = getFilaAsByteArray('test/resources/jwks.json')
+        ddbMock.on(ScanCommand).resolves({
+            Items: [
+                {
+                    hashKey: "ISS~dev-issuer.dev.notifichedigitali.it",
+                    sortKey: CFG,
+                    attributeResolversCfgs: [
+                     {
+                      cfg: {
+                       keyAttributeName: "iss"
+                      },
+                      name: RADD_RESOLVER_NAME + "x"
+                     }
+                    ],
+                    iss: "dev-issuer.dev.notifichedigitali.it",
+                    jwksCacheExpireSlot: "2024-07-22T12:30Z",
+                    JWKSCacheMaxDurationSec: 172800,
+                    JWKSCacheRenewSec: 300,
+                    JWKSUrl: "https://raw.githubusercontent.com/pagopa/pn-auth-fleet/a7e24a84c5be8dbca9c681a5a81e10102262fc30/b2bAuthorizer/src/test/resources/jwks.json",
+                    modificationTimeEpochMs: 1721651159846
+                   },
+                   {
+                    hashKey: "ISS~dev-issuer.dev.notifichedigitali2.it",
+                    sortKey: CFG,
+                    attributeResolversCfgs: [
+                     {
+                      cfg: {
+                       keyAttributeName: "iss"
+                      },
+                      name: RADD_RESOLVER_NAME 
+                     }
+                    ],
+                    iss: "dev-issuer.dev.notifichedigitali.it",
+                    jwksCacheExpireSlot: "2024-07-22T12:30Z",
+                    JWKSCacheMaxDurationSec: 172800,
+                    JWKSCacheRenewSec: 300,
+                    JWKSUrl: "https://raw.githubusercontent.com/pagopa/pn-auth-fleet/a7e24a84c5be8dbca9c681a5a81e10102262fc30/b2bAuthorizer/src/test/resources/jwks.json",
+                    modificationTimeEpochMs: 1721651159846
+                   }
+                           ]
+        });
+
+        const result = await AllowedIssuerDAO.listRaddIssuers();
+        expect(result).to.not.be.null;
+        expect(result.length).to.be.equals(1);
+    });
+    
 
     it('prepareTransactionInput', async () => {
         const prepareTransactionInput = AllowedIssuerDAO.__get__('prepareTransactionInput');
