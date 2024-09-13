@@ -1252,16 +1252,16 @@ Resources:
       FunctionName: !GetAtt JwksCacheForceRefreshLambda.Arn
 
 
-  PnRaddBaseliningLambdaLibrariesLayer:
-    Type: AWS::Lambda::LayerVersion
-    Properties:
-      CompatibleRuntimes:
-        - nodejs18.x
-      Content:
-        S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/raddBaselining_libs.zip"
-      Description: NodeJs Libs layer
-      LayerName: raddBaselining-libs-layer
+  # PnRaddBaseliningLambdaLibrariesLayer:
+  #   Type: AWS::Lambda::LayerVersion
+  #   Properties:
+  #     CompatibleRuntimes:
+  #       - nodejs18.x
+  #     Content:
+  #       S3Bucket: !Ref LambdasBucketName
+  #       S3Key: !Sub "${BucketBasePath}/raddBaselining_libs.zip"
+  #     Description: NodeJs Libs layer
+  #     LayerName: raddBaselining-libs-layer
 
  # Lambda function role
   PnRaddBaseliningLambdaStackRole:
@@ -1331,9 +1331,9 @@ Resources:
                 max_attribute_age_days: !Ref MaxAttributeAgeDays
               },
             ]
-        Layer1: !Ref PnRaddBaseliningLambdaLibrariesLayer
+       # Layer1: !Ref PnRaddBaseliningLambdaLibrariesLayer
         FunctionBucketName: !Ref LambdasBucketName
-        FunctionBucketKey: !Sub "${BucketBasePath}/raddBaselining_code.zip"
+        FunctionBucketKey: !Sub "${BucketBasePath}/raddBaselining.zip"
   
  
 
