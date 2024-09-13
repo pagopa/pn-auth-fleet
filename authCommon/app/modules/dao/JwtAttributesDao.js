@@ -42,6 +42,7 @@ async function listJwtAttributesByIssuer(issuer, resolver) {
   };
   const getCommand = new GetCommand(getCommandInput)
   const result = await ddbDocClient.send(getCommand);
+  if (!result || !result.Item) return {};
   return result.Item;
 }
 

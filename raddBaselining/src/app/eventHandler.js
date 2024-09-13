@@ -49,9 +49,7 @@ async function eventHandler( event ) {
   
   async function leastRecentAttributeEntry( issuer, resolver ) {
     const res = await JwtAttributesDao.listJwtAttributesByIssuer( issuer, resolver );
-    if (!res)
-      console.log("NOT FOUND", issuer);
-    if (res && res.hasOwnProperty('modificationTimeEpochMs'))
+    if (res.hasOwnProperty('modificationTimeEpochMs'))
         return res.modificationTimeEpochMs;
     else return Number.MAX_SAFE_INTEGER;
     

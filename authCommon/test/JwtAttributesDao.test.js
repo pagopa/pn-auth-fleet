@@ -57,4 +57,20 @@ describe('AllowedIssuerDAO Testing', () => {
         expect(result).is.null;
     });
 
+
+    it('listJwtAttributesByIssuer: issuer not found', async () => {
+        let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'));
+        ddbMock.on(GetCommand).resolves({
+            Item: item
+        });
+        const jwt = fs.readFileSync('test/resources/jwt.json')
+
+        const listJwtAttributes = JwtAttributesDao.__get__('listJwtAttributesByIssuer');
+        
+        const result = await listJwtAttributesByIssuer(jwt, attrResolverCfg);     
+
+        expect(result).is.null;
+    });
+    
+
 });
