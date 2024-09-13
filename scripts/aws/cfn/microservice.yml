@@ -463,7 +463,7 @@ Resources:
       Timeout: 10
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/apikeyAuthorizerV2.zip"
+        S3Key: !Sub "${BucketBasePath}/apikeyAuthorizerV2_code.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl
@@ -474,6 +474,19 @@ Resources:
         Mode: Active
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+        - !Ref ApiKeyAuthorizerV2Layer
+
+ # Lib Layer Declaration
+  ApiKeyAuthorizerV2Layer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/apikeyAuthorizerV2_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: apikeyAuthorizerV2-libs-layer
 
   # Lambda function role
   ApiKeyAuthorizerV2LambdaRole:
@@ -540,7 +553,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/ioAuthorizer.zip"
+        S3Key: !Sub "${BucketBasePath}/ioAuthorizer_code.zip"
       Environment:
         Variables:
           CX_TAXID_HEADER: "x-pagopa-cx-taxid"
@@ -557,11 +570,24 @@ Resources:
         Mode: Active
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+        - !Ref IoAuthorizerLayer
       Tags:
         - Key: "pn-eni-related"
           Value: "true"
         - Key: "pn-eni-related-groupName-regexp"
           Value: !Base64 "^pn-auth-fleet-microsvc-prod-DataVaultServiceSecurityGroup.*$"
+
+ # Lib Layer Declaration
+  IoAuthorizerLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/ioAuthorizer_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: ioAuthorizer-libs-layer
 
   # Lambda function role
   IoAuthorizerLambdaRole:
@@ -632,7 +658,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/jwtAuthorizer.zip"
+        S3Key: !Sub "${BucketBasePath}/jwtAuthorizer_code.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
@@ -641,6 +667,19 @@ Resources:
         Mode: Active
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+        - !Ref JwtAuthorizerLayer
+
+ # Lib Layer Declaration
+  JwtAuthorizerLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/jwtAuthorizer_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: jwtAuthorizer-libs-layer
 
   # Lambda function role
   JwtAuthorizerLambdaRole:
@@ -708,7 +747,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer.zip"
+        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer_code.zip"
       Environment:
         Variables:
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
@@ -735,6 +774,19 @@ Resources:
         SubnetIds: !Ref SubnetsIds        
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+        - !Ref B2BAuthorizerLayer 
+
+ # Lib Layer Declaration
+  B2BAuthorizerLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: b2bAuthorizer-libs-layer
 
   # Lambda function role
   B2BAuthorizerLambdaRole:
@@ -825,7 +877,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/jwksCacheRefreshLambda.zip"
+        S3Key: !Sub "${BucketBasePath}/jwksCacheRefreshLambda_code.zip"
       Role: !GetAtt JWKSCacheRefreshLambdaRole.Arn
       Timeout: !Ref JWKSCacheRefreshTimeout # less than 5 minutes event bridge period 
       TracingConfig:
@@ -833,6 +885,7 @@ Resources:
       MemorySize: !Ref JWKSCacheRefreshMemorySize
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+        - !Ref JWKSCacheRefreshLayer
       Environment:
         Variables:
           JWKS_REFRESH_INTERVAL_MINUTES: !Ref JWKSRefreshIntervalMinutes
@@ -909,6 +962,18 @@ Resources:
       #ManagedPolicyArns:
       #  - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
+ # Lib Layer Declaration
+  JWKSCacheRefreshLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/jwksCacheRefreshLambda_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: jwksCacheRefresh-libs-layer
+
   JWKSCacheRefreshLambdaAlarms:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -932,7 +997,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/backofficeAuthorizer.zip"
+        S3Key: !Sub "${BucketBasePath}/backofficeAuthorizer_code.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref BackofficeAuthorizerLambdaEnvironmentCacheTtl
@@ -943,6 +1008,19 @@ Resources:
         Mode: Active
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+        - !Ref BackofficeAuthorizerLayer
+
+ # Lib Layer Declaration
+  BackofficeAuthorizerLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/backofficeAuthorizer_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: backofficeAuthorizer-libs-layer
 
   # Lambda function role
   BackofficeAuthorizerLambdaRole:
@@ -1017,7 +1095,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/tokenExchange.zip"
+        S3Key: !Sub "${BucketBasePath}/tokenExchange_code.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref TokenExchangeLambdaEnvironmentCacheTtl
@@ -1038,6 +1116,20 @@ Resources:
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
         - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:2"
+        - !Ref TokenExchangeLayer
+
+# Lib Layer Declaration
+  TokenExchangeLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs18.x
+      Content:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/tokenExchange_libs.zip"
+      Description: NodeJs Libs layer
+      LayerName: tokenExchange-libs-layer
+
 
   # Lambda function role
   TokenExchangeLambdaRole:
