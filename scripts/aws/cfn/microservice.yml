@@ -1367,7 +1367,7 @@ Resources:
       FlexibleTimeWindow:
         Mode: "OFF"
       Name: "RaddBaseliningShedule"
-      ScheduleExpression: "rate(1 minutes)"
+      ScheduleExpression: "rate(1 day)"
       State: ENABLED
       Target:
         Arn: !GetAtt PnRaddBaseliningLambdaStack.Outputs.FunctionArn

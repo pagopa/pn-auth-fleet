@@ -5,4 +5,4 @@ const eventHandlerModule = rewire("../app/eventHandler");
 describe("test eventHandler success", () => {
 
  
-  });
+});
