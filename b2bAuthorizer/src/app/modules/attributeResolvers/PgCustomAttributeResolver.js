@@ -9,7 +9,7 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
   context["cx_jti"] = jwt.jti + "@" + jwt.iss;
   context["sourceChannel"] = lambdaEvent?.stageVariables?.IntendedUsage;
     
-  const uid = await retrieveVirtualKeyAndEnrichContext(context, jwt.iss);
+  const uid = await retrieveVirtualKeyAndEnrichContext(context, jwt.virtual_key);
   checkPGConsent(context);
 
   await Promise.all([
@@ -24,7 +24,7 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
   }
 }
 
-async function retrieveVirtualKeyAndEnrichContext(context, iss) {
+async function retrieveVirtualKeyAndEnrichContext(context, virtualKey) {
   const apiKeyDynamo = await dynamoFunctions.getApiKeyByIndex(virtualKey);
 
    if (!checkStatus(apiKeyDynamo.status)) {
