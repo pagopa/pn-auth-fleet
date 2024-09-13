@@ -1258,8 +1258,8 @@ Resources:
       CompatibleRuntimes:
         - nodejs18.x
       Content:
-        S3Bucket: !Ref BucketBasePath
-        S3Key: raddBaselining_libs.zip
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/raddBaselining_libs.zip"
       Description: NodeJs Libs layer
       LayerName: raddBaselining-libs-layer
 
@@ -1332,15 +1332,12 @@ Resources:
               },
             ]
         Layer1: !Ref PnRaddBaseliningLambdaLibrariesLayer
-        FunctionBucketName: !Ref BucketBasePath
-        FunctionBucketKey: raddBaselining_code.zip
-
-
-
+        FunctionBucketName: !Ref LambdasBucketName
+        FunctionBucketKey: !Sub "${BucketBasePath}/raddBaselining_code.zip"
   
  
 
-        # Action Remover scheduler BEGIN
+  # Action Remover scheduler BEGIN
   RaddBaseliningSchedulerRole:
     Type: AWS::IAM::Role
     Properties:
