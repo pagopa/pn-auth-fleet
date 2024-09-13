@@ -1,0 +1,19 @@
+{
+    "actionType" : "UPSERT",
+    "iss": "s3://interop.pagopa.it",
+        "attributeResolversCfgs": [{
+                "cfg": {
+                "keyAttributeName": "virtual_key"
+            },
+        "name": "DATABASE" 
+    },
+    {
+        "cfg": {
+            "purposes": ["REFINEMENT","BASE","MANDATE"]
+        },
+        "name": "PGCUSTOM"
+    }],
+    "JWKSCacheMaxDurationSec": 172800,
+    "JWKSCacheRenewSec": 300,
+    "JWKSBody": "jwksbody"
+}
