@@ -732,7 +732,7 @@ Resources:
           JWKS_FORCE_REFRESH_QUEUE_VISIBILITY_TIMEOUT_SECONDS: !Ref JWKSCacheForceRefreshQueueVisibilityTimeout
           JWKS_FORCE_REFRESH_QUEUE_URL: !Ref JWKSCacheForceRefreshQueueURL
           PDND_JWT_ISSUER: !Ref ApikeyAuthorizerV2PDNDIssuer
-          CORE_BASE_PATH: !Ref CoreBasePath
+          API_PRIVATE_BASE_PATH: !Ref ApplicationLoadBalancerDomain
           CONSENT_TYPE: !Ref ConsentTypeEnum
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
