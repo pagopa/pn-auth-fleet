@@ -92,6 +92,14 @@ Parameters:
     Type: String
     Description: Pdnd Issuer for ApikeyAuthorizerV2
 
+  CoreBasePath:
+    Type: String
+    Description: base path for core ms
+
+  ConsentTypeEnum:
+    Type: String
+    Description: enum for consentType check
+
   ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl:
     Type: String
     Default: 300
@@ -724,6 +732,8 @@ Resources:
           JWKS_FORCE_REFRESH_QUEUE_VISIBILITY_TIMEOUT_SECONDS: !Ref JWKSCacheForceRefreshQueueVisibilityTimeout
           JWKS_FORCE_REFRESH_QUEUE_URL: !Ref JWKSCacheForceRefreshQueueURL
           PDND_JWT_ISSUER: !Ref ApikeyAuthorizerV2PDNDIssuer
+          CORE_BASE_PATH: !Ref CoreBasePath
+          CONSENT_TYPE: !Ref ConsentTypeEnum
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize

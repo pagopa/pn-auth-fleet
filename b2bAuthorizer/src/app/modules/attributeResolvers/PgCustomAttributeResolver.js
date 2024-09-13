@@ -2,8 +2,8 @@ const dynamoFunctions = require("./dynamoFunctions.js");
 const { AllowedIssuerDao } = require('pn-auth-common');
 const axios = require("axios");
 
-const basePath = ''; //definire variabile esterna
-const consentType = ''; //definire variabile esterna/globale
+const basePath = process.env.CORE_BASE_PATH;
+const consentType = process.env.CONSENT_TYPE;
 
 async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolverCfg ) {
   context["cx_jti"] = jwt.jti + "@" + jwt.iss;
