@@ -1252,33 +1252,6 @@ Resources:
       FunctionName: !GetAtt JwksCacheForceRefreshLambda.Arn
 
 
-  PnRaddBaseliningLambdaStack:
-    Type: AWS::CloudFormation::Stack
-    # UpdateReplacePolicy: Retain
-    # DeletionPolicy: Delete
-    Properties:
-      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda.yaml"
-      Parameters:
-        FunctionName: !Ref PnRaddBaseliningLambdaName
-        Runtime: nodejs18.x
-        Handler: "index.handler"
-        MemorySize: 256
-        Timeout: 10
-        RoleArn: !GetAtt PnRaddBaseliningLambdaStackRole.Arn
-        EnvVariables:
-          !Sub [
-              "AUTH_JWT_ATTRIBUTE_TABLE=${auth_jwt_attribute_table}###AUTH_JWT_ISSUER_TABLE=${auth_jwt_issuer_table}###MAX_ATTRIBUTES_AGE_DAYS=${max_attribute_age_days}",
-              {
-                auth_jwt_attribute_table: !Ref AuthJwtAttributesTableName,
-                auth_jwt_issuer_table: !Ref AuthJwtIssuersTableName,
-                max_attribute_age_days: !Ref MaxAttributeAgeDays
-              },
-            ]
-        Layer1: !Ref PnRaddBaseliningLambdaLibrariesLayer
-        FunctionBucketName: !Ref BucketBasePath
-        FunctionBucketKey: raddBaselining_code.zip
-
-
   PnRaddBaseliningLambdaLibrariesLayer:
     Type: AWS::Lambda::LayerVersion
     Properties:
@@ -1289,8 +1262,8 @@ Resources:
         S3Key: raddBaselining_libs.zip
       Description: NodeJs Libs layer
       LayerName: raddBaselining-libs-layer
-  
-  # Lambda function role
+
+ # Lambda function role
   PnRaddBaseliningLambdaStackRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1335,6 +1308,37 @@ Resources:
                   - !Ref AuthJwtIssuersTableArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  PnRaddBaseliningLambdaStack:
+    Type: AWS::CloudFormation::Stack
+    # UpdateReplacePolicy: Retain
+    # DeletionPolicy: Delete
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda.yaml"
+      Parameters:
+        FunctionName: !Ref PnRaddBaseliningLambdaName
+        Runtime: nodejs18.x
+        Handler: "index.handler"
+        MemorySize: 256
+        Timeout: 10
+        RoleArn: !GetAtt PnRaddBaseliningLambdaStackRole.Arn
+        EnvVariables:
+          !Sub [
+              "AUTH_JWT_ATTRIBUTE_TABLE=${auth_jwt_attribute_table}###AUTH_JWT_ISSUER_TABLE=${auth_jwt_issuer_table}###MAX_ATTRIBUTES_AGE_DAYS=${max_attribute_age_days}",
+              {
+                auth_jwt_attribute_table: !Ref AuthJwtAttributesTableName,
+                auth_jwt_issuer_table: !Ref AuthJwtIssuersTableName,
+                max_attribute_age_days: !Ref MaxAttributeAgeDays
+              },
+            ]
+        Layer1: !Ref PnRaddBaseliningLambdaLibrariesLayer
+        FunctionBucketName: !Ref BucketBasePath
+        FunctionBucketKey: raddBaselining_code.zip
+
+
+
+  
+ 
 
         # Action Remover scheduler BEGIN
   RaddBaseliningSchedulerRole:
