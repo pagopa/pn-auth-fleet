@@ -9,7 +9,7 @@ const AWSXRay = require("aws-xray-sdk"); /* refers to: https://docs.aws.amazon.c
 const {
   ItemNotFoundException,
   TooManyItemsFoundException,
-} = require("./exceptions.js");
+} = require("../../errors/exceptions");
 
 const ddbClient = AWSXRay.captureAWSv3Client(new DynamoDBClient());
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
@@ -33,7 +33,7 @@ async function getApiKeyByIndex(virtualKey) {
   const apiKeyItems = await ddbDocClient.send(command);
 
   if (!apiKeyItems.Items || apiKeyItems.Items.length === 0) {
-    throw new ItemNotFoundException(null, TableName);
+    throw new ItemNotFoundException(TableName);
   }
 
   if (apiKeyItems.Items.length > 1) {
@@ -48,27 +48,10 @@ async function getApiKeyByIndex(virtualKey) {
     groups: apiKeyItem["groups"],
     status: apiKeyItem["status"],
     virtualKey: apiKeyItem["virtualKey"],
-    uid: apiKeyItem["x-pagopa-pn-uid"]
-    cxType: apiKeyItem["x-pagopa-pn-cx-type"]
+    uid: apiKeyItem["x-pagopa-pn-uid"],
+    cxType: apiKeyItem["x-pagopa-pn-cx-type"],
     scope: apiKeyItem["scope"],
   };
-}
-
-async function getItemById(TableName, keyName, keyValue) {
-  const command = new GetCommand({
-    TableName,
-    Key: {
-      [keyName]: keyValue,
-    },
-  });
-
-  const dynamoItem = await ddbDocClient.send(command);
-
-  if (!dynamoItem || !dynamoItem.Item) {
-    throw new ItemNotFoundException(keyValue, TableName);
-  }
-
-  return dynamoItem.Item;
 }
 
 module.exports = { getApiKeyByIndex};
