@@ -359,21 +359,26 @@ async function deleteJwksCacheByIss(iss){
 
 }
 
-async function listRaddIssuers() {
-    const command = new ScanCommand({
+async function listRaddIssuers(lastItem) {
+    const params = {
         TableName: process.env.AUTH_JWT_ISSUER_TABLE,
         ExpressionAttributeValues: {
           ":sortKey": CFG
         },
         FilterExpression: "sortKey = :sortKey"
-      });
+      };
 
-
-    const result = await ddbDocClient.send(command);
-    if (!result.Items) {
-      console.log("No RADD Resolvers found.");
-      return [];
+    if (lastItem) {
+        params.ExclusiveStartKey = lastItem;
     }
+
+
+    const command = new ScanCommand(params);
+    const result = await ddbDocClient.send(command);
+    // if (result.Items) {
+    //   console.log("No RADD Resolvers found.");
+    //   return [];
+    // }
 
     let raddIssuerList = [];
     result.Items.forEach(currentItem => {
@@ -386,7 +391,7 @@ async function listRaddIssuers() {
         }
       });
     });
-    return raddIssuerList;
+    return {Items: raddIssuerList, lastEvaluatedKey: result.lastEvaluatedKey};
 }
 
 module.exports = {

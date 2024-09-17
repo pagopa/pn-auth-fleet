@@ -15,21 +15,25 @@ const adjustDate = (d, days) => {
 } 
 
 async function eventHandler( event ) {
-  console.log(process.env.MAX_ATTRIBUTES_AGE_DAYS);
-    const baseliningDeadline = adjustDate(new Date(), process.env.MAX_ATTRIBUTES_AGE_DAYS);
-    console.log("baselined",baseliningDeadline);
-    const allIssuers = await AllowedIssuerDao.listRaddIssuers();  
+  const baseliningDeadline = adjustDate(new Date(), process.env.MAX_ATTRIBUTES_AGE_DAYS);
 
-    const issuersToBeChecked = allIssuers;
-    
-    let issuerToBeBaselined = []
-    for (const iss of issuersToBeChecked) {
-      const leastRecentDatabaseAttributeTs = await leastRecentAttributeEntry(iss, COMMON_COSTANTS.RADD_RESOLVER_NAME);
+  let needBaselineCount = 0;
+  const lastKey = undefined;
+  do {
+      const result = await AllowedIssuerDao.listRaddIssuers(lastKey);      
+
+      for (const iss of result.Items) {
+        const leastRecentDatabaseAttributeTs = await leastRecentAttributeEntry(iss, COMMON_COSTANTS.RADD_RESOLVER_NAME);
       
-      if( leastRecentDatabaseAttributeTs < baseliningDeadline ) {
-        issuerToBeBaselined.push( iss )
+        if( leastRecentDatabaseAttributeTs < baseliningDeadline ) {
+          // - Effettuare log a warning dell'elenco degli issuer 
+          //   di cui è necessario il baselining (issuerToBeBaselined)
+          console.warn("[RADD_BASELINING]", "Baselining needed for", iss);
+          needBaselineCount++;
       }
     }
+    lastKey = result.lastEvaluatedKey;
+  } while(lastKey);
     
     
     
@@ -37,12 +41,9 @@ async function eventHandler( event ) {
     // //   Name: “JWKS_issuer_baselining_needed”
     // //   Value: issuerToBeBaselined.size()
     // // - Effettuare flush delle metriche
-    if(issuerToBeBaselined.length != 0) {
-        metricsHandler.addMetric(METRIC_NAME, 'count', issuerToBeBaselined.length);
+    if(needBaselineCount != 0) {
+        metricsHandler.addMetric(METRIC_NAME, 'count', needBaselineCount);
         metricsHandler.publishMetrics();
-        // - Effettuare log a warning dell'elenco degli issuer 
-        //   di cui è necessario il baselining (issuerToBeBaselined)
-        issuerToBeBaselined.forEach(currIssuer => console.warn("[RADD_BASELINING]", "Baselining needed for", currIssuer.iss));
     }
   }
   
