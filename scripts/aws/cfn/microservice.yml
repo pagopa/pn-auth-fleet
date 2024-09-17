@@ -92,10 +92,6 @@ Parameters:
     Type: String
     Description: Pdnd Issuer for ApikeyAuthorizerV2
 
-  CoreBasePath:
-    Type: String
-    Description: base path for core ms
-
   ConsentTypeEnum:
     Type: String
     Description: enum for consentType check

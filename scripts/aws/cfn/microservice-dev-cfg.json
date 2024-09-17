@@ -16,6 +16,6 @@
     "JwksCacheForceRefreshLambdaTimeout": "15" ,
     "PgCustomAttributeResolverCacheMaxUsageEpochSec":"300",
     "PgCustomAttributeResolverEnableCache":"true",
-    "PgB2BConsentType": "B2B"
+    "ConsentTypeEnum": "TOS_DEST_B2B"
   }
 }
