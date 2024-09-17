@@ -7,6 +7,8 @@ const MetricsHandler = require('./app/modules/aws/MetricsHandler')
 const DTO = require('./app/modules/dto')
 const S3Functions = require('./app/modules/aws/S3Functions')
 
+const { prepareJWKSRenewTimeMetric } = require('./app/modules/utils/metricsUtils')
+
 module.exports = {
     AllowedIssuerDao,
     DTO,
@@ -15,5 +17,6 @@ module.exports = {
     SqsHandler,
     RedisHandler,
     MetricsHandler,
-    S3Functions
+    S3Functions,
+    prepareJWKSRenewTimeMetric
 }
