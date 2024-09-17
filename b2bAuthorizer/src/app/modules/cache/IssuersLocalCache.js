@@ -38,11 +38,12 @@ class IssuersLocalCache {
         return null
     }
 
-    async #emitRemoteJwksCacheInvalidationEventAndWait(iss) {
+    async #emitRemoteJwksCacheInvalidationEventAndWait(iss, cacheExpirationTime) {
         const messageDelay = 0;
         const queueUrl = process.env.JWKS_FORCE_REFRESH_QUEUE_URL
         const bodyMessage = {
             "iss": iss,
+            "cacheExpiredTS": cacheExpirationTime,
             "requestTimestamp": new Date().toISOString(),
             "uuid": crypto.randomUUID()
         }
@@ -77,8 +78,8 @@ class IssuersLocalCache {
         return this.#cacheStore.get(iss);
     }
 
-    async getWithForceRefresh(iss) {
-        await this.#emitRemoteJwksCacheInvalidationEventAndWait(iss)
+    async getWithForceRefresh(iss, cacheExpirationTime) {
+        await this.#emitRemoteJwksCacheInvalidationEventAndWait(iss, cacheExpirationTime)
         this.#invalidateLocalCache(iss)
         return this.getOrLoad(iss)
     }

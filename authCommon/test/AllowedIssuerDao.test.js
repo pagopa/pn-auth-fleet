@@ -182,7 +182,7 @@ describe('AllowedIssuerDAO Testing', () => {
  
         const result = await AllowedIssuerDAO.listRaddIssuers();
         expect(result).to.not.be.null;
-        expect(result.length).to.be.equals(0);
+        expect(result.Items.length).to.be.equals(0);
     });
 
     it('listRaddIssuers: No data  after filtering', async () => {
@@ -230,7 +230,7 @@ describe('AllowedIssuerDAO Testing', () => {
 
         const result = await AllowedIssuerDAO.listRaddIssuers();
         expect(result).to.not.be.null;
-        expect(result.length).to.be.equals(0);
+        expect(result.Items.length).to.be.equals(0);
     });
 
     it('listRaddIssuers: data  after filtering', async () => {
@@ -278,7 +278,7 @@ describe('AllowedIssuerDAO Testing', () => {
 
         const result = await AllowedIssuerDAO.listRaddIssuers();
         expect(result).to.not.be.null;
-        expect(result.length).to.be.equals(1);
+        expect(result.Items.length).to.be.equals(1);
     });
     
 

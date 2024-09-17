@@ -8,6 +8,8 @@ const DTO = require('./app/modules/dto')
 const S3Functions = require('./app/modules/aws/S3Functions')
 const { RADD_RESOLVER_NAME } = require('./app/modules/dao/constants')
 
+const { prepareJWKSRenewTimeMetric } = require('./app/modules/utils/metricsUtils')
+
 module.exports = {
     AllowedIssuerDao,
     DTO,
@@ -17,5 +19,6 @@ module.exports = {
     RedisHandler,
     MetricsHandler,
     S3Functions,
-    COMMON_COSTANTS: {RADD_RESOLVER_NAME}
+    COMMON_COSTANTS: {RADD_RESOLVER_NAME},
+    prepareJWKSRenewTimeMetric
 }
