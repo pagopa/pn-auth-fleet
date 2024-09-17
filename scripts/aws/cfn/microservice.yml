@@ -729,7 +729,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer.zip"
+        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer_code.zip"
       Environment:
         Variables:
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
