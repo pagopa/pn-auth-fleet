@@ -4,6 +4,8 @@ const Logger = require("./modules/logger");
 const JwtService = require("./modules/jwt");
 const PolicyService = require("./modules/policy");
 const AuthenticationError = require("./errors/AuthenticationError");
+const { MetricsHandler, JwtIssuerRefreshDTO } = require('pn-auth-common');
+const { prepareMetric, prepareMetricsJwtData } = require('./modules/metric/metricsUtils')
 
 // cache initialization
 const renewTimeSeconds = parseInt(process.env.RENEW_TIME_SECONDS);
@@ -16,10 +18,14 @@ const issuersCache = new IssuersLocalCache(
 // attribute resolvers map
 const attributeResolvers = new AttributeResolversMap();
 
+// metric handler
+const metricsHandler = new MetricsHandler();
+
 // jwt Service initialization
 const maxAgeInSeconds = parseInt(process.env.JWT_MAX_AGE_SECONDS) || 3600; // default 1 hour
 const clockToleranceInSeconds = parseInt(process.env.JWT_CLOCK_TOLERANCE_SECONDS) || 60; // default 1 minute
 const jwtService = new JwtService(maxAgeInSeconds, clockToleranceInSeconds);
+
 
 const getJWTFromLambdaEvent = (lambdaEvent) => {
   let authorizationHeader = lambdaEvent.headers?.authorization;
@@ -58,19 +64,22 @@ async function handleEvent(event) {
   const authorizationContex = prepareContextForLogger(event);
   const logger = new Logger(authorizationContex);
   const policyService = new PolicyService(logger);
-
+  let decodedJwtToken;
+  let issuerId;
   try {
 
     if (!jwtToken) {
       console.warn("jwtToken is null");
       throw new Error("JWT Token not found in Authorization header");
     }
-    
-    const decodedJwtToken = getDecodedToken(jwtToken);
 
-    const issuerId = decodedJwtToken.payload.iss;
+    decodedJwtToken = getDecodedToken(jwtToken);
+    issuerId = decodedJwtToken.payload?.iss;
+
     if(!issuerId) {
       logger.addToContext('jwt', decodedJwtToken);
+      const metric = prepareMetric("Unknown_iss", decodedJwtToken)
+      metricsHandler.addMetric(metric.metricName, metric.unit, metric.value, metric.dimension, metric.metadata)
       throw new AuthenticationError("Issuer not found in JWT", { iss: decodedJwtToken.payload.iss }, false);
     }
 
@@ -81,17 +90,18 @@ async function handleEvent(event) {
     }
     catch (err) {
       if(err instanceof AuthenticationError && err.retriable){
-        issuerInfo = await issuersCache.getWithForceRefresh( issuerId )
+        issuerInfo = await issuersCache.getWithForceRefresh(issuerId,  issuerInfo.cfg.jwksCacheOriginalExpireEpochSeconds);
         logger.addToContext('issuerInfo', issuerInfo);
         jwtService.validateToken( issuerInfo, decodedJwtToken, jwtToken, event );  // throw AutenticationError if something goes wrong
       } else {
         throw err;
       }
     }
-    
+    const metrics = prepareMetricsJwtData(decodedJwtToken, true)
+    metricsHandler.addMultipleMetrics(metrics)
     const simpleJwt = jwtService.extractEssentialFields( decodedJwtToken )
     logger.addToContext('simpleJwt', simpleJwt.toDiagnosticContext());
-    
+
     const attributeResolution = await attributeResolvers.resolveAttributes( simpleJwt, event, issuerInfo.cfg.attributeResolversCfgs );
     logger.addToContext('attributeResolution', attributeResolution);
     const context = attributeResolution.context;
@@ -122,11 +132,20 @@ async function handleEvent(event) {
         context: {},
         usageIdentifierKey: null
       }
+      if(issuerId) {
+        const metric = prepareMetric("Unknown_iss", decodedJwtToken)
+        metricsHandler.addMetric(metric.metricName, metric.unit, metric.value, metric.dimension, metric.metadata)
+      }
+      const metrics = prepareMetricsJwtData(decodedJwtToken, false)
+      metricsHandler.addMultipleMetrics(metrics)
       return ret
     } else {
       logger.error(e.message, e);
       throw e;
     }
+  }
+  finally {
+    metricsHandler.publishMetrics()
   }
 }
 

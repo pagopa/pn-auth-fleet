@@ -1,0 +1,7 @@
+const UPSERT_ACTION_TYPE = 'UPSERT';
+const DELETE_ACTION_TYPE = 'DELETE';
+
+module.exports = {
+    UPSERT_ACTION_TYPE,
+    DELETE_ACTION_TYPE,
+}

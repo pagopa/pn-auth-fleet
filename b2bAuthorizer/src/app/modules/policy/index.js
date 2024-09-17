@@ -73,7 +73,7 @@ class PolicyService {
         if(context.callableApiTags){
           return await customPolicy.getCustomPolicyDocument(lambdaEvent, context.callableApiTags);
         }
-      
+
         return defaultAllowPolicyDocument;
     }
 

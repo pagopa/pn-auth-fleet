@@ -1,9 +1,13 @@
 const { ddbDocClient } = require('./DynamoDbClient')
-const { GetCommand } = require("@aws-sdk/lib-dynamodb");
+const { GetCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
 const { ATTR_PREFIX } = require('./constants');
 
 function buildHashKeyForAttributeResolver(jwt, attrResolverCfg){
   return ATTR_PREFIX + "~" + jwt.iss + "~" + attrResolverCfg.keyAttributeName + "~" + jwt[ attrResolverCfg.keyAttributeName ]
+}
+
+function buildHashKeyFromAuthIssuer(jwtIssuer){
+  return ATTR_PREFIX + "~" + jwtIssuer.iss + "~iss~" + jwtIssuer.iss
 }
 
 async function listJwtAttributes(jwt, attrResolverCfg) {
@@ -23,9 +27,30 @@ async function listJwtAttributes(jwt, attrResolverCfg) {
     }
     console.log("Elemento valido:", result.Item);
     return result.Item;
-  }
+}
 
+async function deleteJwtAttributesByJwtIssuer(jwtIssuer){
+
+    const itemKey = buildHashKeyFromAuthIssuer(jwtIssuer);
+    const params = {
+      TableName: process.env.AUTH_JWT_ATTRIBUTE_TABLE,
+      Key: {
+        hashKey: itemKey,
+        sortKey: 'NA'
+      }
+    };
+  
+    try {
+      await ddbDocClient.send(new DeleteCommand(params));
+      console.info("DeleteItem succeeded:", itemKey);
+    } catch (err) {
+      console.error("Unable to delete item "+itemKey+". Error JSON:", JSON.stringify(err, null, 2));
+      throw err;
+    }
+}
+  
 
 module.exports = {
-    listJwtAttributes
+    listJwtAttributes,
+    deleteJwtAttributesByJwtIssuer
 }

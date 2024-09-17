@@ -174,9 +174,9 @@ describe('PolicyService', () => {
         getCustomPolicyDocument.callsFake(() => Promise.resolve(policyDocument));
 
         const ctx = {
-            sourceChannel: 'B2BPG', 
+            sourceChannel: 'B2BPG',
             allowedApplicationRoles: "[\"user\",\"admin\"]",
-            applicationRole: 'user', 
+            applicationRole: 'user',
             callableApiTags: 'REFINEMENT'
         }
         const policy = await policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'B2BPG' } });
