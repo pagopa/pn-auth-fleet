@@ -6,6 +6,10 @@ function buildHashKeyForAttributeResolver(jwt, attrResolverCfg) {
   return ATTR_PREFIX + "~" + jwt.iss + "~" + attrResolverCfg.keyAttributeName + "~" + jwt[attrResolverCfg.keyAttributeName]
 }
 
+function buildHashKeyFromAuthIssuer(jwtIssuer){
+  return ATTR_PREFIX + "~" + jwtIssuer.iss + "~iss~" + jwtIssuer.iss
+}
+
 
 async function listJwtAttributes(jwt, attrResolverCfg) {
   const nowEpochSec = Math.floor(Date.now() / 1000);
@@ -25,6 +29,7 @@ async function listJwtAttributes(jwt, attrResolverCfg) {
   console.log("Elemento valido:", result.Item);
   return result.Item;
 }
+
 
 
 
@@ -48,7 +53,7 @@ async function listJwtAttributesByIssuer(issuer, resolver) {
 
 async function deleteJwtAttributesByJwtIssuer(jwtIssuer) {
 
-  const itemKey = buildHashKeyForAttributeResolver(jwtIssuer, jwtIssuer.attributeResolversCfgs);
+  const itemKey = buildHashKeyFromAuthIssuer(jwtIssuer);
   const params = {
     TableName: process.env.AUTH_JWT_ATTRIBUTE_TABLE,
     Key: {

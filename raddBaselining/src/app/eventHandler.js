@@ -18,7 +18,7 @@ async function eventHandler( event ) {
   const baseliningDeadline = adjustDate(new Date(), process.env.MAX_ATTRIBUTES_AGE_DAYS);
 
   let needBaselineCount = 0;
-  const lastKey = undefined;
+  let lastKey = undefined;
   do {
       const result = await AllowedIssuerDao.listRaddIssuers(lastKey);      
 
