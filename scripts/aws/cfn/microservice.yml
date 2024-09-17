@@ -92,6 +92,14 @@ Parameters:
     Type: String
     Description: Pdnd Issuer for ApikeyAuthorizerV2
 
+  CoreBasePath:
+    Type: String
+    Description: base path for core ms
+
+  ConsentTypeEnum:
+    Type: String
+    Description: enum for consentType check
+
   ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl:
     Type: String
     Default: 300
@@ -99,7 +107,7 @@ Parameters:
 
   ApplicationLoadBalancerDomain:
     Type: String
-    Description: application loadbalancer used from ioAuthorizer to call pn-data-vault
+    Description: application loadbalancer used from b2bAuthorizer to call pn-external-registries and pn-user-attributes
 
   # Unused but required by CD pipeline
   MicroserviceNumber:
@@ -443,6 +451,19 @@ Parameters:
     Default: "ERROR"
     Description: "Filter pattern for jwks cache refresh alarm"
 
+  PgCustomAttributeResolverCacheMaxUsageEpochSec:
+    Type: Number
+    Default: 0
+    Description: "Max usage epoch in seconds for PGCUSTOME attributes resolver cache"
+
+  PgCustomAttributeResolverEnableCache:
+    Type: String
+    Default: false
+    Description: Enable cache for PGCUSTOM attributes resolver
+    AllowedValues:
+      - true
+      - false
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -724,6 +745,10 @@ Resources:
           JWKS_FORCE_REFRESH_QUEUE_VISIBILITY_TIMEOUT_SECONDS: !Ref JWKSCacheForceRefreshQueueVisibilityTimeout
           JWKS_FORCE_REFRESH_QUEUE_URL: !Ref JWKSCacheForceRefreshQueueURL
           PDND_JWT_ISSUER: !Ref ApikeyAuthorizerV2PDNDIssuer
+          API_PRIVATE_BASE_PATH: http://${ApplicationLoadBalancerDomain}:8080
+          CONSENT_TYPE: !Ref ConsentTypeEnum
+          PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC: !Ref PgCustomAttributeResolverCacheMaxUsageEpochSec
+          ENABLE_PGCUSTOM_CACHE: !Ref PgCustomAttributeResolverEnableCache
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize

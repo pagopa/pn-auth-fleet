@@ -25,6 +25,7 @@
     "lambda-tester": "^4.0.1",
     "mocha": "^9.2.2",
     "mocha-lcov-reporter": "^1.3.0",
+    "axios-mock-adapter": "^1.20.0",
     "nyc": "^15.1.0",
     "proxyquire": "^2.1.3",
     "rewire": "^7.0.0",
@@ -32,11 +33,15 @@
     "sinon": "^15.0.1"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.410.0",
+    "@aws-sdk/lib-dynamodb": "^3.410.0",
+    "aws-xray-sdk": "^3.5.1",
     "jsonwebtoken": "^9.0.2",
     "jwk-to-pem": "^2.0.5",
-    "pn-auth-common": "file:../authCommon",
     "js-yaml": "^4.1.0",
     "@aws-sdk/client-s3": "^3.252.0",
     "@aws-sdk/client-api-gateway": "^3.252.0"
+    "pn-auth-common": "file:../authCommon",
+    "axios": "^0.25.0"
   }
 }
