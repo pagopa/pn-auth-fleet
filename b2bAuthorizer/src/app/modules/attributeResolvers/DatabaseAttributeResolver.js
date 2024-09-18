@@ -7,7 +7,7 @@ async function DatabaseAttributeResolver( jwt, lambdaEvent, context, attrResolve
             context[k] = jwtAttribute.contextAttributes[k]
         }
     }
-    context["cx_jti"] = jwt.kid;
+    context["cx_jti"] = jwt.jti + "@" + jwt.iss;
 
     return {
         context: context,

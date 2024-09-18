@@ -10,6 +10,20 @@ function buildHashKeyFromAuthIssuer(jwtIssuer){
   return ATTR_PREFIX + "~" + jwtIssuer.iss + "~iss~" + jwtIssuer.iss
 }
 
+async function putJwtAttributes(item) {
+    const putCommand = new PutCommand({
+        TableName: process.env.AUTH_JWT_ATTRIBUTE_TABLE,
+        Item: item
+    })
+    try {
+      await ddbDocClient.send(putCommand);
+      console.info("PutItem succeeded:", item.pk);
+    } catch (err) {
+      console.error("Unable to putItem "+item.pk+". Error JSON:", JSON.stringify(err, null, 2));
+      throw err;
+    }
+}
+
 async function listJwtAttributes(jwt, attrResolverCfg) {
   const nowEpochSec = Math.floor(Date.now() / 1000);
   const getCommandInput = {
@@ -70,5 +84,6 @@ async function listJwtAttributesByIssuer(issuer, resolver) {
 module.exports = {
   listJwtAttributes,
   deleteJwtAttributesByJwtIssuer,
-  listJwtAttributesByIssuer
+  listJwtAttributesByIssuer,
+  putJwtAttributes
 }

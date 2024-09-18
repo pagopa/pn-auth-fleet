@@ -10,6 +10,64 @@ const ddbMock = mockClient(DynamoDBDocumentClient);
 
 process.env.AUTH_JWT_ATTRIBUTE_TABLE = "AUTH_JWT_ATTRIBUTE_TABLE"
 
+const sinon = require('sinon');
+
+describe('putJwtAttributes', () => {
+  let item;
+
+  beforeEach(() => {
+    item = { pk: 'test-pk', someAttribute: 'someValue' };
+  });
+
+  it('succeeds when valid item is provided', async () => {
+    sinon.stub(ddbDocClient, 'send').resolves();
+
+    await putJwtAttributes(item);
+
+    expect(ddbDocClient.send.calledOnce).to.be.true;
+    expect(ddbDocClient.send.firstCall.args[0]).to.be.instanceOf(PutCommand);
+    expect(ddbDocClient.send.firstCall.args[0].input.Item).to.deep.equal(item);
+  });
+
+  it('logs success message when item is put successfully', async () => {
+    const consoleInfoStub = sinon.stub(console, 'info');
+    sinon.stub(ddbDocClient, 'send').resolves();
+
+    await putJwtAttributes(item);
+
+    expect(consoleInfoStub.calledOnceWith("PutItem succeeded:", item.pk)).to.be.true;
+  });
+
+  it('throws an error when ddbDocClient.send fails', async () => {
+    const error = new Error('DynamoDB error');
+    sinon.stub(ddbDocClient, 'send').rejects(error);
+
+    try {
+      await putJwtAttributes(item);
+    } catch (err) {
+      expect(err).to.equal(error);
+    }
+  });
+
+  it('logs error message when ddbDocClient.send fails', async () => {
+    const error = new Error('DynamoDB error');
+    const consoleErrorStub = sinon.stub(console, 'error');
+    sinon.stub(ddbDocClient, 'send').rejects(error);
+
+    try {
+      await putJwtAttributes(item);
+    } catch (err) {
+      // expected error
+    }
+
+    expect(consoleErrorStub.calledOnceWith("Unable to putItem " + item.pk + ". Error JSON:", JSON.stringify(error, null, 2))).to.be.true;
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+});
+
 describe('AllowedIssuerDAO Testing', () => {
     beforeEach(() => {
         ddbMock.reset();
