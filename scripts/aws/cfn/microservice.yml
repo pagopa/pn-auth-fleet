@@ -733,7 +733,7 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer_code.zip"
+        S3Key: !Sub "${BucketBasePath}/b2bAuthorizer.zip"
       Environment:
         Variables:
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
@@ -749,7 +749,7 @@ Resources:
           JWKS_FORCE_REFRESH_QUEUE_VISIBILITY_TIMEOUT_SECONDS: !Ref JWKSCacheForceRefreshQueueVisibilityTimeout
           JWKS_FORCE_REFRESH_QUEUE_URL: !Ref JWKSCacheForceRefreshQueueURL
           PDND_JWT_ISSUER: !Ref ApikeyAuthorizerV2PDNDIssuer
-          API_PRIVATE_BASE_PATH: http://${ApplicationLoadBalancerDomain}:8080
+          API_PRIVATE_BASE_PATH: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
           CONSENT_TYPE: !Ref ConsentTypeEnum
           PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC: !Ref PgCustomAttributeResolverCacheMaxUsageEpochSec
           ENABLE_PGCUSTOM_CACHE: !Ref PgCustomAttributeResolverEnableCache
