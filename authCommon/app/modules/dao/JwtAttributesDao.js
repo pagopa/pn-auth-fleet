@@ -10,7 +10,6 @@ function buildHashKeyFromAuthIssuer(jwtIssuer){
   return ATTR_PREFIX + "~" + jwtIssuer.iss + "~iss~" + jwtIssuer.iss
 }
 
-
 async function listJwtAttributes(jwt, attrResolverCfg) {
   const nowEpochSec = Math.floor(Date.now() / 1000);
   const getCommandInput = {
@@ -30,8 +29,25 @@ async function listJwtAttributes(jwt, attrResolverCfg) {
   return result.Item;
 }
 
+async function deleteJwtAttributesByJwtIssuer(jwtIssuer) {
 
+  const itemKey = buildHashKeyFromAuthIssuer(jwtIssuer);
+  const params = {
+    TableName: process.env.AUTH_JWT_ATTRIBUTE_TABLE,
+    Key: {
+        hashKey: itemKey,
+        sortKey: 'NA'
+    }
+  };
 
+  try {
+    await ddbDocClient.send(new DeleteCommand(params));
+    console.info("DeleteItem succeeded:", itemKey);
+  } catch (err) {
+    console.error("Unable to delete item " + itemKey + ". Error JSON:", JSON.stringify(err, null, 2));
+    throw err;
+  }
+}
 
 async function listJwtAttributesByIssuer(issuer, resolver) {
   const getCommandInput = {
@@ -50,26 +66,6 @@ async function listJwtAttributesByIssuer(issuer, resolver) {
   if (!result || !result.Item) return {};
   return result.Item;
 }
-
-async function deleteJwtAttributesByJwtIssuer(jwtIssuer) {
-
-  const itemKey = buildHashKeyFromAuthIssuer(jwtIssuer);
-  const params = {
-    TableName: process.env.AUTH_JWT_ATTRIBUTE_TABLE,
-    Key: {
-      hashKey: itemKey
-    }
-  };
-
-  try {
-    await ddbDocClient.send(new DeleteCommand(params));
-    console.info("DeleteItem succeeded:", itemKey);
-  } catch (err) {
-    console.error("Unable to delete item " + itemKey + ". Error JSON:", JSON.stringify(err, null, 2));
-    throw err;
-  }
-}
-
 
 module.exports = {
   listJwtAttributes,

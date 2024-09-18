@@ -451,8 +451,6 @@ Parameters:
     Default: "ERROR"
     Description: "Filter pattern for jwks cache refresh alarm"
 
-  
-
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -1373,7 +1371,7 @@ Resources:
         Arn: !GetAtt PnRaddBaseliningLambdaStack.Outputs.FunctionArn
         RoleArn: !GetAtt RaddBaseliningSchedulerRole.Arn
   # Action Remover scheduler END  
-
+  
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
   # ###########################################################
   # Application use this alias to access the public/private key pair
