@@ -182,6 +182,9 @@ Parameters:
   JwksCacheForceRefreshLambdaName:
     Type: String
 
+  PnRaddBaseliningLambdaName:
+    Type: String
+
   TokenExchangeWafLimit:
     Type: Number
     Default: "600000"
@@ -283,6 +286,11 @@ Parameters:
     Type: Number
     Default: 60
     Description: "Clock skew in seconds for JWT token"
+
+  MaxAttributeAgeDays:
+    Type: Number
+    Default:  90
+    Description: "Max Attributes Age To request RADD Baseline"
     
   JWKSCacheRefreshDataPointsToAlarm:
     Type: Number
@@ -1262,6 +1270,129 @@ Resources:
       MaximumBatchingWindowInSeconds: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumBatchingWindowInSeconds}
       FunctionName: !GetAtt JwksCacheForceRefreshLambda.Arn
 
+
+  # PnRaddBaseliningLambdaLibrariesLayer:
+  #   Type: AWS::Lambda::LayerVersion
+  #   Properties:
+  #     CompatibleRuntimes:
+  #       - nodejs18.x
+  #     Content:
+  #       S3Bucket: !Ref LambdasBucketName
+  #       S3Key: !Sub "${BucketBasePath}/raddBaselining_libs.zip"
+  #     Description: NodeJs Libs layer
+  #     LayerName: raddBaselining-libs-layer
+
+ # Lambda function role
+  PnRaddBaseliningLambdaStackRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-RaddBaseliningLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaReadDynamoDb
+                Action:
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtAttributesTableArn
+              - Sid: AllowLambdaScanDynamoDb
+                Action:
+                  - dynamodb:Scan
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  PnRaddBaseliningLambdaStack:
+    Type: AWS::CloudFormation::Stack
+    # UpdateReplacePolicy: Retain
+    # DeletionPolicy: Delete
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda.yaml"
+      Parameters:
+        FunctionName: !Ref PnRaddBaseliningLambdaName
+        Runtime: nodejs18.x
+        Handler: "index.handler"
+        MemorySize: 256
+        Timeout: 10
+        RoleArn: !GetAtt PnRaddBaseliningLambdaStackRole.Arn
+        EnvVariables:
+          !Sub [
+              "AUTH_JWT_ATTRIBUTE_TABLE=${auth_jwt_attribute_table}###AUTH_JWT_ISSUER_TABLE=${auth_jwt_issuer_table}###MAX_ATTRIBUTES_AGE_DAYS=${max_attribute_age_days}",
+              {
+                auth_jwt_attribute_table: !Ref AuthJwtAttributesTableName,
+                auth_jwt_issuer_table: !Ref AuthJwtIssuersTableName,
+                max_attribute_age_days: !Ref MaxAttributeAgeDays
+              },
+            ]
+       # Layer1: !Ref PnRaddBaseliningLambdaLibrariesLayer
+        FunctionBucketName: !Ref LambdasBucketName
+        FunctionBucketKey: !Sub "${BucketBasePath}/raddBaselining.zip"
+  
+ 
+
+  # Action Remover scheduler BEGIN
+  RaddBaseliningSchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: LambdScheduleExecutionPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !GetAtt PnRaddBaseliningLambdaStack.Outputs.FunctionArn
+
+  RaddBaseliningScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: "Schedule Action Remover every minute"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Name: "RaddBaseliningShedule"
+      ScheduleExpression: "rate(1 day)"
+      State: ENABLED
+      Target:
+        Arn: !GetAtt PnRaddBaseliningLambdaStack.Outputs.FunctionArn
+        RoleArn: !GetAtt RaddBaseliningSchedulerRole.Arn
+  # Action Remover scheduler END  
+  
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
   # ###########################################################
   # Application use this alias to access the public/private key pair
