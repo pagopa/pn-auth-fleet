@@ -1,9 +1,9 @@
 const { makeCommand } = require("./command");
 const { validateBody } = require("./validator");
 
-async function handleEvent(event) {
+async function handleEvent(body) {
   // get lambda body
-  const body = JSON.parse(event.body);
+  //const body = JSON.parse(event.body);
 
   const validationErrors = validateBody(body);
 
