@@ -1907,4 +1907,4 @@ Resources:
       FunctionName: !Ref JWTIssuersManagerLambda
       Action: lambda:InvokeFunction
       Principal: "ecs-tasks.amazonaws.com"
-      SourceArn: !Sub arn:aws:iam::${AWS::AccountId}:role/pn-apikey-manager-TaskRole
+      SourceArn: !Sub arn:aws:iam::${AWS::AccountId}:role/pn-apikey-manager-TaskRole/*
