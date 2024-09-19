@@ -4,15 +4,14 @@ const {
   DynamoDBDocumentClient,
 } = require("@aws-sdk/lib-dynamodb"); /* refers to: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html#dynamodb-example-document-client-query */
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const AWSXRay = require("aws-xray-sdk"); /* refers to: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-nodejs-awssdkclients.html */
 
 const {
   ItemNotFoundException,
   TooManyItemsFoundException,
 } = require("../../errors/exceptions");
 
-const ddbClient = AWSXRay.captureAWSv3Client(new DynamoDBClient());
-const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
+
+const ddbDocClient = DynamoDBDocumentClient.from(new DynamoDBClient());
 
 async function getApiKeyByIndex(virtualKey) {
   const TableName = "pn-apiKey";

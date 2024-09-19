@@ -4,11 +4,11 @@ const JwtAttributesDao = rewire("../app/modules/dao/JwtAttributesDao");
 const fs = require('fs')
 const { expect } = require("chai");
 const { mockClient } = require("aws-sdk-client-mock");
-const { DynamoDBDocumentClient, GetCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, GetCommand, PutCommand } = require("@aws-sdk/lib-dynamodb");
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
-process.env.AUTH_JWT_ATTRIBUTE_TABLE = "AUTH_JWT_ATTRIBUTE_TABLE"
+process.env.AUTH_JWT_ATTRIBUTE_TABLE = "AUTH_JWT_ATTRIBUTE_TABLE";
 
 const sinon = require('sinon');
 
@@ -17,45 +17,47 @@ describe('putJwtAttributes', () => {
 
   beforeEach(() => {
     item = { pk: 'test-pk', someAttribute: 'someValue' };
+    ddbMock.reset();
   });
 
   it('succeeds when valid item is provided', async () => {
-    sinon.stub(ddbDocClient, 'send').resolves();
+    //sinon.stub(ddbMock, 'send').resolves();
+    ddbMock.on(PutCommand).resolves({});
+    await JwtAttributesDao.putJwtAttributes(item);
 
-    await putJwtAttributes(item);
-
-    expect(ddbDocClient.send.calledOnce).to.be.true;
-    expect(ddbDocClient.send.firstCall.args[0]).to.be.instanceOf(PutCommand);
-    expect(ddbDocClient.send.firstCall.args[0].input.Item).to.deep.equal(item);
+    expect(ddbMock.send.calledOnce).to.be.true;
+    expect(ddbMock.send.firstCall.args[0]).to.be.instanceOf(PutCommand);
+    expect(ddbMock.send.firstCall.args[0].input.Item).to.deep.equal(item);
   });
 
   it('logs success message when item is put successfully', async () => {
     const consoleInfoStub = sinon.stub(console, 'info');
-    sinon.stub(ddbDocClient, 'send').resolves();
+    ddbMock.on(PutCommand).resolves({});
 
-    await putJwtAttributes(item);
+    await JwtAttributesDao.putJwtAttributes(item);
 
     expect(consoleInfoStub.calledOnceWith("PutItem succeeded:", item.pk)).to.be.true;
   });
 
   it('throws an error when ddbDocClient.send fails', async () => {
     const error = new Error('DynamoDB error');
-    sinon.stub(ddbDocClient, 'send').rejects(error);
+    ddbMock.on(PutCommand).rejects(error);
 
     try {
-      await putJwtAttributes(item);
+      await JwtAttributesDao.putJwtAttributes(item);
     } catch (err) {
       expect(err).to.equal(error);
     }
   });
 
   it('logs error message when ddbDocClient.send fails', async () => {
-    const error = new Error('DynamoDB error');
+
     const consoleErrorStub = sinon.stub(console, 'error');
-    sinon.stub(ddbDocClient, 'send').rejects(error);
+    const error = new Error('DynamoDB error');
+    ddbMock.on(PutCommand).rejects(error);
 
     try {
-      await putJwtAttributes(item);
+      await JwtAttributesDao.putJwtAttributes(item);
     } catch (err) {
       // expected error
     }
@@ -69,94 +71,94 @@ describe('putJwtAttributes', () => {
 });
 
 describe('AllowedIssuerDAO Testing', () => {
-    beforeEach(() => {
-        ddbMock.reset();
+  beforeEach(() => {
+    ddbMock.reset();
+  });
+  it('buildHashKeyForAttributeResolver', () => {
+    const buildHashKeyForAttributeResolver = JwtAttributesDao.__get__('buildHashKeyForAttributeResolver');
+    const jwt = fs.readFileSync('test/resources/jwt.json')
+    const attrResolverCfg = {
+      "keyAttributeName": "kid"
+    }
+    const result = buildHashKeyForAttributeResolver(jwt, attrResolverCfg);
+    expect(result).to.equal(ATTR_PREFIX + "~" + jwt.iss + "~" + attrResolverCfg.keyAttributeName + "~" + jwt[attrResolverCfg.keyAttributeName]);
+  });
+
+  it('listJwtAttributes without errors', async () => {
+    let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'))
+    item.cacheMaxUsageEpochSec = Math.round(Date.now() / 1000) + 600
+
+    ddbMock.on(GetCommand).resolves({
+      Item: item
     });
-    it('buildHashKeyForAttributeResolver', () => {
-        const buildHashKeyForAttributeResolver = JwtAttributesDao.__get__('buildHashKeyForAttributeResolver');
-        const jwt = fs.readFileSync('test/resources/jwt.json')
-        const attrResolverCfg = {
-            "keyAttributeName": "kid"
-        }
-        const result = buildHashKeyForAttributeResolver(jwt, attrResolverCfg);
-        expect(result).to.equal(ATTR_PREFIX + "~" + jwt.iss + "~" + attrResolverCfg.keyAttributeName + "~" + jwt[ attrResolverCfg.keyAttributeName ]);
+    const jwt = fs.readFileSync('test/resources/jwt.json')
+    const attrResolverCfg = {
+      "keyAttributeName": "iss"
+    }
+    const listJwtAttributes = JwtAttributesDao.__get__('listJwtAttributes');
+
+    const result = await listJwtAttributes(jwt, attrResolverCfg);
+    expect(result.hashkey).equal(item.hashkey);
+  });
+
+  it('listJwtAttributes with cacheMaxUsageEpochSec > now', async () => {
+    let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'));
+    ddbMock.on(GetCommand).resolves({
+      Item: item
     });
+    const jwt = fs.readFileSync('test/resources/jwt.json')
+    const attrResolverCfg = {
+      "keyAttributeName": "kid"
+    }
+    const listJwtAttributes = JwtAttributesDao.__get__('listJwtAttributes');
 
-    it('listJwtAttributes without errors', async () => {
-        let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'))
-        item.cacheMaxUsageEpochSec = Math.round(Date.now()/1000) + 600
+    const result = await listJwtAttributes(jwt, attrResolverCfg);
 
-        ddbMock.on(GetCommand).resolves({
-            Item: item
-        });
-        const jwt = fs.readFileSync('test/resources/jwt.json')
-        const attrResolverCfg = {
-                "keyAttributeName": "iss"
-            }
-        const listJwtAttributes = JwtAttributesDao.__get__('listJwtAttributes');
-        
-        const result = await listJwtAttributes(jwt, attrResolverCfg);     
-        expect(result.hashkey).equal(item.hashkey);
+    expect(result).is.null;
+  });
+
+
+  it('listJwtAttributesByIssuer: issuer not found', async () => {
+    ddbMock.on(GetCommand).resolves({
     });
+    const jwt = fs.readFileSync('test/resources/jwt.json')
 
-    it('listJwtAttributes with cacheMaxUsageEpochSec > now', async () => {
-        let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'));
-        ddbMock.on(GetCommand).resolves({
-            Item: item
-        });
-        const jwt = fs.readFileSync('test/resources/jwt.json')
-        const attrResolverCfg = {
-                "keyAttributeName": "kid"
-            }
-        const listJwtAttributes = JwtAttributesDao.__get__('listJwtAttributes');
-        
-        const result = await listJwtAttributes(jwt, attrResolverCfg);     
+    const listJwtAttributesByIssuer = JwtAttributesDao.__get__('listJwtAttributesByIssuer');
 
-        expect(result).is.null;
+    jwt.iss = "wrongISs";
+    const result = await listJwtAttributesByIssuer(jwt, RADD_RESOLVER_NAME);
+
+    expect(result).deep.equals({});
+  });
+
+
+
+  it('listJwtAttributesByIssuer: issuer  found', async () => {
+    let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'));
+    ddbMock.on(GetCommand).resolves({
+      Item: item
     });
+    const jwt = fs.readFileSync('test/resources/jwt.json')
 
+    const listJwtAttributesByIssuer = JwtAttributesDao.__get__('listJwtAttributesByIssuer');
 
-    it('listJwtAttributesByIssuer: issuer not found', async () => {
-        ddbMock.on(GetCommand).resolves({
-        });
-        const jwt = fs.readFileSync('test/resources/jwt.json')
+    const result = await listJwtAttributesByIssuer(jwt, RADD_RESOLVER_NAME);
 
-        const listJwtAttributesByIssuer = JwtAttributesDao.__get__('listJwtAttributesByIssuer');
-        
-        jwt.iss = "wrongISs";
-        const result = await listJwtAttributesByIssuer(jwt, RADD_RESOLVER_NAME);     
+    expect(result).deep.not.equals({});
+  });
 
-        expect(result).deep.equals({});
+  it('listJwtAttributesByIssuer: issuer found but no resolver matching', async () => {
+    let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'));
+    ddbMock.on(GetCommand).resolves({
+      Item: item
     });
-    
+    const jwt = fs.readFileSync('test/resources/jwt.json')
 
+    const listJwtAttributesByIssuer = JwtAttributesDao.__get__('listJwtAttributesByIssuer');
 
-    it('listJwtAttributesByIssuer: issuer  found', async () => {
-        let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'));
-        ddbMock.on(GetCommand).resolves({
-            Item: item
-        });
-        const jwt = fs.readFileSync('test/resources/jwt.json')
+    const result = await listJwtAttributesByIssuer(jwt, "WRONG_RESOLVER");
 
-        const listJwtAttributesByIssuer = JwtAttributesDao.__get__('listJwtAttributesByIssuer');
-        
-        const result = await listJwtAttributesByIssuer(jwt, RADD_RESOLVER_NAME);     
-
-        expect(result).deep.not.equals({});
-    });
-
-    it('listJwtAttributesByIssuer: issuer  found but no resolver matching', async () => {
-        let item = JSON.parse(fs.readFileSync('test/resources/jwtAttributes.json'));
-        ddbMock.on(GetCommand).resolves({
-            Item: item
-        });
-        const jwt = fs.readFileSync('test/resources/jwt.json')
-
-        const listJwtAttributesByIssuer = JwtAttributesDao.__get__('listJwtAttributesByIssuer');
-        
-        const result = await listJwtAttributesByIssuer(jwt, "WRONG_RESOLVER");     
-
-        expect(result).deep.not.equals({});
-    });
+    expect(result).not.equals({});
+  });
 
 });

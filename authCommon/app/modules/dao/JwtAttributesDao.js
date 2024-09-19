@@ -1,5 +1,5 @@
 const { ddbDocClient } = require('./DynamoDbClient')
-const { GetCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const { GetCommand, DeleteCommand, PutCommand } = require("@aws-sdk/lib-dynamodb");
 const { ATTR_PREFIX } = require('./constants');
 
 function buildHashKeyForAttributeResolver(jwt, attrResolverCfg) {
@@ -70,15 +70,17 @@ async function listJwtAttributesByIssuer(issuer, resolver) {
       hashKey: ATTR_PREFIX + "~" + issuer.iss + "~" + issuer.keyAttributeName + "~" + issuer[issuer.keyAttributeName],
       sortKey: 'NA'
     },
-    ExpressionAttributeValues: {
-      ":resolver": resolver
-    },
-    FilterExpression: "resolver = :resolver"
+    // ExpressionAttributeValues: {
+    //   ":resolver": resolver
+    // },
+    // FilterExpression: "resolver = :resolver"
   };
   const getCommand = new GetCommand(getCommandInput)
   const result = await ddbDocClient.send(getCommand);
   if (!result || !result.Item) return {};
-  return result.Item;
+  if (result.Item.resolver == resolver)
+    return result.Item;
+  else return {}
 }
 
 module.exports = {

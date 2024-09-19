@@ -1356,7 +1356,7 @@ Resources:
   
  
 
-  # Action Remover scheduler BEGIN
+  # RaddBaselining scheduler BEGIN
   RaddBaseliningSchedulerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1382,7 +1382,7 @@ Resources:
   RaddBaseliningScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:
-      Description: "Schedule Action Remover every minute"
+      Description: "Schedule every day"
       FlexibleTimeWindow:
         Mode: "OFF"
       Name: "RaddBaseliningShedule"
@@ -1391,7 +1391,7 @@ Resources:
       Target:
         Arn: !GetAtt PnRaddBaseliningLambdaStack.Outputs.FunctionArn
         RoleArn: !GetAtt RaddBaseliningSchedulerRole.Arn
-  # Action Remover scheduler END  
+  # RaddBaselining scheduler END  
   
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
   # ###########################################################

@@ -35,7 +35,6 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.410.0",
     "@aws-sdk/lib-dynamodb": "^3.410.0",
-    "aws-xray-sdk": "^3.5.1",
     "jsonwebtoken": "^9.0.2",
     "jwk-to-pem": "^2.0.5",
     "js-yaml": "^4.1.0",
