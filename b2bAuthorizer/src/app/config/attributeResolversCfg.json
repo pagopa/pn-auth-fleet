@@ -4,5 +4,11 @@
         "cfg": {
             "allowedKeys": ["kid", "purposeId", "client_id", "iss"]
         }
+    },
+    "PGCUSTOM": {
+        "fileName": "PgCustomAttributeResolver",
+        "cfg": {
+            "allowedKeys": ["kid", "purposeId", "client_id", "iss", "virtual_key"]
+        }
     }
 }
