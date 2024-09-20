@@ -468,6 +468,14 @@ Parameters:
       - true
       - false
 
+  MicroserviceBucketName:
+    Type: String
+    Description: "The S3 bucket from which to fetch the templates used by this stack."
+
+  MicroserviceBucketBaseKey:
+    Type: String
+    Description: "The S3 bucket base path where lambda functions are stored"
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -803,6 +811,7 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - !Ref AuthJwtIssuersTableArn
+                  - !Ref AuthJwtAttributesTableArn
               - Sid: AllowLambdaReadDynamoDb
                 Action:
                   - dynamodb:Query
@@ -812,6 +821,7 @@ Resources:
                   - !Ref AuthJwtAttributesTableArn
                   - !Ref AuthJwtIssuersTableArn
                   - !Sub ${AuthJwtIssuersTableArn}*
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-apiKey*
               - Sid: AllowLambdaReadS3
                 Action:
                   - "s3:GetObject"
@@ -820,6 +830,7 @@ Resources:
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "arn:aws:s3:::${MicroserviceBucketName}/${MicroserviceBucketBaseKey}/*"
               - Sid: AllowSendMessageSQS
                 Action:
                   - sqs:SendMessage
