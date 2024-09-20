@@ -828,6 +828,11 @@ Resources:
                 Effect: Allow
                 Resource:
                   - !Ref JWKSCacheForceRefreshQueueARN
+              - Effect: Allow
+                Sid: AllowDecrypt
+                Action:
+                  - "kms:Decrypt"
+                Resource: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${ApiKeyTablesEncryptKeyId}
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
