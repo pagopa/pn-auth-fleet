@@ -53,6 +53,8 @@ function contextIsAlreadySet(context){
     && context["cx_role"]
     && context["cx_groups"]
     && context["callableApiTags"]
+    && context["allowedApplicationRoles"]
+    && context["applicationRole"];
 }
 
 async function persistAllowedAttributesCache(context, jwt){
