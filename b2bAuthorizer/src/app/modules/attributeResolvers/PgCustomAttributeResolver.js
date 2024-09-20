@@ -14,6 +14,7 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
   if(!contextIsAlreadySet(context)){
       context["cx_jti"] = jwt.jti + "@" + jwt.iss;
       context["sourceChannel"] = lambdaEvent?.stageVariables?.IntendedUsage;
+      context["allowedApplicationRoles"] = ["DESTINATARIO-PG"];
 
       const uid = await retrieveVirtualKeyAndEnrichContext(context, jwt.virtual_key, jwt.iss);
       const consent = await checkPGConsent(context);
@@ -81,7 +82,9 @@ function constructItem(context, jwt, now, cacheMaxUsageEpochSec){
             cx_type: context["cx_type"],
             cx_role: context["cx_role"],
             cx_groups: context["cx_groups"],
-            callableApiTags: context["callableApiTags"]
+            callableApiTags: context["callableApiTags"],
+            allowedApplicationRoles: context["allowedApplicationRoles"]
+            applicationRole: context["applicationRole"]
         }
     }
     return item;

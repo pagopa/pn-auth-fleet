@@ -6,7 +6,8 @@ module.exports = {
         BACKOFFICE: "OPERATOR",
         PNPG: "DESTINATARIO-PG",
         CN_BE: "SPI-CONSERVAZIONE",
-        RADD: "RADD"
+        RADD: "RADD",
+        B2BPG: "DESTINATARIO-PG"
       },
     INTENDED_USAGE_2_SOURCE_CHANNEL: {
         B2B: "B2B",
@@ -15,6 +16,7 @@ module.exports = {
         BACKOFFICE: "WEB",
         PNPG: "WEB",
         CN_BE: "SPI",
-        RADD: "RADD"
+        RADD: "RADD",
+        B2BPG: "B2BPG"
       }
 }
