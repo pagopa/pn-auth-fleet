@@ -143,7 +143,14 @@ async function retrieveUserGroupsAndEnrichContext(context, uid) {
         statusFilter: "ACTIVE"
       }
     });
-    context["cx_groups"] = userGroupResponse.data;
+
+    let groups;
+    if (userGroupResponse.data && userGroupResponse.data.length > 0) {
+      groups = userGroupResponse.data.map(group => group["id"]);
+    }
+    if (groups) { 
+      context["cx_groups"] = groups;
+    }
 }
 
 async function retrieveAllowedIssuerAndEnrichContext(context, iss) {
