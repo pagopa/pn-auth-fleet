@@ -761,7 +761,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds: 
           - !Ref B2BAuthorizerSecurityGroup
-        SubnetIds: !Ref SubnetsIds        
+        SubnetIds: !Ref VpcEgressSubnetsIds
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
@@ -822,6 +822,7 @@ Resources:
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "arn:aws:s3:::${LambdasBucketName}/*"
               - Sid: AllowSendMessageSQS
                 Action:
                   - sqs:SendMessage
@@ -839,10 +840,6 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/*"
                   - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
-              - Effect: Allow
-                Action:
-                  - "s3:GetObject"
-                Resource: "arn:aws:s3:::${LambdasBucketName}/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
