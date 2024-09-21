@@ -29,7 +29,9 @@ describe('PgCustomAttributeResolver', () => {
     context["cx_type"] = "test-type";
     context["cx_role"] = "test-role";
     context["cx_groups"] = ["group1","group2"];
-    context["callableApiTags"] = ["BASE","TEST"]
+    context["callableApiTags"] = ["BASE","TEST"];
+    context["applicationRole"] = ["DESTINATARIO-PG"];
+    context["allowedApplicationRoles"] = ["DESTINATARIO-PG"];
 
     sinon.stub(axios, 'get').resolves({ data: { product: { productRole: 'test-role' }, version: 'test-version', accepted: false } });
 
@@ -49,7 +51,9 @@ describe('PgCustomAttributeResolver', () => {
     context["cx_type"] = "test-type";
     context["cx_role"] = "test-role";
     context["cx_groups"] = ["group1","group2"];
-    context["callableApiTags"] = ["BASE","TEST"]
+    context["callableApiTags"] = ["BASE","TEST"];
+    context["applicationRole"] = ["DESTINATARIO-PG"];
+    context["allowedApplicationRoles"] = ["DESTINATARIO-PG"];
 
     sinon.stub(axios, 'get').resolves({ data: { product: { productRole: 'test-role' }, version: 'test-version', accepted: true } });
 
