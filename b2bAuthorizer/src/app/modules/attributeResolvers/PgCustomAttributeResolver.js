@@ -87,7 +87,7 @@ function constructItem(context, jwt, now, cacheMaxUsageEpochSec){
             cx_role: context["cx_role"],
             cx_groups: context["cx_groups"],
             callableApiTags: context["callableApiTags"],
-            allowedApplicationRoles: context["allowedApplicationRoles"]
+            allowedApplicationRoles: context["allowedApplicationRoles"],
             applicationRole: context["applicationRole"]
         }
     }
