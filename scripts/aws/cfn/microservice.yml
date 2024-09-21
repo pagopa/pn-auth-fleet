@@ -761,7 +761,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds: 
           - !Ref B2BAuthorizerSecurityGroup
-        SubnetIds: !Ref SubnetsIds        
+        SubnetIds: !Ref VpcEgressSubnetsIds
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
