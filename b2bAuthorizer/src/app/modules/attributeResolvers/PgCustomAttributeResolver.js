@@ -37,6 +37,8 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
       throw new ValidationException("User has not given consent to use the service");
     }
   }
+
+  console.log('PgCustomResolver done')
     
   return {
     context: context,
