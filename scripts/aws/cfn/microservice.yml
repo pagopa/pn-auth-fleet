@@ -833,12 +833,24 @@ Resources:
                 Action:
                   - "kms:Decrypt"
                 Resource: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${ApiKeyTablesEncryptKeyId}
+        - PolicyName: "get-tags-from-api-key"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
               - Effect: Allow
                 Action:
                   - "apigateway:GET"
                 Resource:
                   - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/*"
                   - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
+        - PolicyName: "lambda-s3-read-permission"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                Resource: "arn:aws:s3:::*/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
