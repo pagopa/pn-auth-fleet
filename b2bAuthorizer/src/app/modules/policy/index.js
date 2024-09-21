@@ -61,7 +61,7 @@ class PolicyService {
 
     async generatePolicyDocument(context, lambdaEvent) {
         const intendedUsage = lambdaEvent?.stageVariables?.IntendedUsage;
-      
+
         if (!this.#validateIntendedUsage(context, intendedUsage)) {
           return defaultDenyAllPolicyDocument;
         }
@@ -71,6 +71,7 @@ class PolicyService {
         }
 
         if(context.callableApiTags){
+            console.log("start get Custom policy document")
           return await customPolicy.getCustomPolicyDocument(lambdaEvent, context.callableApiTags);
         }
 

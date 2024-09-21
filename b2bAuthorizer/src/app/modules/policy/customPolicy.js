@@ -7,7 +7,7 @@ async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
     const locationValues = await apiGatewayUtils.getOpenAPIS3Location(apiOptions);
     const bucketName = locationValues[0];
     const bucketKey = locationValues[1];
-
+    console.log("start retrieve resource from s3")
     const resources = await s3Utils.getAllowedResourcesFromS3(
         lambdaEvent,
         bucketName,
@@ -31,7 +31,7 @@ async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
     //         });
     //     }
     // }
-
+console.log("end retrieve resource from s3")
     const policy = new AuthPolicy(apiOptions.accountId, apiOptions);
 
     if(resources){
@@ -39,7 +39,7 @@ async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
             policy.allowMethod(resources[i].method, resources[i].path);
         }
     }
-
+      console.log("build policy")
     return policy.build();
 }
 

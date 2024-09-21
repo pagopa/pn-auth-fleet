@@ -109,6 +109,7 @@ async function handleEvent(event) {
     const usageIdentifierKey = attributeResolution.usageIdentifierKey;
     
     //Viene generata la policy a partire dal context
+    console.log('start generate policy')
     const policyDocument = await policyService.generatePolicyDocument( context, event )
     console.log('generation policy done')
     logger.addToContext('policyDocument', policyDocument);

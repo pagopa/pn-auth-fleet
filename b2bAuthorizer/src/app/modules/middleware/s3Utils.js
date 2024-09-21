@@ -16,6 +16,7 @@ async function getAllowedResourcesFromS3(event, bucket, key, userTags) {
   // Function that collects the S3 object containing the openAPI document and extract
   // the tags of the method invoked
   const s3Object = await getS3Object(bucket, key);
+  console.log("end getObjectFromS3")
   const yamlDocument = yaml.load(s3Object);
   const yamlPaths = yamlDocument["paths"];
   const resources = [];
@@ -31,7 +32,7 @@ async function getAllowedResourcesFromS3(event, bucket, key, userTags) {
       }
     }
   }
-
+console.log("end getAllowedResourcesFromS3")
   return resources;
 }
 
