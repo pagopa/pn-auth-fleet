@@ -4,6 +4,7 @@ const { AuthPolicy } = require("./authPolicy.js");
 
 async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
     const apiOptions = getApiOption(lambdaEvent);
+    console.log('Call getOpenAPIS3Location');
     const locationValues = await apiGatewayUtils.getOpenAPIS3Location(apiOptions);
     const bucketName = locationValues[0];
     const bucketKey = locationValues[1];
@@ -44,6 +45,7 @@ console.log("end retrieve resource from s3")
 }
 
 function getApiOption(lambdaEvent){
+    console.log('Start getApiOption')
     const tmp = lambdaEvent.methodArn.split(":");
     const apiGatewayArnTmp = tmp[5].split("/");
     const apiOptions = {};
@@ -51,6 +53,7 @@ function getApiOption(lambdaEvent){
     apiOptions.region = tmp[3];
     apiOptions.restApiId = apiGatewayArnTmp[0];
     apiOptions.stage = apiGatewayArnTmp[1];
+    console.log('End getApiOption')
     return apiOptions;
 }
 
