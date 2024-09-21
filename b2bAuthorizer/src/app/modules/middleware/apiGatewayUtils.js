@@ -13,12 +13,13 @@ async function getOpenAPIS3Location(apiOptions) {
   console.log('input:  ',input);
   const command = new GetTagsCommand(input);
   //TODO Dubbio, chi inserisce i tag, dove? Viene popolato automaticamente da infra giusto?
-  console.log('PN_OPENAPI_BUCKET_NAME:  ',data.tags.PN_OPENAPI_BUCKET_NAME);
-  console.log('PN_OPENAPI_BUCKET_KEY:  ',data.tags.PN_OPENAPI_BUCKET_KEY);
-  console.log('PN_SERVICE_PATH:  ',data.tags.PN_SERVICE_PATH);
-  console.log('start apigwClient.send');
   const response = apigwClient.send(command).then((data) => {
     // $metadata is also returned, we need to select tags
+    console.log('PN_OPENAPI_BUCKET_NAME:  ',data.tags.PN_OPENAPI_BUCKET_NAME);
+    console.log('PN_OPENAPI_BUCKET_KEY:  ',data.tags.PN_OPENAPI_BUCKET_KEY);
+    console.log('PN_SERVICE_PATH:  ',data.tags.PN_SERVICE_PATH);
+    console.log('start apigwClient.send');
+
     const bucketName = data.tags.PN_OPENAPI_BUCKET_NAME;
     const bucketKey = data.tags.PN_OPENAPI_BUCKET_KEY;
     const servicePath = data.tags.PN_SERVICE_PATH;
