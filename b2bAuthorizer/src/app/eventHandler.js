@@ -103,14 +103,18 @@ async function handleEvent(event) {
     logger.addToContext('simpleJwt', simpleJwt.toDiagnosticContext());
 
     const attributeResolution = await attributeResolvers.resolveAttributes( simpleJwt, event, issuerInfo.cfg.attributeResolversCfgs );
+    console.log('attribute resolution done')
     logger.addToContext('attributeResolution', attributeResolution);
     const context = attributeResolution.context;
     const usageIdentifierKey = attributeResolution.usageIdentifierKey;
     
     //Viene generata la policy a partire dal context
+    console.log('start generate policy')
     const policyDocument = await policyService.generatePolicyDocument( context, event )
+    console.log('generation policy done')
     logger.addToContext('policyDocument', policyDocument);
     const iamPolicyContext = policyService.normalizeContextForIAMPolicy( context );
+    console.log('normalize policy done')
 
     const ret = {
       principalId: "user-" + decodedJwtToken.payload.jti,

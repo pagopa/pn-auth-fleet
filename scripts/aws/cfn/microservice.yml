@@ -833,6 +833,12 @@ Resources:
                 Action:
                   - "kms:Decrypt"
                 Resource: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${ApiKeyTablesEncryptKeyId}
+              - Effect: Allow
+                Action:
+                  - "apigateway:GET"
+                Resource:
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/*"
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
