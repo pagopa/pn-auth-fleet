@@ -12,18 +12,22 @@ async function getOpenAPIS3Location(apiOptions) {
   const command = new GetTagsCommand(input);
   //TODO Dubbio, chi inserisce i tag, dove? Viene popolato automaticamente da infra giusto?
   console.log('start send(command)');
-  const response = apigwClient.send(command).then((data) => {
-    // $metadata is also returned, we need to select tags
-    const bucketName = data.tags.PN_OPENAPI_BUCKET_NAME;
-    const bucketKey = data.tags.PN_OPENAPI_BUCKET_KEY;
-    const servicePath = data.tags.PN_SERVICE_PATH;
+  try {
+    const response = await apigwClient.send(command);
+    console.log('response getOpenAPIS3Location', response);
+    const bucketName = response.tags.PN_OPENAPI_BUCKET_NAME;
+    const bucketKey = response.tags.PN_OPENAPI_BUCKET_KEY;
+    const servicePath = response.tags.PN_SERVICE_PATH;
     if (bucketName === undefined || bucketKey === undefined) {
       throw new Error("OpenAPI file location is not defined");
     } else {
       return [bucketName, bucketKey, servicePath];
     }
-  }).catch(error => {console.log(error)});
-  return response;
+  } catch (error) {
+    console.log('error getOpenAPIS3Location', error);
+  }
+
+  return undefined;
 }
 
 module.exports = { getOpenAPIS3Location };
