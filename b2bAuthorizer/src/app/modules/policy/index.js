@@ -71,7 +71,6 @@ class PolicyService {
         }
 
         if(context.callableApiTags){
-            console.log("start get Custom policy document")
           return await customPolicy.getCustomPolicyDocument(lambdaEvent, context.callableApiTags);
         }
 
