@@ -1,11 +1,7 @@
 const dynamoFunctions = require("../middleware/dynamoFunctions");
 const { AllowedIssuerDao, JwtAttributesDao } = require('pn-auth-common');
 const axios = require("axios");
-
-const {
-  KeyStatusException,
-  ValidationException,
-} = require("../../errors/exceptions");
+const AuthenticationError = require("../../errors/AuthenticationError");
 
 const basePath = process.env.API_PRIVATE_BASE_PATH;
 const consentType = process.env.CONSENT_TYPE;
@@ -29,12 +25,12 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
           await persistAllowedAttributesCache(context, jwt);
         }
       } else {
-        throw new ValidationException("User has not given consent to use the service");
+        throw new AuthenticationError("User has not given consent to use the service");
       }
   }else{
     const consent = await checkPGConsent(context);
     if(!consent){
-      throw new ValidationException("User has not given consent to use the service");
+      throw new AuthenticationError("User has not given consent to use the service");
     }
   }
 
@@ -98,17 +94,17 @@ async function retrieveVirtualKeyAndEnrichContext(context, virtualKey, iss) {
   const apiKeyDynamo = await dynamoFunctions.getApiKeyByIndex(virtualKey);
 
    if (!checkStatus(apiKeyDynamo.status)) {
-     throw new KeyStatusException(
+     throw new AuthenticationError(
        `Key is not allowed with status ${apiKeyDynamo.status}`
      );
    }
 
    if(apiKeyDynamo.scope != "CLIENTID"){
-       throw new ValidationException("virtualKey Scope not allowed for this operation");
+       throw new AuthenticationError("virtualKey Scope not allowed for this operation");
    }
 
    if(apiKeyDynamo.cxId != iss){
-       throw new ValidationException("virtualKey is not associated to the PG");
+       throw new AuthenticationError("virtualKey is not associated to the PG");
    }
 
    context["uid"] = apiKeyDynamo.uid;
@@ -156,7 +152,7 @@ async function retrieveUserGroupsAndEnrichContext(context, uid) {
 async function retrieveAllowedIssuerAndEnrichContext(context, iss) {
    const allowedIssuer = await AllowedIssuerDao.getConfigByISS(iss);
     if (!allowedIssuer) {
-      throw new ValidationException("Issuer not allowed");
+      throw new AuthenticationError("Issuer not allowed");
     }
     const attributeResolversCfg = allowedIssuer.attributeResolversCfgs.find(attributeResolversCfg => attributeResolversCfg.name === "PGCUSTOM");
     context["callableApiTags"] = attributeResolversCfg.cfg.purposes;
