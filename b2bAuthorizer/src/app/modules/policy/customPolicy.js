@@ -18,7 +18,6 @@ async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
 
     const policy = new AuthPolicy(apiOptions.accountId, apiOptions);
     if(resources){
-        console.log('resources',resources)
         for (let i = 0; i < resources.length; i++) {
             if(resources[i].method != 'PARAMETERS'){
                 policy.allowMethod(resources[i].method, resources[i].path);
