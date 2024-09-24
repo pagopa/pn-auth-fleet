@@ -19,7 +19,7 @@ class GenericDatalCache {
     }
 
     #isCacheItemValid(cacheItem, nowInSeconds) {
-        const modificationTimeInSeconds = Math.floor(cacheItem.modificationTimeEpochMs/1000);
+        const modificationTimeInSeconds = Math.floor(cacheItem.modificationTimeEpochMs);
         return modificationTimeInSeconds > nowInSeconds - this.#internalCacheTtlSeconds;
     }
 
@@ -28,12 +28,11 @@ class GenericDatalCache {
         if(!cacheItem) {
             return null;
         }
-
         if(this.#isCacheItemValid(cacheItem, Math.floor(Date.now() / 1000))) {
-            return Object.cacheItem;
+            return cacheItem.Item;
         }
 
-        return cacheItem.Item;
+        return null;
     }
 
     invalidateCache(key) {
@@ -41,7 +40,7 @@ class GenericDatalCache {
     }
 
     setCacheItem(key, item){
-        this.#cacheStore.set(key, {Item: item, modificationTimeEpochMs: (Date.now() / 100)});
+        this.#cacheStore.set(key, {Item: item, modificationTimeEpochMs: Math.floor(Date.now() / 1000)});
     }
 }
 

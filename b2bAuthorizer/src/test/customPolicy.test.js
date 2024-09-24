@@ -24,7 +24,7 @@ describe("Test auth policy", () => {
       sinon.restore();
     });
   
-    it.only("allow method", async () => {
+    it("allow method", async () => {
       let called = 0;
       getAllowedResourcesFromS3Stub.callsFake(() => {
         called++;
@@ -46,7 +46,6 @@ describe("Test auth policy", () => {
       };
       let callableApiTags = ["REFINEMENT", "BASE"]
       let policy = await getCustomPolicyDocument(lambdaEvent, callableApiTags)
-console.log(policy);
       let policyExpected = {
         Version: '2012-10-17',
         Statement: [
@@ -59,7 +58,7 @@ console.log(policy);
       }
 
       policy = await getCustomPolicyDocument(lambdaEvent, callableApiTags)
-console.log(policy);
+
       policyExpected = {
         Version: '2012-10-17',
         Statement: [
@@ -72,7 +71,7 @@ console.log(policy);
       };
       
       expect(JSON.stringify(policyExpected)).equals(JSON.stringify(policy));
-  console.log("11111111", called);    
+  
       expect(called).equals(1);
 
     });
