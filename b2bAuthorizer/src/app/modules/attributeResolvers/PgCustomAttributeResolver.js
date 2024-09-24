@@ -62,12 +62,12 @@ function contextIsAlreadySet(context){
 }
 
 async function persistAllowedAttributesCache(context, jwt){
-    const cacheDuration = process.env.PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC ? parseInt(process.env.PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC) : 0 ;
+  const cacheDuration = process.env.PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC ? parseInt(process.env.PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC) : 0 ;
 
-    const now = Date.now();
-    const cacheMaxUsageEpochSec = Math.floor(now / 1000) + cacheDuration;
-    const item = constructItem(context, jwt, now, cacheMaxUsageEpochSec);
-    await JwtAttributesDao.putJwtAttributes(item)
+  const now = Date.now();
+  const cacheMaxUsageEpochSec = Math.floor(now / 1000) + cacheDuration;
+  const item = constructItem(context, jwt, now, cacheMaxUsageEpochSec);
+  await JwtAttributesDao.putJwtAttributes(item);
 }
 
 function constructItem(context, jwt, now, cacheMaxUsageEpochSec){

@@ -40,8 +40,8 @@ class GenericDatalCache {
         this.#cacheStore.delete(key);
     }
 
-    setItem(key, item){
-        this.#cacheStore.set(key, {Item: item, modificationTimeEpochMs: new Date().now() / 100});
+    setCacheItem(key, item){
+        this.#cacheStore.set(key, {Item: item, modificationTimeEpochMs: (Date.now() / 100)});
     }
 }
 

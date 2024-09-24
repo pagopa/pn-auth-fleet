@@ -4,37 +4,30 @@ const { AuthPolicy } = require("./authPolicy.js");
 const GenericDatalCache = require("../cache/GenericDataCache.js");
 
 // create one day cache
-const apiTagsCache = new GenericDatalCache(86400);
+const apiResourcesCache = new GenericDatalCache(86400);
 
 async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
-
     const apiOptions = getApiOption(lambdaEvent);
     
-    let tags = apiTagsCache.getCacheItem(lambdaEvent.methodArn);
+    let resources = apiResourcesCache.getCacheItem(lambdaEvent.methodArn);
     // item missing in cache
-    if (tags == null){
+    if (resources == null){
         const locationValues = await apiGatewayUtils.getOpenAPIS3Location(apiOptions);
         const bucketName = locationValues[0];
         const bucketKey = locationValues[1];
-        tags = {bucketKey: bucketKey, bucketName: bucketName};
-        apiTagsCache.setItem(lambdaEvent.methodArn, tags);
+       
+        resources = await s3Utils.getResourcesFromS3(
+            lambdaEvent,
+            bucketName,
+            bucketKey
+        );
+        apiResourcesCache.setCacheItem(lambdaEvent.methodArn, resources);
     }
-
-    
-
-
-   
-    const resources = await s3Utils.getAllowedResourcesFromS3(
-        lambdaEvent,
-        tags.bucketName,
-        tags.bucketKey,
-        callableApiTags
-    );
 
     const policy = new AuthPolicy(apiOptions.accountId, apiOptions);
     if(resources){
         for (let i = 0; i < resources.length; i++) {
-            if(resources[i].method != 'PARAMETERS'){
+            if(resources[i].method != 'PARAMETERS' || !resources[i].tags || arraysOverlap(resources[i].tags, callableApiTags)){
                 policy.allowMethod(resources[i].method, resources[i].path);
             }
         }
