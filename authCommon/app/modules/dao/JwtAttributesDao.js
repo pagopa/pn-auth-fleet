@@ -6,22 +6,23 @@ function buildHashKeyForAttributeResolver(jwt, attrResolverCfg) {
   return ATTR_PREFIX + "~" + jwt.iss + "~" + attrResolverCfg.keyAttributeName + "~" + jwt[attrResolverCfg.keyAttributeName]
 }
 
-function buildHashKeyFromAuthIssuer(jwtIssuer){
+function buildHashKeyFromAuthIssuer(jwtIssuer) {
   return ATTR_PREFIX + "~" + jwtIssuer.iss + "~iss~" + jwtIssuer.iss
 }
 
+
 async function putJwtAttributes(item) {
-    const putCommand = new PutCommand({
-        TableName: process.env.AUTH_JWT_ATTRIBUTE_TABLE,
-        Item: item
-    })
-    try {
-      await ddbDocClient.send(putCommand);
-      console.info("PutItem succeeded:", item.pk);
-    } catch (err) {
-      console.error("Unable to putItem "+item.pk+". Error JSON:", JSON.stringify(err, null, 2));
-      throw err;
-    }
+  const putCommand = new PutCommand({
+    TableName: process.env.AUTH_JWT_ATTRIBUTE_TABLE,
+    Item: item
+  })
+  try {
+    await ddbDocClient.send(putCommand);
+    console.log("Jwt Attribute upserted", JSON.stringify(item));
+  } catch (err) {
+    console.error("Unable to putItem " + item.pk + ". Error JSON:", JSON.stringify(err, null, 2));
+    throw err;
+  }
 }
 
 async function listJwtAttributes(jwt, attrResolverCfg) {
@@ -36,10 +37,10 @@ async function listJwtAttributes(jwt, attrResolverCfg) {
   const getCommand = new GetCommand(getCommandInput)
   const result = await ddbDocClient.send(getCommand);
   if (result.Item && result.Item.hasOwnProperty('cacheMaxUsageEpochSec') && result.Item.cacheMaxUsageEpochSec <= nowEpochSec) {
-    console.log("Elemento ignorato per cacheMaxUsageEpochSec non valido.");
+    console.warn("JWT Attritutes discarded: cacheMaxUsageEpochSec NOT valid", JSON.stringify(result.Item));
     return null;
   }
-  console.log("Elemento valido:", result.Item);
+  result.Item ? console.log(`Attribute related to issuer ${jwt.iss}:`, JSON.stringify(result.Item)) : console.log("No attribute related to issuer", jwt.iss);
   return result.Item;
 }
 
@@ -49,8 +50,8 @@ async function deleteJwtAttributesByJwtIssuer(jwtIssuer) {
   const params = {
     TableName: process.env.AUTH_JWT_ATTRIBUTE_TABLE,
     Key: {
-        hashKey: itemKey,
-        sortKey: 'NA'
+      hashKey: itemKey,
+      sortKey: 'NA'
     }
   };
 
