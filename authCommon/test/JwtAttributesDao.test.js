@@ -31,12 +31,12 @@ describe('putJwtAttributes', () => {
   });
 
   it('logs success message when item is put successfully', async () => {
-    const consoleInfoStub = sinon.stub(console, 'info');
+    const consoleInfoStub = sinon.stub(console, 'log');
     ddbMock.on(PutCommand).resolves({});
 
     await JwtAttributesDao.putJwtAttributes(item);
 
-    expect(consoleInfoStub.calledOnceWith("PutItem succeeded:", item.pk)).to.be.true;
+    expect(consoleInfoStub.calledOnceWith("Jwt Attribute upserted", JSON.stringify(item))).to.be.true;
   });
 
   it('throws an error when ddbDocClient.send fails', async () => {
