@@ -32,6 +32,7 @@ describe('putJwtAttributes', () => {
 
   it('logs success message when item is put successfully', async () => {
     const consoleInfoStub = sinon.stub(console, 'log');
+    
     ddbMock.on(PutCommand).resolves({});
 
     await JwtAttributesDao.putJwtAttributes(item);
