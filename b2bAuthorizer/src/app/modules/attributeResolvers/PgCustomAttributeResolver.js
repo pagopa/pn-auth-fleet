@@ -72,10 +72,10 @@ async function persistAllowedAttributesCache(context, jwt){
 
 function constructItem(context, jwt, now, cacheMaxUsageEpochSec){
     const item = {
-        hashKey: `ATTR~${jwt.iss}~virtual_key~${jwt.virtualKey}`,
+        hashKey: `ATTR~${jwt.iss}~virtual_key~${jwt.virtual_key}`,
         sortKey: `NA`,
         issuer: jwt.iss,
-        issuerRelatedKey: `virtual_key~${jwt.virtualKey}`,
+        issuerRelatedKey: `virtual_key~${jwt.virtual_key}`,
         modificationTimeEpochMs: now,
         resolver: `PGCUSTOM`,
         cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
