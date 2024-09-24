@@ -13,25 +13,31 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
       context["allowedApplicationRoles"] = ["DESTINATARIO-PG"];
 
       const uid = await retrieveVirtualKeyAndEnrichContext(context, jwt.virtual_key, jwt.iss);
-      const consent = await checkPGConsent(context);
-      if(consent){
-        await Promise.all([
-          retrieveAllowedIssuerAndEnrichContext(context, jwt.iss),
-          retrieveUserRoleAndEnrichContext(context, uid),
-          retrieveUserGroupsAndEnrichContext(context, uid)
+      // checkPGConsent has been parallelized for performance increment
+      // this brings to possibly wrong call to 
+      //retrieveAllowedIssuerAndEnrichContext,retrieveUserRoleAndEnrichContext,retrieveUserGroupsAndEnrichContext
+      try {
+         await Promise.all([
+            checkPGConsent(context),
+            retrieveAllowedIssuerAndEnrichContext(context, jwt.iss),
+            retrieveUserRoleAndEnrichContext(context, uid),
+            retrieveUserGroupsAndEnrichContext(context, uid)
         ]);
-
-        if(process.env.ENABLE_PGCUSTOM_CACHE === 'true'){
-          await persistAllowedAttributesCache(context, jwt);
-        }
-      } else {
-        throw new AuthenticationError("User has not given consent to use the service");
+      } catch(e)
+      {
+        throw e;
       }
-  }else{
-    const consent = await checkPGConsent(context);
-    if(!consent){
+      
+      if(process.env.ENABLE_PGCUSTOM_CACHE === 'true'){
+        await persistAllowedAttributesCache(context, jwt);
+      }
+  } else{
+    try { 
+      await checkPGConsent(context);
+    } catch(e){
       throw new AuthenticationError("User has not given consent to use the service");
     }
+  
   }
 
   console.log('PgCustomResolver done')
@@ -178,9 +184,11 @@ async function checkPGConsent(context){
   });
 
   if(!consent){
-    return false;
+    throw new AuthenticationError("User has not given consent to use the service");
   }
-  return consent.data.accepted;
+  if (!consent.data.accepted)
+    throw new AuthenticationError("User has not given consent to use the service");
+
 }
 
 
