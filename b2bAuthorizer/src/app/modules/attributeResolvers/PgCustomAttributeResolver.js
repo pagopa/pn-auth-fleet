@@ -2,6 +2,7 @@ const dynamoFunctions = require("../middleware/dynamoFunctions");
 const { AllowedIssuerDao, JwtAttributesDao } = require('pn-auth-common');
 const axios = require("axios");
 const AuthenticationError = require("../../errors/AuthenticationError");
+const { ATTR_PREFIX } = require("pn-auth-common/app/modules/dao/constants");
 
 const basePath = process.env.API_PRIVATE_BASE_PATH;
 const consentType = process.env.CONSENT_TYPE;
@@ -49,6 +50,7 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
 }
 
 function contextIsAlreadySet(context){
+  console.log(context, "CONTESTO");
   return context["cx_jti"]
     && context["sourceChannel"]
     && context["uid"]
@@ -72,7 +74,7 @@ async function persistAllowedAttributesCache(context, jwt){
 
 function constructItem(context, jwt, now, cacheMaxUsageEpochSec){
     const item = {
-        hashKey: `ATTR~${jwt.iss}~virtual_key~${jwt.virtual_key}`,
+        hashKey: `${ATTR_PREFIX}~${jwt.iss}~virtual_key~${jwt.virtual_key}`,
         sortKey: `NA`,
         issuer: jwt.iss,
         issuerRelatedKey: `virtual_key~${jwt.virtual_key}`,
@@ -87,7 +89,7 @@ function constructItem(context, jwt, now, cacheMaxUsageEpochSec){
             cx_id: context["cx_id"],
             cx_type: context["cx_type"],
             cx_role: context["cx_role"],
-            cx_groups: context["cx_groups"],
+            cx_groups: context["cx_groups"]??[],
             callableApiTags: context["callableApiTags"],
             allowedApplicationRoles: context["allowedApplicationRoles"],
             applicationRole: context["applicationRole"]
