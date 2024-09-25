@@ -40,7 +40,7 @@ async function listJwtAttributes(jwt, attrResolverCfg) {
     console.warn("JWT Attritutes discarded: cacheMaxUsageEpochSec NOT valid", JSON.stringify(result.Item));
     return null;
   }
-  result.Item ? console.log(`Attribute related to issuer ${jwt.iss}:`, JSON.stringify(result.Item)) : console.log("No attribute related to issuer", jwt.iss);
+  result.Item ? console.log(`Attribute related to issuer ${jwt.iss}:`, JSON.stringify(result.Item)) : console.log("No attribute related to issuer", jwt.iss, getCommandInput.Key);
   return result.Item;
 }
 
