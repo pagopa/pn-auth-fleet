@@ -108,11 +108,11 @@ async function retrieveVirtualKeyAndEnrichContext(context, virtualKey, iss) {
    }
 
    if(apiKeyDynamo.scope != "CLIENTID"){
-       throw new AuthenticationError("virtualKey Scope not allowed for this operation");
+       throw new AuthenticationError(`virtualKey (${apiKeyDynamo.name}) SCOPE not allowed for this operation`);
    }
 
    if(apiKeyDynamo.cxId != iss){
-       throw new AuthenticationError("virtualKey is not associated to the PG");
+       throw new AuthenticationError(`virtualKey ${apiKeyDynamo.name} is not associated to the PG ${apiKeyDynamo.cxId}`);
    }
 
    context["uid"] = apiKeyDynamo.uid;

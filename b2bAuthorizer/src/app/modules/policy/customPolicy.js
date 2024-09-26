@@ -12,6 +12,7 @@ async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
     let resources = apiResourcesCache.getCacheItem(lambdaEvent.methodArn);
     // item missing in cache
     if (resources == null){
+        console.log("RESOURCES NOT cached for", lambdaEvent.methodArn);
         const locationValues = await apiGatewayUtils.getOpenAPIS3Location(apiOptions);
         const bucketName = locationValues[0];
         const bucketKey = locationValues[1];
@@ -21,8 +22,10 @@ async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
             bucketName,
             bucketKey
         );
+       
         apiResourcesCache.setCacheItem(lambdaEvent.methodArn, resources);
     }
+    else console.log("RESOURCES  cached for", lambdaEvent.methodArn);
 
     const policy = new AuthPolicy(apiOptions.accountId, apiOptions);
     if(resources){
