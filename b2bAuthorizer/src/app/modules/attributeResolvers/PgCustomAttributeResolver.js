@@ -36,7 +36,7 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
     try { 
       await checkPGConsent(context);
     } catch(e){
-      throw new AuthenticationError("User has not given consent to use the service");
+      throw new AuthenticationError(`${context["cx_id"]} has not given consent to use the service`);
     }
   
   }
@@ -103,7 +103,7 @@ async function retrieveVirtualKeyAndEnrichContext(context, virtualKey, iss) {
 
    if (!checkStatus(apiKeyDynamo.status)) {
      throw new AuthenticationError(
-       `Key is not allowed with status ${apiKeyDynamo.status}`
+       `Key ${apiKeyDynamo.name} is not allowed with status ${apiKeyDynamo.status}`
      );
    }
 
@@ -161,7 +161,7 @@ async function retrieveUserGroupsAndEnrichContext(context, uid) {
 async function retrieveAllowedIssuerAndEnrichContext(context, iss) {
    const allowedIssuer = await AllowedIssuerDao.getConfigByISS(iss);
     if (!allowedIssuer) {
-      throw new AuthenticationError("Issuer not allowed");
+      throw new AuthenticationError(`Issuer ${iss} not allowed`);
     }
     const attributeResolversCfg = allowedIssuer.attributeResolversCfgs.find(attributeResolversCfg => attributeResolversCfg.name === "PGCUSTOM");
     context["callableApiTags"] = attributeResolversCfg.cfg.purposes;
@@ -187,10 +187,10 @@ async function checkPGConsent(context){
   });
 
   if(!consent){
-    throw new AuthenticationError("User has not given consent to use the service");
+    throw new AuthenticationError(`${context["cx_id"]} has not given consent to use the service`);
   }
   if (!consent.data.accepted)
-    throw new AuthenticationError("User has not given consent to use the service");
+    throw new AuthenticationError(`${context["cx_id"]} has not given consent to use the service`);
 
 }
 
