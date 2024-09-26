@@ -38,7 +38,7 @@ describe('PgCustomAttributeResolver', () => {
     try {
       await PgCustomAttributeResolver(jwt, lambdaEvent, context, attrResolverCfg);
     } catch (error) {
-      expect(error.message).to.equal('User has not given consent to use the service');
+      expect(error.message).to.equal(`${context["cx_id"]} has not given consent to use the service`);
     }
   });
 
@@ -118,36 +118,41 @@ describe('PgCustomAttributeResolver', () => {
   });
 
   it('throws an error if virtual key status is not allowed', async () => {
-    sinon.stub(dynamoFunctions, 'getApiKeyByIndex').resolves({ status: 'DISABLED' });
+    const keyName = "testKey";
+    sinon.stub(dynamoFunctions, 'getApiKeyByIndex').resolves({ name: keyName, status: 'DISABLED' });
 
     try {
       await PgCustomAttributeResolver(jwt, lambdaEvent, context, attrResolverCfg);
     } catch (error) {
-      expect(error.message).to.equal('Key is not allowed with status DISABLED');
+      expect(error.message).to.equal(`Key ${keyName} is not allowed with status DISABLED`);
     }
   });
 
   it('throws an error if virtual key scope is not allowed', async () => {
-    sinon.stub(dynamoFunctions, 'getApiKeyByIndex').resolves({ status: 'ENABLED', scope: 'INVALID_SCOPE' });
+    const keyName = "testKey";
+    sinon.stub(dynamoFunctions, 'getApiKeyByIndex').resolves({ name: keyName, status: 'ENABLED', scope: 'INVALID_SCOPE' });
 
     try {
       await PgCustomAttributeResolver(jwt, lambdaEvent, context, attrResolverCfg);
     } catch (error) {
-      expect(error.message).to.equal('virtualKey Scope not allowed for this operation');
+      expect(error.message).to.equal(`virtualKey (${keyName}) SCOPE not allowed for this operation`);
     }
   });
 
   it('throws an error if virtual key is not associated to the PG', async () => {
-    sinon.stub(dynamoFunctions, 'getApiKeyByIndex').resolves({ status: 'ENABLED', scope: 'CLIENTID', cxId: 'wrong-iss' });
+    const keyName = "testKey";
+    const cxId = 'wrong-iss';
+    sinon.stub(dynamoFunctions, 'getApiKeyByIndex').resolves({ name: keyName, status: 'ENABLED', scope: 'CLIENTID', cxId: cxId });
 
     try {
       await PgCustomAttributeResolver(jwt, lambdaEvent, context, attrResolverCfg);
     } catch (error) {
-      expect(error.message).to.equal('virtualKey is not associated to the PG');
+      expect(error.message).to.equal(`virtualKey ${keyName} is not associated to the PG ${cxId}`);
     }
   });
 
   it('throws an error if issuer is not allowed', async () => {
+    const cxId = 'test-iss';
     sinon.stub(dynamoFunctions, 'getApiKeyByIndex').resolves({ status: 'ENABLED', scope: 'CLIENTID', cxId: 'test-iss' });
     sinon.stub(AllowedIssuerDao, 'getConfigByISS').resolves(null);
     sinon.stub(axios, 'get').resolves({ data: { product: { productRole: 'test-role' }, version: 'test-version', accepted: true } });
@@ -156,19 +161,20 @@ describe('PgCustomAttributeResolver', () => {
     try {
       await PgCustomAttributeResolver(jwt, lambdaEvent, context, attrResolverCfg);
     } catch (error) {
-      expect(error.message).to.equal('Issuer not allowed');
+      expect(error.message).to.equal(`Issuer ${cxId} not allowed`);
     }
   });
 
   it('throws an error if user has not given consent to use the service', async () => {
-    sinon.stub(dynamoFunctions, 'getApiKeyByIndex').resolves({ status: 'ENABLED', scope: 'CLIENTID', cxId: 'test-iss' });
+    const cxId = 'test-iss';
+    sinon.stub(dynamoFunctions, 'getApiKeyByIndex').resolves({ status: 'ENABLED', scope: 'CLIENTID', cxId: cxId });
     sinon.stub(AllowedIssuerDao, 'getConfigByISS').resolves({ attributeResolversCfgs: [{ name: 'PGCUSTOM', cfg: { purposes: ['test-purpose'] } }] });
     sinon.stub(axios, 'get').resolves({ data: { product: { productRole: 'test-role' }, version: 'test-version', accepted: false } });
 
     try {
       await PgCustomAttributeResolver(jwt, lambdaEvent, context, attrResolverCfg);
     } catch (error) {
-      expect(error.message).to.equal('User has not given consent to use the service');
+      expect(error.message).to.equal(`${cxId} has not given consent to use the service`);
     }
   });
 

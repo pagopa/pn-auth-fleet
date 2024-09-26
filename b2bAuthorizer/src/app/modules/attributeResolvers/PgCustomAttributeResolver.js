@@ -2,6 +2,7 @@ const dynamoFunctions = require("../middleware/dynamoFunctions");
 const { AllowedIssuerDao, JwtAttributesDao } = require('pn-auth-common');
 const axios = require("axios");
 const AuthenticationError = require("../../errors/AuthenticationError");
+const { ATTR_PREFIX } = require("pn-auth-common/app/modules/dao/constants");
 
 const basePath = process.env.API_PRIVATE_BASE_PATH;
 const consentType = process.env.CONSENT_TYPE;
@@ -35,7 +36,7 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
     try { 
       await checkPGConsent(context);
     } catch(e){
-      throw new AuthenticationError("User has not given consent to use the service");
+      throw new AuthenticationError(`${context["cx_id"]} has not given consent to use the service`);
     }
   
   }
@@ -49,6 +50,7 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
 }
 
 function contextIsAlreadySet(context){
+  console.log(context, "CONTESTO");
   return context["cx_jti"]
     && context["sourceChannel"]
     && context["uid"]
@@ -62,17 +64,17 @@ function contextIsAlreadySet(context){
 }
 
 async function persistAllowedAttributesCache(context, jwt){
-    const cacheDuration = process.env.PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC ? parseInt(process.env.PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC) : 0 ;
+  const cacheDuration = process.env.PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC ? parseInt(process.env.PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC) : 0 ;
 
-    const now = Date.now();
-    const cacheMaxUsageEpochSec = Math.floor(now / 1000) + cacheDuration;
-    const item = constructItem(context, jwt, now, cacheMaxUsageEpochSec);
-    await JwtAttributesDao.putJwtAttributes(item)
+  const now = Date.now();
+  const cacheMaxUsageEpochSec = Math.floor(now / 1000) + cacheDuration;
+  const item = constructItem(context, jwt, now, cacheMaxUsageEpochSec);
+  await JwtAttributesDao.putJwtAttributes(item);
 }
 
 function constructItem(context, jwt, now, cacheMaxUsageEpochSec){
     const item = {
-        hashKey: `ATTR~${jwt.iss}~virtual_key~${jwt.virtual_key}`,
+        hashKey: `${ATTR_PREFIX}~${jwt.iss}~virtual_key~${jwt.virtual_key}`,
         sortKey: `NA`,
         issuer: jwt.iss,
         issuerRelatedKey: `virtual_key~${jwt.virtual_key}`,
@@ -87,7 +89,7 @@ function constructItem(context, jwt, now, cacheMaxUsageEpochSec){
             cx_id: context["cx_id"],
             cx_type: context["cx_type"],
             cx_role: context["cx_role"],
-            cx_groups: context["cx_groups"],
+            cx_groups: context["cx_groups"]??[],
             callableApiTags: context["callableApiTags"],
             allowedApplicationRoles: context["allowedApplicationRoles"],
             applicationRole: context["applicationRole"]
@@ -101,16 +103,16 @@ async function retrieveVirtualKeyAndEnrichContext(context, virtualKey, iss) {
 
    if (!checkStatus(apiKeyDynamo.status)) {
      throw new AuthenticationError(
-       `Key is not allowed with status ${apiKeyDynamo.status}`
+       `Key ${apiKeyDynamo.name} is not allowed with status ${apiKeyDynamo.status}`
      );
    }
 
    if(apiKeyDynamo.scope != "CLIENTID"){
-       throw new AuthenticationError("virtualKey Scope not allowed for this operation");
+       throw new AuthenticationError(`virtualKey (${apiKeyDynamo.name}) SCOPE not allowed for this operation`);
    }
 
    if(apiKeyDynamo.cxId != iss){
-       throw new AuthenticationError("virtualKey is not associated to the PG");
+       throw new AuthenticationError(`virtualKey ${apiKeyDynamo.name} is not associated to the PG ${apiKeyDynamo.cxId}`);
    }
 
    context["uid"] = apiKeyDynamo.uid;
@@ -159,7 +161,7 @@ async function retrieveUserGroupsAndEnrichContext(context, uid) {
 async function retrieveAllowedIssuerAndEnrichContext(context, iss) {
    const allowedIssuer = await AllowedIssuerDao.getConfigByISS(iss);
     if (!allowedIssuer) {
-      throw new AuthenticationError("Issuer not allowed");
+      throw new AuthenticationError(`Issuer ${iss} not allowed`);
     }
     const attributeResolversCfg = allowedIssuer.attributeResolversCfgs.find(attributeResolversCfg => attributeResolversCfg.name === "PGCUSTOM");
     context["callableApiTags"] = attributeResolversCfg.cfg.purposes;
@@ -185,10 +187,10 @@ async function checkPGConsent(context){
   });
 
   if(!consent){
-    throw new AuthenticationError("User has not given consent to use the service");
+    throw new AuthenticationError(`${context["cx_id"]} has not given consent to use the service`);
   }
   if (!consent.data.accepted)
-    throw new AuthenticationError("User has not given consent to use the service");
+    throw new AuthenticationError(`${context["cx_id"]} has not given consent to use the service`);
 
 }
 

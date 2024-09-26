@@ -1,28 +1,38 @@
 const s3Utils = require("../middleware/s3Utils.js");
-const apiGatewayUtils = require("../middleware/apiGatewayUtils.js");
+const apiGatewayUtils = require("../middleware/apiGatewayUtils");
 const { AuthPolicy } = require("./authPolicy.js");
+const GenericDatalCache = require("../cache/GenericDataCache.js");
+
+// create one day cache
+const apiResourcesCache = new GenericDatalCache(86400);
 
 async function getCustomPolicyDocument(lambdaEvent, callableApiTags){
     const apiOptions = getApiOption(lambdaEvent);
-
-    const locationValues = await apiGatewayUtils.getOpenAPIS3Location(apiOptions);
-    const bucketName = locationValues[0];
-    const bucketKey = locationValues[1];
-   
-    const resources = await s3Utils.getAllowedResourcesFromS3(
-        lambdaEvent,
-        bucketName,
-        bucketKey,
-        callableApiTags
-    );
+    
+    let resources = apiResourcesCache.getCacheItem(lambdaEvent.methodArn);
+    // item missing in cache
+    if (resources == null){
+        console.log("RESOURCES NOT cached for", lambdaEvent.methodArn);
+        const locationValues = await apiGatewayUtils.getOpenAPIS3Location(apiOptions);
+        const bucketName = locationValues[0];
+        const bucketKey = locationValues[1];
+       
+        resources = await s3Utils.getResourcesFromS3(
+            lambdaEvent,
+            bucketName,
+            bucketKey
+        );
+       
+        apiResourcesCache.setCacheItem(lambdaEvent.methodArn, resources);
+    }
+    else console.log("RESOURCES  cached for", lambdaEvent.methodArn);
 
     const policy = new AuthPolicy(apiOptions.accountId, apiOptions);
     if(resources){
         for (let i = 0; i < resources.length; i++) {
-            if(resources[i].method != 'PARAMETERS'){
+            if(resources[i].method != 'PARAMETERS' || !resources[i].tags || arraysOverlap(resources[i].tags, callableApiTags)){
                 policy.allowMethod(resources[i].method, resources[i].path);
             }
-
         }
     }
     return policy.build();
