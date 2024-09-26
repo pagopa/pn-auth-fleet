@@ -130,7 +130,8 @@ async function retrieveUserRoleAndEnrichContext(context, uid) {
         'x-pagopa-pn-cx-id': context["cx_id"]
       }
     });
-    context["cx_role"] = userRoleResponse.data.product.productRole;
+    let userRole = userRoleResponse.data.product.productRole.replace("pg-", "");
+    context["cx_role"] = userRole;
 }
 
 async function retrieveUserGroupsAndEnrichContext(context, uid) {
