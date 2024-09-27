@@ -44,6 +44,7 @@ async function getApiKeyByIndex(virtualKey) {
   return {
     id: apiKeyItem["id"],
     cxId: apiKeyItem["x-pagopa-pn-cx-id"],
+    name: apiKeyItem["name"],
     groups: apiKeyItem["groups"],
     status: apiKeyItem["status"],
     virtualKey: apiKeyItem["virtualKey"],
