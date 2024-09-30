@@ -129,7 +129,11 @@ async function handleEvent(event) {
       logger.warn(e.message, e.toJSON());
       const ret = {
         policyDocument: policyService.generateDenyPolicyDocument(),
-        context: {},
+        context: {
+          error: {
+            messageString: e.message,
+          }
+        },
         usageIdentifierKey: null
       }
       if(issuerId) {
