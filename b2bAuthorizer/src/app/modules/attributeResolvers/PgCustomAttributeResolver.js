@@ -57,7 +57,7 @@ function contextIsAlreadySet(context){
     && context["cx_id"]
     && context["cx_type"]
     && context["cx_role"]
-    && context["cx_groups"]
+    //&& context["cx_groups"]
     && context["callableApiTags"]
     && context["allowedApplicationRoles"]
     && context["applicationRole"];
@@ -89,7 +89,7 @@ function constructItem(context, jwt, now, cacheMaxUsageEpochSec){
             cx_id: context["cx_id"],
             cx_type: context["cx_type"],
             cx_role: context["cx_role"],
-            cx_groups: context["cx_groups"]??[],
+            cx_groups: context["cx_groups"],
             callableApiTags: context["callableApiTags"],
             allowedApplicationRoles: context["allowedApplicationRoles"],
             applicationRole: context["applicationRole"]
