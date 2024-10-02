@@ -22,6 +22,8 @@ const defaultAllowPolicyDocument = {
     ]
 };
 
+const CUSTOM_POLICY_ENABLED = process.env.ENABLE_PG_ACCESS??"false";
+
 class PolicyService {
 
     #logger
@@ -71,7 +73,9 @@ class PolicyService {
         }
 
         if(context.callableApiTags){
-          return await customPolicy.getCustomPolicyDocument(lambdaEvent, context.callableApiTags);
+          if (CUSTOM_POLICY_ENABLED === "true")
+            return await customPolicy.getCustomPolicyDocument(lambdaEvent, context.callableApiTags);
+          return defaultDenyAllPolicyDocument;
         }
 
         return defaultAllowPolicyDocument;
