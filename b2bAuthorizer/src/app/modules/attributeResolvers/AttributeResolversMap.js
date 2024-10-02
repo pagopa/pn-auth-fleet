@@ -24,7 +24,7 @@ class AttributeResolversMap {
     #isNotBlank(str) {
         return str !== null && str !== undefined && str !== ''
     }
-
+//    simpleJwt, event, issuerInfo.cfg.attributeResolversCfgs
     async resolveAttributes(jwt, lambdaEvent, attributeResolversCfgs = []) {
         let { context, usageIdentifierKey } = DefaultAttributeResolver(jwt, lambdaEvent, {}, {})
         const initialApplicationRole = context.applicationRole;

@@ -12,7 +12,7 @@ describe("Test auth policy", () => {
     before(() => {
       getAllowedResourcesFromS3Stub = sinon.stub(
         s3Utils,
-        "getAllowedResourcesFromS3"
+        "getResourcesFromS3"
       );
       getOpenAPIS3LocationStub = sinon.stub(
         apiGatewayUtils,
@@ -25,12 +25,16 @@ describe("Test auth policy", () => {
     });
   
     it("allow method", async () => {
-      getAllowedResourcesFromS3Stub.callsFake(() => [
+      let called = 0;
+      getAllowedResourcesFromS3Stub.callsFake(() => {
+        called++;
+        return [
         {
           path: "/test",
           method: "POST",
+          tags: ["R"]
         },
-      ]);
+      ]});
       getOpenAPIS3LocationStub.callsFake(() => ["REFINEMENT", "BASE", "api-key-bo"]);
   
       const lambdaEvent = {
@@ -42,7 +46,6 @@ describe("Test auth policy", () => {
       };
       let callableApiTags = ["REFINEMENT", "BASE"]
       let policy = await getCustomPolicyDocument(lambdaEvent, callableApiTags)
-
       let policyExpected = {
         Version: '2012-10-17',
         Statement: [
@@ -53,8 +56,23 @@ describe("Test auth policy", () => {
           }
         ]
       }
+
+      policy = await getCustomPolicyDocument(lambdaEvent, callableApiTags)
+
+      policyExpected = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Action: 'execute-api:Invoke',
+            Effect: 'Allow',
+            Resource: ['arn:aws:execute-api:eu-south-1:558518206506:0y0p7mcx54/unique/POST/test']
+          }
+        ]
+      };
       
       expect(JSON.stringify(policyExpected)).equals(JSON.stringify(policy));
+  
+      expect(called).equals(1);
 
     });
   
