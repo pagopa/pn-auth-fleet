@@ -50,7 +50,6 @@ async function PgCustomAttributeResolver( jwt, lambdaEvent, context, attrResolve
 }
 
 function contextIsAlreadySet(context){
-  console.log(context, "CONTESTO");
   return context["cx_jti"]
     && context["sourceChannel"]
     && context["uid"]
