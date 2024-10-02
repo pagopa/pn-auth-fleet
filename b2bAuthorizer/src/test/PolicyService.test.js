@@ -1,6 +1,10 @@
 // PolicyService test
+
 const { expect } = require('chai');
 const sinon = require("sinon");
+
+
+
 
 const PolicyService = require('../app/modules/policy');
 const Logger = require('../app/modules/logger');
@@ -9,6 +13,7 @@ const customPolicy = require("../app/modules/policy/customPolicy.js");
 const policyService = new PolicyService(new Logger());
 
 beforeEach(() => {
+    
     getCustomPolicyDocument = sinon.stub(
       customPolicy,
       "getCustomPolicyDocument"
@@ -20,7 +25,6 @@ afterEach(() => {
 });
 
 describe('PolicyService', () => {
-
     it('should return a deny policy if intended usage mismatch',  async () =>  {
         const policy = await policyService.generatePolicyDocument({ sourceChannel: 'RADD' }, { stageVariables: { IntendedUsage: 'B2B' } });
 
@@ -160,6 +164,8 @@ describe('PolicyService', () => {
     });
 
     it('collable api tags', async () => {
+        process.env.ENABLE_PG_ACCESS = 'true';
+
         let policyDocument = {
             Version: '2012-10-17',
             Statement: [
@@ -170,6 +176,37 @@ describe('PolicyService', () => {
                 }
             ]
         };
+
+        getCustomPolicyDocument.callsFake(() => Promise.resolve(policyDocument));
+
+        const ctx = {
+            sourceChannel: 'B2BPG',
+            allowedApplicationRoles: "[\"user\",\"admin\"]",
+            applicationRole: 'user',
+            callableApiTags: 'REFINEMENT'
+        }
+        const policy = await policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'B2BPG' } });
+
+        expect(policy).to.deep.equal(policyDocument);
+
+    });
+
+
+
+    it('collable api tags - but feature flag off', async () => {
+        process.env.ENABLE_PG_ACCESS = 'false';
+
+        let policyDocument = {
+            Version: "2012-10-17",
+            Statement: [
+              {
+                Action: "execute-api:Invoke",
+                Effect: "Deny",
+                Resource: "*",
+              },
+            ]
+        };
+        
 
         getCustomPolicyDocument.callsFake(() => Promise.resolve(policyDocument));
 

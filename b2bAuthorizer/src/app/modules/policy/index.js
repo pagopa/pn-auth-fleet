@@ -22,7 +22,6 @@ const defaultAllowPolicyDocument = {
     ]
 };
 
-const CUSTOM_POLICY_ENABLED = process.env.ENABLE_PG_ACCESS??"false";
 
 class PolicyService {
 
@@ -71,6 +70,8 @@ class PolicyService {
         if(!this.#validateApplicationRoles(context)){
           return defaultDenyAllPolicyDocument;
         }
+
+        const CUSTOM_POLICY_ENABLED = process.env.ENABLE_PG_ACCESS??'false';
 
         if(context.callableApiTags){
           if (CUSTOM_POLICY_ENABLED === "true")
