@@ -1,7 +1,7 @@
 const { ddbDocClient } = require('./DynamoDbClient')
 const { getObjectAsByteArray, putObject } = require('../aws/S3Functions')
-const { QueryCommand, GetCommand, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
-const { CFG, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
+const { QueryCommand, GetCommand, DeleteCommand, TransactWriteCommand, UpdateCommand, ScanCommand} = require("@aws-sdk/lib-dynamodb");
+const { CFG, RADD_RESOLVER_NAME, RESOLVER_NAME_FIELD, ISS_PREFIX, JWKS_CACHE_PREFIX, JWKS_CACHE_EXPIRE_SLOT_ATTRIBUTE_NAME, JWT_ISSUER_TABLE_JWKS_CACHE_EXPIRE_SLOT_INDEX_NAME } = require('./constants');
 const crypto = require('crypto')
 const IssuerNotFoundError = require('./IssuerNotFoundError')
 
@@ -166,10 +166,10 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationT
     const sha256 = computeSha256(jwksBinaryBody)
     const jwksCacheExpireSlot = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheRenewSec
     const cacheMaxUsageEpochSec = computeCacheMaxUsageEpochSec(modificationTimeEpochMs, cfg.JWKSCacheRenewSec)
-    
     // convert jwksCacheExpireSlot in YYYY-MM-DDTHH:mmZ
     const jwksCacheExpireSlotWithMinutesPrecision = new Date(jwksCacheExpireSlot * 1000).toISOString().substring(0,16)+'Z'
-    
+    const jwksCacheOriginalExpireEpochSeconds = jwksCacheExpireSlot
+
     const iss = getISSFromHashKey(cfg.hashKey)
 
     return {
@@ -181,10 +181,11 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationT
                         hashKey: buildHashKeyForAllowedIssuer(iss),
                         sortKey: CFG
                     },
-                    UpdateExpression: 'SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs',
+                    UpdateExpression: 'SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs, jwksCacheOriginalExpireEpochSeconds = :jwksCacheOriginalExpireEpochSeconds',
                     ExpressionAttributeValues: {
                         ':jwksCacheExpireSlot': jwksCacheExpireSlotWithMinutesPrecision,
-                        ':modificationTimeEpochMs': modificationTimeEpochMs
+                        ':modificationTimeEpochMs': modificationTimeEpochMs,
+                        ':jwksCacheOriginalExpireEpochSeconds': jwksCacheOriginalExpireEpochSeconds
                     }
                 }
             },
@@ -199,6 +200,7 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationT
                         contentHash: sha256,
                         cacheRenewEpochSec: jwksCacheExpireSlot,
                         cacheMaxUsageEpochSec: cacheMaxUsageEpochSec,
+                        jwksCacheOriginalExpireEpochSeconds: jwksCacheOriginalExpireEpochSeconds,
                         ...(!jwksS3Url ? { JWKSBody : jwksBinaryBody } : { JWKSS3Url : jwksS3Url}),
                         modificationTimeEpochMs: modificationTimeEpochMs,
                         ttl: cacheMaxUsageEpochSec
@@ -265,11 +267,140 @@ async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
     return await ddbDocClient.send(updateCommand)
 }
 
+async function upsertJwtIssuer(jwtIssuerUpsertDTO){
 
+    const key = {
+        hashKey: buildHashKeyForAllowedIssuer(jwtIssuerUpsertDTO.iss),
+        sortKey: CFG
+    }
+
+    let updateExpression = ''
+    let expressionAttributeValues = {}
+
+    if(jwtIssuerUpsertDTO.attributeResolversCfgs){
+        updateExpression += 'SET attributeResolversCfgs = :attributeResolversCfgs'
+        expressionAttributeValues[':attributeResolversCfgs'] = jwtIssuerUpsertDTO.attributeResolversCfgs
+    }
+
+    if(jwtIssuerUpsertDTO.JWKSCacheMaxDurationSec){
+        updateExpression += (updateExpression ? ', ' : 'SET ') + 'JWKSCacheMaxDurationSec = :JWKSCacheMaxDurationSec'
+        expressionAttributeValues[':JWKSCacheMaxDurationSec'] = jwtIssuerUpsertDTO.JWKSCacheMaxDurationSec
+    }
+
+    if(jwtIssuerUpsertDTO.JWKSCacheRenewSec){
+        updateExpression += (updateExpression ? ', ' : 'SET ') + 'JWKSCacheRenewSec = :JWKSCacheRenewSec'
+        expressionAttributeValues[':JWKSCacheRenewSec'] = jwtIssuerUpsertDTO.JWKSCacheRenewSec
+    }
+
+    if(jwtIssuerUpsertDTO.JWKSUrl){
+        updateExpression += (updateExpression ? ', ' : 'SET ') + 'JWKSUrl = :JWKSUrl'
+        expressionAttributeValues[':JWKSUrl'] = jwtIssuerUpsertDTO.JWKSUrl
+    }
+
+    // set modifi
+    const modificationTimeEpochMs = Date.now()
+    updateExpression += (updateExpression ? ', ' : 'SET ') + 'modificationTimeEpochMs = :modificationTimeEpochMs'
+    expressionAttributeValues[':modificationTimeEpochMs'] = modificationTimeEpochMs
+
+    // update or insert
+    const updateCommand = new UpdateCommand({
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        Key: key,
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: expressionAttributeValues
+    })
+
+    await ddbDocClient.send(updateCommand)
+}
+
+async function deleteJwtIssuer(jwtIssuerDeleteDTO){
+    const deleteItemInput = {
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        Key: {
+            hashKey: buildHashKeyForAllowedIssuer(jwtIssuerDeleteDTO.iss),
+            sortKey: CFG
+        }
+    }
+
+    const deleteCommand = new DeleteCommand(deleteItemInput)
+
+    await ddbDocClient.send(deleteCommand)
+    await deleteJwksCacheByIss(jwtIssuerDeleteDTO.iss)
+}
+
+async function deleteJwksCacheByIss(iss){
+    const queryInput = {
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        KeyConditionExpression: 'hashKey = :hashKey',
+        ExpressionAttributeValues: {
+            ':hashKey': buildHashKeyForAllowedIssuer(iss)
+        }
+    }
+
+    const queryCommand = new QueryCommand(queryInput)
+
+    const result = await ddbDocClient.send(queryCommand)
+
+    const jwksCacheItems = result.Items.filter(item => item.sortKey.indexOf(JWKS_CACHE_PREFIX)===0)
+
+    for(const item of jwksCacheItems){
+        const deleteItemInput = {
+            TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+            Key: {
+                hashKey: item.hashKey,
+                sortKey: item.sortKey
+            }
+        }
+
+        const deleteCommand = new DeleteCommand(deleteItemInput)
+
+        await ddbDocClient.send(deleteCommand)
+    }
+
+}
+
+async function listRaddIssuers(lastItem) {
+    const params = {
+        TableName: process.env.AUTH_JWT_ISSUER_TABLE,
+        ExpressionAttributeValues: {
+          ":sortKey": CFG
+        },
+        FilterExpression: "sortKey = :sortKey"
+      };
+
+    if (lastItem) {
+        params.ExclusiveStartKey = lastItem;
+    }
+
+
+    const command = new ScanCommand(params);
+    const result = await ddbDocClient.send(command);
+    // if (result.Items) {
+    //   console.log("No RADD Resolvers found.");
+    //   return [];
+    // }
+
+    let raddIssuerList = [];
+    result.Items.forEach(currentItem => {
+      if (!currentItem.hasOwnProperty("attributeResolversCfgs")) return;
+      currentItem.attributeResolversCfgs.forEach(currentResolverCfg => {
+        if (!currentResolverCfg.hasOwnProperty(RESOLVER_NAME_FIELD)) return;
+        if (currentResolverCfg[RESOLVER_NAME_FIELD] == RADD_RESOLVER_NAME) {
+          currentItem.keyAttributeName = currentResolverCfg?.cfg?.keyAttributeName;
+          raddIssuerList.push(currentItem);
+        }
+      });
+    });
+    return {Items: raddIssuerList, lastEvaluatedKey: result.lastEvaluatedKey};
+}
 
 module.exports = {
     getIssuerInfoAndJwksCache,
     addJwksCacheEntry,
     listJwksCacheExpiringAtMinute,
-    postponeJwksCacheEntryValidation
+    postponeJwksCacheEntryValidation,
+    getConfigByISS,
+    upsertJwtIssuer,
+    deleteJwtIssuer,
+    listRaddIssuers
 }

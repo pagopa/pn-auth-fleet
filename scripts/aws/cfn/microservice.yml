@@ -92,6 +92,10 @@ Parameters:
     Type: String
     Description: Pdnd Issuer for ApikeyAuthorizerV2
 
+  ConsentTypeEnum:
+    Type: String
+    Description: enum for consentType check
+
   ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl:
     Type: String
     Default: 300
@@ -99,7 +103,7 @@ Parameters:
 
   ApplicationLoadBalancerDomain:
     Type: String
-    Description: application loadbalancer used from ioAuthorizer to call pn-data-vault
+    Description: application loadbalancer used from b2bAuthorizer to call pn-external-registries and pn-user-attributes
 
   # Unused but required by CD pipeline
   MicroserviceNumber:
@@ -176,6 +180,9 @@ Parameters:
     Type: String
 
   JwksCacheForceRefreshLambdaName:
+    Type: String
+
+  PnRaddBaseliningLambdaName:
     Type: String
 
   TokenExchangeWafLimit:
@@ -279,6 +286,11 @@ Parameters:
     Type: Number
     Default: 60
     Description: "Clock skew in seconds for JWT token"
+
+  MaxAttributeAgeDays:
+    Type: Number
+    Default:  90
+    Description: "Max Attributes Age To request RADD Baseline"
     
   JWKSCacheRefreshDataPointsToAlarm:
     Type: Number
@@ -419,7 +431,51 @@ Parameters:
     Type: String
     Description: 'Elastic cache security Group'
 
+  JwtIssuersManagerLambdaName:
+    Type: String
+    Description: 'Jwt Issuers Manager Lambda Name'
     
+  JWTIssuersManagerLambdaTimeout:
+    Type: Number
+    Default: 20
+    Description: "Timeout for JWT Issuers Manager lambda in seconds"
+
+  JWTIssuersManagerDataPointsToAlarm:
+    Type: Number
+    Default: 1
+    Description: "Number of data points to alarm for jwks cache refresh"
+
+  JWTIssuersManagerEvaluationPeriods:
+    Type: Number
+    Default: 60
+    Description: "Number of evaluation periods (1 minute) for jwks cache refresh"
+
+  JWTIssuersManagerAlarmFilterPattern:
+    Type: String
+    Default: "ERROR"
+    Description: "Filter pattern for jwks cache refresh alarm"
+
+  PgCustomAttributeResolverCacheMaxUsageEpochSec:
+    Type: Number
+    Default: 0
+    Description: "Max usage epoch in seconds for PGCUSTOME attributes resolver cache"
+
+  PgCustomAttributeResolverEnableCache:
+    Type: String
+    Default: false
+    Description: Enable cache for PGCUSTOM attributes resolver
+    AllowedValues:
+      - true
+      - false
+
+  PgEnableAccess:
+    Type: String
+    Default: false
+    Description: Enable access to PG B2B API
+    AllowedValues:
+      - true
+      - false
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -670,6 +726,12 @@ Resources:
   ###               B2B AUTHORIZER LAMBDA               ###
   #########################################################
 
+  B2BAuthorizerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-b2b-authorizer-SecGrp
+      VpcId: !Ref VpcId
+
   # Lambda function
   B2BAuthorizerLambda:
     Type: AWS::Lambda::Function
@@ -694,11 +756,21 @@ Resources:
           JWKS_FORCE_REFRESH_LAMBDA_TIMEOUT_SECONDS: !Ref JwksCacheForceRefreshLambdaTimeout
           JWKS_FORCE_REFRESH_QUEUE_VISIBILITY_TIMEOUT_SECONDS: !Ref JWKSCacheForceRefreshQueueVisibilityTimeout
           JWKS_FORCE_REFRESH_QUEUE_URL: !Ref JWKSCacheForceRefreshQueueURL
+          PDND_JWT_ISSUER: !Ref ApikeyAuthorizerV2PDNDIssuer
+          API_PRIVATE_BASE_PATH: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
+          CONSENT_TYPE: !Ref ConsentTypeEnum
+          PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC: !Ref PgCustomAttributeResolverCacheMaxUsageEpochSec
+          ENABLE_PGCUSTOM_CACHE: !Ref PgCustomAttributeResolverEnableCache
+          ENABLE_PG_ACCESS: !Ref PgEnableAccess
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize
       TracingConfig:
         Mode: Active
+      VpcConfig:
+        SecurityGroupIds: 
+          - !Ref B2BAuthorizerSecurityGroup
+        SubnetIds: !Ref VpcEgressSubnetsIds
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
@@ -740,6 +812,7 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - !Ref AuthJwtIssuersTableArn
+                  - !Ref AuthJwtAttributesTableArn
               - Sid: AllowLambdaReadDynamoDb
                 Action:
                   - dynamodb:Query
@@ -749,6 +822,7 @@ Resources:
                   - !Ref AuthJwtAttributesTableArn
                   - !Ref AuthJwtIssuersTableArn
                   - !Sub ${AuthJwtIssuersTableArn}*
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pn-apiKey*
               - Sid: AllowLambdaReadS3
                 Action:
                   - "s3:GetObject"
@@ -757,13 +831,26 @@ Resources:
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "arn:aws:s3:::${LambdasBucketName}/*"
               - Sid: AllowSendMessageSQS
                 Action:
                   - sqs:SendMessage
                 Effect: Allow
                 Resource:
                   - !Ref JWKSCacheForceRefreshQueueARN
-      #ManagedPolicyArns:
+              - Effect: Allow
+                Sid: AllowDecrypt
+                Action:
+                  - "kms:Decrypt"
+                Resource: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${ApiKeyTablesEncryptKeyId}
+              - Effect: Allow
+                Action:
+                  - "apigateway:GET"
+                Resource:
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/*"
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
@@ -859,6 +946,8 @@ Resources:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
                   - !Sub "${JWKSCacheBucketArn}/jwks_sources/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_sources"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
               - Sid: AllowLambdaWriteS3
                 Action:
                   - "s3:PutObject"
@@ -867,6 +956,8 @@ Resources:
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
       #ManagedPolicyArns:
       #  - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
 
@@ -1133,6 +1224,8 @@ Resources:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
                   - !Sub "${JWKSCacheBucketArn}/jwks_sources/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_sources"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
               - Sid: AllowLambdaWriteS3
                 Action:
                   - "s3:PutObject"
@@ -1141,6 +1234,8 @@ Resources:
                 Resource:
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
                   - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
               - Sid: AllowReadSQS
                 Action:
                   - sqs:ChangeMessageVisibility
@@ -1198,6 +1293,129 @@ Resources:
       MaximumBatchingWindowInSeconds: !Sub ${JwksCacheForceRefreshLambdaEventSourceMappingMaximumBatchingWindowInSeconds}
       FunctionName: !GetAtt JwksCacheForceRefreshLambda.Arn
 
+
+  # PnRaddBaseliningLambdaLibrariesLayer:
+  #   Type: AWS::Lambda::LayerVersion
+  #   Properties:
+  #     CompatibleRuntimes:
+  #       - nodejs18.x
+  #     Content:
+  #       S3Bucket: !Ref LambdasBucketName
+  #       S3Key: !Sub "${BucketBasePath}/raddBaselining_libs.zip"
+  #     Description: NodeJs Libs layer
+  #     LayerName: raddBaselining-libs-layer
+
+ # Lambda function role
+  PnRaddBaseliningLambdaStackRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-RaddBaseliningLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaReadDynamoDb
+                Action:
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtAttributesTableArn
+              - Sid: AllowLambdaScanDynamoDb
+                Action:
+                  - dynamodb:Scan
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  PnRaddBaseliningLambdaStack:
+    Type: AWS::CloudFormation::Stack
+    # UpdateReplacePolicy: Retain
+    # DeletionPolicy: Delete
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda.yaml"
+      Parameters:
+        FunctionName: !Ref PnRaddBaseliningLambdaName
+        Runtime: nodejs18.x
+        Handler: "index.handler"
+        MemorySize: 256
+        Timeout: 10
+        RoleArn: !GetAtt PnRaddBaseliningLambdaStackRole.Arn
+        EnvVariables:
+          !Sub [
+              "AUTH_JWT_ATTRIBUTE_TABLE=${auth_jwt_attribute_table}###AUTH_JWT_ISSUER_TABLE=${auth_jwt_issuer_table}###MAX_ATTRIBUTES_AGE_DAYS=${max_attribute_age_days}",
+              {
+                auth_jwt_attribute_table: !Ref AuthJwtAttributesTableName,
+                auth_jwt_issuer_table: !Ref AuthJwtIssuersTableName,
+                max_attribute_age_days: !Ref MaxAttributeAgeDays
+              },
+            ]
+       # Layer1: !Ref PnRaddBaseliningLambdaLibrariesLayer
+        FunctionBucketName: !Ref LambdasBucketName
+        FunctionBucketKey: !Sub "${BucketBasePath}/raddBaselining.zip"
+  
+ 
+
+  # RaddBaselining scheduler BEGIN
+  RaddBaseliningSchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: LambdScheduleExecutionPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !GetAtt PnRaddBaseliningLambdaStack.Outputs.FunctionArn
+
+  RaddBaseliningScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: "Schedule every day"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Name: "RaddBaseliningShedule"
+      ScheduleExpression: "rate(1 day)"
+      State: ENABLED
+      Target:
+        Arn: !GetAtt PnRaddBaseliningLambdaStack.Outputs.FunctionArn
+        RoleArn: !GetAtt RaddBaseliningSchedulerRole.Arn
+  # RaddBaselining scheduler END  
+  
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
   # ###########################################################
   # Application use this alias to access the public/private key pair
@@ -1595,3 +1813,121 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt JWKSCacheRefreshEventRule.Arn
+
+  ## JWT Issuers Manager Lambda
+  JWTIssuersManagerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref JwtIssuersManagerLambdaName
+      Runtime: nodejs18.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/jwtIssuersManager.zip"
+      Environment:
+        Variables:
+          AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
+          AUTH_JWT_ATTRIBUTE_TABLE: !Ref AuthJwtAttributesTableName
+          JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
+          JWKS_DYNAMO_CACHE_CONTENT_LIMIT: !Ref JwksDynamoCacheContentLimit
+          JWKS_CONTENTS: !Ref JWKSCacheBucketName
+          JWKS_FOLLOW_REDIRECT: !Ref JwksFollowRedirect
+          JWKS_B2BDEST_PREFIX: 'jwks_b2bdest_sources'
+      Role: !GetAtt JWTIssuersManagerLambdaRole.Arn
+      Timeout: !Ref JWTIssuersManagerLambdaTimeout
+      TracingConfig:
+        Mode: Active
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
+
+  # Lambda function role
+  JWTIssuersManagerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-jwtIssuersManagerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaReadS3
+                Action:
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                Effect: Allow
+                Resource:
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_cache_entries"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_sources"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
+              - Sid: AllowLambdaWriteS3
+                Action:
+                  - "s3:PutObject"
+                  - "s3:PutObjectTagging"
+                Effect: Allow
+                Resource:
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources/*"
+                  - !Sub "${JWKSCacheBucketArn}/jwks_b2bdest_sources"
+              - Sid: AllowLambdaWriteDynamoDb
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Ref AuthJwtAttributesTableArn
+              - Sid: AllowLambdaReadDynamoDb
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: 
+                  - !Ref AuthJwtIssuersTableArn
+                  - !Sub ${AuthJwtIssuersTableArn}*
+      #ManagedPolicyArns:
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+
+  JWTIssuersManagerLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref JWTIssuersManagerLambda
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        DataPointsToAlarm: !Ref JWTIssuersManagerDataPointsToAlarm
+        EvaluationPeriods: !Ref JWTIssuersManagerEvaluationPeriods
+        FilterPattern: !Ref JWTIssuersManagerAlarmFilterPattern
+
+  # Add lambda permission to be invoked by a role of the current AWS account; the role must be specified using a condition and not as principal
+  JWTIssuersManagerLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref JWTIssuersManagerLambda
+      Action: lambda:InvokeFunction
+      Principal: "ecs-tasks.amazonaws.com"
+      SourceArn: !Sub arn:aws:iam::${AWS::AccountId}:role/pn-apikey-manager-TaskRole/*

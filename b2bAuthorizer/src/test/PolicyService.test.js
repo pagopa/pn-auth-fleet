@@ -1,32 +1,32 @@
 // PolicyService test
 
-
 const { expect } = require('chai');
+const sinon = require("sinon");
+
+
+
 
 const PolicyService = require('../app/modules/policy');
 const Logger = require('../app/modules/logger');
+const customPolicy = require("../app/modules/policy/customPolicy.js");
 
 const policyService = new PolicyService(new Logger());
 
+beforeEach(() => {
+    
+    getCustomPolicyDocument = sinon.stub(
+      customPolicy,
+      "getCustomPolicyDocument"
+    );
+});
+
+afterEach(() => {
+    sinon.restore();
+});
+
 describe('PolicyService', () => {
-
-    it('should return a deny policy if intended usage mismatch', () => {
-        const policy = policyService.generatePolicyDocument({ sourceChannel: 'RADD' }, { stageVariables: { IntendedUsage: 'B2B' } });
-
-        expect(policy).to.deep.equal({
-            Version: '2012-10-17',
-            Statement: [
-                {
-                    Action: 'execute-api:Invoke',
-                    Effect: 'Deny',
-                    Resource: '*'
-                }
-            ]
-        });
-    });
-
-    it('should return a deny policy if intended usage is missing', () => {
-        const policy = policyService.generatePolicyDocument({ sourceChannel: 'RADD' }, { stageVariables: { } });
+    it('should return a deny policy if intended usage mismatch',  async () =>  {
+        const policy = await policyService.generatePolicyDocument({ sourceChannel: 'RADD' }, { stageVariables: { IntendedUsage: 'B2B' } });
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -40,8 +40,8 @@ describe('PolicyService', () => {
         });
     });
 
-    it('should return a deny policy if intended usage is missing in context', () => {
-        const policy = policyService.generatePolicyDocument({  }, { stageVariables: { IntendedUsage: 'RADD' } });
+    it('should return a deny policy if intended usage is missing', async () => {
+        const policy = await policyService.generatePolicyDocument({ sourceChannel: 'RADD' }, { stageVariables: { } });
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -55,13 +55,28 @@ describe('PolicyService', () => {
         });
     });
 
-    it('should return a deny policy if roles mismatch', () => {
+    it('should return a deny policy if intended usage is missing in context', async () => {
+        const policy = await policyService.generatePolicyDocument({  }, { stageVariables: { IntendedUsage: 'RADD' } });
+
+        expect(policy).to.deep.equal({
+            Version: '2012-10-17',
+            Statement: [
+                {
+                    Action: 'execute-api:Invoke',
+                    Effect: 'Deny',
+                    Resource: '*'
+                }
+            ]
+        });
+    });
+
+    it('should return a deny policy if roles mismatch', async () => {
         const ctx = {
             sourceChannel: 'RADD',
             allowedApplicationRoles: [ 'user'],
             applicationRole: 'admin'
         }
-        const policy = policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
+        const policy = await policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -75,12 +90,12 @@ describe('PolicyService', () => {
         });
     });
 
-    it('should return a deny policy if allowedApplicationRoles is missing', () => {
+    it('should return a deny policy if allowedApplicationRoles is missing', async () => {
         const ctx = {
             sourceChannel: 'RADD',
             applicationRole: 'admin'
         }
-        const policy = policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
+        const policy = await policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -94,12 +109,12 @@ describe('PolicyService', () => {
         });
     });
 
-    it('should return a deny policy if applicationRole is missing', () => {
+    it('should return a deny policy if applicationRole is missing', async () => {
         const ctx = {
             sourceChannel: 'RADD',
             allowedApplicationRoles: [ 'user']
         }
-        const policy = policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
+        const policy = await policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -113,13 +128,13 @@ describe('PolicyService', () => {
         });
     });
 
-    it('should return a allow policy', () => {
+    it('should return a allow policy', async () => {
         const ctx = {
             sourceChannel: 'RADD',
             allowedApplicationRoles: [ 'user', 'admin'],
             applicationRole: 'user'
         }
-        const policy = policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
+        const policy = await policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'RADD' } });
 
         expect(policy).to.deep.equal({
             Version: '2012-10-17',
@@ -133,18 +148,77 @@ describe('PolicyService', () => {
         });
     });
 
-    it('should return context for iam', () => {
+    it('should return context for iam', async () => {
         const ctx = {
             sourceChannel: 'RADD',
             allowedApplicationRoles: [ 'user', 'admin'],
             applicationRole: 'user'
         }
-        const context = policyService.normalizeContextForIAMPolicy(ctx);
+        const context = await policyService.normalizeContextForIAMPolicy(ctx);
 
         expect(context).to.deep.equal({
             sourceChannel: 'RADD',
             allowedApplicationRoles: "[\"user\",\"admin\"]",
             applicationRole: 'user'
         });
+    });
+
+    it('collable api tags', async () => {
+        process.env.ENABLE_PG_ACCESS = 'true';
+
+        let policyDocument = {
+            Version: '2012-10-17',
+            Statement: [
+                {
+                    Action: 'execute-api:Invoke',
+                    Effect: 'Allow',
+                    Resource: 'arn:aws:execute-api:region:account-id:api-id/stage/METHOD_HTTP_VERB/Resource-path'
+                }
+            ]
+        };
+
+        getCustomPolicyDocument.callsFake(() => Promise.resolve(policyDocument));
+
+        const ctx = {
+            sourceChannel: 'B2BPG',
+            allowedApplicationRoles: "[\"user\",\"admin\"]",
+            applicationRole: 'user',
+            callableApiTags: 'REFINEMENT'
+        }
+        const policy = await policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'B2BPG' } });
+
+        expect(policy).to.deep.equal(policyDocument);
+
+    });
+
+
+
+    it('collable api tags - but feature flag off', async () => {
+        process.env.ENABLE_PG_ACCESS = 'false';
+
+        let policyDocument = {
+            Version: "2012-10-17",
+            Statement: [
+              {
+                Action: "execute-api:Invoke",
+                Effect: "Deny",
+                Resource: "*",
+              },
+            ]
+        };
+        
+
+        getCustomPolicyDocument.callsFake(() => Promise.resolve(policyDocument));
+
+        const ctx = {
+            sourceChannel: 'B2BPG',
+            allowedApplicationRoles: "[\"user\",\"admin\"]",
+            applicationRole: 'user',
+            callableApiTags: 'REFINEMENT'
+        }
+        const policy = await policyService.generatePolicyDocument(ctx, { stageVariables: { IntendedUsage: 'B2BPG' } });
+
+        expect(policy).to.deep.equal(policyDocument);
+
     });
 });

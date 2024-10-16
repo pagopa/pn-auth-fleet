@@ -1,0 +1,11 @@
+{
+    "hashKey": "ISS~https://interop.pagopa.it",
+    "sortKey": "CFG",
+    "JWKSUrl": "s3://test-bucket/test-folder/base-64.json",
+    "JWKSCacheRenewSec": 3600,
+    "JWKSCacheMaxDurationSec": 60000,
+    "attributeResolversCfgs": [],
+    "jwksCacheExpireSlot": "",
+    "modificationTimeEpochMs": 0,
+    "iss": "https://interop.pagopa.it"
+}

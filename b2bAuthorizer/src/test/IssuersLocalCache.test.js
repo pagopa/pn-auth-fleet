@@ -140,7 +140,7 @@ describe('IssuersLocalCache', () => {
 
   });
 
-  it('getOrLoad should return new Item it cacheItem is not valid', async () => {
+  it('getOrLoad should return new Item if cacheItem is not valid', async () => {
     const IssuersLocalCache = rewire('../app/modules/cache/IssuersLocalCache');
     
     const modificationTimeEpochMs = Date.now()
@@ -149,7 +149,7 @@ describe('IssuersLocalCache', () => {
         cfg: {
           hashKey: 'ISS~issKey',
           cached: true,
-          modificationTimeEpochMs: modificationTimeEpochMs
+          modificationTimeEpochMs: modificationTimeEpochMs  
         }
       })
     }
@@ -181,7 +181,7 @@ describe('IssuersLocalCache', () => {
     }
     IssuersLocalCache.__set__('AllowedIssuerDao', AllowedIssuerDao1);
 
-    const cacheItem = await cache.getWithForceRefresh('issKey');
+    const cacheItem = await cache.getWithForceRefresh('issKey', (new Date().getTime() / 1000));
 
     // the second type 
     expect(cacheItem).to.deep.equal({
