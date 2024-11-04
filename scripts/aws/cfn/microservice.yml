@@ -468,6 +468,14 @@ Parameters:
       - true
       - false
 
+  PgEnableAccess:
+    Type: String
+    Default: false
+    Description: Enable access to PG B2B API
+    AllowedValues:
+      - true
+      - false
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -702,7 +710,10 @@ Resources:
                 Action:
                   - kms:GetPublicKey
                 Effect: Allow
-                Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${PnAuthFleetJwtSignKeyId}"
+                Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*"
+                Condition:
+                  StringEquals:
+                    'aws:ResourceTag/KeyUsageType': 'JwtSignAndVerify'
       #ManagedPolicyArns:
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
@@ -753,6 +764,7 @@ Resources:
           CONSENT_TYPE: !Ref ConsentTypeEnum
           PG_CUSTOM_CACHE_MAX_USAGE_EPOCH_SEC: !Ref PgCustomAttributeResolverCacheMaxUsageEpochSec
           ENABLE_PGCUSTOM_CACHE: !Ref PgCustomAttributeResolverEnableCache
+          ENABLE_PG_ACCESS: !Ref PgEnableAccess
       Role: !GetAtt B2BAuthorizerLambdaRole.Arn
       Timeout: !Ref B2BAuthorizerLambdaTimeout
       MemorySize: !Ref B2BAuthorizerLambdaMemorySize

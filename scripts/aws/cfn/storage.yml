@@ -154,6 +154,9 @@ Resources:
       KeySpec: RSA_2048
       KeyUsage: SIGN_VERIFY
       PendingWindowInDays: 7
+      Tags:
+        - Key: "KeyUsageType"
+          Value: "JwtSignAndVerify"
       KeyPolicy:
         Version: 2012-10-17
         Statement:
