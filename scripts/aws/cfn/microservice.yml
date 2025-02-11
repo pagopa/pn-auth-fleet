@@ -1086,6 +1086,7 @@ Resources:
           ACCEPTED_AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAcceptedAudience
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
           SSM_PARAMETER_STORE_TIMEOUT_MILLIS: 5000
+          PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
       Role: !GetAtt TokenExchangeLambdaRole.Arn
       Timeout: 10
       TracingConfig:

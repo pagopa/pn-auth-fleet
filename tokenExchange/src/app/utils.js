@@ -77,6 +77,30 @@ function enrichDecodedToken(decodedToken) {
   return enrichedToken;
 }
 
+function addSourceChannelInfo(decodedToken, source, tppId) {
+  const tokenWithSourceInfo = { ...decodedToken };
+
+  switch (source.type) {
+    case 'TPP':
+      tokenWithSourceInfo.source = {
+        channel: "TPP",
+        details: tppId
+      };
+      break;
+    case 'QR':
+      tokenWithSourceInfo.source = {
+        channel: "WEB",
+        details: "QR_CODE"
+      };
+      break;
+    default:
+      console.error("Invalid source type:", source.type);
+      throw new Error("Invalid source type");
+  }
+
+  return tokenWithSourceInfo;
+}
+
 // function to retry async function with a delay
 async function retryWithDelay(fn, delay, retries) {
   try {
@@ -122,6 +146,7 @@ module.exports = {
   checkOrigin,
   copyAndMaskObject,
   enrichDecodedToken,
+  addSourceChannelInfo,
   getParameterFromStore,
   getUserType,
   makeLower,
