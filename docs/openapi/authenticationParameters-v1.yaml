@@ -59,6 +59,23 @@ components:
         # ASCII printable characters
         pattern: ^[ -~]*$
         maxLength: 64
+
+    headerSourceChannel:
+      name: x-pagopa-pn-src-ch
+      in: header
+      description: User login source channel
+      required: true
+      schema:
+        type: string
+        maxLength: 3
+        pattern: "B2B|WEB|TPP"
+    headerSourceChannelDetails:
+      name: x-pagopa-pn-src-ch-details
+      in: header
+      description: User login source channel details
+      required: false
+      schema:
+        type: string
     
     ############################################################################################
     ###                     HEADER DI AUTENTICAZIONE LOLLIPOP                               ###
