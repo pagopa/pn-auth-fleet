@@ -27,7 +27,7 @@ async function getRetrievalPayload(retrievalId) {
         });
         return response.data; 
     } catch (err) {
-        console.warn("External service pn-emd-integration returned errors", {
+        console.error("External service pn-emd-integration returned errors", {
             error: err,
             url: pnEmdIntegrationUrl,
             retrievalId: retrievalId

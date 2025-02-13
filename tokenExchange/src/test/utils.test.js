@@ -215,6 +215,7 @@ describe("utils tests", () => {
         groups: ["62e941d313b0fc6edad4535a"],
         fiscal_code: "01199250158",
       },
+      retrievalId: "retrievalId",
       source: {
         channel: "TPP",
         details: "tppIdTest"

@@ -56,6 +56,9 @@ function getTokenComponent(decodedToken, keyId) {
     source.channel = decodedToken.source.channel;
     source.details = decodedToken.source.details;
     payload.source = source;
+    if(decodedToken.source.type === 'TPP'){
+      payload.retrievalId = decodedToken.retrievalId;
+    }
   }
 
   return {
