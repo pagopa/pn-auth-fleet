@@ -39,7 +39,7 @@ async function handleEvent(event) {
       if (encodedToken) {
         try {
           const decodedToken = await validation(encodedToken);
-          const enrichedToken = enrichDecodedToken(decodedToken);
+          let enrichedToken = enrichDecodedToken(decodedToken);
           if(source) {
             console.info("Add source channel info")
             let tppId;

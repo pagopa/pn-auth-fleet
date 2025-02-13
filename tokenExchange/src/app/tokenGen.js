@@ -51,6 +51,13 @@ function getTokenComponent(decodedToken, keyId) {
     payload.organization = organization;
   }
 
+  const source = {};
+  if (decodedToken.source) {
+    source.channel = decodedToken.source.channel;
+    source.details = decodedToken.source.details;
+    payload.source = source;
+  }
+
   return {
     header: base64url(JSON.stringify(header)),
     payload: base64url(JSON.stringify(payload)),

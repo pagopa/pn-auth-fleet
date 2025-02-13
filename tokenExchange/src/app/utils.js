@@ -1,4 +1,5 @@
 const axios = require("axios");
+const ValidationException = require("./exception/validationException.js");
 
 function copyAndMaskObject(originalObject, sensitiveFields) {
   // Copia l'oggetto originale
@@ -95,7 +96,7 @@ function addSourceChannelInfo(decodedToken, source, tppId) {
       break;
     default:
       console.error("Invalid source type:", source.type);
-      throw new Error("Invalid source type");
+      throw new ValidationException("Invalid source type");
   }
 
   return tokenWithSourceInfo;
