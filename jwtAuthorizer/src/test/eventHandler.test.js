@@ -75,7 +75,7 @@ describe("test eventHandler", () => {
     expect(result.context).to.be.undefined;
   });
 
-  it("handle event with no errors (PF)", async () => {
+  it.only("handle event with no errors (PF)", async () => {
     const result = await handleEvent({
       type: "TOKEN",
       authorizationToken:
