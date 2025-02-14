@@ -83,10 +83,10 @@ function addSourceChannelInfo(decodedToken, source, tppId) {
 
   switch (source.type) {
     case 'TPP':
-      tokenWithSourceInfo.retrievalId = source.id;
       tokenWithSourceInfo.source = {
         channel: "TPP",
-        details: tppId
+        details: tppId,
+        retrievalId: source.id
       };
       break;
     case 'QR':

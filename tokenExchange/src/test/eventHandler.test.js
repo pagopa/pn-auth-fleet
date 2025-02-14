@@ -221,7 +221,7 @@ describe("test eventHandler", () => {
     expect(body.error).to.be.undefined;
     expect(body.source.channel).to.eq("TPP");
     expect(body.source.details).to.eq(tppId);
-    expect(body.retrievalId).to.eq(retrievalId);
+    expect(body.source.retrievalId).to.eq(retrievalId);
   });
 
   it("handle event with valid token and source QR - OK", async () => {
