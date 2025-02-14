@@ -34,7 +34,6 @@ describe("test eventHandler", () => {
         109, 198, 251, 29, 2, 3, 1, 0, 1,
       ]),
     });
-    sinon.stub(jsonwebtoken, "verify").returns(true);
   });
 
   after(() => {
@@ -106,8 +105,9 @@ describe("test eventHandler", () => {
     });
   });
 
-  it("handle event with no errors and source info (PF)", async () => {
-    const token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJpYXQiOjE3Mzk0NjY4NTQsImV4cCI6MTczOTQ3NDA1NCwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwiaXNzIjoicG4tZGV2ZWxvcC5wbi5wYWdvcGEuaXQiLCJhdWQiOiJ3ZWJhcGkuZGV2LnBuLnBhZ29wYS5pdCIsImp0aSI6IjAxRzBDRlc4MEhHVFRXMFJINTRXUUQ2RjZTIiwib3JnYW5pemF0aW9uIjp7ImlkIjoiMDI2ZThjNzItNzk0NC00ZGNkLTg2NjgtZjU5NjQ0N2ZlYzZkIiwicm9sZSI6ImFkbWluIiwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In0sInNvdXJjZSI6eyJjaGFubmVsIjoiVFBQIiwiZGV0YWlscyI6IjBlM2JlZTI5LTg3NTMtNDQ3Yy1iMGRhLTFmNzk2NTU1OGVjMi0xNzA2ODY3OTYwOTAwIn0sInJldHJpZXZhbElkIjoiMGU0YzY2MjktODc1My0yMzRzLWIwZGEtMWY3OTY5OTllYzItMTUwMzg2Mzc5NjA5MjAifQ.c2lnbmF0dXJl";
+  it("handle event with no errors and source info (PA)", async () => {
+    sinon.stub(jsonwebtoken, "verify").returns(true);
+    const token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJpYXQiOjE3Mzk1MzM1MzcsImV4cCI6MTczOTU0MDczNywidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwiaXNzIjoicG4tZGV2ZWxvcC5wbi5wYWdvcGEuaXQiLCJhdWQiOiJ3ZWJhcGkuZGV2LnBuLnBhZ29wYS5pdCIsImp0aSI6IjAxRzBDRlc4MEhHVFRXMFJINTRXUUQ2RjZTIiwib3JnYW5pemF0aW9uIjp7ImlkIjoiMDI2ZThjNzItNzk0NC00ZGNkLTg2NjgtZjU5NjQ0N2ZlYzZkIiwicm9sZSI6ImFkbWluIiwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In0sInNvdXJjZSI6eyJjaGFubmVsIjoiVFBQIiwiZGV0YWlscyI6IjBlM2JlZTI5LTg3NTMtNDQ3Yy1iMGRhLTFmNzk2NTU1OGVjMi0xNzA2ODY3OTYwOTAwIiwicmV0cmlldmFsSWQiOiIwZTRjNjYyOS04NzUzLTIzNHMtYjBkYS0xZjc5Njk5OWVjMi0xNTAzODYzNzk2MDkyMCJ9fQ.c2lnbmF0dXJl";
     const result = await handleEvent({
       type: "TOKEN",
       authorizationToken: token,
