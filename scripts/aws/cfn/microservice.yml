@@ -1063,6 +1063,12 @@ Resources:
   ###               TOKEN EXCHANGE LAMBDA               ###
   ##########################################################
 
+  TokenExchangeLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-token-exchange-SecGrp
+      VpcId: !Ref VpcId
+
   # Lambda function
   TokenExchangeLambda:
     Type: AWS::Lambda::Function
@@ -1091,6 +1097,10 @@ Resources:
       Timeout: 10
       TracingConfig:
         Mode: Active
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref TokenExchangeLambdaSecurityGroup
+        SubnetIds: !Ref VpcEgressSubnetsIds
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
         - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:2"
@@ -1109,10 +1119,9 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - sts:AssumeRole
-      # ManagedPolicyArns:
-        #- arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
-        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
       Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
 
   # Lambda function IAM policy
   TokenExchangeLambdaPolicy:
