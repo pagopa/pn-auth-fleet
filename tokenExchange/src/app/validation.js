@@ -1,5 +1,4 @@
 const jsonwebtoken = require("jsonwebtoken");
-
 const ValidationException = require("./exception/validationException.js");
 const { getPublicKey } = require("./publicKeyGetter.js");
 const utils = require("./utils");
@@ -12,13 +11,15 @@ async function validation(authorizationToken) {
 
 async function jwtValidator(jwtToken) {
   console.debug("Start jwtValidator");
-  const decodedToken = jsonwebtoken.decode(jwtToken, { complete: true });
 
+  // Decodifica il token
+  const decodedToken = jsonwebtoken.decode(jwtToken, { complete: true });
   if (!decodedToken) {
     console.warn("decoded token is null, token is not valid");
     throw new ValidationException("Token is not valid");
   }
 
+  // Maschera i campi sensibili nel payload
   const sensitiveFields = ["email", "family_name", "fiscal_number", "name"];
   const decodedTokenMaskedPayload = utils.copyAndMaskObject(
     decodedToken.payload,
@@ -31,43 +32,50 @@ async function jwtValidator(jwtToken) {
   };
   console.debug("decoded_token", decodedTokenMasked);
 
+  // Estrae i campi necessari dal token
   const tokenPayload = decodedToken.payload;
   const { iss: issuer, aud, fiscal_number: fiscalNumber } = tokenPayload;
   const { alg, kid } = decodedToken.header;
   const role = tokenPayload.organization?.roles[0]?.role.replace(/pg-/, "");
 
+  // Controlla l'algoritmo
   if (alg !== "RS256") {
     console.warn("Invalid algorithm=%s", alg);
     throw new ValidationException("Invalid algorithm");
   }
 
+  // Controlla l'audience
   if (checkAudience(aud) === -1) {
     console.warn("Audience=%s not known", aud);
     throw new ValidationException("Invalid Audience");
   }
 
+  // Controlla l'issuer
   if (checkIssuer(issuer) === -1) {
     console.warn("Issuer=%s not known", issuer);
     throw new ValidationException("Issuer not known");
   }
 
+  // Controlla il ruolo (solo se organization è definito)
   if (tokenPayload.organization && checkRoles(role) === -1) {
     console.warn("Role=%s not allowed", role);
     throw new ValidationException("Role not allowed");
   }
 
+  // Controlla il fiscal number
   if ((await checkTaxIdCode(fiscalNumber)) === -1) {
     console.warn("TaxId=%s not allowed", fiscalNumber);
     throw new ValidationException("TaxId not allowed");
   }
 
+  // Verifica la firma del token
   console.debug("kid from header", kid);
   try {
     const keyInPemFormat = await getPublicKey(issuer, kid);
     jsonwebtoken.verify(jwtToken, keyInPemFormat);
   } catch (err) {
-    console.warn("Validation error ", err);
-    throw new ValidationException(err.message);
+    console.warn("Validation error:", err.message);
+    throw new ValidationException("Token verification failed");
   }
 
   console.debug("success!");
@@ -75,6 +83,7 @@ async function jwtValidator(jwtToken) {
   return tokenPayload;
 }
 
+// Funzioni di supporto
 function checkIssuer(iss) {
   const allowedIssuers = process.env.ALLOWED_ISSUER.split(",");
   if (allowedIssuers.length === 0) {
