@@ -26,6 +26,7 @@ async function handleEvent(event) {
       const decodedToken = await validation(encodedToken);
       console.log("decodedToken", decodedToken);
       const contextAttrs = {};
+      contextAttrs.sourceChannel = "WEB";
       contextAttrs.uid = decodedToken.uid;
       contextAttrs.cx_type = getUserType(decodedToken);
       const prefix =
