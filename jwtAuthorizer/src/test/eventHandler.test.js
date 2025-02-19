@@ -102,6 +102,7 @@ describe("test eventHandler", () => {
       cx_groups: undefined,
       cx_role: undefined,
       cx_jti: "01G2A6V0B13BHNCPEZ32S7KQ3Y",
+      sourceChannel: "WEB"
     });
   });
 
