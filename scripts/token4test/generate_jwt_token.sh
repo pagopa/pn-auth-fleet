@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-    
+
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR EXIT
 
@@ -20,12 +20,13 @@ usage() {
     -r <aws-region>                : aws region as eu-south-1
     -e <env-type>                  : one of dev / uat / svil / coll / cert / prod
     -u <user-id>                   : the id returned by SPID-HUB
-    [-c <channel>]                 : source channel (optional)
+    [-c <channel>]                 : source channel (default: "WEB")
     [-d <details>]                 : source details (optional)
     [-i <retrieval-id>]            : source retrieval id (optional)
 EOF
   exit 1
 }
+
 parse_params() {
   # default values of variables set from params
   aws_profile=""
@@ -33,7 +34,7 @@ parse_params() {
   env_type=""
   keyIdAlias="alias/pn-jwt-sign-key"
   uid=""
-  channel=""
+  channel="WEB"  # Valore di default per channel
   details=""
   retrieval_id=""
 
@@ -142,7 +143,7 @@ dot="."
 payload="{\"iat\": ${date_now},\"exp\": ${next_year_date}, \"uid\": \"${uid}\",\"iss\": \"${iss}\",\"aud\": \"${aud}\"}"
 
 # Aggiungi l'oggetto source solo se i parametri sono stati forniti
-if [ ! -z "${channel}" ] && [ ! -z "${details}" ] && [ ! -z "${retrieval_id}" ]; then
+if [ ! -z "${details}" ] && [ ! -z "${retrieval_id}" ]; then
   payload="{\"iat\": ${date_now},\"exp\": ${next_year_date}, \"uid\": \"${uid}\",\"iss\": \"${iss}\",\"aud\": \"${aud}\", \"source\": {\"channel\": \"${channel}\",\"details\": \"${details}\",\"retrievalId\": \"${retrieval_id}\"}}"
 fi
 
