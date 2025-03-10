@@ -30,7 +30,7 @@
   "dependencies": {
     "@aws-sdk/client-kms": "^3.413.0",
     "aws-xray-sdk-core": "^3.3.6",
-    "axios": "^0.25.0",
+    "axios": "^0.29.0",
     "base64url": "^3.0.1",
     "bunyan": "^1.8.15",
     "jsonwebtoken": "^9.0.0",
