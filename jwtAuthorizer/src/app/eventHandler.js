@@ -26,6 +26,7 @@ async function handleEvent(event) {
       const decodedToken = await validation(encodedToken);
       console.log("decodedToken", decodedToken);
       const contextAttrs = {};
+      contextAttrs.sourceChannel = "WEB";
       contextAttrs.uid = decodedToken.uid;
       contextAttrs.cx_type = getUserType(decodedToken);
       const prefix =
@@ -39,6 +40,10 @@ async function handleEvent(event) {
       contextAttrs.cx_groups = decodedToken.organization?.groups?.join();
       contextAttrs.cx_role = decodedToken.organization?.role.replace(/pg-/, "");
       contextAttrs.cx_jti = decodedToken.jti;
+      if (decodedToken.source) {
+        contextAttrs.sourceChannel = decodedToken.source.channel;
+        contextAttrs.sourceChannelDetails = decodedToken.source.details;
+      }
       console.log("contextAttrs ", contextAttrs);
 
       // Generate IAM Policy

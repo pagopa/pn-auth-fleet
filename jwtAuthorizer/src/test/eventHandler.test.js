@@ -1,8 +1,10 @@
 const { expect } = require("chai");
 const { mockClient } = require("aws-sdk-client-mock");
 const { KMSClient, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
+const sinon = require("sinon");
 
 const { handleEvent } = require("../app/eventHandler");
+const jsonwebtoken = require("jsonwebtoken");
 
 describe("test eventHandler", () => {
   let kmsClientMock;
@@ -36,6 +38,7 @@ describe("test eventHandler", () => {
 
   after(() => {
     kmsClientMock.reset();
+    sinon.restore();
   });
 
   it("handle event without authorizationToken", async () => {
@@ -99,6 +102,37 @@ describe("test eventHandler", () => {
       cx_groups: undefined,
       cx_role: undefined,
       cx_jti: "01G2A6V0B13BHNCPEZ32S7KQ3Y",
+      sourceChannel: "WEB"
+    });
+  });
+
+  it("handle event with no errors and source info (PA)", async () => {
+    sinon.stub(jsonwebtoken, "verify").returns(true);
+    const token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJpYXQiOjE3Mzk1MzM1MzcsImV4cCI6MTczOTU0MDczNywidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwiaXNzIjoicG4tZGV2ZWxvcC5wbi5wYWdvcGEuaXQiLCJhdWQiOiJ3ZWJhcGkuZGV2LnBuLnBhZ29wYS5pdCIsImp0aSI6IjAxRzBDRlc4MEhHVFRXMFJINTRXUUQ2RjZTIiwib3JnYW5pemF0aW9uIjp7ImlkIjoiMDI2ZThjNzItNzk0NC00ZGNkLTg2NjgtZjU5NjQ0N2ZlYzZkIiwicm9sZSI6ImFkbWluIiwiZ3JvdXBzIjpbIjYyZTk0MWQzMTNiMGZjNmVkYWQ0NTM1YSJdLCJmaXNjYWxfY29kZSI6IjAxMTk5MjUwMTU4In0sInNvdXJjZSI6eyJjaGFubmVsIjoiVFBQIiwiZGV0YWlscyI6IjBlM2JlZTI5LTg3NTMtNDQ3Yy1iMGRhLTFmNzk2NTU1OGVjMi0xNzA2ODY3OTYwOTAwIiwicmV0cmlldmFsSWQiOiIwZTRjNjYyOS04NzUzLTIzNHMtYjBkYS0xZjc5Njk5OWVjMi0xNTAzODYzNzk2MDkyMCJ9fQ.c2lnbmF0dXJl";
+    const result = await handleEvent({
+      type: "TOKEN",
+      authorizationToken: token,
+      methodArn:
+        "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/received",
+    });
+    expect(result.principalId).to.be.equal("user");
+    expect(result.policyDocument.Statement).to.be.eql([
+      {
+        Action: "execute-api:Invoke",
+        Effect: "Allow",
+        Resource:
+          "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/*",
+      },
+    ]);
+    expect(result.context).to.be.eql({
+      uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
+      cx_id: "026e8c72-7944-4dcd-8668-f596447fec6d",
+      cx_type: "PA",
+      cx_groups: "62e941d313b0fc6edad4535a",
+      cx_role: "admin",
+      cx_jti: "01G0CFW80HGTTW0RH54WQD6F6S",
+      sourceChannel: "TPP",
+      sourceChannelDetails: "0e3bee29-8753-447c-b0da-1f7965558ec2-1706867960900"
     });
   });
 });
