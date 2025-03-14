@@ -8,8 +8,10 @@ const {
   enrichDecodedToken,
   getUserType,
   makeLower,
+  addSourceChannelInfo
 } = require("./utils.js");
 const { validation } = require("./validation.js");
+const { getRetrievalPayload } = require("./emdIntegrationClient.js");
 
 async function handleEvent(event) {
   event.headers = makeLower(event.headers);
@@ -20,9 +22,11 @@ async function handleEvent(event) {
       console.info("Origin successful checked");
       // retrieve token
       let encodedToken;
+      let source;
       try {
         const requestBody = JSON.parse(event?.body);
         encodedToken = requestBody?.authorizationToken;
+        source = requestBody?.source;
       } catch (err) {
         auditLog(
           `Error generating token ${err.message}`,
@@ -35,7 +39,17 @@ async function handleEvent(event) {
       if (encodedToken) {
         try {
           const decodedToken = await validation(encodedToken);
-          const enrichedToken = enrichDecodedToken(decodedToken);
+          let enrichedToken = enrichDecodedToken(decodedToken);
+          if(source) {
+            console.info("Add source channel info")
+            let tppId;
+            if (source.type === 'TPP') {
+              const retrievalPayload = await getRetrievalPayload(source.id);
+              console.info("Retrieval Payload: ", retrievalPayload)
+              tppId = retrievalPayload.tppId;
+            } 
+            enrichedToken = addSourceChannelInfo(enrichedToken, source, tppId);
+          }
           const sessionToken = await generateToken(enrichedToken);
           const uid = enrichedToken.uid;
           const cx_id = enrichedToken.organization

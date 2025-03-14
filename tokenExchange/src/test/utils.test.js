@@ -8,6 +8,7 @@ const {
   checkOrigin,
   makeLower,
   enrichDecodedToken,
+  addSourceChannelInfo,
   getUserType,
 } = require("../app/utils.js");
 
@@ -159,5 +160,151 @@ describe("utils tests", () => {
     await expect(
       getParameterFromStore("/fake-path/fake-param")
     ).to.be.rejectedWith(Error, "Error in get parameter");
+  });
+
+  it("add source channel info TPP - ok", async () => {
+    const token = {
+      email: "info@agid.gov.it",
+      family_name: "Rossi",
+      fiscal_number: "GDNNWA12H81Y874F",
+      mobile_phone: "333333334",
+      name: "Mario",
+      from_aa: false,
+      uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
+      level: "L2",
+      iat: 1649686749,
+      exp: 1649690349,
+      aud: "portale-pf-develop.fe.dev.pn.pagopa.it",
+      iss: "https://spid-hub-test.dev.pn.pagopa.it",
+      jti: "01G0CFW80HGTTW0RH54WQD6F6S",
+      organization: {
+        id: "026e8c72-7944-4dcd-8668-f596447fec6d",
+        roles: [
+          {
+            partyRole: "MANAGER",
+            role: "admin",
+          },
+        ],
+        groups: ["62e941d313b0fc6edad4535a"],
+        fiscal_code: "01199250158",
+      }
+    };
+
+    const expectedToken = {
+      email: "info@agid.gov.it",
+      family_name: "Rossi",
+      fiscal_number: "GDNNWA12H81Y874F",
+      mobile_phone: "333333334",
+      name: "Mario",
+      from_aa: false,
+      uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
+      level: "L2",
+      iat: 1649686749,
+      exp: 1649690349,
+      aud: "portale-pf-develop.fe.dev.pn.pagopa.it",
+      iss: "https://spid-hub-test.dev.pn.pagopa.it",
+      jti: "01G0CFW80HGTTW0RH54WQD6F6S",
+      organization: {
+        id: "026e8c72-7944-4dcd-8668-f596447fec6d",
+        roles: [
+          {
+            partyRole: "MANAGER",
+            role: "admin",
+          },
+        ],
+        groups: ["62e941d313b0fc6edad4535a"],
+        fiscal_code: "01199250158",
+      },
+      source: {
+        channel: "TPP",
+        details: "tppIdTest",
+        retrievalId: "retrievalId",
+      }
+    };
+    const source = {
+      type: "TPP",
+      id: "retrievalId"
+    }
+    let tppId = "tppIdTest"
+    const tokenResult = addSourceChannelInfo(token, source, tppId);
+    expect(tokenResult).to.deep.eq(expectedToken);
+  });
+
+  it("add source channel info QR - ok", async () => {
+    const token = {
+      email: "info@agid.gov.it",
+      family_name: "Rossi",
+      fiscal_number: "GDNNWA12H81Y874F",
+      mobile_phone: "333333334",
+      name: "Mario",
+      from_aa: false,
+      uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
+      level: "L2",
+      iat: 1649686749,
+      exp: 1649690349,
+      aud: "portale-pf-develop.fe.dev.pn.pagopa.it",
+      iss: "https://spid-hub-test.dev.pn.pagopa.it",
+      jti: "01G0CFW80HGTTW0RH54WQD6F6S",
+      organization: {
+        id: "026e8c72-7944-4dcd-8668-f596447fec6d",
+        roles: [
+          {
+            partyRole: "MANAGER",
+            role: "admin",
+          },
+        ],
+        groups: ["62e941d313b0fc6edad4535a"],
+        fiscal_code: "01199250158",
+      }
+    };
+
+    const expectedToken = {
+      email: "info@agid.gov.it",
+      family_name: "Rossi",
+      fiscal_number: "GDNNWA12H81Y874F",
+      mobile_phone: "333333334",
+      name: "Mario",
+      from_aa: false,
+      uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
+      level: "L2",
+      iat: 1649686749,
+      exp: 1649690349,
+      aud: "portale-pf-develop.fe.dev.pn.pagopa.it",
+      iss: "https://spid-hub-test.dev.pn.pagopa.it",
+      jti: "01G0CFW80HGTTW0RH54WQD6F6S",
+      organization: {
+        id: "026e8c72-7944-4dcd-8668-f596447fec6d",
+        roles: [
+          {
+            partyRole: "MANAGER",
+            role: "admin",
+          },
+        ],
+        groups: ["62e941d313b0fc6edad4535a"],
+        fiscal_code: "01199250158",
+      },
+      source: {
+        channel: "WEB",
+        details: "QR_CODE"
+      }
+    };
+
+    const source = {
+      type: "QR",
+      id: "aarQrCodeValue"
+    }
+    let tppId;
+    const tokenResult = addSourceChannelInfo(token, source, tppId);
+    expect(tokenResult).to.deep.eq(expectedToken);
+  });
+
+  it("add source channel info invalid - KO", async () => {
+    const token = {}
+    const source = {
+      type: "INVALID"
+    }
+    let tppId;
+
+    expect(() => addSourceChannelInfo(token, source, tppId)).to.throw(Error, "Invalid source type");
   });
 });

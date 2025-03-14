@@ -1,4 +1,5 @@
 const axios = require("axios");
+const ValidationException = require("./exception/validationException.js");
 
 function copyAndMaskObject(originalObject, sensitiveFields) {
   // Copia l'oggetto originale
@@ -77,6 +78,31 @@ function enrichDecodedToken(decodedToken) {
   return enrichedToken;
 }
 
+function addSourceChannelInfo(decodedToken, source, tppId) {
+  const tokenWithSourceInfo = { ...decodedToken };
+
+  switch (source.type) {
+    case 'TPP':
+      tokenWithSourceInfo.source = {
+        channel: "TPP",
+        details: tppId,
+        retrievalId: source.id
+      };
+      break;
+    case 'QR':
+      tokenWithSourceInfo.source = {
+        channel: "WEB",
+        details: "QR_CODE"
+      };
+      break;
+    default:
+      console.error("Invalid source type:", source.type);
+      throw new ValidationException("Invalid source type");
+  }
+
+  return tokenWithSourceInfo;
+}
+
 // function to retry async function with a delay
 async function retryWithDelay(fn, delay, retries) {
   try {
@@ -122,6 +148,7 @@ module.exports = {
   checkOrigin,
   copyAndMaskObject,
   enrichDecodedToken,
+  addSourceChannelInfo,
   getParameterFromStore,
   getUserType,
   makeLower,
