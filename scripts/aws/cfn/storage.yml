@@ -32,6 +32,10 @@ Parameters:
     Type: String
     Description: 'Topic alarm'
 
+  CdcKinesisSourceStreamArn:
+    Type: String
+    Description: 'Where to send CDC'
+
 Resources:
 
   ApiKeyAuthorizerV2LambdaLogGroup:
@@ -211,6 +215,10 @@ Resources:
         Enabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
+      KinesisStreamSpecification:
+        StreamArn: !Ref CdcKinesisSourceStreamArn
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
 
   AuthJwtAttributesTable:
     Type: AWS::DynamoDB::Table
