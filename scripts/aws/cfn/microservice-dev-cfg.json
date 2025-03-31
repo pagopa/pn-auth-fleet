@@ -13,6 +13,7 @@
     "B2BAuthorizerJWTMaxAgeInSeconds": "31536000",
     "JwksDownloaderContentLimitBytes": "1038336",
     "B2BAuthorizerLambdaTimeout": "25",
+    "B2BAuthorizerLambdaMemorySize": "512",
     "JwksCacheForceRefreshLambdaTimeout": "15" ,
     "PgCustomAttributeResolverCacheMaxUsageEpochSec":"300",
     "PgCustomAttributeResolverEnableCache":"true",
