@@ -7,6 +7,7 @@ function generateOkResponse(sessionToken, decodedToken, allowedOrigin) {
     statusCode: 200,
     headers: {
       "Access-Control-Allow-Origin": allowedOrigin,
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
     },
     body: JSON.stringify(responseBody),
     isBase64Encoded: false,
@@ -41,6 +42,7 @@ function generateKoResponse(err, allowedOrigin) {
     statusCode: statusCode,
     headers: {
       "Access-Control-Allow-Origin": allowedOrigin,
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
     },
     body: JSON.stringify(responseBody),
     isBase64Encoded: false,
