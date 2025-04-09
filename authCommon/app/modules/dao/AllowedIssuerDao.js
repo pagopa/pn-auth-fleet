@@ -165,7 +165,7 @@ async function uploadJWKS(jwksBodyBinary, iss, cfg, modificationTimeEpochMs){
 function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationTimeEpochMs, jwksS3Url){
     const sha256 = computeSha256(jwksBinaryBody)
     const jwksCacheExpireSlot = Math.floor( modificationTimeEpochMs / 1000) + cfg.JWKSCacheRenewSec
-    const cacheMaxUsageEpochSec = computeCacheMaxUsageEpochSec(modificationTimeEpochMs, cfg.JWKSCacheRenewSec)
+    const cacheMaxUsageEpochSec = computeCacheMaxUsageEpochSec(modificationTimeEpochMs, cfg.JWKSCacheMaxDurationSec)
     // convert jwksCacheExpireSlot in YYYY-MM-DDTHH:mmZ
     const jwksCacheExpireSlotWithMinutesPrecision = new Date(jwksCacheExpireSlot * 1000).toISOString().substring(0,16)+'Z'
     const jwksCacheOriginalExpireEpochSeconds = jwksCacheExpireSlot
