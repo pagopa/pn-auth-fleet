@@ -476,6 +476,11 @@ Parameters:
       - true
       - false
 
+  LogRetention:
+    Type: Number
+    Default: 14
+    Description: "Retention period in days for logs"
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -1076,6 +1081,7 @@ Resources:
       FunctionName: !Ref TokenExchangeLambdaName
       Runtime: nodejs18.x
       Handler: "index.handler"
+      MemorySize: 256
       Code:
         S3Bucket: !Ref LambdasBucketName
         S3Key: !Sub "${BucketBasePath}/tokenExchange.zip"
@@ -1102,8 +1108,7 @@ Resources:
           - !Ref TokenExchangeLambdaSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
       Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
-        - !Sub "arn:aws:lambda:${AWS::Region}:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:2"
+        - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:16"
 
   # Lambda function role
   TokenExchangeLambdaRole:
@@ -1482,7 +1487,7 @@ Resources:
   TokenExchangeApiLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      RetentionInDays: 14
+      RetentionInDays: !Ref LogRetention
 
   # Expose API to custom domain
   APIMapping:
