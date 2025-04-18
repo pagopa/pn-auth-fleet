@@ -45,7 +45,7 @@ async function innerGetJwks(issuer) {
     const response = await axios.get(jwksendpoint, { timeout: 2000 });
     return response.data;
   } catch (err) {
-    console.error("Error in get key ", err);
+    console.warn("Error in get key ", err);
     throw new Error("Error in get pub key");
   }
 }
