@@ -131,7 +131,7 @@ async function innerGetParameterFromStore(parameterName) {
     );
     return response.data.Parameter.Value;
   } catch (err) {
-    console.error("Error in get parameter ", err);
+    console.warn("Error in get parameter ", err);
     throw new Error("Error in get parameter");
   }
 }

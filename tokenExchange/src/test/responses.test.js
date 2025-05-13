@@ -18,6 +18,8 @@ const okResponse = {
   statusCode: 200,
   headers: {
     "Access-Control-Allow-Origin": origin,
+    "Strict-Transport-Security":
+      "max-age=31536000; includeSubDomains; preload",
   },
   body: JSON.stringify({ ...decodedToken, sessionToken }),
   isBase64Encoded: false,
@@ -32,6 +34,8 @@ const makeKoResponse = (message, statusCode) => ({
   }),
   headers: {
     "Access-Control-Allow-Origin": origin,
+    "Strict-Transport-Security":
+      "max-age=31536000; includeSubDomains; preload",
   },
   isBase64Encoded: false,
 });
