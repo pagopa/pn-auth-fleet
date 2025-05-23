@@ -1108,7 +1108,7 @@ Resources:
           - !Ref TokenExchangeLambdaSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
       Layers:
-        - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:16"
+        - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
 
   # Lambda function role
   TokenExchangeLambdaRole:
