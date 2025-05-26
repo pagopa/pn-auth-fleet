@@ -495,7 +495,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref ApiKeyAuthorizerV2LambdaName
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.handler"
       MemorySize: 256
       Timeout: 10
@@ -574,7 +574,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref IoAuthorizerLambdaName
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
@@ -666,7 +666,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref JwtAuthorizerLambdaName
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
@@ -745,7 +745,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref B2BAuthorizerLambdaName
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
@@ -881,7 +881,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref JWKSCacheRefreshLambdaName
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
@@ -988,7 +988,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref BackofficeAuthorizerLambdaName
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
@@ -1079,7 +1079,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref TokenExchangeLambdaName
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.handler"
       MemorySize: 256
       Code:
@@ -1171,7 +1171,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref JwksCacheForceRefreshLambdaName
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
@@ -1377,7 +1377,7 @@ Resources:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda.yaml"
       Parameters:
         FunctionName: !Ref PnRaddBaseliningLambdaName
-        Runtime: nodejs18.x
+        Runtime: nodejs22.x
         Handler: "index.handler"
         MemorySize: 256
         Timeout: 10
@@ -1837,7 +1837,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Ref JwtIssuersManagerLambdaName
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
