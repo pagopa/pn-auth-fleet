@@ -510,8 +510,6 @@ Resources:
       Role: !GetAtt ApiKeyAuthorizerV2LambdaRole.Arn
       TracingConfig:
         Mode: Active
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
   # Lambda function role
   ApiKeyAuthorizerV2LambdaRole:
@@ -593,8 +591,6 @@ Resources:
           - !Ref AWS::NoValue
       TracingConfig:
         Mode: Active
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
       Tags:
         - Key: "pn-eni-related"
           Value: "true"
@@ -677,8 +673,6 @@ Resources:
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
   # Lambda function role
   JwtAuthorizerLambdaRole:
@@ -779,8 +773,6 @@ Resources:
         SecurityGroupIds: 
           - !Ref B2BAuthorizerSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
   # Lambda function role
   B2BAuthorizerLambdaRole:
@@ -891,8 +883,6 @@ Resources:
       TracingConfig:
         Mode: Active
       MemorySize: !Ref JWKSCacheRefreshMemorySize
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
       Environment:
         Variables:
           JWKS_REFRESH_INTERVAL_MINUTES: !Ref JWKSRefreshIntervalMinutes
@@ -1001,8 +991,6 @@ Resources:
       Role: !GetAtt BackofficeAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
   # Lambda function role
   BackofficeAuthorizerLambdaRole:
@@ -1198,8 +1186,6 @@ Resources:
       Timeout: !Ref JwksCacheForceRefreshLambdaTimeout
       TracingConfig:
         Mode: Active
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
   # Lambda function role
   JwksCacheForceRefreshLambdaRole:
@@ -1855,8 +1841,6 @@ Resources:
       Timeout: !Ref JWTIssuersManagerLambdaTimeout
       TracingConfig:
         Mode: Active
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:339249233099:layer:LambdaInsightsExtension:13"
 
   # Lambda function role
   JWTIssuersManagerLambdaRole:
