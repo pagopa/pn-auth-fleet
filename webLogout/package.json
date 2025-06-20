@@ -1,0 +1,20 @@
+{
+  "name": "weblogout",
+  "version": "1.0.0",
+  "description": "Lambda function that handles user logout by invalidating jwt token.",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run prune && npm run zip",
+    "prune": "(cd ../../authCommon && npm prune --production) && npm prune --production",
+    "zip": "rm -f ./function.zip && zip -r ./function.zip .  -x './src/test/*' -x '*.gitignore'",
+    "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bunyan": "^1.8.15",
+    "jsonwebtoken": "^9.0.2",
+    "pn-auth-common": "file:../authCommon"
+  }
+}
