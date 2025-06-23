@@ -11,7 +11,7 @@ const commonRepsonse = {
   isBase64Encoded: false,
 };
 
-const handleEvent = async (event, context) => {
+const handleEvent = async (event) => {
   const eventOrigin = event?.headers?.origin;
 
   auditLog("", LOG_AUT_TYPE, eventOrigin).info("info");
@@ -23,7 +23,7 @@ const handleEvent = async (event, context) => {
     }
 
     const { jti, uid } = decodedToken.jti;
-    const { cx_type, cx_id, cx_role } = context || {}; // TODO check if these values are available in the context
+    const { cx_type, cx_id, cx_role } = {}; // TODO 
 
     await insertJti(jti);
 
