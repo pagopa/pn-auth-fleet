@@ -8,7 +8,7 @@
     "prune": "(cd ../../authCommon && npm prune --production) && npm prune --production",
     "zip": "rm -f ./function.zip && zip -r ./function.zip .  -x './src/test/*' -x '*.gitignore' -x 'coverage/*' -x '.nyc_output/*'",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
-    "test-build": "npm run test && npm run coverage && npm run build",
+    "test-build": "npm run test && npm run coverage && npm run sonar && npm run build",
     "coverage": "nyc report --reporter=lcov",
     "test": "nyc --reporter=html --reporter=text jest --runInBand"
   },
