@@ -2,6 +2,7 @@ const jsonwebtoken = require("jsonwebtoken");
 const { insertJti } = require("./redis");
 const { auditLog } = require("../../../tokenExchange/src/app/log");
 const { LOG_AUT_TYPE } = require("./constants");
+const { getCxType, getCxId, getCxRole } = require("./utils");
 
 const commonRepsonse = {
   headers: {
@@ -23,7 +24,9 @@ const handleEvent = async (event) => {
     }
 
     const { jti, uid } = decodedToken.jti;
-    const { cx_type, cx_id, cx_role } = {}; // TODO 
+    const cx_type = getCxType(decodedToken);
+    const cx_id = getCxId(decodedToken);
+    const cx_role = getCxRole(decodedToken);
 
     await insertJti(jti);
 

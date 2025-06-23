@@ -1,4 +1,4 @@
-const bunyan = ("bunyan");
+const bunyan = require("bunyan");
 
 function auditLog(
   message = "",
