@@ -1,8 +1,8 @@
 const jsonwebtoken = require("jsonwebtoken");
 const { insertJti } = require("./redis");
-const { auditLog } = require("../../../tokenExchange/src/app/log");
 const { LOG_AUT_TYPE } = require("./constants");
 const { getCxType, getCxId, getCxRole } = require("./utils");
+const { auditLog } = require("./log");
 
 const commonRepsonse = {
   headers: {

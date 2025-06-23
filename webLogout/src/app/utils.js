@@ -1,11 +1,15 @@
 const getCxType = async (token) => {
-  if (token.organization) {
-    return "PA";
+  const { organization } = token;
+  if (!organization) {
+    return "PF";
   }
-  if (token.organization?.roles[0]?.role.startsWith("pg-")) {
+
+  const { roles = [] } = organization;
+  if (roles && roles.length > 0 && roles[0].role.startsWith("pg-")) {
     return "PG";
   }
-  return "PF";
+
+  return "PA";
 };
 
 const getCxId = async (token) => {
