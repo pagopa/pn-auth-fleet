@@ -1,6 +1,6 @@
 const options = {
   "sonar.organization": "pagopa",
-  "sonar.projectKey": "pagopa_pn-auth-fleet_<TODO>", // TODO  replace with your project key
+  "sonar.projectKey": "pagopa_pn-auth-fleet_webLogout", 
 };
 
 if (process.env.PR_NUM) {
