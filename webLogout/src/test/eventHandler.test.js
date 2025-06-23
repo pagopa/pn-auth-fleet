@@ -1,14 +1,14 @@
 const jsonwebtoken = require("jsonwebtoken");
-const { handleEvent } = require("./path-to-your-module"); // modifica con il path corretto
-const { insertJti } = require("./redis");
+const { handleEvent } = require("../app/eventHandler"); // modifica con il path corretto
+const { insertJti } = require("../app/redis");
 const { auditLog } = require("../app/log");
 
 // Mocks delle funzioni esterne
-jest.mock("./redis", () => ({
+jest.mock("../app/redis", () => ({
   insertJti: jest.fn(),
 }));
 
-jest.mock("../../../tokenExchange/src/app/log", () => ({
+jest.mock("../app/log", () => ({
   auditLog: jest.fn(() => ({
     info: jest.fn(),
     warn: jest.fn(),
@@ -16,7 +16,7 @@ jest.mock("../../../tokenExchange/src/app/log", () => ({
 }));
 
 // Mocks delle utilità
-jest.mock("./utils", () => ({
+jest.mock("../app/utils", () => ({
   getCxType: jest.fn(() => "type1"),
   getCxId: jest.fn(() => "id1"),
   getCxRole: jest.fn(() => "role1"),
