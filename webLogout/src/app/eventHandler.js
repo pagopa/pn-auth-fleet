@@ -23,7 +23,7 @@ const handleEvent = async (event, context) => {
     }
 
     const { jti, uid } = decodedToken.jti;
-    const { cx_type, cx_id, cx_role } = context; // TODO check if these values are available in the context
+    const { cx_type, cx_id, cx_role } = context || {}; // TODO check if these values are available in the context
 
     await insertJti(jti);
 
