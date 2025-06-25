@@ -1,5 +1,6 @@
 const { generateIAMPolicy } = require("./iamPolicyGen.js");
 const { validation } = require("./validation.js");
+const Redis = require("./redis.js");
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -25,6 +26,11 @@ async function handleEvent(event) {
     try {
       const decodedToken = await validation(encodedToken);
       console.log("decodedToken", decodedToken);
+
+      if (await Redis.isJtiRevoked(decodedToken.jti)) {
+        throw new Error("Token has been revoked");
+      }
+
       const contextAttrs = {};
       contextAttrs.sourceChannel = "WEB";
       contextAttrs.uid = decodedToken.uid;
@@ -76,4 +82,4 @@ function getUserType(token) {
   }
 }
 
-module.exports = { handleEvent };
+module.exports = { handleEvent, defaultDenyAllPolicy };

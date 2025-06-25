@@ -1,13 +1,16 @@
 const { expect } = require("chai");
 const { mockClient } = require("aws-sdk-client-mock");
 const { KMSClient, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
+const redis = require("../app/redis");
+
 const sinon = require("sinon");
 
-const { handleEvent } = require("../app/eventHandler");
+const { handleEvent, defaultDenyAllPolicy } = require("../app/eventHandler");
 const jsonwebtoken = require("jsonwebtoken");
 
 describe("test eventHandler", () => {
   let kmsClientMock;
+  let isJtiRevokedStub;
 
   before(() => {
     kmsClientMock = mockClient(KMSClient);
@@ -34,6 +37,12 @@ describe("test eventHandler", () => {
         109, 198, 251, 29, 2, 3, 1, 0, 1,
       ]),
     });
+
+    isJtiRevokedStub = sinon.stub(redis, "isJtiRevoked").resolves(false);
+  });
+
+  beforeEach(() => {
+    isJtiRevokedStub.resetHistory();
   });
 
   after(() => {
@@ -48,14 +57,7 @@ describe("test eventHandler", () => {
       methodArn:
         "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/sent",
     });
-    expect(result.principalId).to.be.equal("user");
-    expect(result.policyDocument.Statement).to.be.eql([
-      {
-        Action: "execute-api:Invoke",
-        Effect: "Deny",
-        Resource: "*",
-      },
-    ]);
+    expect(result).to.be.equal(defaultDenyAllPolicy);
     expect(result.context).to.be.undefined;
   });
 
@@ -67,14 +69,7 @@ describe("test eventHandler", () => {
       methodArn:
         "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/sent",
     });
-    expect(result.principalId).to.be.equal("user");
-    expect(result.policyDocument.Statement).to.be.eql([
-      {
-        Action: "execute-api:Invoke",
-        Effect: "Deny",
-        Resource: "*",
-      },
-    ]);
+    expect(result).to.be.equal(defaultDenyAllPolicy);
     expect(result.context).to.be.undefined;
   });
 
@@ -104,6 +99,8 @@ describe("test eventHandler", () => {
       cx_jti: "01G2A6V0B13BHNCPEZ32S7KQ3Y",
       sourceChannel: "WEB"
     });
+
+    expect(isJtiRevokedStub.getCall(0).args).to.be.eqls(["01G2A6V0B13BHNCPEZ32S7KQ3Y"]);
   });
 
   it("handle event with no errors and source info (PA)", async () => {
@@ -134,5 +131,21 @@ describe("test eventHandler", () => {
       sourceChannel: "TPP",
       sourceChannelDetails: "0e3bee29-8753-447c-b0da-1f7965558ec2-1706867960900"
     });
+
+      expect(isJtiRevokedStub.getCall(0).args).to.be.eqls(["01G0CFW80HGTTW0RH54WQD6F6S"]);
+  });
+
+  it("handle event with jti revoked", async () => {
+    isJtiRevokedStub.resolves(true);
+    const result = await handleEvent({
+      type: "TOKEN",
+      authorizationToken:
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEYiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY1MTc0NzY0NiwiZXhwIjoyNjUxNzUxMjQ2LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMkE2VjBCMTNCSE5DUEVaMzJTN0tRM1kifQ.jY8_5kYQuSERHPmhWaCDoc77KtrPP5p-g7_-2j8wLFwinVX6lnHG2IQi-Gll7S6o8WYqFED2yPydTlNMvtXgARVDMmZNDCzUPeSCMnhDb0UAy2TMxq89Avrl0ydd_KLHcjCw5WvyhBwCIAprakZXSza51Nk2WiBTJ1d-1_zWNg8NDTp7-hBbK90dgnU-w4HET8zp4f1Fnwos84JMbmAeu6wJuGuCn-h1znQer1BCr_tyl_YXQxwyMBYpKQVXLEsHHbmWJzyA8mETMigHNLFw4Y0C9vpjqiEuw2gFCnuSc-4A8WzlI4TuKsfyeCb3gpLDuqiSWvV-aQuu3iJTZ-_l2Q",
+      methodArn:
+        "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/received",
+    });
+    
+    expect(result).to.be.equal(defaultDenyAllPolicy);
+    expect(isJtiRevokedStub.getCall(0).args).to.be.eqls(["01G2A6V0B13BHNCPEZ32S7KQ3Y"]);
   });
 });
