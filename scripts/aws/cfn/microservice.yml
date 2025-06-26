@@ -167,6 +167,9 @@ Parameters:
   JwtAuthorizerLambdaName:
     Type: String
 
+  WebLogoutLambdaName:
+    Type: String
+
   JWKSCacheRefreshLambdaName:
     Type: String
 
@@ -186,6 +189,10 @@ Parameters:
     Type: String
 
   TokenExchangeWafLimit:
+    Type: Number
+    Default: "600000"
+
+  WebLogoutWafLimit:
     Type: Number
     Default: "600000"
 
@@ -481,6 +488,11 @@ Parameters:
     Default: 14
     Description: "Retention period in days for logs"
 
+  RedisJwtExpHours:
+    Type: Number
+    Default: 24
+    Description: "Redis Jti expiration in hours  "
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -685,6 +697,14 @@ Resources:
           - !Ref JwtAuthorizerSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
 
+  JwtAuthorizerLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref JwtAuthorizerLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
   # Lambda function role
   JwtAuthorizerLambdaRole:
     Type: AWS::IAM::Role
@@ -729,12 +749,85 @@ Resources:
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
-  JwtAuthorizerLambdaAlarms:
+  ###               WEB LOGOUT LAMBDA               ###
+  #########################################################
+
+  WebLogoutSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-web-logout-SecGrp
+      VpcId: !Ref VpcId
+
+
+  # Lambda function
+  WebLogoutLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref WebLogoutLambdaName
+      Runtime: nodejs22.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/webLogout.zip"
+      Environment:
+        Variables:
+          REDIS_JTI_EXP_HOURS: !Ref RedisJwtExpHours
+      Role: !GetAtt WebLogoutLambdaRole.Arn
+      TracingConfig:
+        Mode: Active
+      VpcConfig:
+        SecurityGroupIds: 
+          - !Ref WebLogoutSecurityGroup
+        SubnetIds: !Ref VpcEgressSubnetsIds
+
+  # Lambda function role
+  WebLogoutLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-WebLogoutLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowKms
+                Action:
+                  - kms:GetPublicKey
+                Effect: Allow
+                Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*"
+                Condition:
+                  StringEquals:
+                    'aws:ResourceTag/KeyUsageType': 'JwtSignAndVerify'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  WebLogoutLambdaAlarms:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
       Parameters:
-        FunctionName: !Ref JwtAuthorizerLambdaName
+        FunctionName: !Ref WebLogoutLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   ###               B2B AUTHORIZER LAMBDA               ###
@@ -1823,7 +1916,7 @@ Resources:
     Type: AWS::Lambda::Permission
     DependsOn:
       - WebLogoutLambda
-      - WebLogouteRestApi
+      - WebLogoutRestApi
     Properties:
       FunctionName: !Sub "${ProjectName}-WebLogoutLambda"
       Action: lambda:InvokeFunction

@@ -18,6 +18,7 @@
     "PgCustomAttributeResolverCacheMaxUsageEpochSec":"300",
     "PgCustomAttributeResolverEnableCache":"true",
     "ConsentTypeEnum": "TOS_DEST_B2B",
+    "RedisJwtExpHours": "24",
     "PgEnableAccess": "true"
   }
 }
