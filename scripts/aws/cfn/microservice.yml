@@ -1831,7 +1831,7 @@ Resources:
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebLogoutRestApi}/*/POST/"
 
   # Session Token POST method
-  TokenExchangePostMethod:
+  WebLogoutPostMethod:
     DependsOn: WebLogoutLambda
     Type: AWS::ApiGateway::Method
     Properties:
