@@ -657,6 +657,13 @@ Resources:
   ###               JWT AUTHORIZER LAMBDA               ###
   #########################################################
 
+  JwtAuthorizerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-jwt-authorizer-SecGrp
+      VpcId: !Ref VpcId
+
+
   # Lambda function
   JwtAuthorizerLambda:
     Type: AWS::Lambda::Function
@@ -713,7 +720,8 @@ Resources:
                 Condition:
                   StringEquals:
                     'aws:ResourceTag/KeyUsageType': 'JwtSignAndVerify'
-      #ManagedPolicyArns:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
