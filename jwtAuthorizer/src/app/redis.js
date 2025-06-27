@@ -8,7 +8,10 @@ const REDIS_JTI_PREFIX = "pn-session:";
  */
 const isJtiRevoked = async (jti) => {
   try {
-    await RedisHandler.connectRedis();
+    const client = RedisHandler.getClient();
+    if (!client || !client.isReady) {
+      await RedisHandler.connectRedis();
+    }
     const isRevoked = await RedisHandler.get(`${REDIS_JTI_PREFIX}${jti}`);
     return !!isRevoked;
   } catch (error) {

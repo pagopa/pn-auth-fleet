@@ -9,7 +9,7 @@ describe("isJtiRevoked", () => {
 
   beforeEach(() => {
     sinon.stub(RedisHandler, "connectRedis").resolves();
-    sinon.stub(RedisHandler, "get").resolves(null); // valore di default
+    sinon.stub(RedisHandler, "get").resolves(null);
   });
 
   afterEach(() => {
@@ -19,8 +19,8 @@ describe("isJtiRevoked", () => {
   it("should call connectRedis and get with the correct key", async () => {
     await isJtiRevoked(jti);
 
-    sinon.assert.calledOnce(RedisHandler.connectRedis); // <-- verifica che sia stato chiamato
-    sinon.assert.calledWith(RedisHandler.get, expectedKey); // <-- verifica la chiave usata
+    sinon.assert.calledOnce(RedisHandler.connectRedis); 
+    sinon.assert.calledWith(RedisHandler.get, expectedKey);
   });
 
   it("should return true if the JTI is revoked", async () => {
@@ -43,4 +43,15 @@ describe("isJtiRevoked", () => {
     const result = await isJtiRevoked(jti);
     expect(result).to.be.false;
   });
+  
+  it("should not call connectRedis if the client is already connected", async () => {
+    const mockClient = {
+      isReady: true,
+    };
+    sinon.stub(RedisHandler, "getClient").returns(mockClient);
+
+    const result = await isJtiRevoked(jti);
+    expect(result).to.be.false;
+    sinon.assert.notCalled(RedisHandler.connectRedis);
+  })
 });

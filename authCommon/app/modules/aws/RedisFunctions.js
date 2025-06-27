@@ -62,6 +62,10 @@ async function get(key) {
     return await redisClient.get(key, value, options);
 }
 
+async function getClient() {
+    return redisClient;
+}
+
 module.exports = {
     connectRedis,
     lockFunction,
@@ -70,4 +74,5 @@ module.exports = {
     extendLockFunction,
     get,
     set,
+    getClient,
 };
