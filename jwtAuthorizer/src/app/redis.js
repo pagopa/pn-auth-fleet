@@ -1,4 +1,4 @@
-const { RedisClient } = require("pn-auth-common");
+const { RedisHandler } = require("pn-auth-common");
 
 const REDIS_JTI_PREFIX = "pn-session:";
 
@@ -8,11 +8,8 @@ const REDIS_JTI_PREFIX = "pn-session:";
  */
 const isJtiRevoked = async (jti) => {
   try {
-    const client = await RedisClient.getRedisClient();
-    if (!client.isReady) {
-      await client.connect();
-    }
-    const isRevoked = await client.get(`${REDIS_JTI_PREFIX}${jti}`);
+    await RedisHandler.connectRedis();
+    const isRevoked = await RedisHandler.get(`${REDIS_JTI_PREFIX}${jti}`);
     return !!isRevoked;
   } catch (error) {
     console.error("Error checking JTI revocation:", error);

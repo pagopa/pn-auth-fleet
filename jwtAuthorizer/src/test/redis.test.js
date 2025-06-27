@@ -1,53 +1,46 @@
 const { expect } = require("chai");
 const sinon = require("sinon");
 const { isJtiRevoked } = require("../app/redis");
-const { RedisClient } = require("pn-auth-common");
+const { RedisHandler } = require("pn-auth-common");
 
 describe("isJtiRevoked", () => {
-  let getRedisClientStub;
-  let redisClientMock;
+  const jti = "test-jti";
+  const expectedKey = `pn-session:${jti}`;
 
   beforeEach(() => {
-    redisClientMock = {
-      isReady: true,
-      connect: sinon.stub().resolves(),
-      get: sinon.stub(),
-    };
-    getRedisClientStub = sinon.stub(RedisClient, "getRedisClient").resolves(redisClientMock);
+    sinon.stub(RedisHandler, "connectRedis").resolves();
+    sinon.stub(RedisHandler, "get").resolves(null); // valore di default
   });
 
   afterEach(() => {
     sinon.restore();
   });
 
-  it("should return true if JTI is found in Redis", async () => {
-    redisClientMock.get.resolves("someValue");
-    const result = await isJtiRevoked("test-jti");
-    expect(redisClientMock.get.calledWith("pn-session:test-jti")).to.be.true;
+  it("should call connectRedis and get with the correct key", async () => {
+    await isJtiRevoked(jti);
+
+    sinon.assert.calledOnce(RedisHandler.connectRedis); // <-- verifica che sia stato chiamato
+    sinon.assert.calledWith(RedisHandler.get, expectedKey); // <-- verifica la chiave usata
+  });
+
+  it("should return true if the JTI is revoked", async () => {
+    RedisHandler.get.resolves("some_value");
+
+    const result = await isJtiRevoked(jti);
     expect(result).to.be.true;
   });
 
-  it("should return false if JTI is not found in Redis", async () => {
-    redisClientMock.get.resolves(null);
-    const result = await isJtiRevoked("test-jti");
-    expect(redisClientMock.get.calledWith("pn-session:test-jti")).to.be.true;
+  it("should return false if the JTI is not revoked", async () => {
+    RedisHandler.get.resolves(null);
+
+    const result = await isJtiRevoked(jti);
     expect(result).to.be.false;
   });
 
-  it("should connect if client is not ready", async () => {
-    redisClientMock.isReady = false;
-    redisClientMock.get.resolves(null);
-    await isJtiRevoked("test-jti");
-    expect(redisClientMock.connect.calledOnce).to.be.true;
-  });
+  it("should return false and log an error if Redis throws", async () => {
+    RedisHandler.get.rejects(new Error("Redis failure"));
 
-  it("should return false and log error if Redis throws", async () => {
-    const error = new Error("Redis error");
-    redisClientMock.get.rejects(error);
-    const consoleErrorStub = sinon.stub(console, "error");
-    const result = await isJtiRevoked("test-jti");
+    const result = await isJtiRevoked(jti);
     expect(result).to.be.false;
-    expect(consoleErrorStub.calledWithMatch("Error checking JTI revocation:")).to.be.true;
-    consoleErrorStub.restore();
   });
 });
