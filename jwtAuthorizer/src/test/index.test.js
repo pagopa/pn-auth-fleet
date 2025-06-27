@@ -3,13 +3,15 @@ const lambdaTester = require("lambda-tester");
 const fs = require("fs");
 const { mockClient } = require("aws-sdk-client-mock");
 const { KMSClient, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
-
+const redis = require("../app/redis");
+const sinon = require("sinon");
 const lambda = require("../../index");
 
 describe("index tests", function () {
   const eventFile = fs.readFileSync("event.json");
   const events = JSON.parse(eventFile);
   let kmsClientMock;
+  let isJtiRevokedStub;
 
   before(() => {
     kmsClientMock = mockClient(KMSClient);
@@ -36,6 +38,8 @@ describe("index tests", function () {
         109, 198, 251, 29, 2, 3, 1, 0, 1,
       ]),
     });
+
+    isJtiRevokedStub = sinon.stub(redis, "isJtiRevoked").resolves(false);
   });
 
   after(() => {

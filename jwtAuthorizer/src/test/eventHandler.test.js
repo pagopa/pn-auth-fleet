@@ -2,7 +2,6 @@ const { expect } = require("chai");
 const { mockClient } = require("aws-sdk-client-mock");
 const { KMSClient, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
 const redis = require("../app/redis");
-
 const sinon = require("sinon");
 
 const { handleEvent, defaultDenyAllPolicy } = require("../app/eventHandler");

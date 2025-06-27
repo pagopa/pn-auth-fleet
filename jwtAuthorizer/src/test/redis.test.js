@@ -9,6 +9,7 @@ describe("isJtiRevoked", () => {
 
   beforeEach(() => {
     sinon.stub(RedisHandler, "connectRedis").resolves();
+    sinon.stub(RedisHandler, "disconnectRedis").resolves();
     sinon.stub(RedisHandler, "get").resolves(null);
   });
 
@@ -21,6 +22,7 @@ describe("isJtiRevoked", () => {
 
     sinon.assert.calledOnce(RedisHandler.connectRedis); 
     sinon.assert.calledWith(RedisHandler.get, expectedKey);
+    sinon.assert.calledOnce(RedisHandler.disconnectRedis);
   });
 
   it("should return true if the JTI is revoked", async () => {
@@ -43,15 +45,4 @@ describe("isJtiRevoked", () => {
     const result = await isJtiRevoked(jti);
     expect(result).to.be.false;
   });
-  
-  it("should not call connectRedis if the client is already connected", async () => {
-    const mockClient = {
-      isReady: true,
-    };
-    sinon.stub(RedisHandler, "getClient").returns(mockClient);
-
-    const result = await isJtiRevoked(jti);
-    expect(result).to.be.false;
-    sinon.assert.notCalled(RedisHandler.connectRedis);
-  })
 });
