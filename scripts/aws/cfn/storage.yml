@@ -334,7 +334,7 @@ Outputs:
   JwtAuthorizerLambdaName:
     Value: !Sub '${ProjectName}-jwtAuthorizerLambda'
 
-  WeblogoutLambdaName:
+  WebLogoutLambdaName:
     Value: !Sub '${ProjectName}-webLogoutLambda'
 
   B2BAuthorizerLambdaName:
