@@ -721,13 +721,6 @@ Resources:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
-          - Sid: RedisAuth
-            Action:
-              - elasticache:Connect
-            Effect: Allow
-            Resource:
-              - !Ref RedisServerlessArn
-              - !Ref ElasticCacheAuthFleetSessionsUserArn
           - Effect: Allow
             Principal:
               Service:
@@ -759,6 +752,13 @@ Resources:
                 Condition:
                   StringEquals:
                     'aws:ResourceTag/KeyUsageType': 'JwtSignAndVerify'
+              - Sid: RedisAuth
+                Action:
+                  - elasticache:Connect
+                Effect: Allow
+                Resource:
+                  - !Ref RedisServerlessArn
+                  - !Ref ElasticCacheAuthFleetSessionsUserArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
@@ -803,14 +803,6 @@ Resources:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
-          - Sid: RedisAuth
-            Action:
-              - elasticache:Connect
-            Effect: Allow
-            Resource:
-              - !Ref RedisServerlessArn
-              - !Ref ElasticCacheAuthFleetSessionsUserArn
-
           - Effect: Allow
             Principal:
               Service:
@@ -834,6 +826,13 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: RedisAuth
+                Action:
+                  - elasticache:Connect
+                Effect: Allow
+                Resource:
+                  - !Ref RedisServerlessArn
+                  - !Ref ElasticCacheAuthFleetSessionsUserArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
 
