@@ -787,6 +787,9 @@ Resources:
       Environment:
         Variables:
           REDIS_JTI_EXP_HOURS: !Ref RedisJwtExpHours
+          REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref ElasticacheUserId1
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
       Role: !GetAtt WebLogoutLambdaRole.Arn
       TracingConfig:
         Mode: Active
