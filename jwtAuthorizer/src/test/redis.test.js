@@ -1,11 +1,11 @@
 const { expect } = require("chai");
 const sinon = require("sinon");
 const { isJtiRevoked } = require("../app/redis");
-const { RedisHandler } = require("pn-auth-common");
+const { RedisHandler, COMMON_CONSTANTS } = require("pn-auth-common");
 
 describe("isJtiRevoked", () => {
   const jti = "test-jti";
-  const expectedKey = `pn-session:${jti}`;
+  const expectedKey = `${COMMON_CONSTANTS.REDIS_PN_SESSION_PREFIX}${jti}`;
 
   beforeEach(() => {
     sinon.stub(RedisHandler, "connectRedis").resolves();
