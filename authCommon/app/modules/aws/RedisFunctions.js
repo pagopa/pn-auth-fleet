@@ -9,7 +9,16 @@ let redisClient;
 async function connectRedis() {
     console.log("Connecting to Redis")
     const c = await getRedisClient()
-    c.on('error', err => console.error('Redis Client Error', err));
+
+    c.on('connect', () => console.log('🟡 ON Connecting to Redis...'));
+    c.on('ready', () => console.log('🟢 ON Redis is ready!'));
+    c.on('end', () => console.log('🔴 ON Redis connection closed.'));
+    c.on('reconnecting', () => console.log('🔁 ON Reconnecting to Redis...'));
+    c.on('error', err => console.error('❌ ON Redis error:', err));
+    c.on('drain', () => console.log('💧 ON Redis command queue drained.'));
+    c.on('warn', msg => console.warn('⚠️ ON Redis warning:', msg));
+
+    console.log("Starting connect...")
     await c.connect();
     console.log("Connection OK")
     redisClient = c;
