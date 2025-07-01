@@ -793,6 +793,7 @@ Resources:
       Role: !GetAtt WebLogoutLambdaRole.Arn
       TracingConfig:
         Mode: Active
+      Timeout: 3
       VpcConfig:
         SecurityGroupIds: 
           - !Ref WebLogoutSecurityGroup
@@ -1292,7 +1293,7 @@ Resources:
           MAXIMUM_CLOCK_DRIFT_SEC: !Ref MaximumClockDriftSec
           MINIMUM_INTERVAL_BETWEEN_FORCED_REFRESH_SEC: !Ref JwksCacheMinimumIntervalBetweenTwoForcedRefreshSec
           REDIS_ENDPOINT: !Ref RedisEndpoint
-          USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
+          USER_ID_REDIS: !Ref ElasticacheUserId1
           REDIS_SERVER_NAME: !Ref RedisServerlessName
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes
