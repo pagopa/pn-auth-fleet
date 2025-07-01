@@ -703,6 +703,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds: 
           - !Ref JwtAuthorizerSecurityGroup
+          - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
 
   JwtAuthorizerLambdaAlarms:
@@ -797,6 +798,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds: 
           - !Ref WebLogoutSecurityGroup
+          - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
 
   # Lambda function role
