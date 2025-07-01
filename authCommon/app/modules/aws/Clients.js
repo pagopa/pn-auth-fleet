@@ -47,6 +47,7 @@ async function getRedisClient(forceRefresh = false){
     };
     console.log("Redis config", redisConfig);
     redisConnection.client = createClient(redisConfig);
+    console.log("Redis client OK", redisConnection.client);
     return redisConnection.client;
   }
 }
