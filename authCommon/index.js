@@ -20,5 +20,5 @@ module.exports = {
     MetricsHandler,
     S3Functions,
     COMMON_COSTANTS: {RADD_RESOLVER_NAME, ATTR_PREFIX, ISS_PREFIX},
-    prepareJWKSRenewTimeMetric
+    prepareJWKSRenewTimeMetric,
 }

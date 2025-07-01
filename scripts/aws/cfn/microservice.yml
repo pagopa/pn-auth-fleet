@@ -167,6 +167,9 @@ Parameters:
   JwtAuthorizerLambdaName:
     Type: String
 
+  WebLogoutLambdaName:
+    Type: String
+
   JWKSCacheRefreshLambdaName:
     Type: String
 
@@ -186,6 +189,10 @@ Parameters:
     Type: String
 
   TokenExchangeWafLimit:
+    Type: Number
+    Default: "600000"
+
+  WebLogoutWafLimit:
     Type: Number
     Default: "600000"
 
@@ -426,6 +433,14 @@ Parameters:
   ElasticacheUserId1:
     Type: String
     Description: 'ElastiCache user id'
+
+  ElasticCacheAuthFleetSessionsUserArn:
+    Type: String
+    Description: 'ElastiCache user id'
+
+  ElasticCacheAuthFleetSessionsUserId:
+    Type: String
+    Description: 'ElastiCache user id'
     
   ElasticacheSecurityGroup:
     Type: String
@@ -480,6 +495,11 @@ Parameters:
     Type: Number
     Default: 14
     Description: "Retention period in days for logs"
+
+  RedisJwtExpHours:
+    Type: Number
+    Default: 24
+    Description: "Redis Jti expiration in hours  "
 
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
@@ -670,9 +690,24 @@ Resources:
       Environment:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
+          REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
+      VpcConfig:
+        SecurityGroupIds: 
+          - !Ref ElasticacheSecurityGroup
+        SubnetIds: !Ref VpcEgressSubnetsIds
+
+  JwtAuthorizerLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref JwtAuthorizerLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   # Lambda function role
   JwtAuthorizerLambdaRole:
@@ -713,16 +748,92 @@ Resources:
                 Condition:
                   StringEquals:
                     'aws:ResourceTag/KeyUsageType': 'JwtSignAndVerify'
-      #ManagedPolicyArns:
+              - Sid: RedisAuth
+                Action:
+                  - elasticache:Connect
+                Effect: Allow
+                Resource:
+                  - !Ref RedisServerlessArn
+                  - !Ref ElasticCacheAuthFleetSessionsUserArn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
         # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
 
-  JwtAuthorizerLambdaAlarms:
+  ###               WEB LOGOUT LAMBDA               ###
+  #########################################################
+
+  # Lambda function
+  WebLogoutLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref WebLogoutLambdaName
+      Runtime: nodejs22.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/webLogout.zip"
+      Environment:
+        Variables:
+          REDIS_JTI_EXP_HOURS: !Ref RedisJwtExpHours
+          REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
+      Role: !GetAtt WebLogoutLambdaRole.Arn
+      TracingConfig:
+        Mode: Active
+      VpcConfig:
+        SecurityGroupIds: 
+          - !Ref ElasticacheSecurityGroup
+        SubnetIds: !Ref VpcEgressSubnetsIds
+
+  # Lambda function role
+  WebLogoutLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-WebLogoutLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: RedisAuth
+                Action:
+                  - elasticache:Connect
+                Effect: Allow
+                Resource:
+                  - !Ref RedisServerlessArn
+                  - !Ref ElasticCacheAuthFleetSessionsUserArn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  WebLogoutLambdaAlarms:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
       Parameters:
-        FunctionName: !Ref JwtAuthorizerLambdaName
+        FunctionName: !Ref WebLogoutLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   ###               B2B AUTHORIZER LAMBDA               ###
@@ -1750,6 +1861,295 @@ Resources:
         - Id: e1
           Expression: IF(m3>=10 AND (m1/m3>=0.9 OR m2/m3>=0.1), 1, 0)
           Label: !Sub "${ProjectName}-token-exchange-api-ErrorMetric-OnCall"
+
+  ###               WEB LOGOUT SERVICE                ###
+  ###########################################################
+
+  # API definition
+  WebLogoutRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub "${ProjectName}-web-logout-api"
+      FailOnWarnings: true
+      DisableExecuteApiEndpoint: true
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+  # Deployment
+  WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - WebLogoutPostMethod
+      - WebLogoutOptionsMethod
+    Properties:
+      RestApiId: !Ref WebLogoutRestApi
+
+  # Stage
+  WebLogoutRestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref WebLogoutRestApi
+      StageName: unique
+      TracingEnabled: true
+      DeploymentId: !Ref WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds
+      AccessLogSetting:
+        DestinationArn: !GetAtt "WebLogoutApiLogGroup.Arn"
+        Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","resourcePath":"$context.resourcePath","status":$context.status,"responseLatency":$context.responseLatency,"xrayTraceId":"$context.xrayTraceId","errorMessage":"$context.error.message","validationError":"$context.error.validationErrorString","integrationRequestId":"$context.integration.requestId","functionResponseStatus":"$context.integration.status","integrationLatency":"$context.integration.latency","integrationServiceStatus":"$context.integration.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}'
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          MetricsEnabled: "true"
+          DataTraceEnabled: "false"
+          LoggingLevel: "INFO"
+
+  # Log Group
+  WebLogoutApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: !Ref LogRetention
+
+  # Expose API to custom domain
+  WebLogoutAPIMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: "logout"
+      DomainName: !Ref WebApiDnsName
+      RestApiId: !Ref WebLogoutRestApi
+      Stage: !Ref WebLogoutRestApiStage
+
+  # Lambda access right for POST method
+  WebLogoutLambdaPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - WebLogoutLambda
+      - WebLogoutRestApi
+    Properties:
+      FunctionName: !Ref WebLogoutLambdaName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebLogoutRestApi}/*/POST/"
+
+  # Session Token POST method
+  WebLogoutPostMethod:
+    DependsOn: WebLogoutLambda
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "Proxy to Session Token Lambda"
+      RestApiId: !Ref WebLogoutRestApi
+      ResourceId: !GetAtt WebLogoutRestApi.RootResourceId
+      HttpMethod: POST
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref JwtAuthorizer
+      ApiKeyRequired: false
+      RequestParameters:
+        "method.request.header.Origin": true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-webLogoutLambda/invocations"
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  # Session Token OPTIONS method
+  WebLogoutOptionsMethod:
+    DependsOn: WebLogoutLambda
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "Options for Session Token"
+      RestApiId: !Ref WebLogoutRestApi
+      ResourceId: !GetAtt WebLogoutRestApi.RootResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          ResponseModels:
+            "application/json": "Empty"
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          "application/json": '{"statusCode": 200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates:
+              "application/json": ""
+
+  WebLogoutApiSubscriptionFilter:
+    Condition: SendLogToKinesis
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
+      LogGroupName: !Ref WebLogoutApiLogGroup
+      FilterPattern: !Ref CloudwatchFilterPattern
+      DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  WebLogoutApiWaf:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
+      Parameters:
+        WAFName: !Sub "${ProjectName}-web-logout-web"
+        IntendedUsage: WEB
+        APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}/stages/${WebLogoutRestApiStage}"
+        Limit: !Ref WebLogoutWafLimit
+        EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+
+ # WEB Authorizer
+  JwtLambdaPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: JwtAuthorizer
+    Properties:
+      FunctionName: !Sub '${ProjectName}-jwtAuthorizerLambda'
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebLogoutRestApi}/authorizers/${JwtAuthorizer}"
+
+  JwtAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: pn-auth-fleet_jwtAuthorizer
+      Type: TOKEN
+      AuthorizerResultTtlInSeconds: '300'
+      AuthorizerUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-jwtAuthorizerLambda/invocations'
+      IdentitySource: method.request.header.Authorization
+      IdentityValidationExpression: ^Bearer [-0-9a-zA-Z\._]+$
+      RestApiId: !Ref WebLogoutRestApi
+
+  WebLogoutAPIGatewayApiLatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "oncall-${ProjectName}-web-logout-api-LatencyAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway latency exceeds the limit."
+      AlarmActions:
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 15
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 20
+      Period: 60
+      Threshold: !Ref TokenExchangeLatencyLimit
+      TreatMissingData: notBreaching
+      Namespace: "AWS/ApiGateway"
+      MetricName: "Latency"
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub "${ProjectName}-web-logout-api"
+      ExtendedStatistic: "p90"
+
+  WebLogoutAPIGatewayApiErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ProjectName}-web-logout-api-ErrorAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway has 4xx or 5xx error."
+      AlarmActions:
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-web-logout-api
+              MetricName: 4XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m2
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-web-logout-api
+              MetricName: 5XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: e2
+          Expression: "m1*(0.1)"
+          Label: "4XXError-weight-adjust"
+          ReturnData: False
+        - Id: e1
+          Expression: SUM([e2,m2])
+          Label: !Sub "${ProjectName}-web-logout-api-ErrorMetric"
+
+  WebLogoutAPIGatewayApiErrorAlarmWakeup:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "oncall-${ProjectName}-web-logout-api-ErrorAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway has 4xx or 5xx error."
+      AlarmActions:
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 7
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 10
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-web-logout-api
+              MetricName: 4XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m2
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-web-logout-api
+              MetricName: 5XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m3
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${ProjectName}-web-logout-api"
+              MetricName: Count
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: e1
+          Expression: IF(m3>=10 AND (m1/m3>=0.9 OR m2/m3>=0.1), 1, 0)
+          Label: !Sub "${ProjectName}-web-logout-api-ErrorMetric-OnCall"
 
   # Dashboard
   MicroserviceDashboard:
