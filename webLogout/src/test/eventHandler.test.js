@@ -31,7 +31,8 @@ describe("handleEvent", () => {
   };
 
   const decodedToken = {
-    jti: { jti: "1234", uid: "user1" },
+    jti: "1234",
+    uid: "user1",
     otherData: "test",
   };
 

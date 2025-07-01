@@ -8,6 +8,7 @@ const insertJti = async (jti) => {
       EX: REDIS_JTI_EXP,
     });
   } catch (error) {
+    console.error("Error inserting JTI in Redis:", error);
     throw error;
   } finally {
     await RedisHandler.disconnectRedis();

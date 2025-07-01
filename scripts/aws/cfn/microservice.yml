@@ -433,6 +433,14 @@ Parameters:
   ElasticacheUserId1:
     Type: String
     Description: 'ElastiCache user id'
+
+  ElasticCacheAuthFleetSessionsUserArn:
+    Type: String
+    Description: 'ElastiCache user id'
+
+  ElasticCacheAuthFleetSessionsUserId:
+    Type: String
+    Description: 'ElastiCache user id'
     
   ElasticacheSecurityGroup:
     Type: String
@@ -669,13 +677,6 @@ Resources:
   ###               JWT AUTHORIZER LAMBDA               ###
   #########################################################
 
-  JwtAuthorizerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub ${ProjectName}-jwt-authorizer-SecGrp
-      VpcId: !Ref VpcId
-
-
   # Lambda function
   JwtAuthorizerLambda:
     Type: AWS::Lambda::Function
@@ -694,7 +695,7 @@ Resources:
         Mode: Active
       VpcConfig:
         SecurityGroupIds: 
-          - !Ref JwtAuthorizerSecurityGroup
+          - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
 
   JwtAuthorizerLambdaAlarms:
@@ -744,6 +745,13 @@ Resources:
                 Condition:
                   StringEquals:
                     'aws:ResourceTag/KeyUsageType': 'JwtSignAndVerify'
+              - Sid: RedisAuth
+                Action:
+                  - elasticache:Connect
+                Effect: Allow
+                Resource:
+                  - !Ref RedisServerlessArn
+                  - !Ref ElasticCacheAuthFleetSessionsUserArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
@@ -751,13 +759,6 @@ Resources:
 
   ###               WEB LOGOUT LAMBDA               ###
   #########################################################
-
-  WebLogoutSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub ${ProjectName}-web-logout-SecGrp
-      VpcId: !Ref VpcId
-
 
   # Lambda function
   WebLogoutLambda:
@@ -772,12 +773,16 @@ Resources:
       Environment:
         Variables:
           REDIS_JTI_EXP_HOURS: !Ref RedisJwtExpHours
+          REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
       Role: !GetAtt WebLogoutLambdaRole.Arn
       TracingConfig:
         Mode: Active
+      Timeout: 3
       VpcConfig:
         SecurityGroupIds: 
-          - !Ref WebLogoutSecurityGroup
+          - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
 
   # Lambda function role
@@ -811,14 +816,13 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
-              - Sid: AllowKms
+              - Sid: RedisAuth
                 Action:
-                  - kms:GetPublicKey
+                  - elasticache:Connect
                 Effect: Allow
-                Resource: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*"
-                Condition:
-                  StringEquals:
-                    'aws:ResourceTag/KeyUsageType': 'JwtSignAndVerify'
+                Resource:
+                  - !Ref RedisServerlessArn
+                  - !Ref ElasticCacheAuthFleetSessionsUserArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
 
@@ -1870,7 +1874,7 @@ Resources:
         Types:
           - REGIONAL
   # Deployment
-  WebLogoutRestApiDeployment:
+  WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - WebLogoutPostMethod
@@ -1885,7 +1889,7 @@ Resources:
       RestApiId: !Ref WebLogoutRestApi
       StageName: unique
       TracingEnabled: true
-      DeploymentId: !Ref WebLogoutRestApiDeployment
+      DeploymentId: !Ref WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds
       AccessLogSetting:
         DestinationArn: !GetAtt "WebLogoutApiLogGroup.Arn"
         Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","resourcePath":"$context.resourcePath","status":$context.status,"responseLatency":$context.responseLatency,"xrayTraceId":"$context.xrayTraceId","errorMessage":"$context.error.message","validationError":"$context.error.validationErrorString","integrationRequestId":"$context.integration.requestId","functionResponseStatus":"$context.integration.status","integrationLatency":"$context.integration.latency","integrationServiceStatus":"$context.integration.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}'
@@ -1906,7 +1910,7 @@ Resources:
   WebLogoutAPIMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
-      BasePath: "web-logout"
+      BasePath: "logout"
       DomainName: !Ref WebApiDnsName
       RestApiId: !Ref WebLogoutRestApi
       Stage: !Ref WebLogoutRestApiStage
@@ -1918,7 +1922,7 @@ Resources:
       - WebLogoutLambda
       - WebLogoutRestApi
     Properties:
-      FunctionName: !Sub "${ProjectName}-WebLogoutLambda"
+      FunctionName: !Ref WebLogoutLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebLogoutRestApi}/*/POST/"
@@ -1932,14 +1936,15 @@ Resources:
       RestApiId: !Ref WebLogoutRestApi
       ResourceId: !GetAtt WebLogoutRestApi.RootResourceId
       HttpMethod: POST
-      AuthorizationType: NONE
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref JwtAuthorizer
       ApiKeyRequired: false
       RequestParameters:
         "method.request.header.Origin": true
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-tokenExchangeLambda/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-webLogoutLambda/invocations"
         PassthroughBehavior: WHEN_NO_MATCH
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
@@ -1997,6 +2002,27 @@ Resources:
         APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}/stages/${WebLogoutRestApiStage}"
         Limit: !Ref WebLogoutWafLimit
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+
+ # WEB Authorizer
+  JwtLambdaPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: JwtAuthorizer
+    Properties:
+      FunctionName: !Sub '${ProjectName}-jwtAuthorizerLambda'
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebLogoutRestApi}/authorizers/${JwtAuthorizer}"
+
+  JwtAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: pn-auth-fleet_jwtAuthorizer
+      Type: TOKEN
+      AuthorizerResultTtlInSeconds: '300'
+      AuthorizerUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-jwtAuthorizerLambda/invocations'
+      IdentitySource: method.request.header.Authorization
+      IdentityValidationExpression: ^Bearer [-0-9a-zA-Z\._]+$
+      RestApiId: !Ref WebLogoutRestApi
 
   WebLogoutAPIGatewayApiLatencyAlarm:
     Type: AWS::CloudWatch::Alarm
