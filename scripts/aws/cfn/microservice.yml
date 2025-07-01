@@ -677,13 +677,6 @@ Resources:
   ###               JWT AUTHORIZER LAMBDA               ###
   #########################################################
 
-  JwtAuthorizerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub ${ProjectName}-jwt-authorizer-SecGrp
-      VpcId: !Ref VpcId
-
-
   # Lambda function
   JwtAuthorizerLambda:
     Type: AWS::Lambda::Function
@@ -702,7 +695,6 @@ Resources:
         Mode: Active
       VpcConfig:
         SecurityGroupIds: 
-          - !Ref JwtAuthorizerSecurityGroup
           - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
 
@@ -768,13 +760,6 @@ Resources:
   ###               WEB LOGOUT LAMBDA               ###
   #########################################################
 
-  WebLogoutSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub ${ProjectName}-web-logout-SecGrp
-      VpcId: !Ref VpcId
-
-
   # Lambda function
   WebLogoutLambda:
     Type: AWS::Lambda::Function
@@ -797,7 +782,6 @@ Resources:
       Timeout: 3
       VpcConfig:
         SecurityGroupIds: 
-          - !Ref WebLogoutSecurityGroup
           - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
 
