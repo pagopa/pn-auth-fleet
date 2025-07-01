@@ -690,6 +690,9 @@ Resources:
       Environment:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
+          REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
       TracingConfig:
         Mode: Active
@@ -779,7 +782,6 @@ Resources:
       Role: !GetAtt WebLogoutLambdaRole.Arn
       TracingConfig:
         Mode: Active
-      Timeout: 3
       VpcConfig:
         SecurityGroupIds: 
           - !Ref ElasticacheSecurityGroup
