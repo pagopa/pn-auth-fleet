@@ -9,7 +9,7 @@ let redisClient;
 async function connectRedis() {
     console.log("Connecting to Redis")
     const c = await getRedisClient()
-    c.on('error', err => console.error('❌ ON Redis error:', err));
+    c.on('error', err => console.error('ON Redis error:', err));
     console.log("Starting connect...")
     await c.connect();
     console.log("Connection OK")
