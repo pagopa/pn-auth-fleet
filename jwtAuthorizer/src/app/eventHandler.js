@@ -21,51 +21,54 @@ async function handleEvent(event) {
   let iamPolicy = null;
   // Capture apiKey from event
   const encodedToken = event?.authorizationToken?.replace("Bearer ", "");
-  if (encodedToken) {
-    console.log("encodedToken", encodedToken);
-    try {
-      const decodedToken = await validation(encodedToken);
-      console.log("decodedToken", decodedToken);
-
-      if (await Redis.isJtiRevoked(decodedToken.jti)) {
-        throw new Error("Token has been revoked");
-      }
-
-      const contextAttrs = {};
-      contextAttrs.sourceChannel = "WEB";
-      contextAttrs.uid = decodedToken.uid;
-      contextAttrs.cx_type = getUserType(decodedToken);
-      const prefix =
-        contextAttrs.cx_type == "PA" ? "" : contextAttrs.cx_type + "-";
-      contextAttrs.cx_id =
-        prefix +
-        (decodedToken.organization
-          ? decodedToken.organization.id
-          : decodedToken.uid);
-
-      contextAttrs.cx_groups = decodedToken.organization?.groups?.join();
-      contextAttrs.cx_role = decodedToken.organization?.role.replace(/pg-/, "");
-      contextAttrs.cx_jti = decodedToken.jti;
-      if (decodedToken.source) {
-        contextAttrs.sourceChannel = decodedToken.source.channel;
-        contextAttrs.sourceChannelDetails = decodedToken.source.details;
-      }
-      console.log("contextAttrs ", contextAttrs);
-
-      // Generate IAM Policy
-      iamPolicy = await generateIAMPolicy(event.methodArn, contextAttrs);
-      console.log("IAM Policy", JSON.stringify(iamPolicy));
-      return iamPolicy;
-    } catch (err) {
-      if (err.name == "ValidationException") {
-        console.warn("Error generating IAM policy ", err);
-      } else {
-        console.error("Error generating IAM policy ", err);
-      }
-      return defaultDenyAllPolicy;
-    }
-  } else {
+  if (!encodedToken) {
     console.warn("EncodedToken is null");
+    return defaultDenyAllPolicy;
+  }
+  console.log("encodedToken", encodedToken);
+  
+  try {
+    const decodedToken = await validation(encodedToken);
+    console.log("decodedToken", decodedToken);
+
+    if (await Redis.isJtiRevoked(decodedToken.jti)) {
+      throw new Error("Unauthorized");
+    }
+
+    const contextAttrs = {};
+    contextAttrs.sourceChannel = "WEB";
+    contextAttrs.uid = decodedToken.uid;
+    contextAttrs.cx_type = getUserType(decodedToken);
+    const prefix =
+      contextAttrs.cx_type == "PA" ? "" : contextAttrs.cx_type + "-";
+    contextAttrs.cx_id =
+      prefix +
+      (decodedToken.organization
+        ? decodedToken.organization.id
+        : decodedToken.uid);
+
+    contextAttrs.cx_groups = decodedToken.organization?.groups?.join();
+    contextAttrs.cx_role = decodedToken.organization?.role.replace(/pg-/, "");
+    contextAttrs.cx_jti = decodedToken.jti;
+    if (decodedToken.source) {
+      contextAttrs.sourceChannel = decodedToken.source.channel;
+      contextAttrs.sourceChannelDetails = decodedToken.source.details;
+    }
+    console.log("contextAttrs ", contextAttrs);
+
+    // Generate IAM Policy
+    iamPolicy = await generateIAMPolicy(event.methodArn, contextAttrs);
+    console.log("IAM Policy", JSON.stringify(iamPolicy));
+    return iamPolicy;
+  } catch (err) {
+    if (err.message === "Unauthorized") {
+      throw err; // Trigger 401 response 
+    }
+    if (err.name == "ValidationException") {
+      console.warn("Error generating IAM policy ", err);
+    } else {
+      console.error("Error generating IAM policy ", err);
+    }
     return defaultDenyAllPolicy;
   }
 }
@@ -82,4 +85,4 @@ function getUserType(token) {
   }
 }
 
-module.exports = { handleEvent, defaultDenyAllPolicy };
+module.exports = { handleEvent, defaultDenyAllPolicy, ERROR_REVOKED_MESSAGE };
