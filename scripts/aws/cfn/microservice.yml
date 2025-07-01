@@ -793,7 +793,6 @@ Resources:
       Role: !GetAtt WebLogoutLambdaRole.Arn
       TracingConfig:
         Mode: Active
-      Timeout: 10
       VpcConfig:
         SecurityGroupIds: 
           - !Ref WebLogoutSecurityGroup
