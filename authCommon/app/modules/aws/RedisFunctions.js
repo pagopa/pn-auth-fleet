@@ -53,12 +53,10 @@ async function disconnectRedis(){
 }
 
 async function set(key, value, options) {
-    console.log(`set value: ${value} for key: ${key} in Redis`)
     await redisClient.set(key, value, options);
 }
 
 async function get(key) {
-    console.log(`get ${key} in Redis`)
     return await redisClient.get(key, value, options);
 }
 
