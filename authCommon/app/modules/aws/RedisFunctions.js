@@ -9,8 +9,6 @@ let redisClient;
 async function connectRedis() {
     console.log("Connecting to Redis")
     const c = await getRedisClient()
-    c.on('error', err => console.error('ON Redis error:', err));
-    console.log("Starting connect...")
     await c.connect();
     console.log("Connection OK")
     redisClient = c;
@@ -55,12 +53,10 @@ async function disconnectRedis(){
 }
 
 async function set(key, value, options) {
-    console.log(`set value: ${value} for key: ${key} in Redis`)
     await redisClient.set(key, value, options);
 }
 
 async function get(key) {
-    console.log(`get ${key} in Redis`)
     return await redisClient.get(key, value, options);
 }
 
