@@ -23,7 +23,7 @@ const handleEvent = async (event) => {
       throw new Error("Invalid token");
     }
 
-    const { jti, uid } = decodedToken.jti;
+    const { jti, uid } = decodedToken;
     const cx_type = getCxType(decodedToken);
     const cx_id = getCxId(decodedToken);
     const cx_role = getCxRole(decodedToken);
