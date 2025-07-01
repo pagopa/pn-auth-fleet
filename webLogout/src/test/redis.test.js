@@ -21,7 +21,7 @@ describe("insertJti", () => {
     await insertJti(jti);
 
     expect(pnAuthCommon.RedisHandler.connectRedis).toHaveBeenCalledWith();
-    expect(pnAuthCommon.RedisHandler.set).toHaveBeenCalledWith("pn-session:abc123", "1", { EX: 12 * 3600 });
+    expect(pnAuthCommon.RedisHandler.set).toHaveBeenCalledWith("pn-session::abc123", "1", { EX: 12 * 3600 });
     expect(pnAuthCommon.RedisHandler.disconnectRedis).toHaveBeenCalled();
   });
 });
