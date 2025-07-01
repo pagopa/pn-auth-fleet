@@ -4,7 +4,7 @@ const { KMSClient, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
 const redis = require("../app/redis");
 const sinon = require("sinon");
 
-const { handleEvent, defaultDenyAllPolicy, ERROR_REVOKED_MESSAGE } = require("../app/eventHandler");
+const { handleEvent, defaultDenyAllPolicy } = require("../app/eventHandler");
 const jsonwebtoken = require("jsonwebtoken");
 
 describe("test eventHandler", () => {
@@ -145,7 +145,7 @@ describe("test eventHandler", () => {
           "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/received",
       })
     } catch (error) {
-      expect(error.message).to.be.equal(ERROR_REVOKED_MESSAGE);
+      expect(error.message).to.be.equal("Unauthorized");
     }
 
     expect(isJtiRevokedStub.getCall(0).args).to.be.eqls(["01G2A6V0B13BHNCPEZ32S7KQ3Y"]);

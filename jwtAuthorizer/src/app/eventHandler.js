@@ -85,4 +85,4 @@ function getUserType(token) {
   }
 }
 
-module.exports = { handleEvent, defaultDenyAllPolicy, ERROR_REVOKED_MESSAGE };
+module.exports = { handleEvent, defaultDenyAllPolicy };
