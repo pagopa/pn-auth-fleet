@@ -14,11 +14,16 @@ let redisConnection = {
 }
 
 async function getRedisClient(forceRefresh = false){
+  console.log("Get redis client with");
   if(!forceRefresh && redisConnection.client && Date.now() > redisConnection.expiration) {
+    console.log("Return cached redis client");
     return redisConnection.client
   }
   else {
+    console.log("Create new redis client fromNodeProviderChain");
     const credentials = await fromNodeProviderChain()()
+    console.log("Credentials obtained for Redis client", credentials);
+    console.log("signer with env", process.env.AWS_REGION, process.env.REDIS_SERVER_NAME, process.env.USER_ID_REDIS);
     const sign = new Signer({
       region: process.env.AWS_REGION,
       hostname: process.env.REDIS_SERVER_NAME,
@@ -28,6 +33,7 @@ async function getRedisClient(forceRefresh = false){
     });
     redisConnection.expiration = Date.now() + ((AUTHTOKEN_DURATION - 100) *1000) //seconds
 
+    console.log("Presigned URL");
     const presignedUrl = await sign.getAuthToken();
   
     const redisConfig = {
@@ -39,6 +45,7 @@ async function getRedisClient(forceRefresh = false){
         rejectUnauthorized: false,
       },
     };
+    console.log("Redis config", redisConfig);
     redisConnection.client = createClient(redisConfig);
     return redisConnection.client;
   }
