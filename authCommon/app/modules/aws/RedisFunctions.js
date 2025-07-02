@@ -57,7 +57,7 @@ async function set(key, value, options) {
 }
 
 async function get(key) {
-    return await redisClient.get(key, value, options);
+    return await redisClient.get(key);
 }
 
 module.exports = {
