@@ -4,12 +4,8 @@ const getCxType = async (token) => {
     return "PF";
   }
 
-  const { roles = [] } = organization;
-  if (roles && roles.length > 0 && roles[0].role.startsWith("pg-")) {
-    return "PG";
-  }
-
-  return "PA";
+  const { role = "" } = organization;
+  return role.startsWith("pg-") ? "PG" : "PA";
 };
 
 const getCxId = async (token) => {
@@ -17,7 +13,7 @@ const getCxId = async (token) => {
 };
 
 const getCxRole = async (token) => {
-  return token.organization?.roles[0]?.role;
+  return token.organization?.role;
 };
 
 module.exports = {
