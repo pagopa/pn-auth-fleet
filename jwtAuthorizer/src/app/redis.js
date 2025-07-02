@@ -13,7 +13,15 @@ const isJtiRevoked = async (jti) => {
     console.error("Error checking JTI revocation:", error);
     return false;
   } finally {
+    disconnectRedis();
+  }
+};
+
+const disconnectRedis = async () => {
+  try {
     await RedisHandler.disconnectRedis();
+  } catch (error) {
+    console.error("Error disconnecting from Redis:", error);
   }
 };
 
