@@ -32,7 +32,7 @@ async function handleEvent(event) {
     console.log("decodedToken", decodedToken);
 
     if (await Redis.isJtiRevoked(decodedToken.jti)) {
-      throw new Error("Unauthorized");
+      return defaultDenyAllPolicy;
     }
 
     const contextAttrs = {};
@@ -61,9 +61,6 @@ async function handleEvent(event) {
     console.log("IAM Policy", JSON.stringify(iamPolicy));
     return iamPolicy;
   } catch (err) {
-    if (err.message === "Unauthorized") {
-      throw err; // Trigger 401 response 
-    }
     if (err.name == "ValidationException") {
       console.warn("Error generating IAM policy ", err);
     } else {
