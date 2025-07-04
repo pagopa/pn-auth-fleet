@@ -2,6 +2,7 @@ const { insertJti } = require("./../app/redis");
 const pnAuthCommon = require("pn-auth-common");
 
 jest.mock("pn-auth-common", () => ({
+  ...jest.requireActual("pn-auth-common"),
   RedisHandler: {
     connectRedis: jest.fn(),
     disconnectRedis: jest.fn(),
