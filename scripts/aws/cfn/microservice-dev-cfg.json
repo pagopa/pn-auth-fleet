@@ -19,7 +19,6 @@
     "PgCustomAttributeResolverEnableCache":"true",
     "ConsentTypeEnum": "TOS_DEST_B2B",
     "RedisJwtExpHours": "24",
-    "PgEnableAccess": "true",
-    "RedisJtiWhitelist": ""
+    "PgEnableAccess": "true"
   }
 }
