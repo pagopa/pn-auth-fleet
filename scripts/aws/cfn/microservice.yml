@@ -501,6 +501,11 @@ Parameters:
     Default: 24
     Description: "Redis Jti expiration in hours  "
 
+  RedisJtiWhitelist:
+    Type: List<String>
+    Default: ""
+    Description: "For logout: skip insert JTI in redis if it is in this whitelist (comma separated list)"
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -776,6 +781,7 @@ Resources:
       Environment:
         Variables:
           REDIS_JTI_EXP_HOURS: !Ref RedisJwtExpHours
+          REDIS_JTI_WHITELIST: !Ref RedisJtiWhitelist
           REDIS_ENDPOINT: !Ref RedisEndpoint
           USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
           REDIS_SERVER_NAME: !Ref RedisServerlessName

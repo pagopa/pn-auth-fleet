@@ -1,6 +1,6 @@
 const jsonwebtoken = require("jsonwebtoken");
 const { insertJti } = require("./redis");
-const { LOG_AUT_TYPE } = require("./constants");
+const { LOG_AUT_TYPE, REDIS_JTI_WHITELIST } = require("./constants");
 const { getCxType, getCxId, getCxRole } = require("./utils");
 const { auditLog } = require("./log");
 
@@ -28,19 +28,21 @@ const handleEvent = async (event) => {
     const cx_id = getCxId(decodedToken);
     const cx_role = getCxRole(decodedToken);
 
-    await insertJti(jti);
+    if (!REDIS_JTI_WHITELIST.includes(jti)) {
+      await insertJti(jti);
 
-    auditLog(
-      `Jti ${jti} was successfully inserted in Redis`,
-      LOG_AUT_TYPE,
-      eventOrigin,
-      "OK",
-      cx_type,
-      cx_id,
-      cx_role,
-      uid,
-      jti
-    ).info("success");
+      auditLog(
+        `Jti ${jti} was successfully inserted in Redis`,
+        LOG_AUT_TYPE,
+        eventOrigin,
+        "OK",
+        cx_type,
+        cx_id,
+        cx_role,
+        uid,
+        jti
+      ).info("success");
+    }
 
     return {
       ...commonRepsonse,

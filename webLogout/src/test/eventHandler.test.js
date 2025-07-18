@@ -103,4 +103,16 @@ describe("handleEvent", () => {
       error: "Redis failure",
     });
   });
+
+  it("should skip inserting JTI if it is whitelisted", async () => {
+    jest.spyOn(jsonwebtoken, "decode").mockReturnValue({ ...decodedToken, jti: "_7a11be09cf34ab982d3e" });
+    insertJti.mockResolvedValue();
+
+    const response = await handleEvent(mockEvent);
+
+    expect(insertJti).not.toHaveBeenCalled();
+    expect(auditLog).not.toHaveBeenCalledWith(`Jti _7a11be09cf34ab982d3e was successfully inserted in Redis`);
+
+    expect(response.statusCode).toBe(200);
+  });
 });
