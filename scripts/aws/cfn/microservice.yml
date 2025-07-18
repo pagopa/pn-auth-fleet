@@ -504,7 +504,7 @@ Parameters:
   RedisJtiWhitelistParameter:
     Type: String
     Description: "Parameter of whitelist for skip JTI in redis"
-    Default: "/pn-auth-fleet/reditsJtiWhitelist"
+    Default: "/pn-auth-fleet/redisJtiWhitelist"
 
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
