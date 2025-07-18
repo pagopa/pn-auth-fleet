@@ -1,4 +1,4 @@
-const { RedisHandler } = require('pn-auth-common');
+const { RedisHandler } = require("pn-auth-common");
 const { REDIS_JTI_EXP, REDIS_JTI_PREFIX } = require("./constants");
 
 const insertJti = async (jti) => {
@@ -11,7 +11,15 @@ const insertJti = async (jti) => {
     console.error("Error inserting JTI in Redis:", error);
     throw error;
   } finally {
+    disconnectRedis();
+  }
+};
+
+const disconnectRedis = async () => {
+  try {
     await RedisHandler.disconnectRedis();
+  } catch (error) {
+    console.error("Error disconnecting from Redis:", error);
   }
 };
 

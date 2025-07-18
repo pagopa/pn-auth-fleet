@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.10.0",
     "bunyan": "^1.8.15",
     "jsonwebtoken": "^9.0.2",
     "pn-auth-common": "file:../authCommon"

@@ -1,8 +1,10 @@
 const jsonwebtoken = require("jsonwebtoken");
 const { insertJti } = require("./redis");
-const { LOG_AUT_TYPE, REDIS_JTI_WHITELIST } = require("./constants");
-const { getCxType, getCxId, getCxRole } = require("./utils");
+const { LOG_AUT_TYPE } = require("./constants");
+const { getCxType, getCxId, getCxRole, getParameterFromStore } = require("./utils");
 const { auditLog } = require("./log");
+
+let whitelist;
 
 const commonRepsonse = {
   headers: {
@@ -10,6 +12,19 @@ const commonRepsonse = {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
   },
   isBase64Encoded: false,
+};
+
+const isJtiWhitelisted = async (jti) => {
+  if (!Array.isArray(whitelist)) {
+    try {
+      const list = await getParameterFromStore(process.env.REDIS_JTI_WHITELIST_PARAMETER);
+      whitelist = typeof list === "string" ? list.split(",") : Array.isArray(list) ? list : [];
+    } catch (error) {
+      console.error("Error fetching whitelist from store:", error);
+      whitelist = [];
+    }
+  }
+  return whitelist.includes(jti);
 };
 
 const handleEvent = async (event) => {
@@ -27,8 +42,9 @@ const handleEvent = async (event) => {
     const cx_type = getCxType(decodedToken);
     const cx_id = getCxId(decodedToken);
     const cx_role = getCxRole(decodedToken);
+    const jtiWhitelisted = await isJtiWhitelisted(jti);
 
-    if (!REDIS_JTI_WHITELIST.includes(jti)) {
+    if (!jtiWhitelisted) {
       await insertJti(jti);
 
       auditLog(
