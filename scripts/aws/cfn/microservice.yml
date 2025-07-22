@@ -501,7 +501,7 @@ Parameters:
     Default: 24
     Description: "Redis Jti expiration in hours  "
 
-  RedisJtisExcludedInvalidationParameter:
+  RedisJtisExcludedInvalidation:
     Type: String
     Default: ''
     Description: "Parameter of excluded JTI for skip invalidation"
@@ -781,7 +781,7 @@ Resources:
       Environment:
         Variables:
           REDIS_JTI_EXP_HOURS: !Ref RedisJwtExpHours
-          REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER: !Ref RedisJtisExcludedInvalidationParameter
+          REDIS_JTIS_EXCLUDED_INVALIDATION: !Ref RedisJtisExcludedInvalidation
           REDIS_ENDPOINT: !Ref RedisEndpoint
           USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
           REDIS_SERVER_NAME: !Ref RedisServerlessName
@@ -792,8 +792,6 @@ Resources:
         SecurityGroupIds: 
           - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
-      Layers:
-        - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
 
   # Lambda function role
   WebLogoutLambdaRole:
@@ -826,11 +824,6 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
-              - Sid: AllowLambdaToReadParameterStore
-                Action:
-                  - ssm:GetParameter
-                Effect: Allow
-                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/pn-auth-fleet/redisJtisExcludedInvalidation"
               - Sid: RedisAuth
                 Action:
                   - elasticache:Connect

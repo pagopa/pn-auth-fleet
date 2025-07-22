@@ -20,6 +20,6 @@
     "ConsentTypeEnum": "TOS_DEST_B2B",
     "RedisJwtExpHours": "24",
     "PgEnableAccess": "true",
-    "RedisJtisExcludedInvalidationParameter": "/pn-auth-fleet/redisJtisExcludedInvalidation"
+    "RedisJtisExcludedInvalidation": "ab6fff34-1d82-437f-8df0-b1213c985789,_1f4d6f1b8009a3f4c8d0"
   }
 }
