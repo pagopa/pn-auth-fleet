@@ -4,7 +4,7 @@ const { LOG_AUT_TYPE } = require("./constants");
 const { getCxType, getCxId, getCxRole, getParameterFromStore } = require("./utils");
 const { auditLog } = require("./log");
 
-let whitelist;
+let jtisExcludedFromInvalidation;
 
 const commonRepsonse = {
   headers: {
@@ -14,17 +14,20 @@ const commonRepsonse = {
   isBase64Encoded: false,
 };
 
-const isJtiWhitelisted = async (jti) => {
-  if (!Array.isArray(whitelist)) {
+const isJtiExcludedFromInvalidation = async (jti) => {
+  if (!process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER) {
+    return false;
+  }
+  if (!Array.isArray(jtisExcludedFromInvalidation)) {
     try {
-      const list = await getParameterFromStore(process.env.REDIS_JTI_WHITELIST_PARAMETER);
-      whitelist = typeof list === "string" ? list.split(",") : Array.isArray(list) ? list : [];
+      const list = await getParameterFromStore(process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER);
+      jtisExcludedFromInvalidation = typeof list === "string" ? list.split(",") : Array.isArray(list) ? list : [];
     } catch (error) {
-      console.error("Error fetching whitelist from store:", error);
-      whitelist = [];
+      console.warn("Error fetching excluded JTI list from store:", error);
+      jtisExcludedFromInvalidation = [];
     }
   }
-  return whitelist.includes(jti);
+  return jtisExcludedFromInvalidation.includes(jti);
 };
 
 const handleEvent = async (event) => {
@@ -42,11 +45,10 @@ const handleEvent = async (event) => {
     const cx_type = getCxType(decodedToken);
     const cx_id = getCxId(decodedToken);
     const cx_role = getCxRole(decodedToken);
-    const jtiWhitelisted = await isJtiWhitelisted(jti);
+    const jtiExcluded = await isJtiExcludedFromInvalidation(jti);
 
-    if (!jtiWhitelisted) {
+    if (!jtiExcluded) {
       await insertJti(jti);
-
       auditLog(
         `Jti ${jti} was successfully inserted in Redis`,
         LOG_AUT_TYPE,

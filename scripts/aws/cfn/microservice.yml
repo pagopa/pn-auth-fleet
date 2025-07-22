@@ -501,10 +501,10 @@ Parameters:
     Default: 24
     Description: "Redis Jti expiration in hours  "
 
-  RedisJtiWhitelistParameter:
+  RedisJtisExcludedInvalidationParameter:
     Type: String
-    Description: "Parameter of whitelist for skip JTI in redis"
-    Default: "/pn-auth-fleet/redisJtiWhitelist"
+    Description: "Parameter of excluded JTI for skip invalidation"
+    Default: "/pn-auth-fleet/redisJtisExcludedInvalidation"
 
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
@@ -781,7 +781,7 @@ Resources:
       Environment:
         Variables:
           REDIS_JTI_EXP_HOURS: !Ref RedisJwtExpHours
-          REDIS_JTI_WHITELIST_PARAMETER: !Ref RedisJtiWhitelistParameter
+          REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER: !Ref RedisJtisExcludedInvalidationParameter
           REDIS_ENDPOINT: !Ref RedisEndpoint
           USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
           REDIS_SERVER_NAME: !Ref RedisServerlessName
@@ -792,6 +792,8 @@ Resources:
         SecurityGroupIds: 
           - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
+      Layers:
+        - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
 
   # Lambda function role
   WebLogoutLambdaRole:

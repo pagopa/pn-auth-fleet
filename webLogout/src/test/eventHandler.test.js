@@ -2,7 +2,6 @@ const jsonwebtoken = require("jsonwebtoken");
 const { handleEvent } = require("../app/eventHandler"); // modifica con il path corretto
 const { insertJti } = require("../app/redis");
 const { auditLog } = require("../app/log");
-const { getParameterFromStore } = require("../app/utils");
 
 // Mocks delle funzioni esterne
 jest.mock("../app/redis", () => ({
@@ -107,14 +106,31 @@ describe("handleEvent", () => {
   });
 
   it("should skip inserting JTI if it is whitelisted", async () => {
+    process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER = "parameter-name";
+
     jest.spyOn(jsonwebtoken, "decode").mockReturnValue({ ...decodedToken, jti: "_7a11be09cf34ab982d3e" });
     insertJti.mockResolvedValue();
 
     const response = await handleEvent(mockEvent);
 
     expect(insertJti).not.toHaveBeenCalled();
-    expect(auditLog).not.toHaveBeenCalledWith(`Jti _7a11be09cf34ab982d3e was successfully inserted in Redis`);
+    expect(auditLog.mock.calls.length).toBe(1); // only info log
 
     expect(response.statusCode).toBe(200);
+  });
+  
+  it("should always insert JTI if parameter name is empty", async () => {
+    process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER = "";
+
+    jest.spyOn(jsonwebtoken, "decode").mockReturnValue({ ...decodedToken, jti: "_7a11be09cf34ab982d3e" });
+    insertJti.mockResolvedValue();
+
+    const response = await handleEvent(mockEvent);
+
+    expect(insertJti).toHaveBeenCalled();
+    expect(auditLog.mock.calls[1][0]).toBe('Jti _7a11be09cf34ab982d3e was successfully inserted in Redis');
+
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ message: "Logout successful" });
   });
 });
