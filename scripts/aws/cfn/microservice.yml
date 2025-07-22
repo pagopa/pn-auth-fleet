@@ -503,8 +503,8 @@ Parameters:
 
   RedisJtisExcludedInvalidationParameter:
     Type: String
+    Default: ''
     Description: "Parameter of excluded JTI for skip invalidation"
-    Default: "/pn-auth-fleet/redisJtisExcludedInvalidation"
 
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
