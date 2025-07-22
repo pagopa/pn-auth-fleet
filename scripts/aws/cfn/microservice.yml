@@ -826,6 +826,11 @@ Resources:
                   - logs:CreateLogGroup
                 Effect: Allow
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+              - Sid: AllowLambdaToReadParameterStore
+                Action:
+                  - ssm:GetParameter
+                Effect: Allow
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/pn-auth-fleet/redisJtisExcludedInvalidation"
               - Sid: RedisAuth
                 Action:
                   - elasticache:Connect
