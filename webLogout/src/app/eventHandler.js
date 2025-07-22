@@ -15,18 +15,24 @@ const commonRepsonse = {
 };
 
 const isJtiExcludedFromInvalidation = async (jti) => {
+  console.log(`isJtiExcludedFromInvalidation ${jti}`);
+  console.log(`process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER ${process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER}`);
   if (!process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER) {
+    console.log('No REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER');
     return false;
   }
+  console.log(`initial list ${jtisExcludedFromInvalidation}`)
   if (!Array.isArray(jtisExcludedFromInvalidation)) {
     try {
       const list = await getParameterFromStore(process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER);
+      console.log(`list from parameter store ${list}`);
       jtisExcludedFromInvalidation = typeof list === "string" ? list.split(",") : Array.isArray(list) ? list : [];
     } catch (error) {
       console.warn("Error fetching excluded JTI list from store:", error);
       jtisExcludedFromInvalidation = [];
     }
   }
+  console.log(`final list ${jtisExcludedFromInvalidation}`)
   return jtisExcludedFromInvalidation.includes(jti);
 };
 
@@ -46,7 +52,8 @@ const handleEvent = async (event) => {
     const cx_id = getCxId(decodedToken);
     const cx_role = getCxRole(decodedToken);
     const jtiExcluded = await isJtiExcludedFromInvalidation(jti);
-
+    console.log(`jtiExcluded: ${jtiExcluded}`);
+    
     if (!jtiExcluded) {
       await insertJti(jti);
       auditLog(
