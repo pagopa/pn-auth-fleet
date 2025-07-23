@@ -1,4 +1,6 @@
-const { getCxType, getCxId, getCxRole } = require("../app/utils");
+const { getCxType, getCxId, getCxRole, getParameterFromStore } = require("../app/utils");
+const axios = require("axios");
+jest.mock("axios");
 
 describe("getCxType", () => {
   it("should return 'PA' when token has organization", async () => {
@@ -49,5 +51,23 @@ describe("getCxRole", () => {
     const token = { organization: {} };
     const result = await getCxRole(token);
     expect(result).toBeUndefined();
+  });
+});
+
+describe("getParameterFromStore", () => {
+  beforeEach(() => {
+    axios.get.mockClear();
+  });
+
+  it("getParameterFromStore - success", async () => {
+    axios.get.mockResolvedValueOnce({ data: { Parameter: { Value: "fake" } } });
+    const result = await getParameterFromStore("/fake-path/fake-param");
+    expect(result).toEqual("fake");
+  });
+
+  it("getParameterFromStore - fail", async () => {
+    axios.get.mockRejectedValue(new Error("Error in get parameter"));
+    await expect(getParameterFromStore("/fake-path/fake-param")).rejects.toThrow("Error in get parameter");
+    expect(axios.get).toHaveBeenCalledTimes(4); // first call + 3 retries
   });
 });
