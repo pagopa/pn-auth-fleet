@@ -20,7 +20,7 @@ jest.mock("../app/utils", () => ({
   getCxType: jest.fn(() => "type1"),
   getCxId: jest.fn(() => "id1"),
   getCxRole: jest.fn(() => "role1"),
-  getParameterFromStore: jest.fn(() => "_2fe3c8749b01acdef001,_7a11be09cf34ab982d3e"),
+  getParameterFromStore: jest.fn(() => "\"_2fe3c8749b01acdef001,_7a11be09cf34ab982d3e'"),
 }));
 
 describe("handleEvent", () => {
