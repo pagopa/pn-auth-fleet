@@ -1,8 +1,10 @@
 const jsonwebtoken = require("jsonwebtoken");
 const { insertJti } = require("./redis");
 const { LOG_AUT_TYPE } = require("./constants");
-const { getCxType, getCxId, getCxRole } = require("./utils");
+const { getCxType, getCxId, getCxRole, getParameterFromStore } = require("./utils");
 const { auditLog } = require("./log");
+
+let jtisExcludedFromInvalidation;
 
 const commonRepsonse = {
   headers: {
@@ -13,8 +15,19 @@ const commonRepsonse = {
 };
 
 const isJtiExcludedFromInvalidation = async (jti) => {
-  console.log(`isJtiExcludedFromInvalidation ${jti}`);
-  const jtisExcludedFromInvalidation = (process.env.REDIS_JTIS_EXCLUDED_INVALIDATION || "").split(",").filter(Boolean);
+  const parameterName = process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER;
+  if (!parameterName) {
+    return false;
+  }
+  if (!Array.isArray(jtisExcludedFromInvalidation)) {
+    try {
+      const list = await getParameterFromStore(parameterName);
+      jtisExcludedFromInvalidation = typeof list === "string" ? list.split(",") : Array.isArray(list) ? list : [];
+    } catch (error) {
+      console.warn("Error fetching excluded JTI list from store:", error);
+      jtisExcludedFromInvalidation = [];
+    }
+  }
   return jtisExcludedFromInvalidation.includes(jti);
 };
 
@@ -34,7 +47,6 @@ const handleEvent = async (event) => {
     const cx_id = getCxId(decodedToken);
     const cx_role = getCxRole(decodedToken);
     const jtiExcluded = await isJtiExcludedFromInvalidation(jti);
-    console.log(`jtiExcluded: ${jtiExcluded}`);
     
     if (!jtiExcluded) {
       await insertJti(jti);

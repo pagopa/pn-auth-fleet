@@ -106,7 +106,7 @@ describe("handleEvent", () => {
   });
 
   it("should skip inserting JTI if it is whitelisted", async () => {
-    process.env.REDIS_JTIS_EXCLUDED_INVALIDATION = "_7a11be09cf34ab982d3e";
+    process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER = "parameter-name";
 
     jest.spyOn(jsonwebtoken, "decode").mockReturnValue({ ...decodedToken, jti: "_7a11be09cf34ab982d3e" });
     insertJti.mockResolvedValue();
@@ -120,7 +120,7 @@ describe("handleEvent", () => {
   });
   
   it("should always insert JTI if parameter name is empty", async () => {
-    process.env.REDIS_JTIS_EXCLUDED_INVALIDATION = "";
+    process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER = "";
 
     jest.spyOn(jsonwebtoken, "decode").mockReturnValue({ ...decodedToken, jti: "_7a11be09cf34ab982d3e" });
     insertJti.mockResolvedValue();
