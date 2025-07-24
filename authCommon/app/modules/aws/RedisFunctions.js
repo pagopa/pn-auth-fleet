@@ -52,10 +52,20 @@ async function disconnectRedis(){
     redisClient = null;
 }
 
+async function set(key, value, options) {
+    await redisClient.set(key, value, options);
+}
+
+async function get(key) {
+    return await redisClient.get(key);
+}
+
 module.exports = {
     connectRedis,
     lockFunction,
     disconnectRedis,
     unlockFunction,
-    extendLockFunction
+    extendLockFunction,
+    get,
+    set,
 };

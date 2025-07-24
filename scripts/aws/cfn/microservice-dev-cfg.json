@@ -18,6 +18,8 @@
     "PgCustomAttributeResolverCacheMaxUsageEpochSec":"300",
     "PgCustomAttributeResolverEnableCache":"true",
     "ConsentTypeEnum": "TOS_DEST_B2B",
-    "PgEnableAccess": "true"
+    "RedisJwtExpHours": "24",
+    "PgEnableAccess": "true",
+    "RedisJtisExcludedInvalidationParameter": "/pn-auth-fleet/redisJtisExcludedInvalidation"  
   }
 }

@@ -1,4 +1,4 @@
-const { AllowedIssuerDao, JwtAttributesDao, COMMON_COSTANTS, MetricsHandler } = require('pn-auth-common');
+const { AllowedIssuerDao, JwtAttributesDao, COMMON_CONSTANTS, MetricsHandler } = require('pn-auth-common');
 
 
 const metricsHandler = new MetricsHandler();
@@ -31,7 +31,7 @@ async function eventHandler(event) {
       const result = await AllowedIssuerDao.listRaddIssuers(lastKey);
 
       for (const iss of result.Items) {
-        const leastRecentDatabaseAttributeTs = await leastRecentAttributeEntry(iss, COMMON_COSTANTS.RADD_RESOLVER_NAME);
+        const leastRecentDatabaseAttributeTs = await leastRecentAttributeEntry(iss, COMMON_CONSTANTS.RADD_RESOLVER_NAME);
 
         if (leastRecentDatabaseAttributeTs < baseliningDeadline) {
           // - Effettuare log a warning dell'elenco degli issuer 
