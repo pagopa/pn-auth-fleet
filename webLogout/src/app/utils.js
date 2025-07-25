@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const getCxType = async (token) => {
+const getCxType = (token) => {
   const { organization } = token;
   if (!organization) {
     return "PF";
@@ -10,11 +10,11 @@ const getCxType = async (token) => {
   return role.startsWith("pg-") ? "PG" : "PA";
 };
 
-const getCxId = async (token) => {
+const getCxId = (token) => {
   return token.organization ? token.organization.id : "PF-" + token.uid;
 };
 
-const getCxRole = async (token) => {
+const getCxRole = (token) => {
   return token.organization?.role;
 };
 
