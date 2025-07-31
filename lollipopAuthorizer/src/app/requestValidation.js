@@ -1,15 +1,8 @@
 const { importJWK } = require('jose');
 
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopConstants');
+const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY } = require('../app/constants/lollipopConstants');
 
-
-
-//algoritmi predefiniti da usare in base al tipo di chiave (kty): in chiaro perchè importJWK non fa il parse del campo alg
-const defaultAlgByKty = {
-  EC: 'ES256',
-  RSA: 'RS256',
-};
 
 async function validatePublicKey(publicKeyBase64Url) {
   // se la chiave pubblica non è presente, lanciamo un errore
@@ -35,7 +28,7 @@ async function validatePublicKey(publicKeyBase64Url) {
   }
 
   // si decide l'algoritmo da usare: se non è specificato, usiamo quello predefinito per il tipo di chiave
-  const algorithmToUse = jwkObject.alg || defaultAlgByKty[jwkObject.kty];
+  const algorithmToUse = jwkObject.alg || DEAFULT_ALG_BY_KTY[jwkObject.kty];
   if (!algorithmToUse) {
     console.error('[validatePublicKey] Algoritmo mancante o non supportato per il tipo di chiave:', jwkObject.kty);
     throw new LollipopRequestContentValidationException(

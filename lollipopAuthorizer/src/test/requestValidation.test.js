@@ -8,7 +8,7 @@ const {
   LollipopRequestContentValidationException,
 } = require('../app/requestValidation');
 
-const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES } = require('../app/constants/lollipopConstants');
+const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES } = require('../test/constants/lollipopConstantsTest');
 
 describe('validatePublicKey (async)', () => {
   // precodifica delle due chiavi in base64url
