@@ -5,11 +5,10 @@ chai.use(chaiAsPromised);
 const base64url = require('base64url');
 const {
   validatePublicKey,
-  validationErrorCodes,
   LollipopRequestContentValidationException,
 } = require('../app/requestValidation');
 
-const { EC_JWK, RSA_JWK } = require('../app/constants/lollipopConstants');
+const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES } = require('../app/constants/lollipopConstants');
 
 describe('validatePublicKey (async)', () => {
   // precodifica delle due chiavi in base64url
@@ -32,7 +31,7 @@ describe('validatePublicKey (async)', () => {
       await validatePublicKey(null);
     } catch (err) {
       expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-      expect(err.errorCode).to.equal(validationErrorCodes.MISSING_PUBLIC_KEY);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY);
     }
   });
 
@@ -42,7 +41,7 @@ describe('validatePublicKey (async)', () => {
       await validatePublicKey('%%%NOT_BASE64');
     } catch (err) {
       expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-      expect(err.errorCode).to.equal(validationErrorCodes.INVALID_PUBLIC_KEY);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
     }
   });
 
@@ -53,7 +52,7 @@ describe('validatePublicKey (async)', () => {
       await validatePublicKey(notJson);
     } catch (err) {
       expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-      expect(err.errorCode).to.equal(validationErrorCodes.INVALID_PUBLIC_KEY);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
     }
   });
 
@@ -66,7 +65,7 @@ describe('validatePublicKey (async)', () => {
       await validatePublicKey(unsupported);
     } catch (err) {
       expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-      expect(err.errorCode).to.equal(validationErrorCodes.INVALID_PUBLIC_KEY);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
     }
   });
 });

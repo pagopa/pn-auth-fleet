@@ -14,8 +14,15 @@ const RSA_JWK = {
 
 const PUBLIC_KEY_HEADER = "x-pagopa-lollipop-public-key";
 
+// codici di errore
+const VALIDATION_ERROR_CODES = {
+  MISSING_PUBLIC_KEY: "MISSING_PUBLIC_KEY",
+  INVALID_PUBLIC_KEY: "INVALID_PUBLIC_KEY",
+};
+
 module.exports = {
   EC_JWK,
   RSA_JWK,
-  PUBLIC_KEY_HEADER
+  PUBLIC_KEY_HEADER,
+  VALIDATION_ERROR_CODES
 };
