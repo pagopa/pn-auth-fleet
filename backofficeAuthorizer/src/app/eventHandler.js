@@ -106,6 +106,7 @@ async function authorizeWithCognito(
   const context = {
     uid: idTokenPayload.sub,
     cx_type: "BO",
+    cx_id: `BO-${idTokenPayload.sub}`
   };
 
   const authResponse = policy.build(context);
