@@ -21,7 +21,15 @@ async function handleEvent(event) {
 
   // Capture taxId from event
   const taxId = event?.headers?.["x-pagopa-cx-taxid"];
-  if (taxId) {
+  const userId = event?.headers?.["x-pagopa-lollipop-user-id"];
+
+   if (!taxId || !userId) {
+      console.error("Missing taxId or userId");
+      return defaultDenyAllPolicy;
+    } else if (taxId !== userId) {
+        console.error("Mismatch between taxId and userId.");
+      return defaultDenyAllPolicy;
+    } else {
     // console.info('taxId', taxId); non si può loggare il codice fiscale, magari mettiamo solo un pezzo!
     try {
       const cxId = await getCxId(taxId);
@@ -34,9 +42,6 @@ async function handleEvent(event) {
       console.error("Error generating IAM policy with error ", err);
       return defaultDenyAllPolicy;
     }
-  } else {
-    console.error("taxId is null");
-    return defaultDenyAllPolicy;
   }
 }
 
