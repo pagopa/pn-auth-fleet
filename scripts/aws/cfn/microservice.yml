@@ -501,6 +501,11 @@ Parameters:
     Default: 24
     Description: "Redis Jti expiration in hours  "
 
+  RedisJtisExcludedInvalidationParameter:
+    Type: String
+    Default: ''
+    Description: "Parameter of excluded JTI for skip invalidation"
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
@@ -776,6 +781,7 @@ Resources:
       Environment:
         Variables:
           REDIS_JTI_EXP_HOURS: !Ref RedisJwtExpHours
+          REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER: !Ref RedisJtisExcludedInvalidationParameter
           REDIS_ENDPOINT: !Ref RedisEndpoint
           USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
           REDIS_SERVER_NAME: !Ref RedisServerlessName
@@ -786,6 +792,9 @@ Resources:
         SecurityGroupIds: 
           - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
+      Layers:
+        - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
+      Timeout: 10
 
   # Lambda function role
   WebLogoutLambdaRole:
@@ -825,6 +834,11 @@ Resources:
                 Resource:
                   - !Ref RedisServerlessArn
                   - !Ref ElasticCacheAuthFleetSessionsUserArn
+              - Sid: AllowLambdaToReadParameterStore
+                Action:
+                  - ssm:GetParameter
+                Effect: Allow
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/pn-auth-fleet/redisJtisExcludedInvalidation"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
 

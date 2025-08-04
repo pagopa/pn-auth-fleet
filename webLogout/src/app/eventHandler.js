@@ -1,8 +1,10 @@
 const jsonwebtoken = require("jsonwebtoken");
 const { insertJti } = require("./redis");
 const { LOG_AUT_TYPE } = require("./constants");
-const { getCxType, getCxId, getCxRole } = require("./utils");
+const { getCxType, getCxId, getCxRole, getParameterFromStore } = require("./utils");
 const { auditLog } = require("./log");
+
+let jtisExcludedFromInvalidation;
 
 const commonRepsonse = {
   headers: {
@@ -10,6 +12,24 @@ const commonRepsonse = {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
   },
   isBase64Encoded: false,
+};
+
+const isJtiExcludedFromInvalidation = async (jti) => {
+  const parameterName = process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER;
+  if (!parameterName) {
+    return false;
+  }
+  if (!Array.isArray(jtisExcludedFromInvalidation)) {
+    try {
+      const list = await getParameterFromStore(parameterName);
+      jtisExcludedFromInvalidation =
+        typeof list === "string" ? list.replace(/['"`]/g, "").split(",") : Array.isArray(list) ? list : [];
+    } catch (error) {
+      console.warn("Error fetching excluded JTI list from store:", error);
+      jtisExcludedFromInvalidation = [];
+    }
+  }
+  return jtisExcludedFromInvalidation.includes(jti);
 };
 
 const handleEvent = async (event) => {
@@ -27,20 +47,22 @@ const handleEvent = async (event) => {
     const cx_type = getCxType(decodedToken);
     const cx_id = getCxId(decodedToken);
     const cx_role = getCxRole(decodedToken);
+    const jtiExcluded = await isJtiExcludedFromInvalidation(jti);
 
-    await insertJti(jti);
-
-    auditLog(
-      `Jti ${jti} was successfully inserted in Redis`,
-      LOG_AUT_TYPE,
-      eventOrigin,
-      "OK",
-      cx_type,
-      cx_id,
-      cx_role,
-      uid,
-      jti
-    ).info("success");
+    if (!jtiExcluded) {
+      await insertJti(jti);
+      auditLog(
+        `Jti ${jti} was successfully inserted in Redis`,
+        LOG_AUT_TYPE,
+        eventOrigin,
+        "OK",
+        cx_type,
+        cx_id,
+        cx_role,
+        uid,
+        jti
+      ).info("success");
+    }
 
     return {
       ...commonRepsonse,

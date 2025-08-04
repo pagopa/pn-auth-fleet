@@ -2,6 +2,7 @@ const { insertJti } = require("./../app/redis");
 const pnAuthCommon = require("pn-auth-common");
 
 jest.mock("pn-auth-common", () => ({
+  ...jest.requireActual("pn-auth-common"),
   RedisHandler: {
     connectRedis: jest.fn(),
     disconnectRedis: jest.fn(),
@@ -23,5 +24,14 @@ describe("insertJti", () => {
     expect(pnAuthCommon.RedisHandler.connectRedis).toHaveBeenCalledWith();
     expect(pnAuthCommon.RedisHandler.set).toHaveBeenCalledWith("pn-session::abc123", "1", { EX: 12 * 3600 });
     expect(pnAuthCommon.RedisHandler.disconnectRedis).toHaveBeenCalled();
+  });
+
+  it("should handle errors during redis operations", async () => {
+    const jti = "errorJti";
+    const errorMessage = "Redis error";
+
+    pnAuthCommon.RedisHandler.set.mockRejectedValue(new Error(errorMessage));
+
+    await expect(insertJti(jti)).rejects.toThrow(errorMessage);
   });
 });

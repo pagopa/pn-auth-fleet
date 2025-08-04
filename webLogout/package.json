@@ -8,14 +8,15 @@
     "prune": "(cd ../../authCommon && npm prune --production) && npm prune --production",
     "zip": "rm -f ./function.zip && zip -r ./function.zip .  -x './src/test/*' -x '*.gitignore' -x 'coverage/*' -x '.nyc_output/*' -x '.scannerwork/*' -x '.env*'",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
-    "test-build": "npm run test && npm run coverage && npm run sonar && npm run build",
-    "coverage": "nyc report --reporter=lcov",
-    "test": "nyc --reporter=html --reporter=text jest --runInBand"
+    "test-build": "(cd ../../authCommon && npm install) && npm run test && npm run coverage && npm run sonar && npm run build",
+    "coverage": "jest --coverage",
+    "test": "jest --coverage --runInBand"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.10.0",
     "bunyan": "^1.8.15",
     "jsonwebtoken": "^9.0.2",
     "pn-auth-common": "file:../authCommon"
