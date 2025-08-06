@@ -58,7 +58,7 @@ describe("index tests", function () {
           },
         ],
       },
-      context: { uid: tokenPayload.sub, cx_type: "BO", cx_id: `BO-${tokenPayload.sub}`},
+      context: { uid: tokenPayload.sub, cx_type: "BO" },
     });
   });
 
@@ -87,7 +87,7 @@ describe("index tests", function () {
           },
         ],
       },
-      context: { uid: tokenPayload.sub, cx_type: "BO", cx_id: `BO-${tokenPayload.sub}`},
+      context: { uid: tokenPayload.sub, cx_type: "BO" },
     });
   });
 });
