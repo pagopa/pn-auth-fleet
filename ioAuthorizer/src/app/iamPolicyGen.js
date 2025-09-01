@@ -1,10 +1,10 @@
 const ValidationException = require("./exception/validationException.js");
 
-async function generateIAMPolicy(resourceArn, cxId) {
+async function generateIAMPolicy(resourceArn, cxId, sourceDetails) {
   const policyStatement = generatePolicyStatement(resourceArn, "Allow");
   if (policyStatement) {
     console.debug("Policy statement generated", policyStatement);
-    return generatePolicy("user", cxId, policyStatement);
+    return generatePolicy("user", cxId, policyStatement, sourceDetails);
   } else {
     throw new ValidationException("Unable to generate policy statement");
   }
@@ -30,7 +30,7 @@ function generatePolicyStatement(resourceArn, action) {
   }
 }
 
-function generatePolicy(principalId, cxId, policyStatement) {
+function generatePolicy(principalId, cxId, policyStatement, sourceDetails) {
   // Generate a fully formed IAM policy
   return {
     principalId: principalId,
@@ -42,6 +42,7 @@ function generatePolicy(principalId, cxId, policyStatement) {
       cx_id: cxId,
       cx_type: "PF",
       uid: "IO-" + cxId,
+      sourceChannelDetails: sourceDetails,
     },
   };
 }
