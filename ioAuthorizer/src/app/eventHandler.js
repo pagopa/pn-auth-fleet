@@ -26,11 +26,11 @@ async function handleEvent(event) {
    if (!taxId || !userId) {
       console.error("Missing taxId or userId");
       return defaultDenyAllPolicy;
-    } else if (taxId !== userId) {
+    } else if (taxId.toUpperCase() !== userId.toUpperCase()) {
         console.error("Mismatch between taxId and userId.");
       return defaultDenyAllPolicy;
     } else {
-    // console.info('taxId', taxId); non si può loggare il codice fiscale, magari mettiamo solo un pezzo!
+        console.info("Match found between taxId and userId")
     try {
       const cxId = await getCxId(taxId);
       console.info("cxId", cxId);

@@ -32,7 +32,7 @@ describe("index tests", function () {
       httpMethod: "GET",
       headers: {
         "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
-        "x-pagopa-lollipop-user-id": "CGNNMO01T10A944Q",
+        "x-pagopa-lollipop-user-id": "cgnnmo01t10a944q",
       },
       requestContext: {
         path: "/request",
