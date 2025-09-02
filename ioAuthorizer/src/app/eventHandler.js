@@ -15,6 +15,11 @@ const defaultDenyAllPolicy = {
   },
 };
 
+/**
+1. Se manca il taxId, la validazione viene rifiutata (è obbligatorio)
+2. Se è presente userId (header lollipop), viene confrontato (uppercase) con il taxId
+3. Se userId non è presente, il controllo sugli header va avanti in quanto è necessario obbligatoriamente solo il taxId
+*/
 async function handleEvent(event) {
   // Declare Policy
   let iamPolicy = null;
@@ -23,10 +28,10 @@ async function handleEvent(event) {
   const taxId = event?.headers?.["x-pagopa-cx-taxid"];
   const userId = event?.headers?.["x-pagopa-lollipop-user-id"];
 
-   if (!taxId || !userId) {
+   if (!taxId) {
       console.error("Missing taxId or userId");
       return defaultDenyAllPolicy;
-    } else if (taxId.toUpperCase() !== userId.toUpperCase()) {
+    } else if (userId && taxId.toUpperCase() !== userId.toUpperCase()) {
         console.error("Mismatch between taxId and userId.");
       return defaultDenyAllPolicy;
     } else {
