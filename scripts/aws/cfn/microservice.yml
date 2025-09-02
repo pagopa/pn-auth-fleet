@@ -36,6 +36,11 @@ Parameters:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
 
+  JwtAuthorizerLambdaTimeout:
+    Type: Number
+    Default: 5
+    Description: Timeout in seconds for the JWT authorizer lambda
+
   B2BAuthorizerLambdaEnvironmentCacheTtl:
     Type: String
     Default: "300"
@@ -699,6 +704,7 @@ Resources:
           USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
           REDIS_SERVER_NAME: !Ref RedisServerlessName
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
+      Timeout: !Ref JwtAuthorizerLambdaTimeout
       TracingConfig:
         Mode: Active
       VpcConfig:
