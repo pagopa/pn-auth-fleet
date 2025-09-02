@@ -32,6 +32,7 @@ describe("index tests", function () {
       httpMethod: "GET",
       headers: {
         "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
+        "x-pagopa-lollipop-user-id": "cgnnmo01t10a944q",
       },
       requestContext: {
         path: "/request",
@@ -67,6 +68,130 @@ describe("index tests", function () {
       .catch(done);
   });
 
+  it("with IAM Policy (only taxId)", function (done) {
+      const event = {
+        type: "REQUEST",
+        methodArn:
+          "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request",
+        resource: "/request",
+        path: "/request",
+        httpMethod: "GET",
+        headers: {
+          "x-pagopa-cx-taxid": "CGNNMO01T10A944Q"
+        },
+        requestContext: {
+          path: "/request",
+          accountId: "123456789012",
+          resourceId: "05c7jb",
+          stage: "test",
+          requestId: "123456789123456789",
+          identity: {
+            apiKey: "123456789",
+          },
+        },
+        resourcePath: "/request",
+        apiId: "abcdef123",
+      };
+
+      lambdaTester(lambda.handler)
+        .event(event)
+        .expectResult((result) => {
+          console.debug("the result is ", result);
+          const statement = result.policyDocument.Statement;
+          console.debug("statement ", statement);
+          expect(statement[0].Action).to.equal("execute-api:Invoke");
+          expect(statement[0].Effect).to.equal("Allow");
+          expect(result.context.cx_id).to.equal(
+            "123e4567-e89b-12d3-a456-426655440000"
+          );
+          expect(result.context.cx_type).to.equal("PF");
+          expect(result.context.uid).to.equal(
+            "IO-123e4567-e89b-12d3-a456-426655440000"
+          );
+          done();
+        })
+        .catch(done);
+    });
+
+    it("with IAM Policy (only userId) - Error header", function (done) {
+          const event = {
+            type: "REQUEST",
+            methodArn:
+              "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request",
+            resource: "/request",
+            path: "/request",
+            httpMethod: "GET",
+            headers: {
+              "x-pagopa-lollipop-user-id": "cgnnmo01t10a944q"
+            },
+            requestContext: {
+              path: "/request",
+              accountId: "123456789012",
+              resourceId: "05c7jb",
+              stage: "test",
+              requestId: "123456789123456789",
+              identity: {
+                apiKey: "123456789",
+              },
+            },
+            resourcePath: "/request",
+            apiId: "abcdef123",
+          };
+
+          lambdaTester(lambda.handler)
+            .event(event)
+            .expectResult((result) => {
+              console.debug("the result is ", result);
+              const statement = result.policyDocument.Statement;
+              console.debug("statement ", statement);
+              expect(statement[0].Action).to.equal("execute-api:Invoke");
+              expect(statement[0].Effect).to.equal("Deny");
+
+              done();
+            })
+            .catch(done);
+        });
+
+  it("with IAM Policy - Error headers", function (done) {
+      const event = {
+        type: "REQUEST",
+        methodArn:
+          "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request",
+        resource: "/request",
+        path: "/request",
+        httpMethod: "GET",
+        headers: {
+          "x-pagopa-cx-taxid": "CGNNMO01T10A944Q",
+          "x-pagopa-lollipop-user-id": "CGXXXX0A944Q",
+        },
+        requestContext: {
+          path: "/request",
+          accountId: "123456789012",
+          resourceId: "05c7jb",
+          stage: "test",
+          requestId: "123456789123456789",
+          identity: {
+            apiKey: "123456789",
+          },
+        },
+        resourcePath: "/request",
+        apiId: "abcdef123",
+      };
+
+      lambdaTester(lambda.handler)
+        .event(event)
+        .expectResult((result) => {
+          console.debug("the result is ", result);
+          const statement = result.policyDocument.Statement;
+          console.debug("statement ", statement);
+          expect(statement[0].Action).to.equal("execute-api:Invoke");
+          expect(statement[0].Effect).to.equal("Deny");
+
+          done();
+        })
+        .catch(done);
+    });
+  
   it("with IAM Policy and valid sourceDetails", function (done) {
     const event = {
       type: "REQUEST",
