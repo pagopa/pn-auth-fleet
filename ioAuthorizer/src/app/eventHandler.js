@@ -37,19 +37,20 @@ async function handleEvent(event) {
   const taxId = event?.headers?.["x-pagopa-cx-taxid"];
   const userId = event?.headers?.["x-pagopa-lollipop-user-id"];
   const sourceDetails = event?.headers?.["x-pagopa-pn-io-src"];
-  if(!validateSourceDetails(sourceDetails)) {
+
+  if (!validateSourceDetails(sourceDetails)) {
     console.error("Invalid source details header", sourceDetails);
     return defaultDenyAllPolicy;
   }
-  
-   if (!taxId) {
-      console.error("Missing taxId or userId");
-      return defaultDenyAllPolicy;
-    } else if (userId && taxId.toUpperCase() !== userId.toUpperCase()) {
-        console.error("Mismatch between taxId and userId.");
-      return defaultDenyAllPolicy;
-    } else {
-        console.info("Match found between taxId and userId")
+
+  if (!taxId) {
+    console.error("Missing taxId or userId");
+    return defaultDenyAllPolicy;
+  } else if (userId && taxId.toUpperCase() !== userId.toUpperCase()) {
+    console.error("Mismatch between taxId and userId.");
+    return defaultDenyAllPolicy;
+  } else {
+    console.info("Match found between taxId and userId");
     try {
       const cxId = await getCxId(taxId);
       console.info("cxId", cxId);
