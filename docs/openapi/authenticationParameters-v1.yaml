@@ -68,7 +68,7 @@ components:
       schema:
         type: string
         maxLength: 3
-        pattern: "B2B|WEB|TPP"
+        pattern: "B2B|WEB|TPP|IO"
     headerSourceChannelDetails:
       name: x-pagopa-pn-src-ch-details
       in: header
@@ -151,3 +151,4 @@ components:
         - 'PF'
         - 'PG'
         - 'RADD'
+        - 'BO'
