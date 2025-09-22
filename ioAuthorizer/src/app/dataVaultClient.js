@@ -47,22 +47,32 @@ async function getCxId(taxId) {
     url: pnDataVaultUrl
   })
   
-  try {
-    const response = await axios.post(pnDataVaultUrl, taxId, {
-      headers: { "Content-Type": "text/plain" },
-      timeout: 2000,
-    });
-    return response.data;
-  } catch (err) {
-    const loggableError = prepareLoggableInfoFromAxiosResponse(err)
-    console.log("External service pn-data-vault PF returned errors", {
-      error: loggableError,
-      url: pnDataVaultUrl,
-      taxId: anonymizedTaxId
-    })
-
-    throw new Error("Error in get external Id");
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await axios.post(pnDataVaultUrl, taxId, {
+        headers: { "Content-Type": "text/plain" },
+        timeout: 2000,
+      });
+      return response.data;
+    } catch (err) {
+      const isTimeout = err.code === 'ECONNABORTED';
+      const is500 = err.response && err.response.status === 500;
+      const loggableError = prepareLoggableInfoFromAxiosResponse(err);
+      console.log(`Attempt ${attempt} failed for pn-data-vault PF`, {
+        error: loggableError,
+        url: pnDataVaultUrl,
+        taxId: anonymizedTaxId
+      });
+      if ((isTimeout || is500) && attempt < 3) {
+        await new Promise(res => setTimeout(res, 1000));
+        continue;
+      }
+      lastError = err;
+      break;
+    }
   }
+  throw new Error("Error in get external Id: " + (lastError ? lastError.message : 'Unknown error'));
 }
 
 module.exports = { getCxId };
