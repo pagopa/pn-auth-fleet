@@ -143,6 +143,20 @@ components:
       required: false
       schema:
         type: string
+    lollipopUserName:
+      name: x-pagopa-lollipop-user-name
+      in: header
+      description: lollipop user name
+      required: false
+      schema:
+        type: string
+    lollipopUserFamilyName:
+      name: x-pagopa-lollipop-user-family-name
+      in: header
+      description: lollipop user family name
+      required: false
+      schema:
+        type: string
   schemas:
     CxTypeAuthFleet:
       type: string
