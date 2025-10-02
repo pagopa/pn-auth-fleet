@@ -68,7 +68,7 @@ components:
       schema:
         type: string
         maxLength: 3
-        pattern: "B2B|WEB|TPP|IO"
+        pattern: "B2B|WEB|TPP|IO|B2BPG"
     headerSourceChannelDetails:
       name: x-pagopa-pn-src-ch-details
       in: header
@@ -140,6 +140,20 @@ components:
       name: signature
       in: header
       description: lollipop signature
+      required: false
+      schema:
+        type: string
+    lollipopUserName:
+      name: x-pagopa-lollipop-user-name
+      in: header
+      description: lollipop user name
+      required: false
+      schema:
+        type: string
+    lollipopUserFamilyName:
+      name: x-pagopa-lollipop-user-family-name
+      in: header
+      description: lollipop user family name
       required: false
       schema:
         type: string
