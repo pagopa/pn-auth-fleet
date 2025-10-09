@@ -37,6 +37,12 @@ function prepareLoggableInfoFromAxiosResponse(err) {
   }
 }
 
+function isErrorToRetry(err){
+  const isTimeout = err.code === 'ECONNABORTED';
+  const is500 = err.response && err.response.status === 500;
+  return isTimeout || is500    
+}
+
 async function getCxId(taxId) {
   const anonymizedTaxId = anonymizeTaxId(taxId);
 
@@ -56,15 +62,13 @@ async function getCxId(taxId) {
       });
       return response.data;
     } catch (err) {
-      const isTimeout = err.code === 'ECONNABORTED';
-      const is500 = err.response && err.response.status === 500;
       const loggableError = prepareLoggableInfoFromAxiosResponse(err);
       console.log(`Attempt ${attempt} failed for pn-data-vault PF`, {
         error: loggableError,
         url: pnDataVaultUrl,
         taxId: anonymizedTaxId
       });
-      if ((isTimeout || is500) && attempt < 3) {
+      if (isErrorToRetry(err) && attempt < 3) {
         await new Promise(res => setTimeout(res, 1000));
         continue;
       }
