@@ -169,6 +169,12 @@ Parameters:
   IoAuthorizerLambdaName:
     Type: String
 
+  IoAuthorizerLambdaMemorySize:
+    Type: Number
+
+  IoAuthorizerLambdaTimeoutInSeconds:
+    Type: Number
+
   JwtAuthorizerLambdaName:
     Type: String
 
@@ -604,6 +610,8 @@ Resources:
       FunctionName: !Ref IoAuthorizerLambdaName
       Runtime: nodejs22.x
       Handler: "index.handler"
+      MemorySize: !Ref IoAuthorizerLambdaMemorySize
+      Timeout: !Ref IoAuthorizerLambdaTimeoutInSeconds
       Code:
         S3Bucket: !Ref LambdasBucketName
         S3Key: !Sub "${BucketBasePath}/ioAuthorizer.zip"
