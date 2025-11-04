@@ -5,6 +5,7 @@ chai.use(chaiAsPromised);
 const base64url = require('base64url');
 const {
   validatePublicKey,
+  validateUserIdHeader,
   LollipopRequestContentValidationException,
 } = require('../app/requestValidation');
 
@@ -68,4 +69,37 @@ describe('validatePublicKey (async)', () => {
       expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
     }
   });
+});
+
+
+describe('validateUserIdHeader ', () => {
+
+    //test con valore userId blank
+    it('should throw MISSING_USER_ID for blankUserId', () => {
+        const blankUserId = null;
+        try{
+            validateUserIdHeader(blankUserId);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_USER_ID);
+        }
+    });
+
+    //test con valore userId Non valido (Lunghezza errata)
+    it('should throw INVALID_USER_ID for noValidUserId', () => {
+        const noValidUserId = 'RSSMRA75C11H501';
+        try {
+            validateUserIdHeader(noValidUserId);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_USER_ID);
+        }
+    });
+
+    //test con valore userId valido -> no exception
+    it('Valid USER_ID for validUserId', () => {
+        const validUserId = 'TROMRA80A01H501F';
+        validateUserIdHeader(validUserId);
+    });
+
 });

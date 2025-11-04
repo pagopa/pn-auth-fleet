@@ -2,7 +2,7 @@ const { importJWK } = require('jose');
 
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
 const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY } = require('../app/constants/lollipopConstants');
-
+const userIdRegex =  /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/;
 
 async function validatePublicKey(publicKeyBase64Url) {
   // se la chiave pubblica non è presente, lanciamo un errore
@@ -49,7 +49,31 @@ async function validatePublicKey(publicKeyBase64Url) {
   }
 }
 
+
+    function validateUserIdHeader(userId){
+      // se userId non è presente, lanciamo un errore
+      if (!userId) {
+        console.error('[validateUserIdHeader] UserId mancante nell’header');
+        throw new LollipopRequestContentValidationException(
+          VALIDATION_ERROR_CODES.MISSING_USER_ID,
+          'Manca lo userId nell’header della richiesta'
+        );
+      }
+      // Converto in maiuscolo per la verifica
+      const userIdUpper = userId.toUpperCase();
+      //const userIdRegex =  /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/;
+      if ( !userIdRegex.test(userIdUpper) ) {
+          console.error('[validateUserIdHeader] Invalid User Id Header value, type not supported');
+          throw new LollipopRequestContentValidationException(
+                VALIDATION_ERROR_CODES.INVALID_USER_ID,
+                'Invalid User Id Header value, type not supported'
+          );
+      }
+    }
+
+
 module.exports = {
   validatePublicKey,
+  validateUserIdHeader,
   LollipopRequestContentValidationException,
 };
