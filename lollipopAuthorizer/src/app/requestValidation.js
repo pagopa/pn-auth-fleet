@@ -1,7 +1,8 @@
 const { importJWK } = require('jose');
 
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY } = require('../app/constants/lollipopConstants');
+const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms } = require('../app/constants/lollipopConstants');
+const {COMPATIBLE_ASSERTION_TYPES} = require("./constants/lollipopConstants");
 
 
 async function validatePublicKey(publicKeyBase64Url) {
@@ -49,7 +50,53 @@ async function validatePublicKey(publicKeyBase64Url) {
   }
 }
 
+//VALIDATE ASSERTION REF HEADER
+async function validateAssertionRefHeader(assertionRef) {
+console.log("ASSERTION REF: ", assertionRef)
+    if(!assertionRef){
+    console.error("[validateAssertionRefHeader] Assertion header mancante");
+    throw new LollipopRequestContentValidationException(VALIDATION_ERROR_CODES.MISSING_ASSERTION_REF_ERROR, "Header AssertionRef mancante");
+    }
+    if (isNotValidAssertionRef(assertionRef)) {
+        console.error("[validateAssertionRefHeader] Valore AssertionRef non valido");
+        throw new LollipopRequestContentValidationException(
+            VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR,
+            "Valore AssertionRef non valido"
+        );
+    }
+}
+// check se assertionRef è compatibile con i pattern validi
+function isNotValidAssertionRef(signature) {
+    const matchesSHA256 = AssertionRefAlgorithms.SHA256.pattern.test(signature);
+    const matchesSHA384 = AssertionRefAlgorithms.SHA384.pattern.test(signature);
+    const matchesSHA512 = AssertionRefAlgorithms.SHA512.pattern.test(signature);
+    return !matchesSHA256 && !matchesSHA384 && !matchesSHA512;
+}
+
+// VALIDATE ASSERTION TYPE HEADER
+function validateAssertionTypeHeader(assertionType) {
+    if (assertionType===null) {
+        console.error("[validateAssertionTypeHeader] Assertion type mancante");
+        throw new LollipopRequestContentValidationException(
+            VALIDATION_ERROR_CODES.MISSING_ASSERTION_TYPE_ERROR,
+            "[validateAssertionTypeHeader] Header AssertionType mancante"
+        );
+    }
+    if (!isAssertionTypeSupported(assertionType)){
+        console.error("[validateAssertionTypeHeader] Invalid Assertion Type Header value, type not supported");
+        throw new LollipopRequestContentValidationException(
+            VALIDATION_ERROR_CODES.INVALID_ASSERTION_TYPE_ERROR,
+            "[validateAssertionTypeHeader] Invalid Assertion Type Header value, type not supported"
+        );
+    }
+}
+
+function isAssertionTypeSupported(assertionType) {
+    return COMPATIBLE_ASSERTION_TYPES.includes(assertionType);
+}
+
 module.exports = {
   validatePublicKey,
+  validateAssertionTypeHeader,
   LollipopRequestContentValidationException,
 };

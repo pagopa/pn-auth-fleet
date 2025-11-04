@@ -5,10 +5,17 @@ chai.use(chaiAsPromised);
 const base64url = require('base64url');
 const {
   validatePublicKey,
+  validateAssertionTypeHeader,
   LollipopRequestContentValidationException,
+
 } = require('../app/requestValidation');
 
-const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES } = require('../test/constants/lollipopConstantsTest');
+const {
+  EC_JWK,
+  RSA_JWK,
+  VALIDATION_ERROR_CODES,
+  VALIDATION_PARAMS,
+} = require('../test/constants/lollipopConstantsTest');
 
 describe('validatePublicKey (async)', () => {
   // precodifica delle due chiavi in base64url
@@ -68,4 +75,29 @@ describe('validatePublicKey (async)', () => {
       expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
     }
   });
+});
+
+describe('validateAssertionTypeHeader (async)', async () => {
+  it("should finish without errors if assertion is not null and compatible",async () => {
+      await expect(function()  {
+        validateAssertionTypeHeader(VALIDATION_PARAMS.VALID_ASSERTION_TYPE)
+      }).not.to.throw();
+  });
+  it("should throw MISSING_ASSERTION_TYPE if assertion ref header is null", async () => {
+    try {
+      await validateAssertionTypeHeader(VALIDATION_PARAMS.MISSING_ASSERTION_TYPE);
+    } catch(err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.be.equal(VALIDATION_ERROR_CODES.MISSING_ASSERTION_TYPE_ERROR);
+    }
+  });
+
+  it("should throw INVALID_ASSERTION_TYPE if assertion ref header is not compatible", async () => {
+    try{
+      await validateAssertionTypeHeader(VALIDATION_PARAMS.INVALID_ASSERTION_TYPE);
+    } catch(err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.be.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_TYPE_ERROR);
+    }
+  })
 });
