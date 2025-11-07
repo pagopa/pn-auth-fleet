@@ -5,10 +5,11 @@ chai.use(chaiAsPromised);
 const base64url = require('base64url');
 const {
   validatePublicKey,
+  validateOriginalMethodHeader,
   LollipopRequestContentValidationException,
 } = require('../app/requestValidation');
 
-const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES } = require('../test/constants/lollipopConstantsTest');
+const { EC_JWK, RSA_JWK, LOLLIPOP_REQUEST_METHOD, VALIDATION_ERROR_CODES, EXPECTED_FIRST_LC_ORIGINAL_METHOD } = require('../test/constants/lollipopConstantsTest');
 
 describe('validatePublicKey (async)', () => {
   // precodifica delle due chiavi in base64url
@@ -68,4 +69,49 @@ describe('validatePublicKey (async)', () => {
       expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
     }
   });
+});
+
+
+describe('validateOriginalMethodHeader (async)', () => {
+
+  const originalMethod = 'POST';
+  // test con OriginalMethod valida -> no exception
+  it('Valid POST OriginalMethod', async () => {
+    await expect(validateOriginalMethodHeader(originalMethod)).to.be.fulfilled;
+  });
+
+    const noValidOriginalMethod = 'DELE';
+    // test con OriginalMethod NON valida -> exception
+    it('should throw INVALID_ORIGINAL_METHOD', async () => {
+        try {
+          await validateOriginalMethodHeader(noValidOriginalMethod);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ORIGINAL_METHOD);
+        }
+    });
+
+    const blankOriginalMethod = null;
+    // test con OriginalMethod NON valorizzato -> exception
+    it('should throw MISSING_ORIGINAL_METHOD', async () => {
+        try {
+          await validateOriginalMethodHeader(blankOriginalMethod);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ORIGINAL_METHOD);
+        }
+    });
+
+
+    const unExpectedOriginalMethod = 'POST';
+    // test con OriginalMethod NON atteso -> exception
+    it('should throw UNEXPECTED_ORIGINAL_METHOD', async () => {
+        try {
+          await validateOriginalMethodHeader(unExpectedOriginalMethod);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_METHOD);
+        }
+    });
+
 });

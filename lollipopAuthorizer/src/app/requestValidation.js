@@ -1,7 +1,7 @@
 const { importJWK } = require('jose');
 
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY } = require('../app/constants/lollipopConstants');
+const { VALIDATION_ERROR_CODES, LOLLIPOP_REQUEST_METHOD, DEAFULT_ALG_BY_KTY, EXPECTED_FIRST_LC_ORIGINAL_METHOD} = require('../app/constants/lollipopConstants');
 
 
 async function validatePublicKey(publicKeyBase64Url) {
@@ -49,7 +49,38 @@ async function validatePublicKey(publicKeyBase64Url) {
   }
 }
 
+
+    async function validateOriginalMethodHeader(originalMethod){
+        // se originalMethod non è presente, lanciamo un errore
+        if (!originalMethod) {
+            console.error('[validateOriginalMethodHeader] originalMethod mancante nell’header');
+            throw new LollipopRequestContentValidationException(
+              VALIDATION_ERROR_CODES.MISSING_ORIGINAL_METHOD,
+              'Manca originalMethod nell’header della richiesta'
+            );
+        }
+
+        if (!Object.values(LOLLIPOP_REQUEST_METHOD).includes(originalMethod)) {
+            throw new LollipopRequestContentValidationException(
+                 VALIDATION_ERROR_CODES.INVALID_ORIGINAL_METHOD,
+                 "Invalid Original Method Header value, method not supported"
+            );
+        }
+
+        const validMethods = EXPECTED_FIRST_LC_ORIGINAL_METHOD.split(';');
+        if (!Object.values(validMethods).includes(originalMethod)) {
+            throw new LollipopRequestContentValidationException(
+                 VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_METHOD,
+                 "Unexpected original method: ", originalMethod
+            );
+        }
+
+    }
+
+
+
 module.exports = {
   validatePublicKey,
+  validateOriginalMethodHeader,
   LollipopRequestContentValidationException,
 };
