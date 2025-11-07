@@ -72,7 +72,7 @@ describe('validatePublicKey (async)', () => {
 });
 
 
-describe('validateUserIdHeader ', () => {
+describe('validateUserIdHeader (async) ', () => {
 
     //test con valore userId blank
     it('should throw MISSING_USER_ID for blankUserId', () => {

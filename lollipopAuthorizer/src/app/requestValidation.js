@@ -50,7 +50,7 @@ async function validatePublicKey(publicKeyBase64Url) {
 }
 
 
-    function validateUserIdHeader(userId){
+   async function validateUserIdHeader(userId){
       // se userId non è presente, lanciamo un errore
       if (!userId) {
         console.error('[validateUserIdHeader] UserId mancante nell’header');
