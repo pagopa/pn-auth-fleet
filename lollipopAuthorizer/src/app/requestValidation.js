@@ -53,7 +53,7 @@ async function validatePublicKey(publicKeyBase64Url) {
     async function validateOriginalMethodHeader(originalMethod){
         // se originalMethod non è presente, lanciamo un errore
         if (!originalMethod) {
-            console.error('[validateOriginalMethodHeader] originalMethod mancante nell’header');
+            console.error('[validateOriginalMethodHeader] ERROR: originalMethod mancante nell’header');
             throw new LollipopRequestContentValidationException(
               VALIDATION_ERROR_CODES.MISSING_ORIGINAL_METHOD,
               'Manca originalMethod nell’header della richiesta'
@@ -61,6 +61,7 @@ async function validatePublicKey(publicKeyBase64Url) {
         }
 
         if (!Object.values(LOLLIPOP_REQUEST_METHOD).includes(originalMethod)) {
+            console.error('[validateOriginalMethodHeader] ERROR: Invalid OriginalMethod Header value, method not supported');
             throw new LollipopRequestContentValidationException(
                  VALIDATION_ERROR_CODES.INVALID_ORIGINAL_METHOD,
                  "Invalid Original Method Header value, method not supported"
@@ -69,6 +70,7 @@ async function validatePublicKey(publicKeyBase64Url) {
 
         const validMethods = EXPECTED_FIRST_LC_ORIGINAL_METHOD.split(';');
         if (!Object.values(validMethods).includes(originalMethod)) {
+            console.error('[validateOriginalMethodHeader] ERROR: Unexpected originalMethod: "' + originalMethod + '"');
             throw new LollipopRequestContentValidationException(
                  VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_METHOD,
                  "Unexpected original method: ", originalMethod

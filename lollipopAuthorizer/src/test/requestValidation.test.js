@@ -103,7 +103,7 @@ describe('validateOriginalMethodHeader (async)', () => {
     });
 
 
-    const unExpectedOriginalMethod = 'POST';
+    const unExpectedOriginalMethod = 'DELETE';
     // test con OriginalMethod NON atteso -> exception
     it('should throw UNEXPECTED_ORIGINAL_METHOD', async () => {
         try {
