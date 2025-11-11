@@ -9,7 +9,7 @@ const {
   LollipopRequestContentValidationException,
 } = require('../app/requestValidation');
 
-const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES, SIGNATURE_REGEXP } = require('../test/constants/lollipopConstantsTest');
+const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES, SIGNATURE_INPUT_REGEXP } = require('../test/constants/lollipopConstantsTest');
 
 describe('validatePublicKey (async)', () => {
   // precodifica delle due chiavi in base64url
@@ -90,7 +90,7 @@ describe('validateSignatureInputHeader (async) ', () => {
         const noValidSignatureInput = 'tag1=valueA, sig2=valueB';
         try {
 //            console.log("TEST signatureInput: " + noValidSignatureInput);
-//            const regexOrig = new RegExp(SIGNATURE_REGEXP);
+//            const regexOrig = new RegExp(SIGNATURE_INPUT_REGEXP);
 //            console.log("signatureInput: " + regexOrig.test(noValidSignatureInput));
             validateSignatureInputHeader(noValidSignatureInput);
         } catch (err) {

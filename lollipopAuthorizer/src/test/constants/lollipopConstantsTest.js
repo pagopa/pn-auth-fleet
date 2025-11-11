@@ -18,11 +18,19 @@ const PUBLIC_KEY_HEADER = "x-pagopa-lollipop-public-key";
 const VALIDATION_ERROR_CODES = {
   MISSING_PUBLIC_KEY: "MISSING_PUBLIC_KEY",
   INVALID_PUBLIC_KEY: "INVALID_PUBLIC_KEY",
+  MISSING_SIGNATURE_INPUT: "MISSING_SIGNATURE_INPUT",
+  INVALID_SIGNATURE_INPUT: "INVALID_SIGNATURE_INPUT"
 };
+
+//validare una lista di coppie chiave-valore separate da virgole:
+//Inizia esattamente con sig seguito da uno o più cifre, seguito da '=' seguito da qualsiasi sequenza di caratteri tranne la virgola
+//Separatore tra Coppie: Una virgola opzionale seguita da uno spazio opzionale ((, ?+)?+).
+const SIGNATURE_INPUT_REGEXP = '^(((sig[\\d]+)=[^,]*)(, ?)?)+$';
 
 module.exports = {
   EC_JWK,
   RSA_JWK,
   PUBLIC_KEY_HEADER,
-  VALIDATION_ERROR_CODES
+  VALIDATION_ERROR_CODES,
+  SIGNATURE_INPUT_REGEXP
 };

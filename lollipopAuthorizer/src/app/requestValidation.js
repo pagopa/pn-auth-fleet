@@ -1,7 +1,7 @@
 const { importJWK } = require('jose');
 
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY, SIGNATURE_REGEXP } = require('../app/constants/lollipopConstants');
+const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY, SIGNATURE_INPUT_REGEXP } = require('../app/constants/lollipopConstants');
 
 
 async function validatePublicKey(publicKeyBase64Url) {
@@ -60,7 +60,7 @@ async function validateSignatureInputHeader(signatureInput){
         );
     }
 
-    const regexOrig = new RegExp(SIGNATURE_REGEXP);
+    const regexOrig = new RegExp(SIGNATURE_INPUT_REGEXP);
     if ( !(regexOrig.test(signatureInput)) ) {
       console.error('[validateSignatureInputHeader] ERROR: Invalid signatureInput Header value, type not supported');
       throw new LollipopRequestContentValidationException(
