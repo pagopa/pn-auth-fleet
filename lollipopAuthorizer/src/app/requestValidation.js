@@ -1,7 +1,7 @@
 const { importJWK } = require('jose');
 
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY } = require('../app/constants/lollipopConstants');
+const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY, ORIGINAL_URL_REGEX, EXPECTED_FIRST_LC_ORIGINAL_URL } = require('../app/constants/lollipopConstants');
 
 
 async function validatePublicKey(publicKeyBase64Url) {
@@ -49,7 +49,36 @@ async function validatePublicKey(publicKeyBase64Url) {
   }
 }
 
+async function validateOriginalURLHeader( originalURL){
+    if (!originalURL) {
+        console.error('[validateOriginalURLHeader] ERROR: Missing Original URL Header');
+        throw new LollipopRequestContentValidationException(
+          VALIDATION_ERROR_CODES.MISSING_ORIGINAL_URL,
+          'Missing Original URL Header'
+        );
+    }
+
+    const regexOrig = new RegExp(ORIGINAL_URL_REGEX);
+    if ( !(regexOrig.test(originalURL)) ) {
+      console.error('[validateOriginalURLHeader] ERROR: Invalid originalURL Header value, type not supported');
+      throw new LollipopRequestContentValidationException(
+            VALIDATION_ERROR_CODES.INVALID_ORIGINAL_URL,
+            'Invalid originalURL Header value, type not supported'
+      );
+    }
+
+    const regex = new RegExp(EXPECTED_FIRST_LC_ORIGINAL_URL);
+    if( !(regex.test(originalURL)) ){
+        console.error('[validateOriginalURLHeader] ERROR: Unexpected original url ' + originalURL);
+        throw new LollipopRequestContentValidationException(
+            VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_URL,
+            'Unexpected original url: ' + originalURL);
+    }
+}
+
+
 module.exports = {
   validatePublicKey,
+  validateOriginalURLHeader,
   LollipopRequestContentValidationException,
 };

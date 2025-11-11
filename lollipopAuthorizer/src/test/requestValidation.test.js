@@ -5,10 +5,11 @@ chai.use(chaiAsPromised);
 const base64url = require('base64url');
 const {
   validatePublicKey,
+  validateOriginalURLHeader,
   LollipopRequestContentValidationException,
 } = require('../app/requestValidation');
 
-const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES } = require('../test/constants/lollipopConstantsTest');
+const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES, ORIGINAL_URL_REGEX, EXPECTED_FIRST_LC_ORIGINAL_URL } = require('../test/constants/lollipopConstantsTest');
 
 describe('validatePublicKey (async)', () => {
   // precodifica delle due chiavi in base64url
@@ -68,4 +69,37 @@ describe('validatePublicKey (async)', () => {
       expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
     }
   });
+});
+
+
+describe('validateOriginalURLHeader (async) ', () => {
+
+    //test con valore OriginalURL blank
+    it('should throw MISSING_ORIGINAL_URL for blankOriginalURL', () => {
+        const blankOriginalURL = null;
+        try{
+            validateOriginalURLHeader(blankOriginalURL);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ORIGINAL_URL);
+        }
+    });
+
+    //test con valore OriginalURL Non valido (http invece di https)
+    it('should throw INVALID_ORIGINAL_URL for noValidOriginalURL', () => {
+        const noValidOriginalURL = 'http://pippo/paperino$';
+        try {
+            validateOriginalURLHeader(noValidOriginalURL);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ORIGINAL_URL);
+        }
+    });
+
+    //test con valore OriginalURL valido -> no exception
+    it('Valid ORIGINAL_URL for validOriginalURL', () => {
+        const validOriginalURL = 'https://pippo/pluto/paperino$';
+        validateOriginalURLHeader(validOriginalURL);
+    });
+
 });
