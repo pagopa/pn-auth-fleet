@@ -1,4 +1,3 @@
-//chiave JWT in formato EC
 const EC_JWK = {
   kty: "EC",
   crv: "P-256",
@@ -6,7 +5,6 @@ const EC_JWK = {
   y: "hdV0oxmWFSxMoJUDpdihr76rS8VRBEqMFebYyAfK9-k"
 };
 
-//chiava JWT in formato RSA
 const RSA_JWK = {
   alg: "RS256",
   e: "65537",

@@ -7,7 +7,6 @@ const {
   validatePublicKey,
   validateAssertionTypeHeader,
   LollipopRequestContentValidationException,
-
 } = require('../app/requestValidation');
 
 const {
@@ -72,7 +71,75 @@ describe('validatePublicKey (async)', () => {
       await validatePublicKey(unsupported);
     } catch (err) {
       expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR);
+    }
+  });
+});
+
+//TEST ASSERTIONREFHEADER
+describe('validateAssertionRefHeader (async)',() =>{
+it('should pass with valid assertion header', async () => {
+    await validateAssertionRefHeader(VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA256); // nessun errore atteso
+  });
+
+
+  it('should throw MISSING_ASSERTION_REF_ERROR if assertionRef is null', async () => {
+    try {
+      await validateAssertionRefHeader(null);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ASSERTION_REF_ERROR);
+    }
+  });
+
+  it('should throw INVALID_ASSERTION_REF_ERROR if assertionRef has invalid format', async () => {
+    try {
+      await validateAssertionRefHeader(VALIDATION_PARAMS.INVALID_ASSERTION_REF_SHA);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
+    }
+  });
+
+  it('should accept valid SHA256 assertionRef', async () => {
+    await expect(validateAssertionRefHeader(VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA256)).to.be.fulfilled;
+  });
+
+  it('should accept valid SHA384 assertionRef', async () => {
+    await expect(validateAssertionRefHeader(VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA384)).to.be.fulfilled;
+  });
+
+  it('should accept valid SHA512 assertionRef', async () => {
+    await expect(validateAssertionRefHeader(VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA512)).to.be.fulfilled;
+  });
+
+  it('should throw INVALID_ASSERTION_REF for wrong prefix', async () => {
+    const wrongPrefix = 'sha1-' + 'A'.repeat(44);
+    try {
+      await validateAssertionRefHeader(wrongPrefix);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
+    }
+  });
+
+  it('should throw INVALID_ASSERTION_REF if base64url part is too short', async () => {
+    const tooShort = 'sha256-A';
+    try {
+      await validateAssertionRefHeader(tooShort);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
+    }
+  });
+
+  it('should throw INVALID_ASSERTION_REF if base64url part is too long', async () => {
+    const tooLong = 'sha256-' + 'A'.repeat(100);
+    try {
+      await validateAssertionRefHeader(tooLong);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
     }
   });
 });

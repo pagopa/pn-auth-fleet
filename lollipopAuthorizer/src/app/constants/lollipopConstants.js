@@ -8,6 +8,10 @@ const VALIDATION_ERROR_CODES = {
   INVALID_ASSERTION_REF_ERROR: "INVALID_ASSERTION_REF",
   MISSING_ASSERTION_TYPE_ERROR: "MISSING_ASSERTION_TYPE",
   INVALID_ASSERTION_TYPE_ERROR: "INVALID_ASSERTION_TYPE",
+  MISSING_PUBLIC_KEY_ERROR: "MISSING_PUBLIC_KEY",
+  INVALID_PUBLIC_KEY_ERROR: "INVALID_PUBLIC_KEY",
+  MISSING_ASSERTION_REF_ERROR: "MISSING_ASSERTION_REF",
+  INVALID_ASSERTION_REF_ERROR: "INVALID_ASSERTION_REF"
 };
 
 //algoritmi predefiniti da usare in base al tipo di chiave (kty): in chiaro perchè importJWK non fa il parse del campo alg
@@ -17,9 +21,9 @@ const DEAFULT_ALG_BY_KTY = {
 };
 
 const AssertionRefAlgorithms = {
-  SHA256: { pattern: /^sha256-[A-Za-z0-9_-]{44}$/ },
-  SHA384: { pattern: /^sha384-[A-Za-z0-9_-]{66}$/ },
-  SHA512: { pattern: /^sha512-[A-Za-z0-9_-]{86}$/ },
+    SHA256: { pattern: /^sha256-[A-Za-z0-9_-]{44}$/ },
+    SHA384: { pattern: /^sha384-[A-Za-z0-9_-]{66}$/ },
+    SHA512: { pattern: /^sha512-[A-Za-z0-9_-]{86}$/ },
 };
 
 const COMPATIBLE_ASSERTION_TYPES=[
