@@ -2,9 +2,9 @@ const { importJWK } = require('jose');
 
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
 const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms } = require('../app/constants/lollipopConstants');
+const {COMPATIBLE_ASSERTION_TYPES} = require("./constants/lollipopConstants");
 
 
-// VALIDATE PUBLIC KEY
 async function validatePublicKey(publicKeyBase64Url) {
   // se la chiave pubblica non è presente, lanciamo un errore
   if (!publicKeyBase64Url) {
@@ -73,8 +73,31 @@ function isNotValidAssertionRef(signature) {
     return !matchesSHA256 && !matchesSHA384 && !matchesSHA512;
 }
 
+// VALIDATE ASSERTION TYPE HEADER
+function validateAssertionTypeHeader(assertionType) {
+    if (assertionType===null) {
+        console.error("[validateAssertionTypeHeader] Assertion type mancante");
+        throw new LollipopRequestContentValidationException(
+            VALIDATION_ERROR_CODES.MISSING_ASSERTION_TYPE_ERROR,
+            "[validateAssertionTypeHeader] Header AssertionType mancante"
+        );
+    }
+    if (!isAssertionTypeSupported(assertionType)){
+        console.error("[validateAssertionTypeHeader] Invalid Assertion Type Header value, type not supported");
+        throw new LollipopRequestContentValidationException(
+            VALIDATION_ERROR_CODES.INVALID_ASSERTION_TYPE_ERROR,
+            "[validateAssertionTypeHeader] Invalid Assertion Type Header value, type not supported"
+        );
+    }
+}
+
+function isAssertionTypeSupported(assertionType) {
+    return COMPATIBLE_ASSERTION_TYPES.includes(assertionType);
+}
+
 module.exports = {
   validatePublicKey,
   validateAssertionRefHeader,
+  validateAssertionTypeHeader,
   LollipopRequestContentValidationException,
 };

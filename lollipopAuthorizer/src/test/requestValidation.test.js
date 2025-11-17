@@ -6,10 +6,16 @@ const base64url = require('base64url');
 const {
   validatePublicKey,
   validateAssertionRefHeader,
+  validateAssertionTypeHeader,
   LollipopRequestContentValidationException,
 } = require('../app/requestValidation');
 
-const { EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES, VALIDATION_PARAMS, AssertionRefAlgorithms } = require('../test/constants/lollipopConstantsTest');
+const {
+  EC_JWK,
+  RSA_JWK,
+  VALIDATION_ERROR_CODES,
+  VALIDATION_PARAMS,
+} = require('../test/constants/lollipopConstantsTest');
 
 describe('validatePublicKey (async)', () => {
   // precodifica delle due chiavi in base64url
@@ -27,38 +33,38 @@ describe('validatePublicKey (async)', () => {
   });
 
   // test chiave mancante -> exception
-  it('should throw MISSING_PUBLIC_KEY_ERROR if publicKey is null', async () => {
+  it('should throw MISSING_PUBLIC_KEY if publicKey is null', async () => {
     try {
       await validatePublicKey(null);
     } catch (err) {
       expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY_ERROR);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY);
     }
   });
 
   // test stringa non codificata in base64url -> exception
-  it('should throw INVALID_PUBLIC_KEY_ERROR if publicKey is not base64url', async () => {
+  it('should throw INVALID_PUBLIC_KEY if publicKey is not base64url', async () => {
     try {
       await validatePublicKey('%%%NOT_BASE64');
     } catch (err) {
       expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
     }
   });
 
  // test contenuto decodificato non è JSON un valido -> exception
-  it('should throw INVALID_PUBLIC_KEY_ERROR if publicKey is not JSON', async () => {
+  it('should throw INVALID_PUBLIC_KEY if publicKey is not JSON', async () => {
     const notJson = base64url.encode('not a json');
     try {
       await validatePublicKey(notJson);
     } catch (err) {
       expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
     }
   });
 
   //test con chiave di un tipo non supportato (kty) -> exception
-  it('should throw INVALID_PUBLIC_KEY_ERROR for unsupported kty', async () => {
+  it('should throw INVALID_PUBLIC_KEY for unsupported kty', async () => {
     const unsupported = base64url.encode(JSON.stringify({
       kty: 'unsupported'
     }));
@@ -137,4 +143,29 @@ it('should pass with valid assertion header', async () => {
       expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
     }
   });
+});
+
+describe('validateAssertionTypeHeader (async)', async () => {
+  it("should finish without errors if assertion is not null and compatible",async () => {
+      await expect(function()  {
+        validateAssertionTypeHeader(VALIDATION_PARAMS.VALID_ASSERTION_TYPE)
+      }).not.to.throw();
+  });
+  it("should throw MISSING_ASSERTION_TYPE if assertion ref header is null", async () => {
+    try {
+      await validateAssertionTypeHeader(VALIDATION_PARAMS.MISSING_ASSERTION_TYPE);
+    } catch(err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.be.equal(VALIDATION_ERROR_CODES.MISSING_ASSERTION_TYPE_ERROR);
+    }
+  });
+
+  it("should throw INVALID_ASSERTION_TYPE if assertion ref header is not compatible", async () => {
+    try{
+      await validateAssertionTypeHeader(VALIDATION_PARAMS.INVALID_ASSERTION_TYPE);
+    } catch(err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.be.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_TYPE_ERROR);
+    }
+  })
 });
