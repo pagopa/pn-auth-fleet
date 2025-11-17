@@ -10,7 +10,7 @@ async function validatePublicKey(publicKeyBase64Url) {
   if (!publicKeyBase64Url) {
     console.error('[validatePublicKey] Chiave pubblica mancante nell’header');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY,
+      VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY_ERROR,
       'Manca la chiave pubblica nell’header della richiesta'
     );
   }
@@ -23,7 +23,7 @@ async function validatePublicKey(publicKeyBase64Url) {
   } catch (err) {
     console.error('[validatePublicKey] Codifica base64url non valida o JSON malformato');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY,
+      VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
       'La chiave pubblica deve essere un JSON codificato in base64url'
     );
   }
@@ -33,7 +33,7 @@ async function validatePublicKey(publicKeyBase64Url) {
   if (!algorithmToUse) {
     console.error('[validatePublicKey] Algoritmo mancante o non supportato per il tipo di chiave:', jwkObject.kty);
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY,
+      VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
       `Algoritmo mancante o non supportato per il tipo di chiave ${jwkObject.kty}`
     );
   }
@@ -44,7 +44,7 @@ async function validatePublicKey(publicKeyBase64Url) {
   } catch (err) {
     console.error('[validatePublicKey] Importazione della chiave JWK fallita:', err);
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY,
+      VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
       'La chiave pubblica fornita ha un formato non valido o non è supportata'
     );
   }
@@ -97,6 +97,7 @@ function isAssertionTypeSupported(assertionType) {
 
 module.exports = {
   validatePublicKey,
+  validateAssertionRefHeader,
   validateAssertionTypeHeader,
   LollipopRequestContentValidationException,
 };

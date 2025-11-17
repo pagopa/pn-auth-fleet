@@ -5,6 +5,7 @@ chai.use(chaiAsPromised);
 const base64url = require('base64url');
 const {
   validatePublicKey,
+  validateAssertionRefHeader,
   validateAssertionTypeHeader,
   LollipopRequestContentValidationException,
 } = require('../app/requestValidation');
