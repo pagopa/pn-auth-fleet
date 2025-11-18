@@ -4,12 +4,22 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const base64url = require('base64url');
 const {
+  validatePublicKey,
+  validateUserIdHeader,
+  validateAssertionRefHeader,
+  validateAssertionTypeHeader,
+  LollipopRequestContentValidationException,
     validatePublicKey,
     LollipopRequestContentValidationException,
     validateAuthJWTHeader,
 } = require('../app/requestValidation');
 
-const {EC_JWK, RSA_JWK, VALIDATION_ERROR_CODES} = require('../test/constants/lollipopConstantsTest');
+const {
+  EC_JWK,
+  RSA_JWK,
+  VALIDATION_ERROR_CODES,
+  VALIDATION_PARAMS,
+} = require('../test/constants/lollipopConstantsTest');
 const {VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
 
 describe('validatePublicKey (async)', () => {
@@ -58,19 +68,76 @@ describe('validatePublicKey (async)', () => {
         }
     });
 
-    //test con chiave di un tipo non supportato (kty) -> exception
-    it('should throw INVALID_PUBLIC_KEY for unsupported kty', async () => {
-        const unsupported = base64url.encode(JSON.stringify({
-            kty: 'unsupported'
-        }));
-        try {
-            await validatePublicKey(unsupported);
-        } catch (err) {
-            expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-            expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
-        }
-    });
+  //test con chiave di un tipo non supportato (kty) -> exception
+  it('should throw INVALID_PUBLIC_KEY for unsupported kty', async () => {
+    const unsupported = base64url.encode(JSON.stringify({
+      kty: 'unsupported'
+    }));
+    try {
+      await validatePublicKey(unsupported);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR);
+    }
+  });
 });
+
+//TEST ASSERTIONREFHEADER
+describe('validateAssertionRefHeader (async)',() =>{
+it('should pass with valid assertion header', async () => {
+    await validateAssertionRefHeader(VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA256); // nessun errore atteso
+  });
+
+
+  it('should throw MISSING_ASSERTION_REF_ERROR if assertionRef is null', async () => {
+    try {
+      await validateAssertionRefHeader(null);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ASSERTION_REF_ERROR);
+    }
+  });
+
+  it('should throw INVALID_ASSERTION_REF_ERROR if assertionRef has invalid format', async () => {
+    try {
+      await validateAssertionRefHeader(VALIDATION_PARAMS.INVALID_ASSERTION_REF_SHA);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
+    }
+  });
+
+  it('should accept valid SHA256 assertionRef', async () => {
+    await expect(validateAssertionRefHeader(VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA256)).to.be.fulfilled;
+  });
+
+  it('should accept valid SHA384 assertionRef', async () => {
+    await expect(validateAssertionRefHeader(VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA384)).to.be.fulfilled;
+  });
+
+  it('should accept valid SHA512 assertionRef', async () => {
+    await expect(validateAssertionRefHeader(VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA512)).to.be.fulfilled;
+  });
+
+  it('should throw INVALID_ASSERTION_REF for wrong prefix', async () => {
+    const wrongPrefix = 'sha1-' + 'A'.repeat(44);
+    try {
+      await validateAssertionRefHeader(wrongPrefix);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
+    }
+  });
+
+  it('should throw INVALID_ASSERTION_REF if base64url part is too short', async () => {
+    const tooShort = 'sha256-A';
+    try {
+      await validateAssertionRefHeader(tooShort);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
+    }
+  });
 
 describe('validateAuthJWTHeader (async)', () => {
 
@@ -98,4 +165,72 @@ describe('validateAuthJWTHeader (async)', () => {
             expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_AUTH_JWT);
         }
     });
+});
+
+  it('should throw INVALID_ASSERTION_REF if base64url part is too long', async () => {
+    const tooLong = 'sha256-' + 'A'.repeat(100);
+    try {
+      await validateAssertionRefHeader(tooLong);
+    } catch (err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
+    }
+  });
+});
+
+describe('validateAssertionTypeHeader (async)', async () => {
+  it("should finish without errors if assertion is not null and compatible",async () => {
+      await expect(function()  {
+        validateAssertionTypeHeader(VALIDATION_PARAMS.VALID_ASSERTION_TYPE)
+      }).not.to.throw();
+  });
+  it("should throw MISSING_ASSERTION_TYPE if assertion ref header is null", async () => {
+    try {
+      await validateAssertionTypeHeader(VALIDATION_PARAMS.MISSING_ASSERTION_TYPE);
+    } catch(err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.be.equal(VALIDATION_ERROR_CODES.MISSING_ASSERTION_TYPE_ERROR);
+    }
+  });
+
+  it("should throw INVALID_ASSERTION_TYPE if assertion ref header is not compatible", async () => {
+    try{
+      await validateAssertionTypeHeader(VALIDATION_PARAMS.INVALID_ASSERTION_TYPE);
+    } catch(err) {
+      expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+      expect(err.errorCode).to.be.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_TYPE_ERROR);
+    }
+  })
+});
+
+describe('validateUserIdHeader (async) ', () => {
+
+    //test con valore userId blank
+    it('should throw MISSING_USER_ID for blankUserId', () => {
+        const blankUserId = null;
+        try{
+            validateUserIdHeader(blankUserId);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_USER_ID);
+        }
+    });
+
+    //test con valore userId Non valido (Lunghezza errata)
+    it('should throw INVALID_USER_ID for noValidUserId', () => {
+        const noValidUserId = 'RSSMRA75C11H501';
+        try {
+            validateUserIdHeader(noValidUserId);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_USER_ID);
+        }
+    });
+
+    //test con valore userId valido -> no exception
+    it('Valid USER_ID for validUserId', () => {
+        const validUserId = 'TROMRA80A01H501F';
+        validateUserIdHeader(validUserId);
+    });
+
 });
