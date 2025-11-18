@@ -118,10 +118,26 @@ function isAssertionTypeSupported(assertionType) {
     }
 
 
+function validateAuthJWTHeader(authJWT){
+  if (authJWT===null) {
+    throw new LollipopRequestContentValidationException(
+        VALIDATION_ERROR_CODES.MISSING_AUTH_JWT,
+        "[validateAuthJWTHeader] Missing Auth JWT Header"
+    );
+  }
+  if (authJWT===""){
+    throw new LollipopRequestContentValidationException(
+        VALIDATION_ERROR_CODES.INVALID_AUTH_JWT,
+        "[validateAuthJWTHeader] Invalid Auth JWT Header value, cannot be empty"
+    );
+  }
+}
+
 module.exports = {
   validatePublicKey,
   validateAssertionRefHeader,
   validateAssertionTypeHeader,
   validateUserIdHeader,
   LollipopRequestContentValidationException,
+  validateAuthJWTHeader,
 };
