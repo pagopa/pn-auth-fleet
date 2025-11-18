@@ -1,7 +1,7 @@
 const { importJWK } = require('jose');
 
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms, USER_ID_REGEX, LOLLIPOP_REQUEST_METHOD, EXPECTED_FIRST_LC_ORIGINAL_METHOD } = require('../app/constants/lollipopConstants');
+const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms, USER_ID_REGEX, EXPECTED_FIRST_LC_ORIGINAL_METHOD } = require('../app/constants/lollipopConstants');
 const {COMPATIBLE_ASSERTION_TYPES} = require("./constants/lollipopConstants");
 
 

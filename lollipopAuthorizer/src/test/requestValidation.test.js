@@ -18,7 +18,6 @@ const {
   RSA_JWK,
   VALIDATION_ERROR_CODES,
   VALIDATION_PARAMS,
-  LOLLIPOP_REQUEST_METHOD,
   EXPECTED_FIRST_LC_ORIGINAL_METHOD
 } = require('../test/constants/lollipopConstantsTest');
 const {VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
