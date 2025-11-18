@@ -9,6 +9,7 @@ const {
   validateAssertionRefHeader,
   validateAssertionTypeHeader,
   validateOriginalMethodHeader,
+  validateOriginalURLHeader,
   LollipopRequestContentValidationException,
   validateAuthJWTHeader,
 } = require('../app/requestValidation');
@@ -18,7 +19,9 @@ const {
   RSA_JWK,
   VALIDATION_ERROR_CODES,
   VALIDATION_PARAMS,
-  EXPECTED_FIRST_LC_ORIGINAL_METHOD
+  EXPECTED_FIRST_LC_ORIGINAL_METHOD,
+  ORIGINAL_URL_REGEX,
+  EXPECTED_FIRST_LC_ORIGINAL_UR
 } = require('../test/constants/lollipopConstantsTest');
 const {VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
 
@@ -264,6 +267,38 @@ describe('validateOriginalMethodHeader (async)', () => {
           expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
           expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_METHOD);
         }
+    });
+
+});
+
+describe('validateOriginalURLHeader (async) ', () => {
+
+    //test con valore OriginalURL blank
+    it('should throw MISSING_ORIGINAL_URL for blankOriginalURL', () => {
+        const blankOriginalURL = null;
+        try{
+            validateOriginalURLHeader(blankOriginalURL);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ORIGINAL_URL);
+        }
+    });
+
+    //test con valore OriginalURL Non valido (http invece di https)
+    it('should throw INVALID_ORIGINAL_URL for noValidOriginalURL', () => {
+        const noValidOriginalURL = 'http://pippo/paperino$';
+        try {
+            validateOriginalURLHeader(noValidOriginalURL);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ORIGINAL_URL);
+        }
+    });
+
+    //test con valore OriginalURL valido -> no exception
+    it('Valid ORIGINAL_URL for validOriginalURL', () => {
+        const validOriginalURL = 'https://pippo/pluto/paperino$';
+        validateOriginalURLHeader(validOriginalURL);
     });
 
 });
