@@ -60,13 +60,6 @@ async function validatePublicKey(publicKeyBase64Url) {
             );
         }
 
-        if (!Object.values(LOLLIPOP_REQUEST_METHOD).includes(originalMethod)) {
-            console.error('[validateOriginalMethodHeader] ERROR: Invalid OriginalMethod Header value, method not supported');
-            throw new LollipopRequestContentValidationException(
-                 VALIDATION_ERROR_CODES.INVALID_ORIGINAL_METHOD,
-                 "Invalid Original Method Header value, method not supported"
-            );
-        }
 
         const validMethods = EXPECTED_FIRST_LC_ORIGINAL_METHOD.split(';');
         if (!Object.values(validMethods).includes(originalMethod)) {

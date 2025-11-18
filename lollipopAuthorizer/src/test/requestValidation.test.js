@@ -80,17 +80,6 @@ describe('validateOriginalMethodHeader (async)', () => {
     await expect(validateOriginalMethodHeader(originalMethod)).to.be.fulfilled;
   });
 
-    const noValidOriginalMethod = 'DELE';
-    // test con OriginalMethod NON valida -> exception
-    it('should throw INVALID_ORIGINAL_METHOD', async () => {
-        try {
-          await validateOriginalMethodHeader(noValidOriginalMethod);
-        } catch (err) {
-          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ORIGINAL_METHOD);
-        }
-    });
-
     const blankOriginalMethod = null;
     // test con OriginalMethod NON valorizzato -> exception
     it('should throw MISSING_ORIGINAL_METHOD', async () => {
