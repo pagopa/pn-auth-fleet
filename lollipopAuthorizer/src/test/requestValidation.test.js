@@ -8,6 +8,7 @@ const {
   validateUserIdHeader,
   validateAssertionRefHeader,
   validateAssertionTypeHeader,
+  validateOriginalMethodHeader,
   LollipopRequestContentValidationException,
   validateAuthJWTHeader,
 } = require('../app/requestValidation');
@@ -17,6 +18,7 @@ const {
   RSA_JWK,
   VALIDATION_ERROR_CODES,
   VALIDATION_PARAMS,
+  EXPECTED_FIRST_LC_ORIGINAL_METHOD
 } = require('../test/constants/lollipopConstantsTest');
 const {VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
 
@@ -229,6 +231,39 @@ describe('validateUserIdHeader (async) ', () => {
     it('Valid USER_ID for validUserId', () => {
         const validUserId = 'TROMRA80A01H501F';
         validateUserIdHeader(validUserId);
+    });
+
+});
+
+describe('validateOriginalMethodHeader (async)', () => {
+
+  const originalMethod = 'POST';
+  // test con OriginalMethod valida -> no exception
+  it('Valid POST OriginalMethod', async () => {
+    await expect(validateOriginalMethodHeader(originalMethod)).to.be.fulfilled;
+  });
+
+    const blankOriginalMethod = null;
+    // test con OriginalMethod NON valorizzato -> exception
+    it('should throw MISSING_ORIGINAL_METHOD', async () => {
+        try {
+          await validateOriginalMethodHeader(blankOriginalMethod);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ORIGINAL_METHOD);
+        }
+    });
+
+
+    const unExpectedOriginalMethod = 'DELETE';
+    // test con OriginalMethod NON atteso -> exception
+    it('should throw UNEXPECTED_ORIGINAL_METHOD', async () => {
+        try {
+          await validateOriginalMethodHeader(unExpectedOriginalMethod);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_METHOD);
+        }
     });
 
 });
