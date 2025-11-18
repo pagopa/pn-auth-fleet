@@ -9,9 +9,7 @@ const {
   validateAssertionRefHeader,
   validateAssertionTypeHeader,
   LollipopRequestContentValidationException,
-    validatePublicKey,
-    LollipopRequestContentValidationException,
-    validateAuthJWTHeader,
+  validateAuthJWTHeader,
 } = require('../app/requestValidation');
 
 const {
