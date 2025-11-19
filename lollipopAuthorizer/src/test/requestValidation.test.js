@@ -12,6 +12,7 @@ const {
   validateOriginalURLHeader,
   LollipopRequestContentValidationException,
   validateAuthJWTHeader,
+  validateSignatureInputHeader
 } = require('../app/requestValidation');
 
 const {
@@ -21,7 +22,8 @@ const {
   VALIDATION_PARAMS,
   EXPECTED_FIRST_LC_ORIGINAL_METHOD,
   ORIGINAL_URL_REGEX,
-  EXPECTED_FIRST_LC_ORIGINAL_UR
+  EXPECTED_FIRST_LC_ORIGINAL_UR,
+  SIGNATURE_INPUT_REGEXP
 } = require('../test/constants/lollipopConstantsTest');
 const {VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
 
@@ -299,6 +301,57 @@ describe('validateOriginalURLHeader (async) ', () => {
     it('Valid ORIGINAL_URL for validOriginalURL', () => {
         const validOriginalURL = 'https://pippo/pluto/paperino$';
         validateOriginalURLHeader(validOriginalURL);
+    });
+
+});
+
+describe('validateSignatureInputHeader (async) ', () => {
+
+    //test con valore signatureInput blank
+    it('should throw MISSING_SIGNATURE_INPUT for blankSignatureInput', () => {
+        const blankSignatureInput = null;
+        try{
+            validateSignatureInputHeader(blankSignatureInput);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_SIGNATURE_INPUT);
+        }
+    });
+
+    //test con valore signatureInput Non valido (tag1 non valido)
+    it('should throw INVALID_SIGNATURE_INPUT for noValidSignatureInput', () => {
+        const noValidSignatureInput = 'tag1=valueA, sig2=valueB';
+        try {
+//            console.log("TEST signatureInput: " + noValidSignatureInput);
+//            const regexOrig = new RegExp(SIGNATURE_INPUT_REGEXP);
+//            console.log("signatureInput: " + regexOrig.test(noValidSignatureInput));
+            validateSignatureInputHeader(noValidSignatureInput);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_SIGNATURE_INPUT);
+        }
+    });
+
+    //test con valore signatureInput Non valido (dopo la ,A)
+    it('should throw INVALID_SIGNATURE_INPUT for noValidSignatureInput', () => {
+        const noValidSignatureInput2 = 'sig1=valore,A';
+        try {
+            validateSignatureInputHeader(noValidSignatureInput2);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_SIGNATURE_INPUT);
+        }
+    });
+
+    //test con valore SignatureInput valido -> no exception
+    it('Valid SIGNATURE_INPUT for validSignatureInput', () => {
+        const validSignatureInput = 'sig1=valueA, sig23=valueB,sig42=';
+        try {
+            validateSignatureInputHeader(validSignatureInput);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_SIGNATURE_INPUT);
+        }
     });
 
 });

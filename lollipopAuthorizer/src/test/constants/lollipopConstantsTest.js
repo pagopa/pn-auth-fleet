@@ -46,18 +46,13 @@ const VALIDATION_ERROR_CODES = {
   UNEXPECTED_ORIGINAL_METHOD: "UNEXPECTED_ORIGINAL_METHOD",
   MISSING_ORIGINAL_URL: "MISSING_ORIGINAL_URL",
   INVALID_ORIGINAL_URL: "INVALID_ORIGINAL_URL",
-  UNEXPECTED_ORIGINAL_URL: "UNEXPECTED_ORIGINAL_URL"
+  UNEXPECTED_ORIGINAL_URL: "UNEXPECTED_ORIGINAL_URL",
+  MISSING_SIGNATURE_INPUT: "MISSING_SIGNATURE_INPUT",
+  INVALID_SIGNATURE_INPUT: "INVALID_SIGNATURE_INPUT"
 };
 
 const EXPECTED_FIRST_LC_ORIGINAL_METHOD = "POST";
 
-const LOLLIPOP_REQUEST_METHOD = {
-    GET: "GET",
-    POST: "POST",
-    PUT: "PUT",
-    PATCH: "PATCH",
-    DELETE: "DELETE",
-};
 
 const ORIGINAL_URL_REGEX = '^https://\\S+$';
 const EXPECTED_FIRST_LC_ORIGINAL_URL = '^https://api-app.io.pagopa.it/first-lollipop/sign$';
@@ -74,6 +69,11 @@ const VALIDATION_AUTH_JWT = {
   MISSING: null,
 }
 
+//validare una lista di coppie chiave-valore separate da virgole:
+//Inizia esattamente con sig seguito da uno o più cifre, seguito da '=' seguito da qualsiasi sequenza di caratteri tranne la virgola
+//Separatore tra Coppie: Una virgola opzionale seguita da uno spazio opzionale ((, ?+)?+).
+const SIGNATURE_INPUT_REGEXP = '^(((sig[\\d]+)=[^,]*)(, ?)?)+$';
+
 module.exports = {
   EC_JWK,
   RSA_JWK,
@@ -82,8 +82,8 @@ module.exports = {
   VALIDATION_PARAMS,
   AssertionRefAlgorithms,
   VALIDATION_AUTH_JWT,
-  LOLLIPOP_REQUEST_METHOD,
   EXPECTED_FIRST_LC_ORIGINAL_METHOD,
   ORIGINAL_URL_REGEX,
-  EXPECTED_FIRST_LC_ORIGINAL_URL
+  EXPECTED_FIRST_LC_ORIGINAL_URL,
+  SIGNATURE_INPUT_REGEXP
 };
