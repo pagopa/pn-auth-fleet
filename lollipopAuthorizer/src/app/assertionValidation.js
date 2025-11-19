@@ -7,10 +7,10 @@ const LollipopAssertionException = require('../app/exception/lollipopAssertionEx
     //notBefore è nel formato 2025-11-04T11:50:33.570Z
     let notBeforeMilliseconds = Date.parse(notBefore);
     if(isNaN(notBeforeMilliseconds)) {
-         console.error('[validateAssertionPeriod] NOT_BEFORE_DATE non valida o errore nel Parsing');
+         console.error('[validateAssertionPeriod] The notBefore parameter is not valid or an error occurred during parsing');
          throw new LollipopAssertionException(
            VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE,
-           'NOT_BEFORE_DATE non valida o errore nel Parsing'
+           'The notBefore parameter is not valid or an error occurred during parsing'
          );
     }
 
@@ -18,10 +18,10 @@ const LollipopAssertionException = require('../app/exception/lollipopAssertionEx
     const expiresAfterMilliseconds = ASSERTION_EXPIRE_IN_DAYS * MILLISECONDS_PER_DAY;
     const dateNowLessNotBefore = (dateNowMilliseconds - notBeforeMilliseconds);
     if (isNaN(dateNowLessNotBefore) || isNaN(expiresAfterMilliseconds)) {
-        console.error('[validateAssertionPeriod] dateNowLessNotBefore o expiresAfterMilliseconds non valida o errore nel Parsing');
+        console.error('[validateAssertionPeriod] the parameter dateNowLessNotBefore or the parameter expiresAfterMilliseconds is invalid or there is a parsing error');
         throw new LollipopAssertionException(
            VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_DATE,
-           'dateNowLessNotBefore o expiresAfterMilliseconds non valida o errore nel Parsing'
+           'the parameter dateNowLessNotBefore or the parameter expiresAfterMilliseconds is invalid or there is a parsing error'
         );
     }
 
@@ -29,10 +29,10 @@ const LollipopAssertionException = require('../app/exception/lollipopAssertionEx
     const isNotBeforeValid = (dateNowLessNotBefore >= 0);
     const isNotExpired = (dateNowLessNotBefore <= expiresAfterMilliseconds);
     if( !(isNotBeforeValid && isNotExpired)) {
-        console.error('[validateAssertionPeriod] NOT_BEFORE_DATE non valida');
+        console.error('[validateAssertionPeriod] The notBefore parameter is not valid');
         throw new LollipopAssertionException(
            VALIDATION_ERROR_CODES.NOTBEFORE_NOTVALID_DATE,
-           'NOT_BEFORE_DATE non valida'
+           'The notBefore parameter is not valid'
         );
     }
  }
