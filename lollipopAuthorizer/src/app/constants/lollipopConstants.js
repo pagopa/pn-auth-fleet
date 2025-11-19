@@ -1,8 +1,25 @@
-
 // codici di errore
 const VALIDATION_ERROR_CODES = {
   MISSING_PUBLIC_KEY: "MISSING_PUBLIC_KEY",
   INVALID_PUBLIC_KEY: "INVALID_PUBLIC_KEY",
+  MISSING_USER_ID: "MISSING_USER_ID",
+  INVALID_USER_ID: "INVALID_USER_ID",
+  MISSING_PUBLIC_KEY_ERROR: "MISSING_PUBLIC_KEY",
+  INVALID_PUBLIC_KEY_ERROR: "INVALID_PUBLIC_KEY",
+  MISSING_ASSERTION_TYPE_ERROR: "MISSING_ASSERTION_TYPE",
+  INVALID_ASSERTION_TYPE_ERROR: "INVALID_ASSERTION_TYPE",
+  MISSING_ASSERTION_REF_ERROR: "MISSING_ASSERTION_REF",
+  INVALID_ASSERTION_REF_ERROR: "INVALID_ASSERTION_REF",
+  MISSING_AUTH_JWT: "MISSING_AUTH_JWT",
+  INVALID_AUTH_JWT: "INVALID_AUTH_JWT",
+  MISSING_ORIGINAL_METHOD: "MISSING_ORIGINAL_METHOD",
+  INVALID_ORIGINAL_METHOD: "INVALID_ORIGINAL_METHOD",
+  UNEXPECTED_ORIGINAL_METHOD: "UNEXPECTED_ORIGINAL_METHOD",
+  MISSING_ORIGINAL_URL: "MISSING_ORIGINAL_URL",
+  INVALID_ORIGINAL_URL: "INVALID_ORIGINAL_URL",
+  UNEXPECTED_ORIGINAL_URL: "UNEXPECTED_ORIGINAL_URL",
+  MISSING_SIGNATURE_INPUT: "MISSING_SIGNATURE_INPUT",
+  INVALID_SIGNATURE_INPUT: "INVALID_SIGNATURE_INPUT",
   MISSING_SIGNATURE: "MISSING_SIGNATURE",
   INVALID_SIGNATURE: "INVALID_SIGNATURE"
 };
@@ -12,14 +29,45 @@ const VALIDATION_ERROR_CODES = {
 //Valore: È racchiuso tra due punti (:) e contiene caratteri Base64 ([A-Za-z0-9+/=]*)
 const SIGNATURE_REGEXP = '^((sig[\\d]+)=:[A-Za-z0-9+/=]*:(, ?)?)+$';
 
+const ORIGINAL_URL_REGEX = '^https://\\S+$';
+const EXPECTED_FIRST_LC_ORIGINAL_URL = '^https://api-app.io.pagopa.it/first-lollipop/sign$';
+
+//validare una lista di coppie chiave-valore separate da virgole:
+//Inizia esattamente con sig seguito da uno o più cifre, seguito da '=' seguito da qualsiasi sequenza di caratteri tranne la virgola
+//Separatore tra Coppie: Una virgola opzionale seguita da uno spazio opzionale ((, ?+)?+).
+const SIGNATURE_INPUT_REGEXP = '^(((sig[\\d]+)=[^,]*)(, ?)?)+$';
+
 //algoritmi predefiniti da usare in base al tipo di chiave (kty): in chiaro perchè importJWK non fa il parse del campo alg
 const DEAFULT_ALG_BY_KTY = {
   EC: 'ES256',
   RSA: 'RS256',
 };
 
+const USER_ID_REGEX = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/;
+
+const AssertionRefAlgorithms = {
+  SHA256: { pattern: /^sha256-[A-Za-z0-9_-]{44}$/ },
+  SHA384: { pattern: /^sha384-[A-Za-z0-9_-]{66}$/ },
+  SHA512: { pattern: /^sha512-[A-Za-z0-9_-]{86}$/ },
+};
+
+const COMPATIBLE_ASSERTION_TYPES=[
+    "SAML"
+];
+
+
+const EXPECTED_FIRST_LC_ORIGINAL_METHOD = "POST;GET";
+
+
 module.exports = {
   VALIDATION_ERROR_CODES,
   DEAFULT_ALG_BY_KTY,
+  USER_ID_REGEX,
+  COMPATIBLE_ASSERTION_TYPES,
+  AssertionRefAlgorithms,
+  EXPECTED_FIRST_LC_ORIGINAL_METHOD,
+  ORIGINAL_URL_REGEX,
+  EXPECTED_FIRST_LC_ORIGINAL_URL,
+  SIGNATURE_INPUT_REGEXP,
   SIGNATURE_REGEXP
 };
