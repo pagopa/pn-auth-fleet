@@ -10,6 +10,7 @@ const {
   validateAssertionTypeHeader,
   validateOriginalMethodHeader,
   validateOriginalURLHeader,
+  validateSignatureHeader,
   LollipopRequestContentValidationException,
   validateAuthJWTHeader,
   validateSignatureInputHeader
@@ -23,7 +24,8 @@ const {
   EXPECTED_FIRST_LC_ORIGINAL_METHOD,
   ORIGINAL_URL_REGEX,
   EXPECTED_FIRST_LC_ORIGINAL_UR,
-  SIGNATURE_INPUT_REGEXP
+  SIGNATURE_INPUT_REGEXP,
+  SIGNATURE_REGEXP
 } = require('../test/constants/lollipopConstantsTest');
 const {VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
 
@@ -355,3 +357,56 @@ describe('validateSignatureInputHeader (async) ', () => {
     });
 
 });
+
+
+describe('validateSignatureHeader (async) ', () => {
+
+    //test con valore signature blank
+    it('should throw MISSING_SIGNATURE for blankSignature', () => {
+        const blankSignature = null;
+        try{
+            validateSignatureHeader(blankSignature);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_SIGNATURE);
+        }
+    });
+
+    //test con valore signature Non valido
+    it('should throw INVALID_SIGNATURE for noValidSignature', () => {
+        const noValidSignature = 'sig1=valueA, sig2=valueB';
+        try {
+//            console.log("TEST signature: " + noValidSignatureInput);
+//            const regexOrig = new RegExp(SIGNATURE_REGEXP);
+//            console.log("signature: " + regexOrig.test(noValidSignature));
+            validateSignatureHeader(noValidSignature);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_SIGNATURE);
+        }
+    });
+
+    //test con valore signature Non valido
+    it('should throw INVALID_SIGNATURE for noValidSignature', () => {
+        const noValidSignature2 = 'sig1=:value@:,sig2=:valueB:';
+        try {
+            validateSignatureHeader(noValidSignature2);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_SIGNATURE);
+        }
+    });
+
+    //test con valore Signature valido -> no exception
+    it('Valid SIGNATURE for validSignature', () => {
+        const validSignature = 'sig5=::,sig6=:TEST:';
+        try {
+            validateSignatureHeader(validSignature);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_SIGNATURE);
+        }
+    });
+
+});
+
