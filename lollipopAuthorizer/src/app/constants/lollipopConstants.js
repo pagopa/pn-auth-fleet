@@ -21,7 +21,7 @@ const VALIDATION_ERROR_CODES = {
   MISSING_SIGNATURE_INPUT: "MISSING_SIGNATURE_INPUT",
   INVALID_SIGNATURE_INPUT: "INVALID_SIGNATURE_INPUT",
   MISSING_SIGNATURE: "MISSING_SIGNATURE",
-  INVALID_SIGNATURE: "INVALID_SIGNATURE"
+  INVALID_SIGNATURE: "INVALID_SIGNATURE",
 };
 
 //una lista di coppie chiave-valore separate da virgole, dove:
@@ -58,6 +58,16 @@ const COMPATIBLE_ASSERTION_TYPES=[
 
 const EXPECTED_FIRST_LC_ORIGINAL_METHOD = "POST;GET";
 
+const SAML_ASSERTION = {
+    SAML2_ASSERTION_NS: "urn:oasis:names:tc:SAML:2.0:assertion",
+    ASSERTION: "Assertion",
+    ISSUE_INSTANT: "IssueInstant",
+    ENTITY_ID_TAG: "Issuer",
+}
+
+const CIE_ENTITY_ID = [
+    "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO"
+];
 
 module.exports = {
   VALIDATION_ERROR_CODES,
@@ -69,5 +79,7 @@ module.exports = {
   ORIGINAL_URL_REGEX,
   EXPECTED_FIRST_LC_ORIGINAL_URL,
   SIGNATURE_INPUT_REGEXP,
-  SIGNATURE_REGEXP
+  SIGNATURE_REGEXP,
+  SAML_ASSERTION,
+  CIE_ENTITY_ID,
 };
