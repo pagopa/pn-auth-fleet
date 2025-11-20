@@ -88,9 +88,9 @@ describe('validateAssertionPeriodTest ', () => {
 
       });
 
-    it('dovrebbe restituire FALSE quando la data è valida e non è scaduta', async () => {
+    it('dovrebbe restituire FALSE quando la data è scaduta', async () => {
 
-        console.log('TEST 1 - Caricamento Document Assertion fake per test ');
+        console.log('TEST 3 - Caricamento Document Assertion fake per test ');
         let assertionDoc;
         try {
             const getAssertionXMLPath = path.resolve('C://PROGETTI_DGS//PAGO_PA//REPOSITORIES//pagopa//pn-auth-fleet//lollipopAuthorizer//src//test//fileTest//getAssertionTestNotBeforeFalse.xml');
