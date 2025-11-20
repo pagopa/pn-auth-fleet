@@ -17,7 +17,7 @@ describe('validateAssertionPeriodTest ', () => {
         console.log('TEST 1 - Caricamento Document Assertion fake per test ');
         let assertionDoc;
         try {
-            const getAssertionXMLPath = path.resolve('C://PROGETTI_DGS//PAGO_PA//REPOSITORIES//pagopa//pn-auth-fleet//lollipopAuthorizer//src//test//fileTest//getAssertionTest.xml');
+            const getAssertionXMLPath = path.join(__dirname, 'fileTest//getAssertionTest.xml');
             console.log("gestAssertionPath: " , getAssertionXMLPath);
             const getAssertionXmlString = await fs.readFile(getAssertionXMLPath, 'utf8');
             const parserXML = new xmldom.DOMParser();
@@ -54,8 +54,7 @@ describe('validateAssertionPeriodTest ', () => {
         console.log('TEST 2 - Caricamento Document Assertion fake per test ');
         let assertionDocNotBeforeNull;
         try {
-            const getAssertionXMLPath = path.resolve('C://PROGETTI_DGS//PAGO_PA//REPOSITORIES//pagopa//pn-auth-fleet//lollipopAuthorizer//src//test//fileTest//getAssertionTestNotBeforeInvalid.xml');
-
+            const getAssertionXMLPath = path.join(__dirname, 'fileTest//getAssertionTestNotBeforeInvalid.xml');
             console.log("gestAssertionPath: " , getAssertionXMLPath);
             const getAssertionXmlString = await fs.readFile(getAssertionXMLPath, 'utf8');
             const parserXML = new xmldom.DOMParser();
@@ -93,7 +92,7 @@ describe('validateAssertionPeriodTest ', () => {
         console.log('TEST 3 - Caricamento Document Assertion fake per test ');
         let assertionDoc;
         try {
-            const getAssertionXMLPath = path.resolve('C://PROGETTI_DGS//PAGO_PA//REPOSITORIES//pagopa//pn-auth-fleet//lollipopAuthorizer//src//test//fileTest//getAssertionTestNotBeforeFalse.xml');
+            const getAssertionXMLPath = path.join(__dirname, 'fileTest//getAssertionTestNotBeforeFalse.xml');
             console.log("gestAssertionPath: " , getAssertionXMLPath);
             const getAssertionXmlString = await fs.readFile(getAssertionXMLPath, 'utf8');
             const parserXML = new xmldom.DOMParser();
