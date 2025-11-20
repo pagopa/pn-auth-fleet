@@ -62,7 +62,7 @@ const SAML_ASSERTION = {
     SAML2_ASSERTION_NS: "urn:oasis:names:tc:SAML:2.0:assertion",
     ASSERTION: "Assertion",
     ISSUE_INSTANT: "IssueInstant",
-    ENTITY_ID_TAG: "Issuer",
+    ISSUER_ENTITY_ID_TAG: "Issuer",
 }
 
 const CIE_ENTITY_ID = [

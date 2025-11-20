@@ -1,8 +1,8 @@
-const ErrorRetrievingIdpCertDataException = require('../app/exception/errorRetrievingIdpCertDataException');
-const CertDataNotFoundException = require('../app/exception/certDataNotFoundException');
-const { CIE_ENTITY_ID } = require("./constants/lollipopConstants");
+const ErrorRetrievingIdpCertDataException = require('../exception/errorRetrievingIdpCertDataException');
+const CertDataNotFoundException = require('../exception/certDataNotFoundException');
+const { CIE_ENTITY_ID } = require("../constants/lollipopConstants");
 
-async function getCertData(entityId, instant, entityConfig) {
+async function getListCertData(entityId, instant, entityConfig) {
 
     let listCertData = [];
     const isMissing = !entityId ||  !instant ||
@@ -28,4 +28,8 @@ async function getCertData(entityId, instant, entityConfig) {
         throw e;
     }
     return listCertData;
+}
+
+module.exports = {
+    getListCertData,
 }

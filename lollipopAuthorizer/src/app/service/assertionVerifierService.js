@@ -1,37 +1,44 @@
 const xmldom = require('xmldom');
-const { SAML_ASSERTION } = require("./constants/lollipopConstants");
-const ErrorRetrievingIdpCertDataException = require('../app/exception/errorRetrievingIdpCertDataException');
-const CertDataNotFoundException = require('../app/exception/certDataNotFoundException');
-const IdpCertProvider = require('../app/service/idpCertProvider');
+const { SAML_ASSERTION } = require("../../app/constants/lollipopConstants");
+const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
+const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
+const idpCertProvider = require('./idpCertProvider');
 
 async function getIdpCertData(assertionDoc){
 
     const rootElement = assertionDoc.documentElement;
     /** @type {NodeList} array */
-    const assertions = assertionDoc.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.ASSERTION);
-    if( isElementNotFound(assertions, SAML_ASSERTION.ISSUE_INSTANT) ) {
+    const listElements = assertionDoc.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.ASSERTION);
+    if( isElementNotFound(listElements, SAML_ASSERTION.ISSUE_INSTANT) ) {
         console.error('[getIdpCertData] Missing instant field in the retrieved saml assertion');
         throw new ErrorRetrievingIdpCertDataException(
-          ErrorRetrievingIdpCertDataException.ErrorCode..INSTANT_FIELD_NOT_FOUND,
+          ErrorRetrievingIdpCertDataException.ErrorCode.INSTANT_FIELD_NOT_FOUND,
           'Missing instant field in the retrieved saml assertion'
         );
     }
-    const firstAssertionElement = assertions[0];
-    const instant = firstAssertionElement.getAttributes(SAML_ASSERTION.ISSUE_INSTANT);
-
-    const entityId = getEntityId(firstAssertionElement.childNodes, SAML_ASSERTION.ENTITY_ID_TAG);
+    const firstAssertionElement = listElements[0];
+    const instant = firstAssertionElement.getAttribute(SAML_ASSERTION.ISSUE_INSTANT);
+/*    if( isElementNotFound(listElements, SAML_ASSERTION.NOT_BEFORE) ) {
+        console.error('[validateAssertionPeriod] The notBefore parameter is not valid or an error occurred during parsing');
+        throw new LollipopAssertionException(
+            VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE,
+            'The notBefore parameter is not valid or an error occurred during parsing'
+        );
+    }
+    */
+    const entityId = getEntityId(firstAssertionElement.childNodes, SAML_ASSERTION.ISSUER_ENTITY_ID_TAG);
     if (!entityId) {
         throw new ErrorRetrievingIdpCertDataException(
-            ErrorRetrievingIdpCertDataException.ErrorCode..ENTITY_ID_FIELD_NOT_FOUND,
+            ErrorRetrievingIdpCertDataException.ErrorCode.ENTITY_ID_FIELD_NOT_FOUND,
             "Missing entity id field in the retrieved saml assertion"
         );
     }
 
-    const perseizedInstant = parseInstantToUnixTimestamp(instant);
+    const parserizedInstant = parseInstantToUnixTimestamp(instant);
 
     //TODO idpCertProvider ??
-    const idpCertData = await retrieveIdpCertData(entityId, perseizedInstant);
-
+    const idpCertData = await retrieveIdpCertData(entityId, parserizedInstant);
+    return idpCertData;
 }
 
 function isElementNotFound(listElements, elementName) {
