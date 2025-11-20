@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<saml2:Assertion
+        xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+        ID="_f43e1183-5c79-4d6f-99a3-57551410f92b"
+        IssueInstant="2025-11-04T11:50:34.570Z"
+        Version="2.0">
+    <saml2:Issuer>https://posteid.poste.it</saml2:Issuer>
+    <saml2:Subject>
+        <saml2:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid:transient">_781edb39-813f-42a1-b4f5-cf6d028a31e8</saml2:NameID>
+        <saml2:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+            <saml2:SubjectConfirmationData
+                    InResponseTo="sha256-Iz4GEYGtznLdLyHrbtKEkzb6qSJpOkKvsOsCxgXkIhI"
+                    NotOnOrAfter="2025-11-04T11:55:34.570Z"
+                    Recipient="https://app-backend.io.italia.it/assertionConsumerService"
+            />
+        </saml2:SubjectConfirmation>
+    </saml2:Subject>
+    <saml2:Conditions NotBefore="2025-11-04T11:50:33.570Z" NotOnOrAfter="2025-11-04T11:55:34.570Z">
+        <saml2:AudienceRestriction>
+            <saml2:Audience>https://app-backend.io.italia.it</saml2:Audience>
+        </saml2:AudienceRestriction>
+    </saml2:Conditions>
+    <saml2:AuthnStatement AuthnInstant="2025-11-04T11:50:33.570Z">
+        <saml2:AuthnContext>
+            <saml2:AuthnContextClassRef>https://www.spid.gov.it/SpidL2</saml2:AuthnContextClassRef>
+        </saml2:AuthnContext>
+    </saml2:AuthnStatement>
+    <saml2:AttributeStatement>
+        <saml2:Attribute Name="email">
+            <saml2:AttributeValue xsi:type="xs:string">abertu75@gmail.com</saml2:AttributeValue>
+        </saml2:Attribute>
+        <saml2:Attribute Name="fiscalNumber">
+            <saml2:AttributeValue xsi:type="xs:string">TINIT-AAAAAA00A00A000A</saml2:AttributeValue>
+        </saml2:Attribute>
+    </saml2:AttributeStatement>
+</saml2:Assertion>
