@@ -1,8 +1,9 @@
 const { importJWK } = require('jose');
 
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { VALIDATION_ERROR_CODES, DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms, USER_ID_REGEX, EXPECTED_FIRST_LC_ORIGINAL_METHOD, ORIGINAL_URL_REGEX, EXPECTED_FIRST_LC_ORIGINAL_URL, SIGNATURE_INPUT_REGEXP, SIGNATURE_REGEXP } = require('../app/constants/lollipopConstants');
+const { DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms, USER_ID_REGEX, EXPECTED_FIRST_LC_ORIGINAL_METHOD, ORIGINAL_URL_REGEX, EXPECTED_FIRST_LC_ORIGINAL_URL, SIGNATURE_INPUT_REGEXP, SIGNATURE_REGEXP } = require('../app/constants/lollipopConstants');
 const {COMPATIBLE_ASSERTION_TYPES} = require("./constants/lollipopConstants");
+const {VALIDATION_ERROR_CODES} = require("./constants/lollipopErrorsConstants");
 
 
 async function validatePublicKey(publicKeyBase64Url) {

@@ -50,7 +50,9 @@ const VALIDATION_ERROR_CODES = {
   MISSING_SIGNATURE_INPUT: "MISSING_SIGNATURE_INPUT",
   INVALID_SIGNATURE_INPUT: "INVALID_SIGNATURE_INPUT",
   MISSING_SIGNATURE: "MISSING_SIGNATURE",
-  INVALID_SIGNATURE: "INVALID_SIGNATURE"
+  INVALID_SIGNATURE_NUMBER: "INVALID_SIGNATURE_NUMBER",
+  INVALID_JWK: "INVALID_JWK",
+  INVALID_SIGNATURE_ALG: "INVALID_SIGNATURE_ALG"
 };
 
 //una lista di coppie chiave-valore separate da virgole, dove:
@@ -81,6 +83,24 @@ const VALIDATION_AUTH_JWT = {
 //Separatore tra Coppie: Una virgola opzionale seguita da uno spazio opzionale ((, ?+)?+).
 const SIGNATURE_INPUT_REGEXP = '^(((sig[\\d]+)=[^,]*)(, ?)?)+$';
 
+const lollipopConfig = {
+  publicKeyHeader: "x-pagopa-lollipop-public-key",
+  signatureHeader: "Signature",
+  signatureInputHeader: "Signature-Input",
+};
+
+const DEAFULT_ALG_BY_KTY = {
+  EC: 'ES256',
+  RSA: 'RS256',
+};
+
+const VALID_SIGNATURE_INPUT =
+            "sig1=(\"content-digest\" \"x-pagopa-lollipop-original-method\""
+                + " \"x-pagopa-lollipop-original-url\");created=1678293988;nonce=\"aNonce\";alg=\"ecdsa-p256-sha256\";keyid=\"sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg\"";
+const VALID_SIGNATURE =
+            "sig1=:lTuoRytp53GuUMOB4Rz1z97Y96gfSeEOm/xVpO39d3HR6lLAy4KYiGq+1hZ7nmRFBt2bASWEpen7ov5O4wU3kQ==:";
+
+
 module.exports = {
   EC_JWK,
   RSA_JWK,
@@ -93,5 +113,9 @@ module.exports = {
   ORIGINAL_URL_REGEX,
   EXPECTED_FIRST_LC_ORIGINAL_URL,
   SIGNATURE_INPUT_REGEXP,
-  SIGNATURE_REGEXP
+  SIGNATURE_REGEXP,
+  lollipopConfig,
+  DEAFULT_ALG_BY_KTY,
+  VALID_SIGNATURE_INPUT,
+  VALID_SIGNATURE
 };
