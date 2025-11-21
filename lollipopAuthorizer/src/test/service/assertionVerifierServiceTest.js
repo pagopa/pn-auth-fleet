@@ -21,7 +21,7 @@ describe('getIdpCertData ', async () => {
         console.log('TEST 1 - Caricamento Document Assertion fake per test ');
         let assertionDoc;
         try {
-            const getAssertionXMLPath = path.resolve('C://PROGETTI_DGS//PAGO_PA//REPOSITORIES//pagopa//pn-auth-fleet//lollipopAuthorizer//src//test//fileTest//getAssertionTest.xml');
+            const getAssertionXMLPath = path.join(__dirname, '..//fileTest//getAssertionTest.xml');
             console.log("gestAssertionPath: " , getAssertionXMLPath);
             const getAssertionXmlString = await fs.readFile(getAssertionXMLPath, 'utf8');
             const parserXML = new xmldom.DOMParser();
@@ -50,8 +50,8 @@ describe('getIdpCertData ', async () => {
 
         console.log("getIdpCertData ...");
         const result = await getIdpCertData(assertionDoc);
-        console.log("RESULT (parserizedInstant): ", result);
-        expect(result).to.be.a('string');
+        console.log("RESULT (listCertData): ", result);
+        expect(result).to.be.a('array');
     });
 
 });

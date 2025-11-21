@@ -6,7 +6,7 @@ async function getIdpCertData(instant, entityId) {
 
     try {
         const idpCertData = await idpCertClient.getListCertData(instant, entityId);
-        console.debug('IdP certificates has been found for entityId %s at instant %s: %o',
+        console.debug('[idpCertProvider.getIdpCertData] - IdP certificates has been found for entityId %s at instant %s: %o',
             entityId, instant, idpCertData );
 
         return idpCertData;

@@ -95,7 +95,7 @@ async function retrieveIdpCertData(entityId, instant) {
             trimmedEntityId = entityId.trim();
         }
         const idpCertData = await idpCertProvider.getIdpCertData(instant, trimmedEntityId);
-        console.debug('IdP certificates has been found for entityId %s at instant %s: %o',
+        console.debug('[service.retrieveIdpCertData] - IdP certificates has been found for entityId %s at instant %s: %o',
             trimmedEntityId, instant, idpCertData );
 
         return idpCertData;
