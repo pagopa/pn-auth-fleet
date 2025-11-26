@@ -24,9 +24,12 @@
     "sonarqube-scanner": "^3.3.0"
   },
   "dependencies": {
+    "@openapitools/openapi-generator-cli": "^2.25.2",
     "aws-xray-sdk-core": "^3.3.6",
     "axios": "^0.28.0",
     "jose": "^6.0.12",
+    "superagent": "^10.2.3",
+    "xml2js": "^0.6.2",
     "xmldom": "^0.6.0"
   }
 }

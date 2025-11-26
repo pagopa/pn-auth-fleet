@@ -7,7 +7,8 @@
         ID="_f43e1183-5c79-4d6f-99a3-57551410f92b"
         IssueInstant="2025-11-04T11:50:34.570Z"
         Version="2.0">
-    <saml2:Issuer>https://posteid.poste.it</saml2:Issuer>
+    <!-- saml2:Issuer>https://posteid.poste.it</saml2:Issuer -->
+    <saml2:Issuer>https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO</saml2:Issuer>
     <saml2:Subject>
         <saml2:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid:transient">_781edb39-813f-42a1-b4f5-cf6d028a31e8</saml2:NameID>
         <saml2:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">

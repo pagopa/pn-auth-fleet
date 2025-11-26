@@ -10,7 +10,7 @@ class ErrorRetrievingIdpCertDataException extends Error {
 const ErrorCode = {
     ENTITY_ID_FIELD_NOT_FOUND: 'ENTITY_ID_FIELD_NOT_FOUND',
     INSTANT_FIELD_NOT_FOUND: 'INSTANT_FIELD_NOT_FOUND',
-    IDP_CERT_DATA_NOT_FOUND: 'IDP_CERT_DATA_NOT_FOUND'
+    IDP_CERT_DATA_NOT_FOUND: 'IDP_CERT_DATA_NOT_FOUND',
 };
 
-module.exports = ErrorRetrievingIdpCertDataException;
+module.exports = { ErrorRetrievingIdpCertDataException, ErrorCode };

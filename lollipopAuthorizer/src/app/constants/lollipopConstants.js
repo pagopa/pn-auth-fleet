@@ -73,9 +73,14 @@ const SAML_ASSERTION = {
 const ASSERTION_EXPIRE_IN_DAYS = 365;
 const MILLISECONDS_PER_DAY = 86400000; //24 * 60 * 60 * 1000;
 
-const CIE_ENTITY_ID = [
-    "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO"
-];
+const IDP_PROVIDER_CONFIG = {
+    CIE_ENTITY_ID: [ "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO" ],
+    BASE_URI: "https://api.is.eng.pagopa.it",
+    IDP_KEYS_CIE_ENDPOINT: "/idp-keys/cie",
+    IDP_KEYS_SPID_ENDPOINT: "/idp-keys/spid",
+    TIMEOUT_API: 60000, // READ_TIMEOUT_MS,
+    CONNECTION_TIMEOUT_API: 60000, //CONNECTION_TIMEOUT_MS,
+}
 
 module.exports = {
   VALIDATION_ERROR_CODES,
@@ -91,5 +96,5 @@ module.exports = {
   SAML_ASSERTION,
   ASSERTION_EXPIRE_IN_DAYS,
   MILLISECONDS_PER_DAY,
-  CIE_ENTITY_ID,
+  IDP_PROVIDER_CONFIG,
 };

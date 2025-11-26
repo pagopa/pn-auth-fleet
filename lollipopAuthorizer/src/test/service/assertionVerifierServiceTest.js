@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
-const IdpCertProvider = require('../../app/service/idpCertProvider');
+//const IdpCertProvider = require('../../app/idp/idpCertProvider');
 const { VALIDATION_ERROR_CODES, SAML_ASSERTION } = require('../../app/constants/lollipopConstants');
 //const LollipopAssertionException = require('../../app/exception/lollipopAssertionException');
 const { getIdpCertData } = require('../../app/service/assertionVerifierService');
@@ -47,11 +47,12 @@ describe('getIdpCertData ', async () => {
             const instant = firstConditionsElement.getAttribute(SAML_ASSERTION.ISSUE_INSTANT);
             console.debug("instant: ", instant);
         }
-
+        console.log("---------------------------------------------");
         console.log("getIdpCertData ...");
         const result = await getIdpCertData(assertionDoc);
         console.log("RESULT (listCertData): ", result);
         expect(result).to.be.a('array');
+        console.log("---------------------------------------------");
     });
 
 });
