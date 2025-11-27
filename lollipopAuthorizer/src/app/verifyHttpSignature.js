@@ -1,225 +1,328 @@
-const { flattenedVerify, importJWK } = require('jose');
+const { flattenedVerify, importJWK, createVerify } = require('jose');
 const base64url = require('base64url');
+
+const { derToJose } = require('ecdsa-sig-formatter');
+
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { lollipopConfig, VISMA_TO_JWS_ALG } = require('./constants/lollipopConstants');
+const { lollipopConfig, JWS_ALG_MAP, ALG_TO_KTY } = require('./constants/lollipopConstants');
 const { VERIFY_HTTP_ERROR_CODES, VALIDATION_ERROR_CODES } = require('./constants/lollipopErrorsConstants');
 
+/**
+ * Verifica la signature HTTP basata su signature-input e headers
+ * @param {string} signature - Header Signature
+ * @param {string} signatureInput - Header Signature-Input
+ * @param {Object} headers - Mappa di headers
+ * @returns {Promise<boolean>}
+ */
+async function verifyHttpSignature(signature, signatureInput, headers) {
+  console.log("[verifyHttpSignature] START verification");
+  console.log("[verifyHttpSignature] Incoming signature:", signature);
+  console.log("[verifyHttpSignature] Incoming signatureInput:", signatureInput);
+  console.log("[verifyHttpSignature] Incoming headers:", headers);
 
-async function verifyHttpSignature(signature, signatureInput, parameters) {
-  // rimozione degli header di firma dalla base string:
-  // signature e signature-input non devono essere inclusi nella costruzione del payload firmato
-  delete parameters[lollipopConfig.signatureInputHeader];
-  delete parameters[lollipopConfig.signatureHeader];
-
-  // estrazione della chiave pubblica in jwk fornita tramite header
-  const lollipopKey = parameters[lollipopConfig.publicKeyHeader];
-  if (!lollipopKey) {
-    throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY_ERROR,
-      "Lollipop publicKey header not found"
-    );
-  }
-
-  // parsing del jwk codificato base64
-  // se fallisce si deve restituire INVALID_JWK
-  let jwkJson;
   try {
-    jwkJson = JSON.parse(Buffer.from(lollipopKey, 'base64').toString('utf8'));
-  } catch (err) {
-    throw new LollipopRequestContentValidationException(
-      VERIFY_HTTP_ERROR_CODES.INVALID_JWK,
-      `Errore parsing JWK: ${err.message}`
-    );
-  }
+    const headersCopy = { ...headers };
+    delete headersCopy[lollipopConfig.signatureInputHeader];
+    delete headersCopy[lollipopConfig.signatureHeader];
+    console.log("[verifyHttpSignature] Headers copy after deleting signature headers:", headersCopy);
 
-  // suddivisione di signature e signature-input in più voci nel caso di multi-firma
-  const signatures = signature.split(',').map(s => s.trim());
-  const signatureInputs = signatureInput.split(',').map(s => s.trim());
-
-  // se il numero non coincide
-  if (signatures.length !== signatureInputs.length) {
-    throw new LollipopRequestContentValidationException(
-      VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE_NUMBER,
-      "Headers signature and signature-input have different length"
-    );
-  }
-
-  // verifico ogni coppia firma/signature-input indipendentemente
-  for (let i = 0; i < signatures.length; i++) {
-    const sig = signatures[i];
-    const sigInput = signatureInputs[i];
-
-    // la label è la parte prima del "=" (es: sig1=...)
-    const label = sig.split('=')[0];
-
-    // estrazione dei parametri dal signature-input tramite regex:
-    // alg, created, keyid, nonce, expires
-    const signatureParams = parseSignatureInput(sigInput);
-
-    let jwsAlg;
-
-    // se alg è presente, va mappato verso l'algoritmo jws corrispondente
-    // se la mappatura non esiste
-    if (signatureParams.alg) {
-      jwsAlg = VISMA_TO_JWS_ALG[signatureParams.alg.toLowerCase()];
-      if (!jwsAlg) {
-        throw new LollipopRequestContentValidationException(
-          VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE_ALG,
-          `Unsupported algorithm "${signatureParams.alg}" for label ${label}`
-        );
-      }
-    } else {
-      // se alg è assente
+    // estrazione della chiave pubblica in jwk fornita tramite header
+    const lollipopKey = headers[lollipopConfig.publicKeyHeader];
+    console.log("[verifyHttpSignature] Lollipop publicKey header:", lollipopKey);
+    if (!lollipopKey) {
+      console.error("[verifyHttpSignature] Public key header missing");
       throw new LollipopRequestContentValidationException(
-        VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE_ALG,
-        `INVALID_SIGNATURE_ALG for label ${label}: missing alg in signature-input`
+        VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY_ERROR,
+        "Lollipop publicKey header not found"
       );
     }
 
-    // solo ec e rsa sono supportati per l'importazione con jose.importJWK
-    if (!['EC', 'RSA'].includes(jwkJson.kty)) {
-      throw new LollipopRequestContentValidationException(
-        VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE,
-        `Unsupported key type: ${jwkJson.kty} for label ${label}`
-      );
-    }
-
-    // importazione della chiave jwk usando l'algoritmo determinato sopra
-    // se fallisce, deve essere INVALID_JWK
-    let jwkKey;
+    // parse JWK
+    let jwk;
     try {
-      jwkKey = await importJWK(jwkJson, jwsAlg);
+      jwk = JSON.parse(Buffer.from(lollipopKey, 'base64').toString('utf8'));
+      jwk.x = base64ToBase64Url(jwk.x);
+      jwk.y = base64ToBase64Url(jwk.y);
+      console.log("[verifyHttpSignature] Parsed JWK:", jwk);
     } catch (err) {
+      console.error("[verifyHttpSignature] Error parsing JWK:", err);
       throw new LollipopRequestContentValidationException(
         VERIFY_HTTP_ERROR_CODES.INVALID_JWK,
-        `Errore import JWK: ${err.message}`
+        `Invalid JWK: ${err.message}`
       );
     }
 
-    // estrazione della firma:
-    // rimuoviamo ":" iniziali/finali secondo la sintassi "sig1=:<base64>:"
-    let sigB64 = sig.split('=')[1].replace(/^:/, '').replace(/:$/, '');
+    const signatures = signature.split(',').map(s => s.trim());
+    const signatureInputs = signatureInput.split(',').map(s => s.trim());
+    console.log("[verifyHttpSignature] Parsed signatures array:", signatures);
+    console.log("[verifyHttpSignature] Parsed signatureInputs array:", signatureInputs);
 
-    // per le firme ec, il formato è r||s e va convertito in der prima della verifica jws
-    if (jwkJson.kty === 'EC') {
-      sigB64 = ecdsaRSigToDER(sigB64);
+    if (signatures.length !== signatureInputs.length) {
+      console.error("[verifyHttpSignature] Signature and signatureInput count mismatch");
+      throw new LollipopRequestContentValidationException(
+        VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE_NUMBER,
+        'Number of signatures and signature-inputs mismatch'
+      );
     }
 
-    // costruzione del protected header jws
-    // viene codificato in base64url e passato come "protected" nel flattened jws
-    const protectedHeader = {};
-    if (jwsAlg) protectedHeader.alg = jwsAlg;
-    if (signatureParams.keyId) protectedHeader.kid = signatureParams.keyId;
-    if (signatureParams.created) protectedHeader.created = signatureParams.created;
+    const signatureMap = new Map();
+    for (const s of signatures) {
+      //const [label, value] = 
+      const endSplitNumber = s.indexOf("=");
+      const label = s.substring(0, endSplitNumber);
+      const value = s.substring(endSplitNumber + 1);
 
-    // costruzione del payload della firma: base string + signature-params
-    const flattenedJws = {
-      protected: base64url.encode(JSON.stringify(protectedHeader)),
-      payload: base64url.encode(getSignatureBase(parameters, signatureParams)),
-      signature: sigB64
-    };
+      console.log("Value signature:", value);
+      console.log("Label signature:", label);
 
-    // verifica jws
-    try {
-      await flattenedVerify(flattenedJws, jwkKey);
-    } catch (err) {
-      const msg = err.message.toLowerCase();
-      if (msg.includes('unsupported algorithm')) {
+      const valueClean = value ? value.replace(/^:|:$/g, '') : undefined;
+      console.log(`[verifyHttpSignature] Mapping signature: ${label} => ${valueClean}`);
+      signatureMap.set(label, valueClean);
+    }
+
+    // ciclo su ogni coppia signature-input/signature
+    for (let i = 0; i < signatureInputs.length; i++) {
+      const sigInput = signatureInputs[i];
+      const label = signatures[i].split('=')[0];
+      const sigB64 = signatureMap.get(label);
+      console.log(`[verifyHttpSignature] Processing label: ${label}, signature base64: ${sigB64}`);
+
+      if (!sigB64) {
+        console.error(`[verifyHttpSignature] Signature not found for label ${label}`);
         throw new LollipopRequestContentValidationException(
-          VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE_ALG,
-          `INVALID_SIGNATURE_ALG for label ${label}: ${err.message}`
+          VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE,
+          `Signature not found for label ${label}`
         );
       }
 
-      throw new LollipopRequestContentValidationException(
-        VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE,
-        `INVALID_SIGNATURE for label ${label}: ${err.message}`
-      );
+      // parse alg, created, nonce, keyId
+      const { alg, created, nonce, keyId } = parseSignatureInput(sigInput);
+      console.log(`[verifyHttpSignature] Parsed signature input: alg=${alg}, created=${created}, nonce=${nonce}, keyId=${keyId}`);
+
+      if (!alg) {
+        console.error("[verifyHttpSignature] Signature algorithm not defined");
+        throw new LollipopRequestContentValidationException(
+          VERIFY_HTTP_ERROR_CODES.UNSUPPORTED_ALG,
+          'Signature algorithm not defined'
+        );
+      }
+
+      //algoritmo JWS
+      const jwsAlg = JWS_ALG_MAP[alg.toLowerCase()];
+      console.log(`[verifyHttpSignature] Mapped JWS algorithm: ${jwsAlg}`);
+      if (!jwsAlg) {
+        console.error("[verifyHttpSignature] Unsupported JWS algorithm");
+        throw new LollipopRequestContentValidationException(
+          VERIFY_HTTP_ERROR_CODES.UNSUPPORTED_ALG,
+          `Unsupported algorithm: ${alg}`
+        );
+      }
+
+      const expectedKty = ALG_TO_KTY[jwsAlg];
+      console.log(`[verifyHttpSignature] Expected key type for algorithm ${jwsAlg}: ${expectedKty}`);
+      if (!expectedKty) {
+        console.error("[verifyHttpSignature] Unsupported key type mapping for algorithm");
+        throw new LollipopRequestContentValidationException(
+          VERIFY_HTTP_ERROR_CODES.UNSUPPORTED_ALG,
+          `Unsupported algorithm: ${alg}`
+        );
+      }
+
+      if (jwk.kty !== expectedKty) {
+        console.error(`[verifyHttpSignature] Key type mismatch: JWK=${jwk.kty}, expected=${expectedKty}`);
+        throw new LollipopRequestContentValidationException(
+          VERIFY_HTTP_ERROR_CODES.UNSUPPORTED_KEY_TYPE,
+          `Key type "${jwk.kty}" does not match algorithm "${alg}"`
+        );
+      }
+
+      // import chiave pubblica
+      let jwkKey;
+      try {
+        jwkKey = await importJWK(jwk, jwsAlg);
+        console.log("[verifyHttpSignature] Imported JWK key:", jwkKey);
+      } catch (err) {
+        console.error("[verifyHttpSignature] Error importing JWK:", err);
+        throw new LollipopRequestContentValidationException(
+          VERIFY_HTTP_ERROR_CODES.INVALID_JWK,
+          `Error importing JWK: ${err.message}`
+        );
+      }
+
+      // parse componenti
+      const coveredComponents = parseCoveredComponents(sigInput);
+      console.log(`[verifyHttpSignature] Covered components: ${coveredComponents}`);
+
+      // canonical signature base
+      let canonicalBase;
+      let payloadBytes;
+      try {
+        canonicalBase = getCanonicalSignatureBase(headersCopy, { created, nonce, alg, keyId }, coveredComponents);
+        console.log("[verifyHttpSignature] Canonical signature base: ", canonicalBase);
+        console.log("Base64Url.encode(Buffer.from(canonicalBase, 'utf8'): ", base64url.encode(Buffer.from(canonicalBase, 'utf8')))
+        payloadBytes = new TextEncoder().encode(canonicalBase);
+
+        console.log("[DEBUG] TEXTEncoded payload:", payloadBytes);
+        console.log("[DEBUG] canonicalBase bytes:", Array.from(payloadBytes));
+        console.log("[DEBUG] payload length:", payloadBytes.length);
+      } catch (err) {
+        console.error("[verifyHttpSignature] Error building canonical base:", err);
+        throw new LollipopRequestContentValidationException(
+          VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE,
+          `Error building canonical base: ${err.message}`
+        );
+      }
+
+      //flattened JWS
+      const protectedHeader = base64url.encode(JSON.stringify({ alg: jwsAlg, kid: keyId }));
+      const sigRaw = Buffer.from(sigB64, 'base64');
+      console.log("sigb64 for buffer sigRaw ->", sigB64);
+      console.log("sigRaw buffer ->", sigRaw);
+
+
+      // Converte DER → JOSE (r||s) base64
+      const sigJoseBase64 = derToJose(sigRaw, 'ES256');
+      const sigJoseBase64Url = base64url.fromBase64(sigJoseBase64);
+
+      // Conversione base64 -> base64URL
+      const signatureJose = base64url.fromBase64(sigJoseBase64); console.log("SIGRAW:", sigRaw);
+      console.log(`[verifyHttpSignature] Raw signature buffer length: ${sigRaw.length}`);
+      console.log("[DEBUG] SIGNATURE RAW bytes:", Array.from(sigRaw));
+
+      // payload: base64url dei byte UTF-8 del canonicalBase
+      const payloadBase64Url = base64url.encode(Buffer.from(canonicalBase, 'utf8'));
+
+      // signature: converti correttamente DER->JOSE se necessario, altrimenti usa raw->base64url
+      //let signatureJose;
+      /*if (jwsAlg.startsWith('ES')) {
+        // prova a convertire DER->JOSE; se fallisce, assume che sia già r||s concatenati
+        try {
+          // derToJose può restituire stringa Base64 (JOSE) o Buffer a seconda della versione:
+          const converted = derToJose(sigRaw, jwsAlg);
+          // se converted è Buffer, codificalo in base64url; se è stringa già base64url, usalo così com'è
+          if (Buffer.isBuffer(converted)) {
+            signatureJose = base64url.encode(converted);
+          } else {
+            // converted è probabilmente stringa base64url o base64; normalizziamo:
+            // se contiene + o / o = la convertiamo in base64url
+            signatureJose = converted.includes('+') || converted.includes('/') || converted.includes('=') 
+              ? base64url.fromBase64 ? base64url.fromBase64(converted) : base64url.encode(Buffer.from(converted, 'base64'))
+              : converted;
+          }
+        } catch (err) {
+          // fallback: potrebbe essere già r||s concatenati (es. WebCrypto)
+          console.warn("[verifyHttpSignature] derToJose failed, assuming signature is raw r||s concatenated:", err.message);
+          signatureJose = base64url.encode(sigRaw);
+        }
+      } else {
+        signatureJose = base64url.encode(sigRaw);
+      }*/
+
+      const flattenedJws = {
+        protected: protectedHeader,
+        payload: payloadBase64Url,
+        signature: sigJoseBase64Url
+      };
+      console.log("[verifyHttpSignature] Flattened JWS object:", flattenedJws);
+      console.log(`[verifyHttpSignature] jwsAlg=${jwsAlg}, expectedKty=${expectedKty}, jwk.kty=${jwk.kty}`);
+
+      // verifica firma
+      try {
+        await flattenedVerify(flattenedJws, jwkKey);
+        console.log(`[verifyHttpSignature] Signature verification SUCCESS for label "${label}"`);
+      } catch (err) {
+        console.error(`[verifyHttpSignature] Signature verification FAILED for label "${label}"`, err);
+        throw new LollipopRequestContentValidationException(
+          VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE,
+          `Signature verification failed for label ${label}: ${err.message}`
+        );
+      }
     }
+
+    console.log("[verifyHttpSignature] All signatures verified successfully");
+    return true;
+  } catch (err) {
+    console.error("[verifyHttpSignature] Verification ERROR:", err);
+    if (err instanceof LollipopRequestContentValidationException) throw err;
+    throw new LollipopRequestContentValidationException(
+      VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE,
+      err.message
+    );
   }
-  // se tutte le firme sono valide, si restituisce true
-  return true;
 }
 
+/**
+ * Converte una signature ECDSA DER in raw (r||s) -> invece di questa stiamo usando quella della libreria ecdsa-sig-formatter
+ */
+function derToRaw(derSig, coordLen) {
+  console.log("[derToRaw] Converting DER signature to raw format");
+  let offset = 2;
+  if (derSig[offset] > 0x80) offset += derSig[offset] - 0x80 + 1;
 
-// conversione delle firme ec da formato r||s a der
-// jose richiede il formato der per le firme ec, quindi va effettuata la riconversione
-function ecdsaRSigToDER(sigB64) {
-  const buf = Buffer.from(sigB64, 'base64');
-  const len = buf.length / 2;
-  const r = buf.slice(0, len);
-  const s = buf.slice(len);
+  const rLen = derSig[offset + 1];
+  const r = derSig.slice(offset + 2, offset + 2 + rLen);
+  const sLen = derSig[offset + 2 + rLen + 1];
+  const s = derSig.slice(offset + 2 + rLen + 2, offset + 2 + rLen + 2 + sLen);
 
-  // il formato der richiede che gli interi non inizino con bit di segno
-  const constructInteger = i => (i[0] & 0x80 ? Buffer.concat([Buffer.from([0x00]), i]) : i);
-  const rDer = constructInteger(r);
-  const sDer = constructInteger(s);
+  const rPadded = r.length < coordLen ? Buffer.concat([Buffer.alloc(coordLen - r.length, 0), r]) : r;
+  const sPadded = s.length < coordLen ? Buffer.concat([Buffer.alloc(coordLen - s.length, 0), s]) : s;
 
-  // costruzione del der completo (sequence)
-  const der = Buffer.concat([
-    Buffer.from([0x30]),
-    Buffer.from([rDer.length + sDer.length + 4]),
-    Buffer.from([0x02]),
-    Buffer.from([rDer.length]),
-    rDer,
-    Buffer.from([0x02]),
-    Buffer.from([sDer.length]),
-    sDer
-  ]);
-
-  return base64url.encode(der);
+  return Buffer.concat([rPadded, sPadded]);
 }
 
-
-/**  estrae alg, created, expires, nonce e keyid dal signature-input.
- questo metodo svolge l'operazione inversa di quella che fa la libreria visma:
- mentre visma costruisce un StructuredInnerList con parametri strutturati
- (alg -> string, created/expires → integer, nonce/keyid -> string),
- qui la stringa signature-input è già serializzata e noi estraiamo gli stessi
-parametri tramite regex per riutilizzarli nella verifica.function parseSignatureInput(signatureInput) {
-**/
-function parseSignatureInput(signatureInput) {
-  const algMatch = signatureInput.match(/alg="(.*?)"/);
-  const createdMatch = signatureInput.match(/created=(\d+)/);
-  const expiresMatch = signatureInput.match(/expires=(\d+)/);
-  const nonceMatch = signatureInput.match(/nonce="(.*?)"/);
-  const keyIdMatch = signatureInput.match(/keyid="(.*?)"/);
+/**
+ * Parse signature input (alg, created, nonce, keyId)
+ */
+function parseSignatureInput(sigInput) {
+  console.log("[parseSignatureInput] Parsing signature input:", sigInput);
+  const algMatch = sigInput.match(/alg="(.*?)"/);
+  const createdMatch = sigInput.match(/created=(\d+)/);
+  const nonceMatch = sigInput.match(/nonce="(.*?)"/);
+  const keyIdMatch = sigInput.match(/keyid="(.*?)"/);
 
   return {
     alg: algMatch ? algMatch[1] : null,
     created: createdMatch ? parseInt(createdMatch[1], 10) : null,
-    expires: expiresMatch ? parseInt(expiresMatch[1], 10) : null,
     nonce: nonceMatch ? nonceMatch[1] : null,
     keyId: keyIdMatch ? keyIdMatch[1] : null
   };
 }
 
-
 /**
- * costruisce la base string per la firma http riproducendo la logica della libreria visma:
- * in visma viene iterata la lista di componenti, ciascuno produce "nome: valore\n",
- * e alla fine viene aggiunto il derived component "@signature-params" serializzato.
- * qui facciamo lo stesso con gli header rimanenti: concatenazione "header: valore\n"
- * seguita dall'aggiunta del campo "@signature-params" serializzato a json 
- * */ 
-function getSignatureBase(headers, signatureParams) {
-  let base = '';
-  for (const name of Object.keys(headers)) {
-    base += `${name}: ${headers[name]}\n`;
-  }
+ * Estrae i componenti coperti
+ */
+function parseCoveredComponents(sigInput) {
+  console.log("[parseCoveredComponents] Parsing covered components from:", sigInput);
+  const match = sigInput.match(/\(([^)]+)\)/);
+  const components = match ? match[1].split(/\s+/).map(s => s.replace(/"/g, '').trim()).filter(Boolean) : [];
+  console.log("[parseCoveredComponents] Covered components:", components);
+  return components;
+}
 
-  const params = {};
-  for (const key in signatureParams) {
-    if (signatureParams[key] !== undefined && signatureParams[key] !== null) {
-      params[key] = signatureParams[key];
+// Crea la Signature Base secondo gli standard RFC
+function getCanonicalSignatureBase(headers, params, coveredComponents) {
+  const normalized = coveredComponents.map(h => h.trim().toLowerCase());
+  const headerMap = Object.keys(headers).reduce((acc, key) => {
+    acc[key.toLowerCase()] = headers[key];
+    return acc;
+  }, {});
+
+  const lines = normalized.map(name => {
+    if (!(name in headerMap)) {
+      throw new Error(`Header ${name} missing`);
     }
-  }
-  base += `"@signature-params": ${JSON.stringify(params)}`;
-  return base;
+    const value = String(headerMap[name]).replace(/\s+/g, ' ').trim();
+    return `"${name}": ${value}`;
+  });
+
+  const covered = `(${normalized.map(s => `"${s}"`).join(' ')})`;
+  const paramStr = `created=${params.created};nonce="${params.nonce}";alg="${params.alg}";keyid="${params.keyId}"`;
+
+  lines.push(`"@signature-params": ${covered};${paramStr}`);
+  console.log("keyId: ", params.keyId);
+
+  return lines.join('\n');
 }
 
 
-module.exports = {
-  verifyHttpSignature,
-  LollipopRequestContentValidationException
-};
+module.exports = { verifyHttpSignature };

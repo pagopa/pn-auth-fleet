@@ -39,17 +39,56 @@ const lollipopConfig = {
   publicKeyHeader: "x-pagopa-lollipop-public-key",
 };
 
-const VISMA_TO_JWS_ALG = {
+const JWS_ALG_MAP = {
+  // EC (Elliptic Curve)
   "ecdsa-p256-sha256": "ES256",
   "ecdsa-p384-sha384": "ES384",
   "ecdsa-p521-sha512": "ES512",
+
+  // RSA-PSS
   "rsa-pss-sha256": "PS256",
   "rsa-pss-sha384": "PS384",
   "rsa-pss-sha512": "PS512",
+
+  // RSA v1.5
   "rsa-v1_5-sha256": "RS256",
   "rsa-v1_5-sha384": "RS384",
-  "rsa-v1_5-sha512": "RS512"
+  "rsa-v1_5-sha512": "RS512",
+
+  // HMAC
+  "hmac-sha256": "HS256",
+  "hmac-sha384": "HS384",
+  "hmac-sha512": "HS512",
+
+  // EdDSA
+  "ed25519": "EdDSA",
+  "ed448": "EdDSA"
 };
+
+
+const ALG_TO_KTY = {
+  // EC
+  ES256: "EC",
+  ES384: "EC",
+  ES512: "EC",
+
+  // RSA
+  PS256: "RSA",
+  PS384: "RSA",
+  PS512: "RSA",
+  RS256: "RSA",
+  RS384: "RSA",
+  RS512: "RSA",
+
+  // HMAC (oct)
+  HS256: "oct",
+  HS384: "oct",
+  HS512: "oct",
+
+  // EdDSA (OKP)
+  EdDSA: "OKP"
+};
+
 
 module.exports = {
   DEAFULT_ALG_BY_KTY,
@@ -62,5 +101,6 @@ module.exports = {
   SIGNATURE_INPUT_REGEXP,
   SIGNATURE_REGEXP,
   lollipopConfig,
-  VISMA_TO_JWS_ALG
+  JWS_ALG_MAP,
+  ALG_TO_KTY
 };

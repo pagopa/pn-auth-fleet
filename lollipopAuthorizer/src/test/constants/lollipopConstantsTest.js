@@ -2,7 +2,9 @@ const EC_JWK = {
   kty: "EC",
   crv: "P-256",
   x: "FqFDuwEgu4MUXERPMVL-85pGv2D3YmL4J1gfMkdbc24",
-  y: "hdV0oxmWFSxMoJUDpdihr76rS8VRBEqMFebYyAfK9-k"
+  y: "hdV0oxmWFSxMoJUDpdihr76rS8VRBEqMFebYyAfK9-k",
+  alg: "ES256"
+
 };
 
 const RSA_JWK = {
@@ -52,7 +54,8 @@ const VALIDATION_ERROR_CODES = {
   MISSING_SIGNATURE: "MISSING_SIGNATURE",
   INVALID_SIGNATURE_NUMBER: "INVALID_SIGNATURE_NUMBER",
   INVALID_JWK: "INVALID_JWK",
-  INVALID_SIGNATURE_ALG: "INVALID_SIGNATURE_ALG"
+  INVALID_SIGNATURE_ALG: "INVALID_SIGNATURE_ALG",
+  UNSUPPORTED_KEY_TYPE: "UNSUPPORTED_KEY_TYPE"
 };
 
 //una lista di coppie chiave-valore separate da virgole, dove:
@@ -95,7 +98,7 @@ const DEAFULT_ALG_BY_KTY = {
 };
 
 const VALID_SIGNATURE_INPUT =
-            "sig1=(\"content-digest\" \"x-pagopa-lollipop-original-method\""
+            "sig1=(\"x-pagopa-lollipop-original-method\""
                 + " \"x-pagopa-lollipop-original-url\");created=1678293988;nonce=\"aNonce\";alg=\"ecdsa-p256-sha256\";keyid=\"sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg\"";
 const VALID_SIGNATURE =
             "sig1=:lTuoRytp53GuUMOB4Rz1z97Y96gfSeEOm/xVpO39d3HR6lLAy4KYiGq+1hZ7nmRFBt2bASWEpen7ov5O4wU3kQ==:";
