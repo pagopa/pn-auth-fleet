@@ -1,4 +1,4 @@
-const { VALIDATION_ERROR_CODES, IDP_PROVIDER_CONFIG } = require('../constants/lollipopConstants');
+const { IDP_PROVIDER_CONFIG } = require('../constants/lollipopConstants');
 const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
 const IdpCertClient = require('./client/idpCertClient').default;
@@ -6,11 +6,11 @@ const ApiClientClass = require('./ApiClient').default;
 
     
     async function getIdpCertData(instant, entityId) {
-
+        console.log('[idpCertProvider - getIdpCertData]');
         try {
             const client = provideClient();
             const idpCertData = await client.getListCertData( entityId, instant);
-            console.debug('[idpCertProvider.getIdpCertData] - IdP certificates has been found for entityId %s at instant %s: %o',
+            console.debug('[ - getIdpCertData] - IdP certificates has been found for entityId %s at instant %s: %o',
                 entityId, instant, idpCertData );
 
             return idpCertData;

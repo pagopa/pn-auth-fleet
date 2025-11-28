@@ -1,16 +1,15 @@
-const xmldom = require('xmldom');
 const { SAML_ASSERTION } = require("../../app/constants/lollipopConstants");
 const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
 const idpCertProvider = require('../../app/idp/idpCertProvider');
 
     async function getIdpCertData(assertionDoc){
-
+        console.log('[assertionVerifierService - getIdpCertData]');
         const rootElement = assertionDoc.documentElement;
         /** @type {NodeList} array */
         const listElements = assertionDoc.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.ASSERTION);
         if( isElementNotFound(listElements, SAML_ASSERTION.ISSUE_INSTANT) ) {
-            console.error('[getIdpCertData] Missing instant field in the retrieved saml assertion');
+            console.error('[ - getIdpCertData] Missing instant field in the retrieved saml assertion');
             throw new ErrorRetrievingIdpCertDataException(
               ErrorRetrievingIdpCertDataException.ErrorCode.INSTANT_FIELD_NOT_FOUND,
               'Missing instant field in the retrieved saml assertion'
@@ -27,10 +26,15 @@ const idpCertProvider = require('../../app/idp/idpCertProvider');
                 "Missing entity id field in the retrieved saml assertion"
             );
         }
-
-        const parserizedInstant = parseInstantToUnixTimestamp(instant);
-        const idpCertData = await retrieveIdpCertData(entityId, parserizedInstant);
-        return idpCertData;
+        try{
+            const parserizedInstant = parseInstantToUnixTimestamp(instant);
+            const idpCertDataList = await retrieveIdpCertData(entityId, parserizedInstant);
+            return idpCertDataList;
+        }catch (e) {
+            console.error(e.message);
+            // Rilancia qualsiasi altro errore
+            throw e;
+        }
     }
 
     function isElementNotFound(listElements, elementName) {

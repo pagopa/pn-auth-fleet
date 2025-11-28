@@ -1,5 +1,6 @@
 import {ErrorRetrievingIdpCertDataException, ErrorCode } from '../../exception/errorRetrievingIdpCertDataException.js';
 import CertDataNotFoundException  from '../../exception/certDataNotFoundException.js';
+import IllegalArgumentException from '../../exception/illegalArgumentException.js';
 import InvalidInstantFormatException  from '../../exception/invalidInstantFormatException.js';
 import TagListSearchOutOfBoundException from '../../exception/tagListSearchOutOfBoundException.js';
 import EntityIdNotFoundException from '../../exception/entityIdNotFoundException.js';
@@ -8,8 +9,6 @@ import ApiException from '../../exception/apiException.js';
 import CertData from '../model/CertData.js';
 import DefaultApi from '../api/DefaultApi.js';
 import EntityDescriptor  from '../model/EntityDescriptor.js';
-import SPIDCertData from '../model/SPIDCertData.js';
-import CIECertData from '../model/CIECertData.js';
 import IdpCertData from '../../model/IdpCertData.js';
 import xml2js from 'xml2js';
 
@@ -36,13 +35,13 @@ class IdpCertClient {
      * @return the certifications issued before and after the timestamp instant
     */
     async getListCertData(entityId, instant) {
-
+        console.log('[idpCertClient - getListCertData]');
         let listCertData = [];
         const isMissing = !entityId ||  !instant ||
             (typeof entityId === 'string' && entityId.trim().length === 0) ||
             (typeof instant === 'string' && instant.trim().length === 0);
         if (isMissing) {
-            throw new Error("EntityID or Assertion Issue Instant missing");
+            throw new IllegalArgumentException("EntityID or Assertion Issue Instant missing");
         }
 
         //(CIE vs SPID) getListCertData
