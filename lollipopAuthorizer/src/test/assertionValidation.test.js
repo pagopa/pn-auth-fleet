@@ -3,8 +3,10 @@ const chai = require('chai');
 const xmldom = require('xmldom');
 const path = require('path');
 const fs = require('fs').promises;
-const { validateAssertionPeriod } = require('../app/assertionValidation');
-const { VALIDATION_ERROR_CODES, SAML_ASSERTION } = require('../app/constants/lollipopConstants');
+const { validateAssertionPeriod, validateUserId } = require('../app/assertionValidation');
+const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopConstants');
+const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
+const { VALID_ASSERTION_XML } = require('../test/constants/lollipopConstantsTest');
 const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
 
 
@@ -12,112 +14,82 @@ describe('validateAssertionPeriodTest ', () => {
 
     console.log('validateAssertionPeriod TEST');
 
-    it('dovrebbe restituire TRUE quando la data è valida e non è scaduta', async () => {
+    it('should return TRUE if date is valid or not expired', async () => {
 
         console.log('TEST 1 - Caricamento Document Assertion fake per test ');
-        let assertionDoc;
-        try {
-            const getAssertionXMLPath = path.join(__dirname, 'fileTest//getAssertionTest.xml');
-            console.log("gestAssertionPath: " , getAssertionXMLPath);
-            const getAssertionXmlString = await fs.readFile(getAssertionXMLPath, 'utf8');
-            const parserXML = new xmldom.DOMParser();
-            assertionDoc = parserXML.parseFromString(getAssertionXmlString, "application/xml");
-            if (assertionDoc.documentElement.nodeName === 'parsererror') {
-                throw new Error("Errore di sintassi nel file XML. Parsing fallito.");
-            }
-            console.log("TYPE assertionDoc: ", typeof assertionDoc);
-            const rootElementName = assertionDoc.documentElement.localName;
-            console.log("assertionDoc di test - rootElementName: " , rootElementName);
+        //per rendere dinamico il test sul notBefore, andiamo a far in modo che sia sempre valido partendo dalla data odiera (invece che fare il mock del metodo)
+        const now = new Date();
+        const notBeforeDate = new Date(now.getTime() - 1000); // 1 secondo fa
+        const notBeforeIso = notBeforeDate.toISOString(); // formato es 2025-11-04T11:50:33.570Z
 
-        } catch (error) {
-            console.error(`Errore durante il caricamento da file XML: ${error.message}`);
-            throw error;
-        }
-
-        if(!assertionDoc  || assertionDoc === undefined){
-            console.error("test assertionDoc is NULL");
-        }else{
-            console.debug("test assertionDoc is NOT NULL");
-            const listElements = assertionDoc.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.NOT_BEFORE_TAG);
-            const firstConditionsElement = listElements[0];
-            const notBefore = firstConditionsElement.getAttribute(SAML_ASSERTION.NOT_BEFORE);
-            console.debug("notBefore: ", notBefore);
-        }
+        // sostituzione del campo notBefore nella stringa xml
+        const xmlWithDynamicNotBefore = VALID_ASSERTION_XML.replace(
+            /NotBefore="[^"]*"/,
+            `NotBefore="${notBeforeIso}"`
+        );
+        
+        const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithDynamicNotBefore, "text/xml");
 
         console.log("validateAssertionPeriod ...");
         const result = validateAssertionPeriod(assertionDoc);
         expect(result).to.be.true;
     });
 
-    it('should throw ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE if notBefore is null or invalid', async() => {
+    it('should throw ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE if notBefore is invalid', async() => {
 
         console.log('TEST 2 - Caricamento Document Assertion fake per test ');
-        let assertionDocNotBeforeNull;
-        try {
-            const getAssertionXMLPath = path.join(__dirname, 'fileTest//getAssertionTestNotBeforeInvalid.xml');
-            console.log("gestAssertionPath: " , getAssertionXMLPath);
-            const getAssertionXmlString = await fs.readFile(getAssertionXMLPath, 'utf8');
-            const parserXML = new xmldom.DOMParser();
-            assertionDocNotBeforeNull = parserXML.parseFromString(getAssertionXmlString, "application/xml");
-            if (assertionDocNotBeforeNull.documentElement.nodeName === 'parsererror') {
-                throw new Error("Errore di sintassi nel file XML. Parsing fallito.");
-            }
+           const xmlWithInvalidNotBefore = VALID_ASSERTION_XML.replace(
+            /NotBefore="[^"]*"/,
+            `NotBefore="invalidFormat"`
+        );
+        
+        const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithInvalidNotBefore, "text/xml");
 
-        } catch (error) {
-            console.error(`Errore durante il caricamento da file XML: ${error.message}`);
-            throw error;
-        }
-
-        if(!assertionDocNotBeforeNull  || assertionDocNotBeforeNull === undefined){
-            console.error("test 2 assertionDoc is NULL");
-        }else{
-            console.debug("test 2 assertionDoc is NOT NULL");
-            const listElements = assertionDocNotBeforeNull.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.NOT_BEFORE_TAG);
-            const firstConditionsElement = listElements[0];
-            const notBefore = firstConditionsElement.getAttribute(SAML_ASSERTION.NOT_BEFORE);
-            console.debug("notBefore:", notBefore);
-        }
-
-        expect(() => validateAssertionPeriod(assertionDocNotBeforeNull))
+        expect(() => validateAssertionPeriod(assertionDoc))
         .to.throw(LollipopAssertionException)
         .with.property('errorCode', VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE);
 
-//            const result = validateAssertionPeriod(assertionDocNotBeforeNull);
-//            expect(result).to.be.false;
+    });
 
-      });
-
-    it('dovrebbe restituire FALSE quando la data è scaduta', async () => {
+    it('should throw ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE if notBefore is null', async() => {
 
         console.log('TEST 3 - Caricamento Document Assertion fake per test ');
-        let assertionDoc;
-        try {
-            const getAssertionXMLPath = path.join(__dirname, 'fileTest//getAssertionTestNotBeforeFalse.xml');
-            console.log("gestAssertionPath: " , getAssertionXMLPath);
-            const getAssertionXmlString = await fs.readFile(getAssertionXMLPath, 'utf8');
-            const parserXML = new xmldom.DOMParser();
-            assertionDoc = parserXML.parseFromString(getAssertionXmlString, "application/xml");
-            if (assertionDoc.documentElement.nodeName === 'parsererror') {
-                throw new Error("Errore di sintassi nel file XML. Parsing fallito.");
-            }
-            console.log("TYPE assertionDoc: ", typeof assertionDoc);
-            const rootElementName = assertionDoc.documentElement.localName;
-            console.log("assertionDoc di test - rootElementName: " , rootElementName);
+           const xmlWithNullNotBefore = VALID_ASSERTION_XML.replace(
+            /NotBefore="[^"]*"/,
+            `NotBefore=""`
+        );
+        
+        const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithNullNotBefore, "text/xml");
 
-        } catch (error) {
-            console.error(`Errore durante il caricamento da file XML: ${error.message}`);
-            throw error;
-        }
+        expect(() => validateAssertionPeriod(assertionDoc))
+        .to.throw(LollipopAssertionException)
+        .with.property('errorCode', VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE);
 
-        if(!assertionDoc  || assertionDoc === undefined){
-            console.error("test assertionDoc is NULL");
-        }else{
-            console.debug("test assertionDoc is NOT NULL");
-            const listElements = assertionDoc.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.NOT_BEFORE_TAG);
-            const firstConditionsElement = listElements[0];
-            const notBefore = firstConditionsElement.getAttribute(SAML_ASSERTION.NOT_BEFORE);
-            console.debug("notBefore is OLD: ", notBefore);
-        }
+    });
+
+    it('should throw ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE if notBefore is not present', async() => {
+
+        console.log('TEST 4 - Caricamento Document Assertion fake per test ');
+        const invalidXml = `<Assertion xmlns="urn:oasis:names:tc:SAML:2.0:assertion">
+                            <Conditions></Conditions>
+                            </Assertion>`;
+        const assertionDoc = new xmldom.DOMParser().parseFromString(invalidXml, "text/xml");
+
+        expect(() => validateAssertionPeriod(assertionDoc))
+        .to.throw(LollipopAssertionException)
+        .with.property('errorCode', VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE);
+
+    });
+
+    it('should throw FALSE if date is expired', async () => {
+
+        console.log('TEST 5 - Caricamento Document Assertion fake per test ');
+          const xmlWithExpiredDate = VALID_ASSERTION_XML.replace(
+            /NotBefore="[^"]*"/,
+            `NotBefore="2010-11-04T11:50:33.570Z"`
+        );
+        
+        const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithExpiredDate, "text/xml");
 
         console.log("validateAssertionPeriod ...");
         const result = validateAssertionPeriod(assertionDoc);
@@ -127,3 +99,92 @@ describe('validateAssertionPeriodTest ', () => {
 });
 
 
+describe("validateUserId tests", () => {
+
+  it("should return TRUE if fiscalNumber and userId header match", () => {
+    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+
+    const request = {
+      headerParams: {
+        [lollipopConfig.userIdHeader]: "GDNNWA12H81Y874F"
+      }
+    };
+
+    const result = validateUserId(request, assertionDoc);
+
+    expect(result).to.equal(true);
+  });
+
+  it("should return FALSE if fiscalNumber and userId header don't match", () => {
+    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+
+    const request = {
+      headerParams: {
+        [lollipopConfig.userIdHeader]: "AAAAAA00A00A000A"
+      }
+    };
+
+    const result = validateUserId(request, assertionDoc);
+
+    expect(result).to.equal(false);
+  });
+
+  it("should return FALSE when userId header is null", () => {
+    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+
+    const request = {
+      headerParams: {}
+    };
+
+    const result = validateUserId(request, assertionDoc);
+
+    expect(result).to.equal(false);
+  });
+
+  it("should throw error when fiscalNumber is not in assertionDoc", () => {
+    const invalidAssertion = VALID_ASSERTION_XML.replace(
+      "<saml:Attribute Name=\"fiscalNumber\">",
+      "<saml:Attribute Name=\"wrongTag\">"
+    );
+    const request = {
+      headerParams: {
+        [lollipopConfig.userIdHeader]: "AAAAAA00A00A000A"
+      }
+    };
+    const assertionDoc = new xmldom.DOMParser().parseFromString(invalidAssertion, "text/xml");
+
+    expect(() => validateUserId(request, assertionDoc)).to.throw(LollipopAssertionException);
+  });
+
+  it("should pass with prefix TINIT-", () => {
+    const assertionWithTinit = VALID_ASSERTION_XML.replace(
+      "GDNNWA12H81Y874F",
+      "TINIT-GDNNWA12H81Y874F"
+    );
+
+    const assertionDoc = new xmldom.DOMParser().parseFromString(assertionWithTinit, "text/xml");
+
+    const request = {
+      headerParams: {
+        [lollipopConfig.userIdHeader]: "GDNNWA12H81Y874F"
+      }
+    };
+
+    const result = validateUserId(request, assertionDoc);
+
+    expect(result).to.equal(true);
+  });
+
+  it("should throws error when assertionDoc is empty", () => {
+    const emptyAssertion = new xmldom.DOMParser().parseFromString("<root/>", "text/xml");
+
+    const request = {
+      headerParams: {
+        [lollipopConfig.userIdHeader]: "GDNNWA12H81Y874F"
+      }
+    };
+
+    expect(() => validateUserId(request, emptyAssertion)).to.throw(LollipopAssertionException); 
+  });
+
+});
