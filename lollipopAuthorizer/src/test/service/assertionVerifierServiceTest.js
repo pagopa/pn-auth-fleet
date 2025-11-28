@@ -7,9 +7,8 @@ const path = require('path');
 const fs = require('fs').promises;
 const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
-//const IdpCertProvider = require('../../app/idp/idpCertProvider');
+const IdpCertData = require('../../app/model/idpCertData');
 const { VALIDATION_ERROR_CODES, SAML_ASSERTION } = require('../../app/constants/lollipopConstants');
-//const LollipopAssertionException = require('../../app/exception/lollipopAssertionException');
 const { getIdpCertData } = require('../../app/service/assertionVerifierService');
 
 describe('getIdpCertData ', async () => {
@@ -29,9 +28,6 @@ describe('getIdpCertData ', async () => {
             if (assertionDoc.documentElement.nodeName === 'parsererror') {
                 throw new Error("Errore di sintassi nel file XML. Parsing fallito.");
             }
-            console.log("TYPE assertionDoc: ", typeof assertionDoc);
-            const rootElementName = assertionDoc.documentElement.localName;
-            console.log("assertionDoc di test - rootElementName: " , rootElementName);
 
         } catch (error) {
             console.error(`Errore durante il caricamento da file XML: ${error.message}`);
@@ -49,8 +45,22 @@ describe('getIdpCertData ', async () => {
         }
         console.log("---------------------------------------------");
         console.log("getIdpCertData ...");
-        const result = await getIdpCertData(assertionDoc);
-        console.log("RESULT (listCertData): ", result);
+        const result = await getIdpCertData(assertionDoc);  //lista di IdpCertData
+
+        if (!result || !Array.isArray(result)) {
+            throw new Error("RESULT non è un Array valido.");
+        }
+        console.log("RESULT (listCertData): ", result.length);
+        for( const certDataElem of result){
+            //if (!(certDataElem instanceof IdpCertData)) {
+            //    throw new Error("certDataElem non è un IdpCertData valido.");
+            //}
+console.log("RESULT (certDataElem): ", certDataElem );
+            console.log("RESULT (certDataElem.entityId): ", certDataElem.entityId);
+            console.log("RESULT (certDataElem.tag): ", certDataElem.tag);
+            console.log("RESULT (certDataElem.certData): ", certDataElem.certData);
+        }
+
         expect(result).to.be.a('array');
         console.log("---------------------------------------------");
     });

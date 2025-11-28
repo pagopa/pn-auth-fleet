@@ -68,6 +68,14 @@ const SAML_ASSERTION = {
     NOT_BEFORE: "NotBefore",
     ISSUE_INSTANT: "IssueInstant",
     ISSUER_ENTITY_ID_TAG: "Issuer",
+    ENTITIES_DESCRIPTOR_TAG: "EntitiesDescriptor",
+    NAMESPACE_TAG: "md:",
+    ENTITY_DESCRIPTOR_TAG: "EntityDescriptor",
+    IDPSSO_DESCRIPTOR_TAG: "IDPSSODescriptor",
+    KEY_DESCRIPTOR_TAG: "KeyDescriptor",
+    DS_KEYINFO_TAG: "ds:KeyInfo",
+    DS_X509DATA_TAG: "ds:X509Data",
+    DS_X509CERTIFICATE_TAG: "ds:X509Certificate",
 }
 
 const ASSERTION_EXPIRE_IN_DAYS = 365;

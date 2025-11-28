@@ -3,6 +3,7 @@ import CertDataNotFoundException  from '../../exception/certDataNotFoundExceptio
 import InvalidInstantFormatException  from '../../exception/invalidInstantFormatException.js';
 import TagListSearchOutOfBoundException from '../../exception/tagListSearchOutOfBoundException.js';
 import EntityIdNotFoundException from '../../exception/entityIdNotFoundException.js';
+import { SAML_ASSERTION } from '../../constants/lollipopConstants.js';
 import ApiException from '../../exception/apiException.js';
 import CertData from '../model/CertData.js';
 import DefaultApi from '../api/DefaultApi.js';
@@ -11,18 +12,19 @@ import SPIDCertData from '../model/SPIDCertData.js';
 import CIECertData from '../model/CIECertData.js';
 import IdpCertData from '../../model/IdpCertData.js';
 import xml2js from 'xml2js';
-const parser = new xml2js.Parser({ explicitArray: false });
 
 class IdpCertClient {
 
       idpClientConfig;
       apiClient;
       defaultApi;
+      xmlParser;
 
     constructor(apiClient = {}, idpClientConfig = {}) {
         this.idpClientConfig = idpClientConfig;
         this.apiClient = apiClient;
-        this.defaultApi = new DefaultApi(apiClient);
+        this.defaultApi = new DefaultApi(apiClient, idpClientConfig);
+        this.xmlParser = new xml2js.Parser({ explicitArray: false });
     }
 
 
@@ -79,7 +81,7 @@ class IdpCertClient {
         }
 
         listCertData = await this.processCertTags(tagList, entityId, typeOfData);
-        console.log('listCertData: ' , listCertData);
+        //console.log('listCertData: ' , listCertData);
         return listCertData;
     }
 
@@ -106,10 +108,8 @@ class IdpCertClient {
 
     async processCertTags(tagList, entityId, typeOfData) {
         let listCertData = [];
-        console.log('tagList: ' , tagList);
         for (const tag of tagList) {
             try {
-                console.log('[processCertTags] tag: ', tag);
                 let certData;
                 if(typeOfData === "CIECertData"){
                     certData = await this.getCIECertData(tag, entityId); // , idpCertClient);
@@ -117,7 +117,6 @@ class IdpCertClient {
                 if(typeOfData === "SPIDCertData"){
                     certData = await this.getSPIDCertData(tag, entityId); // , idpCertClient);
                 }
-                console.log('[processCertTags] certData: ', certData);
                 if (certData !== null) {
                     listCertData.push(certData);
                 }
@@ -159,24 +158,26 @@ class IdpCertClient {
             throw new Error("Risposta API non è un Buffer XML come previsto.");
         }
         const xmlString = responseAssertion.toString('utf8');
-        //console.log('responseAssertion xmlString: ' , xmlString);
+
         const entitiesDescriptorObject = await new Promise((resolve, reject) => {
-            parser.parseString(xmlString, (err, result) => {
+            this.xmlParser.parseString(xmlString, (err, result) => {
                 if (err) {
-                    reject(new ApiException(`Errore durante il parsing XML del certificato: ${err.message}`));
+                    reject(new ApiException('Errore durante il parsing XML del certificato: ${err.message}'));
                     return;
                 }
                 resolve(result);
             });
         });
-
-        //const entitiesDescriptor = EntityDescriptor.constructFromObject(responseAssertion, new EntityDescriptor());
+        //console.log('responseAssertion entitiesDescriptorObject: ' , entitiesDescriptorObject);
         //console.log('entitiesDescriptor: ' , entitiesDescriptorObject);
-        return getEntityData(entitiesDescriptorObject, tag, entityId);
+
+        let entityList = unpackNestedSignature( entitiesDescriptorObject, entityId , 'CIE');
+        //console.log('entityList: ' , entityList.length);
+        return getEntityData(entityList, tag, entityId);
     }
 
     // SPID
-    async getSpidCerts(entityId, instant, listCertData){
+    async getSpidCerts(entityId, instant, listCertData, typeOfData){
 
         console.log("[idpCertClient.getSpidCerts]");
         let tagList = [];
@@ -191,7 +192,7 @@ class IdpCertClient {
             throw e;
         }
 
-        listCertData = await this.processCertTags(tagList, entityId);
+        listCertData = await this.processCertTags(tagList, entityId, typeOfData);
         return listCertData;
     }
 
@@ -226,7 +227,7 @@ class IdpCertClient {
                 this.defaultApi.idpKeysSpidTagGet(tag, (error, data, response) => {
                     if (error) {
                         // Se c'è un errore, rigetta la Promise
-                        console.error("Errore nella chiamata idpKeysSpidTagGet:", error);
+                        console.error('Errore nella chiamata idpKeysSpidTagGet: ', error);
                         reject(error);
                         return;
                     }
@@ -236,19 +237,20 @@ class IdpCertClient {
             });
 
         } catch (error) {
-            console.error("Errore nella chiamata idpKeysSpidTagGet: ", error);
+            console.error('Errore nella chiamata idpKeysSpidTagGet: ', error);
             throw error;
         }
 
         const responseAssertion = responseData.getActualInstance();  //certData
         if (!Buffer.isBuffer(responseAssertion)) {
             // Gestione di un caso in cui la risposta non è un Buffer come atteso
-            throw new Error("Risposta API non è un Buffer XML come previsto.");
+            throw new Error('Risposta API non è un Buffer XML come previsto.');
         }
         const xmlString = responseAssertion.toString('utf8');
         //console.log('responseAssertion xmlString: ' , xmlString);
+
         const entitiesDescriptorObject = await new Promise((resolve, reject) => {
-            parser.parseString(xmlString, (err, result) => {
+            this.xmlParser.parseString(xmlString, (err, result) => {
                 if (err) {
                     reject(new ApiException(`Errore durante il parsing XML del certificato: ${err.message}`));
                     return;
@@ -256,8 +258,10 @@ class IdpCertClient {
                 resolve(result);
             });
         });
-        console.log('entitiesDescriptor: ' , entitiesDescriptorObject);
-        return getEntityData(entitiesDescriptorObject, tag, entityId);
+
+        let entityList = unpackNestedSignature( entitiesDescriptorObject, entityId , 'SPID');
+
+        return getEntityData(entityList, tag, entityId);
     }
 
 } // FINE CLASSE IdpCertClient
@@ -348,24 +352,125 @@ class IdpCertClient {
     * e se lo trova costruisce un nuovo oggetto IdpCertData
     * data === entitiesDescriptorObject.EntitiesDescriptor
     **/
-    function getEntityData(data, tag, entityId) {
+    function getEntityData(entityList, tag, entityId) {
         const newData = new IdpCertData();
-
-        const entitiesContainer = data.EntityDescriptor;
-        const entityList = Array.isArray(entitiesContainer) ? entitiesContainer : [entitiesContainer];
+        //console.log('[getEntityData] - entityList: ' , entityList.length);
+        if (!Array.isArray(entityList)) {
+            throw new Error('La struttura XML parsata è inattesa o la lista EntityDescriptor è vuota.');
+        }
         for (const entity of entityList) {
-            const currentEntityId = entity['$'] ? entity['$'].entityID : entity.entityID;
-            if (currentEntityId === entityId) {
-                //console.log('currentEntityId: ', currentEntityId);
+            if(entity !== undefined){
                 newData.entityId = entityId;
                 newData.tag = tag;
-                const certDataList = entity.Signature || entity.KeyDescriptor || [];
-                newData.certData = certDataList;
+                newData.certData = entity;
                 return newData;
             }
         }
         throw new EntityIdNotFoundException('Cert for entityID ${entityId} not found');
     }
+
+
+    //@JsonProperty("IDPSSODescriptor")
+   function unpackNestedSignature( entitiesDescriptorObject, entityId, tipo) {
+       let nameSpace = '';
+       let entitiesDescriptorRoot = entitiesDescriptorObject;
+       if(tipo === 'SPID'){
+            nameSpace = SAML_ASSERTION.NAMESPACE_TAG;
+            entitiesDescriptorRoot = entitiesDescriptorObject[nameSpace + SAML_ASSERTION.ENTITIES_DESCRIPTOR_TAG];
+       }
+       const entityDescriptors = entitiesDescriptorRoot[nameSpace + SAML_ASSERTION.ENTITY_DESCRIPTOR_TAG];
+        //console.log("entityDescriptors : ", entityDescriptors);
+
+        let entityDescriptorList = [];
+        if (Array.isArray(entityDescriptors)) {
+            entityDescriptorList = entityDescriptors
+                .filter(el => {
+                    return el['$'] && el['$'].entityID === entityId;
+            });
+        } else if (entityDescriptors && typeof entityDescriptors === 'object') {
+            const entityDescriptorsFound = entityDescriptors;
+            //console.log(" entityDescriptorsFound : ", entityDescriptorsFound);
+            const currentEntityID = entityDescriptorsFound['$'] ? entityDescriptorsFound['$'].entityID : null;
+            if (currentEntityID === entityId) {
+                entityDescriptorList.push(entityDescriptorsFound);
+            }
+        }
+        //console.log("entityDescriptorList : ", entityDescriptorList);
+
+       const entityDescriptor = entityDescriptorList[0];
+       if (entityDescriptor[nameSpace + SAML_ASSERTION.IDPSSO_DESCRIPTOR_TAG]){
+
+           const idpssoDescriptor = entityDescriptor[nameSpace + SAML_ASSERTION.IDPSSO_DESCRIPTOR_TAG];
+           const keyDescriptorsList = getKeyDescriptorsList(idpssoDescriptor, nameSpace + SAML_ASSERTION.KEY_DESCRIPTOR_TAG);
+
+           const keyInfosList = getKeyInfosList(keyDescriptorsList);
+           const listX509Data = getListX509Data(keyInfosList);
+           const extractedSignatureList = getExtractedSignatureList(listX509Data);
+           return extractedSignatureList;
+       }
+   }
+
+   function getKeyDescriptorsList(idpssoDescriptor, KeyDescriptor){
+        let keyDescriptorsList = [];
+        //console.log("  keyDescriptorsList : " , KeyDescriptor);
+        const keyDescriptors = idpssoDescriptor[KeyDescriptor];
+        //console.log("  keyDescriptors : " , keyDescriptors);
+        if (Array.isArray(keyDescriptors)) {
+            keyDescriptorsList = keyDescriptors
+                .filter(el => {
+                    return el['$'] && el['$'].use === "signing";
+            });
+        } else if (keyDescriptors && typeof keyDescriptors === 'object') {
+            const keyDescriptorFound = keyDescriptors;
+            if (keyDescriptorFound.use === "signing") {
+                keyDescriptorsList.push(keyDescriptorFound);
+            }
+        }
+        return keyDescriptorsList;
+   }
+
+   function getKeyInfosList(keyDescriptorsList) {
+       let keyInfosList = [];
+       //const KEY_INFO_FIELD = KEY_INFO;
+       for (const keyDescriptor of keyDescriptorsList) {
+           const keyInfoData = keyDescriptor[SAML_ASSERTION.DS_KEYINFO_TAG];
+           if (Array.isArray(keyInfoData)) {
+               keyInfosList.push(keyInfoData);
+           } else if (keyInfoData) {
+               const keyInfo = keyInfoData;
+               keyInfosList.push(keyInfo);
+           }
+       }
+       return keyInfosList;
+   }
+
+
+   function getListX509Data(keyInfosList) {
+       let listX509Data = [];
+       for (const keyInfo of keyInfosList) {
+           const x509Data = keyInfo[SAML_ASSERTION.DS_X509DATA_TAG];
+           if (Array.isArray(x509Data)) {
+               listX509Data.push(x509Data);
+           } else if (x509Data) {
+               listX509Data.push(x509Data);
+           }
+       }
+       return listX509Data;
+   }
+
+
+  function getExtractedSignatureList(listX509Data) {
+       let extractedSignatureList = [];
+       for (const x509Data of listX509Data) {
+           const x509CertificateContent = x509Data[SAML_ASSERTION.DS_X509CERTIFICATE_TAG];
+           if (Array.isArray(x509CertificateContent)) {
+               extractedSignatureList.push(x509CertificateContent);
+           } else if (x509CertificateContent) {
+               extractedSignatureList.push(x509CertificateContent);
+           }
+       }
+       return extractedSignatureList;
+   }
 
 
 

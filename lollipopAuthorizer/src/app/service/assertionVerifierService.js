@@ -88,10 +88,10 @@ const idpCertProvider = require('../../app/idp/idpCertProvider');
             }
 
             // idpCertData è un array
-            console.log('[assertionVerifierService.retrieveIdpCertData] - input: entityId %s at instant %s', trimmedEntityId, instant );
+            //console.debug('[assertionVerifierService.retrieveIdpCertData] - input: entityId %s at instant %s', trimmedEntityId, instant );
             const idpCertData = await idpCertProvider.getIdpCertData(instant, trimmedEntityId);
-            console.log('[assertionVerifierService.retrieveIdpCertData] - IdP certificates has been found for entityId %s at instant %s: %o',
-                trimmedEntityId, instant, idpCertData );
+            //console.debug('[assertionVerifierService.retrieveIdpCertData] - IdP certificates has been found for entityId %s at instant %s: %o',
+            //    trimmedEntityId, instant, idpCertData );
 
             return idpCertData;
         } catch (e) {

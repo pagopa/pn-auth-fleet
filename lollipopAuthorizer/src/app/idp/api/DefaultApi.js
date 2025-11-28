@@ -27,10 +27,12 @@ export default class DefaultApi {
     * @alias module:api/DefaultApi
     * @class
     * @param {module:ApiClient} [apiClient] Optional API client implementation to use,
+    * @param {idpClientConfig}
     * default to {@link module:ApiClient#instance} if unspecified.
     */
-    constructor(apiClient) {
+    constructor(apiClient, idpClientConfig) {
         this.apiClient = apiClient || ApiClient.instance;
+        this.idpClientConfig = idpClientConfig;
     }
 
 
@@ -63,7 +65,8 @@ export default class DefaultApi {
       let accepts = ['application/json'];
       let returnType = ['String'];
       return this.apiClient.callApi(
-        '/idp-keys/cie', 'GET',
+        //'/idp-keys/cie', 'GET',
+        this.idpClientConfig.IDP_KEYS_CIE_ENDPOINT, 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
         authNames, contentTypes, accepts, returnType, null, callback
       );
@@ -104,7 +107,8 @@ export default class DefaultApi {
       let accepts = ['application/xml', 'application/json'];
       let returnType = CertData;
       return this.apiClient.callApi(
-        '/idp-keys/cie/{tag}', 'GET',
+        //'/idp-keys/cie/{tag}', 'GET',
+        this.idpClientConfig.IDP_KEYS_CIE_ENDPOINT+'/{tag}','GET',
         pathParams, queryParams, headerParams, formParams, postBody,
         authNames, contentTypes, accepts, returnType, null, callback
       );
@@ -139,7 +143,8 @@ export default class DefaultApi {
       let accepts = ['application/json'];
       let returnType = ['String'];
       return this.apiClient.callApi(
-        '/idp-keys/spid', 'GET',
+        //'/idp-keys/spid', 'GET',
+        this.idpClientConfig.IDP_KEYS_SPID_ENDPOINT,'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
         authNames, contentTypes, accepts, returnType, null, callback
       );
@@ -180,7 +185,8 @@ export default class DefaultApi {
       let accepts = ['application/xml', 'application/json'];
       let returnType = CertData;
       return this.apiClient.callApi(
-        '/idp-keys/spid/{tag}', 'GET',
+        //'/idp-keys/spid/{tag}', 'GET',
+        this.idpClientConfig.IDP_KEYS_SPID_ENDPOINT+'/{tag}','GET',
         pathParams, queryParams, headerParams, formParams, postBody,
         authNames, contentTypes, accepts, returnType, null, callback
       );
