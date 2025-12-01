@@ -41,8 +41,6 @@ async function verifyHttpSignature(signature, signatureInput, headers) {
     let jwk;
     try {
       jwk = JSON.parse(Buffer.from(lollipopKey, 'base64').toString('utf8'));
-      jwk.x = base64ToBase64Url(jwk.x);
-      jwk.y = base64ToBase64Url(jwk.y);
       console.log("[verifyHttpSignature] Parsed JWK:", jwk);
     } catch (err) {
       console.error("[verifyHttpSignature] Error parsing JWK:", err);
