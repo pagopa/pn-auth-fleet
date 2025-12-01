@@ -11,11 +11,12 @@
  *
  */
 
-import ApiClient from '../ApiClient.js';
-import CIECertData from './CIECertData.js';
-import EntityDescriptor from './EntityDescriptor.js';
-import SPIDCertData from './SPIDCertData.js';
-import SPIDCertDataEntitiesDescriptor from './SPIDCertDataEntitiesDescriptor.js';
+//import ApiClient from '../ApiClient.js';
+//import CIECertData from './CIECertData.js';
+//import SPIDCertData from './SPIDCertData.js';
+
+const CIECertData = require('./CIECertData');
+const SPIDCertData = require('./SPIDCertData');
 
 /**
  * The CertData model module.
@@ -33,8 +34,8 @@ class CertData {
             this.actualInstance = null;
             return;
         }
-        var match = 0;
-        var errorMessages = [];
+        //var match = 0;
+        //var errorMessages = [];
 
         this.actualInstance = instance;
         /*
@@ -130,15 +131,15 @@ class CertData {
 /**
  * @member {Array.<module:model/EntityDescriptor>} entityDescriptor
  */
-CertData.prototype['entityDescriptor'] = undefined;
+//CertData.prototype['entityDescriptor'] = undefined;
 
 /**
  * @member {module:model/SPIDCertDataEntitiesDescriptor} entitiesDescriptor
  */
-CertData.prototype['entitiesDescriptor'] = undefined;
+//CertData.prototype['entitiesDescriptor'] = undefined;
 
 
 CertData.OneOf = ["CIECertData", "SPIDCertData"];
 
-export default CertData;
 
+module.exports = CertData;

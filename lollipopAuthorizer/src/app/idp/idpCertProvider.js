@@ -1,10 +1,11 @@
 const { IDP_PROVIDER_CONFIG } = require('../constants/lollipopConstants');
-const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
+const {ErrorRetrievingIdpCertDataException, ErrorCode} = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
-const IdpCertClient = require('./client/idpCertClient').default;
-const ApiClientClass = require('./ApiClient').default;
+const IllegalArgumentException = require('../../app/exception/illegalArgumentException');
+const IdpCertClient = require('./client/idpCertClient'); //.default;
+const ApiClientClass = require('./ApiClient');
 
-    
+
     async function getIdpCertData(instant, entityId) {
         console.log('[idpCertProvider - getIdpCertData]');
         try {
@@ -15,9 +16,9 @@ const ApiClientClass = require('./ApiClient').default;
 
             return idpCertData;
         } catch (e) {
-            if (e instanceof CertDataNotFoundException) {
+            if (e instanceof CertDataNotFoundException || e instanceof IllegalArgumentException) {
                 throw new ErrorRetrievingIdpCertDataException(
-                    ErrorRetrievingIdpCertDataException.ErrorCode.IDP_CERT_DATA_NOT_FOUND,
+                    ErrorCode.IDP_CERT_DATA_NOT_FOUND,
                     "Some error occurred in retrieving certification data from IDP", e );
             }
             // Rilancia qualsiasi altro errore
@@ -25,7 +26,7 @@ const ApiClientClass = require('./ApiClient').default;
         }
     }
 
-
+ 
     function provideClient(){
         const apiClientInstance = new ApiClientClass(IDP_PROVIDER_CONFIG.BASE_URI);
         //apiClient.basePath = IDP_PROVIDER_CONFIG.BASE_URI;
@@ -36,3 +37,4 @@ const ApiClientClass = require('./ApiClient').default;
 module.exports = {
     getIdpCertData,
 }
+//module.exports = IdpCertProvider;

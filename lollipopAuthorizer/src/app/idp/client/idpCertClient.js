@@ -1,16 +1,18 @@
-import {ErrorRetrievingIdpCertDataException, ErrorCode } from '../../exception/errorRetrievingIdpCertDataException.js';
-import CertDataNotFoundException  from '../../exception/certDataNotFoundException.js';
-import IllegalArgumentException from '../../exception/illegalArgumentException.js';
-import InvalidInstantFormatException  from '../../exception/invalidInstantFormatException.js';
-import TagListSearchOutOfBoundException from '../../exception/tagListSearchOutOfBoundException.js';
-import EntityIdNotFoundException from '../../exception/entityIdNotFoundException.js';
-import { SAML_ASSERTION } from '../../constants/lollipopConstants.js';
-import ApiException from '../../exception/apiException.js';
-import CertData from '../model/CertData.js';
-import DefaultApi from '../api/DefaultApi.js';
-import EntityDescriptor  from '../model/EntityDescriptor.js';
-import IdpCertData from '../../model/IdpCertData.js';
-import xml2js from 'xml2js';
+const CertDataNotFoundException = require('../../exception/certDataNotFoundException');
+const IllegalArgumentException = require('../../exception/illegalArgumentException');
+const InvalidInstantFormatException  = require('../../exception/invalidInstantFormatException');
+const TagListSearchOutOfBoundException  = require('../../exception/tagListSearchOutOfBoundException');
+const EntityIdNotFoundException  = require( '../../exception/entityIdNotFoundException');
+const {ErrorRetrievingIdpCertDataException, ErrorCode } = require('../../exception/errorRetrievingIdpCertDataException');
+const { SAML_ASSERTION } = require('../../constants/lollipopConstants');
+const ApiException  = require( '../../exception/apiException');
+const CIECertData  = require( '../model/CIECertData');
+const SPIDCertData  = require( '../model/SPIDCertData');
+const DefaultApi  = require( '../api/DefaultApi');
+const EntityDescriptor = require( '../model/EntityDescriptor');
+const IdpCertData = require( '../../model/IdpCertData');
+const xml2js = require('xml2js');
+
 
 class IdpCertClient {
 
@@ -73,8 +75,9 @@ class IdpCertClient {
         } catch (e) {
             if (e instanceof ApiException ||
                 e instanceof TagListSearchOutOfBoundException ||
-                e instanceof InvalidInstantFormatException) {
-                    throw new CertDataNotFoundException('Error retrieving certificates tag list: ${e.message}', e);
+                e instanceof InvalidInstantFormatException){
+                    console.error(`ERROR: Error retrieving certificates tag list: ${e.message}`);
+                    throw new CertDataNotFoundException(`Error retrieving certificates tag list: ${e.message}`, e);
             }
             throw e;
         }
@@ -121,8 +124,9 @@ class IdpCertClient {
                 }
             } catch (e) {
                 if (e instanceof ApiException || e instanceof EntityIdNotFoundException) {
+                    console.error(`ERROR: Error retrieving certificate data for tag ${tag}: ${e.message}`);
                     throw new CertDataNotFoundException(
-                        'Error retrieving certificate data for tag ${tag}: ${e.message}', e );
+                        `Error retrieving certificate data for tag ${tag}: ${e.message}`, e );
                 }
                 throw e;
             }
@@ -148,7 +152,15 @@ class IdpCertClient {
             });
         } catch (error) {
             console.error("Errore nella chiamata idpKeysCieTagGet: ", error);
-            throw error;
+            throw new EntityIdNotFoundException(`Error retrieving certificates tag list: ${error.message}`, error);
+        }
+
+        if (responseData === null || responseData === undefined) {
+            // Se l'API restituisce 204 No Content o un corpo vuoto,
+            // significa che il certificato non è stato trovato per quel tag/entityId.
+            // Lanciamo l'eccezione di business attesa.
+            console.error(`ERROR: No certificate data found for tag: ${tag}`);
+            throw new EntityIdNotFoundException(`No certificate data found for tag: ${tag}`);
         }
 
         const responseAssertion = responseData.getActualInstance();  //certData
@@ -161,7 +173,7 @@ class IdpCertClient {
         const entitiesDescriptorObject = await new Promise((resolve, reject) => {
             this.xmlParser.parseString(xmlString, (err, result) => {
                 if (err) {
-                    reject(new ApiException('Errore durante il parsing XML del certificato: ${err.message}'));
+                    reject(new ApiException(`Errore durante il parsing XML del certificato: ${err.message}`));
                     return;
                 }
                 resolve(result);
@@ -172,7 +184,7 @@ class IdpCertClient {
 
         let entityList = unpackNestedSignature( entitiesDescriptorObject, entityId , 'CIE');
         //console.log('entityList: ' , entityList.length);
-        return getEntityData(entityList, tag, entityId);
+        return getEntityData(entityList, tag, entityId, new CIECertData());
     }
 
     // SPID
@@ -186,7 +198,8 @@ class IdpCertClient {
             if (e instanceof ApiException ||
                 e instanceof TagListSearchOutOfBoundException ||
                 e instanceof InvalidInstantFormatException) {
-                    throw new CertDataNotFoundException('Error retrieving certificates tag list: ${e.message}', e);
+                    console.error(`ERROR: Error retrieving certificates tag list: ${e.message}`);
+                    throw new CertDataNotFoundException(`Error retrieving certificates tag list: ${e.message}`, e);
             }
             throw e;
         }
@@ -198,11 +211,11 @@ class IdpCertClient {
 
     //return lista tagList
     async getSPIDTagList(instant) {
-
+        console.log("[idpCertClient.getSPIDTagList]");
         let responseAssertion = await new Promise((resolve, reject) => {
             this.defaultApi.idpKeysSpidGet((error, data) => {
                 if (error) {
-                    console.error("Errore nella chiamata idpKeysSpidGet:", error);
+                    console.error("Errore nella chiamata idpKeysSpidGet: ", error);
                     reject(error);
                     return;
                 }
@@ -219,6 +232,7 @@ class IdpCertClient {
 
 
     async getSPIDCertData(tag, entityId) {
+        console.log("[idpCertClient.getSPIDCertData]");
         let responseData;
         try {
             responseData = await new Promise((resolve, reject) => {
@@ -237,7 +251,15 @@ class IdpCertClient {
 
         } catch (error) {
             console.error('Errore nella chiamata idpKeysSpidTagGet: ', error);
-            throw error;
+            throw new EntityIdNotFoundException(`Error retrieving certificates tag list: ${error.message}`, error);
+        }
+
+        if (responseData === null || responseData === undefined) {
+            // Se l'API restituisce 204 No Content o un corpo vuoto,
+            // significa che il certificato non è stato trovato per quel tag/entityId.
+            // Lanciamo l'eccezione di business attesa.
+            console.error(`ERROR: No certificate data found for tag: ${tag}`);
+            throw new EntityIdNotFoundException(`No certificate data found for tag: ${tag}`);
         }
 
         const responseAssertion = responseData.getActualInstance();  //certData
@@ -260,7 +282,7 @@ class IdpCertClient {
 
         let entityList = unpackNestedSignature( entitiesDescriptorObject, entityId , 'SPID');
 
-        return getEntityData(entityList, tag, entityId);
+        return getEntityData(entityList, tag, entityId, new SPIDCertData());
     }
 
 } // FINE CLASSE IdpCertClient
@@ -269,7 +291,7 @@ class IdpCertClient {
 
 
     function getTagsFromInstant(tagList, instant) {
-
+        console.log("[idpCertClient.getTagsFromInstant]");
         const newTagList = [];
         const latest = "latest";
         const longInstant = getLongInstant(instant);
@@ -305,8 +327,9 @@ class IdpCertClient {
                     index += 1;
                 }
             } catch (e) {
+                console.error(`ERROR: Error finding the tags relative to assertion instant ${instant}. Original error: ${e.message}`);
                 throw new TagListSearchOutOfBoundException(
-                  'Error finding the tags relative to assertion instant ${instant}. Original error: ${e.message}', e );
+                  `Error finding the tags relative to assertion instant ${instant}. Original error: ${e.message}`, e );
             }
         }
         return newTagList;
@@ -320,7 +343,8 @@ class IdpCertClient {
                 throw new Error("Invalid number format");
             }
         } catch (e) {
-            throw new InvalidInstantFormatException('The given instant ${instant} is not a valid timestamp');
+            console.error(`The given instant ${instant} is not a valid timestamp`);
+            throw new InvalidInstantFormatException(`The given instant ${instant} is not a valid timestamp`);
         }
         return Math.floor(longInstant);
     }
@@ -351,26 +375,30 @@ class IdpCertClient {
     * e se lo trova costruisce un nuovo oggetto IdpCertData
     * data === entitiesDescriptorObject.EntitiesDescriptor
     **/
-    function getEntityData(entityList, tag, entityId) {
-        const newData = new IdpCertData();
+    function getEntityData(entityList, tag, entityId, obj) {
+        console.log("[idpCertClient.getEntityData]");
+        const newData = obj; //new IdpCertData();
         //console.log('[getEntityData] - entityList: ' , entityList.length);
-        if (!Array.isArray(entityList)) {
+        if (!Array.isArray(entityList) ){
+            console.error('ERROR: La struttura XML parsata è inattesa o la lista EntityDescriptor è vuota.');
             throw new Error('La struttura XML parsata è inattesa o la lista EntityDescriptor è vuota.');
         }
-        for (const entity of entityList) {
-            if(entity !== undefined){
+        for (const entityObj of entityList) {
+            if(entityObj !== undefined ){
                 newData.entityId = entityId;
                 newData.tag = tag;
-                newData.certData = entity;
+                newData.certData = entityObj;
                 return newData;
             }
         }
-        throw new EntityIdNotFoundException('Cert for entityID ${entityId} not found');
+        console.error(`ERROR: Cert for entityID ${entityId} not found`);
+        throw new EntityIdNotFoundException(`Cert for entityID ${entityId} not found`);
     }
 
 
     //@JsonProperty("IDPSSODescriptor")
    function unpackNestedSignature( entitiesDescriptorObject, entityId, tipo) {
+        console.log("[idpCertClient.unpackNestedSignature]");
        let nameSpace = '';
        let entitiesDescriptorRoot = entitiesDescriptorObject;
        if(tipo === 'SPID'){
@@ -378,6 +406,7 @@ class IdpCertClient {
             entitiesDescriptorRoot = entitiesDescriptorObject[nameSpace + SAML_ASSERTION.ENTITIES_DESCRIPTOR_TAG];
        }
        const entityDescriptors = entitiesDescriptorRoot[nameSpace + SAML_ASSERTION.ENTITY_DESCRIPTOR_TAG];
+
         //console.log("entityDescriptors : ", entityDescriptors);
 
         let entityDescriptorList = [];
@@ -394,10 +423,10 @@ class IdpCertClient {
                 entityDescriptorList.push(entityDescriptorsFound);
             }
         }
-        //console.log("entityDescriptorList : ", entityDescriptorList);
+        console.log("entityDescriptorList : ", entityDescriptorList[0]);
 
        const entityDescriptor = entityDescriptorList[0];
-       if (entityDescriptor[nameSpace + SAML_ASSERTION.IDPSSO_DESCRIPTOR_TAG]){
+       if (entityDescriptor !== undefined && entityDescriptor[nameSpace + SAML_ASSERTION.IDPSSO_DESCRIPTOR_TAG]){
 
            const idpssoDescriptor = entityDescriptor[nameSpace + SAML_ASSERTION.IDPSSO_DESCRIPTOR_TAG];
            const keyDescriptorsList = getKeyDescriptorsList(idpssoDescriptor, nameSpace + SAML_ASSERTION.KEY_DESCRIPTOR_TAG);
@@ -406,7 +435,8 @@ class IdpCertClient {
            const listX509Data = getListX509Data(keyInfosList);
            const extractedSignatureList = getExtractedSignatureList(listX509Data);
            return extractedSignatureList;
-       }
+       }else
+            throw new ErrorRetrievingIdpCertDataException('La struttura XML parsata è inattesa in quanto manca il tag IDPSSODescriptor');
    }
 
    function getKeyDescriptorsList(idpssoDescriptor, KeyDescriptor){
@@ -472,6 +502,4 @@ class IdpCertClient {
    }
 
 
-
-export default IdpCertClient;
-
+module.exports = IdpCertClient;

@@ -112,4 +112,5 @@ const idpCertProvider = require('../../app/idp/idpCertProvider');
 
 module.exports = {
     getIdpCertData,
+    parseInstantToUnixTimestamp,
 }

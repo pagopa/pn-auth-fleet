@@ -11,9 +11,6 @@
  *
  */
 
-import ApiClient from '../ApiClient.js';
-import SPIDCertDataEntitiesDescriptor from './SPIDCertDataEntitiesDescriptor.js';
-
 /**
  * The SPIDCertData model module.
  * @module model/SPIDCertData
@@ -44,7 +41,7 @@ class SPIDCertData {
      * @param {module:model/SPIDCertData} obj Optional instance to populate.
      * @return {module:model/SPIDCertData} The populated <code>SPIDCertData</code> instance.
      */
-    static constructFromObject(data, obj) {
+/*    static constructFromObject(data, obj) {
         if (data) {
             obj = obj || new SPIDCertData();
 
@@ -54,13 +51,13 @@ class SPIDCertData {
         }
         return obj;
     }
-
+*/
     /**
      * Validates the JSON data with respect to <code>SPIDCertData</code>.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
      * @return {boolean} to indicate whether the JSON data is valid with respect to <code>SPIDCertData</code>.
      */
-    static validateJSON(data) {
+/*    static validateJSON(data) {
         // validate the optional field `entitiesDescriptor`
         if (data['entitiesDescriptor']) { // data not null
           SPIDCertDataEntitiesDescriptor.validateJSON(data['entitiesDescriptor']);
@@ -68,7 +65,7 @@ class SPIDCertData {
 
         return true;
     }
-
+*/
 
 }
 
@@ -77,12 +74,7 @@ class SPIDCertData {
 /**
  * @member {module:model/SPIDCertDataEntitiesDescriptor} entitiesDescriptor
  */
-SPIDCertData.prototype['entitiesDescriptor'] = undefined;
+///SPIDCertData.prototype['entitiesDescriptor'] = undefined;
 
 
-
-
-
-
-export default SPIDCertData;
-
+module.exports = SPIDCertData;

@@ -11,8 +11,8 @@
  *
  */
 
-import ApiClient from '../ApiClient.js';
-import EntityDescriptor from './EntityDescriptor.js';
+//import ApiClient from '../ApiClient.js';
+//import EntityDescriptor from './EntityDescriptor.js';
 
 /**
  * The CIECertData model module.
@@ -44,7 +44,7 @@ class CIECertData {
      * @param {module:model/CIECertData} obj Optional instance to populate.
      * @return {module:model/CIECertData} The populated <code>CIECertData</code> instance.
      */
-    static constructFromObject(data, obj) {
+/*    static constructFromObject(data, obj) {
         if (data) {
             obj = obj || new CIECertData();
 
@@ -54,13 +54,13 @@ class CIECertData {
         }
         return obj;
     }
-
+*/
     /**
      * Validates the JSON data with respect to <code>CIECertData</code>.
      * @param {Object} data The plain JavaScript object bearing properties of interest.
      * @return {boolean} to indicate whether the JSON data is valid with respect to <code>CIECertData</code>.
      */
-    static validateJSON(data) {
+/*    static validateJSON(data) {
         if (data['entityDescriptor']) { // data not null
             // ensure the json data is an array
             if (!Array.isArray(data['entityDescriptor'])) {
@@ -74,7 +74,7 @@ class CIECertData {
 
         return true;
     }
-
+*/
 
 }
 
@@ -83,12 +83,7 @@ class CIECertData {
 /**
  * @member {Array.<module:model/EntityDescriptor>} entityDescriptor
  */
-CIECertData.prototype['entityDescriptor'] = undefined;
+///CIECertData.prototype['entityDescriptor'] = undefined;
 
 
-
-
-
-
-export default CIECertData;
-
+module.exports = CIECertData;

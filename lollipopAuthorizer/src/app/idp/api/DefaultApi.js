@@ -11,16 +11,15 @@
  *
  */
 
-import ApiClient from "../ApiClient.js";
-import CertData from '../model/CertData.js';
-import ProblemJson from '../model/ProblemJson.js';
+const ApiClient = require("../ApiClient");
+const CertData = require("../model/CertData");  //.default;
 
 /**
 * Default service.
 * @module api/DefaultApi
 * @version 2022-09-06T20:08:39Z
 */
-export default class DefaultApi {
+class DefaultApi {
 
     /**
     * Constructs a new DefaultApi. 
@@ -194,3 +193,4 @@ export default class DefaultApi {
 
 
 }
+module.exports = DefaultApi;

@@ -12,7 +12,7 @@
  */
 
 
-import superagent from "superagent";
+const superagent = require('superagent');
 
 /**
 * @module ApiClient
@@ -690,4 +690,5 @@ ApiClient.CollectionFormatEnum = {
 * @type {module:ApiClient}
 */
 ApiClient.instance = new ApiClient();
-export default ApiClient;
+
+module.exports = ApiClient;
