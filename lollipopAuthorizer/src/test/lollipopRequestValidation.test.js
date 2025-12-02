@@ -4,7 +4,7 @@ const { validateLollipopRequest } = require("../app/lollipopRequestValidation");
 const { lollipopConfig } = require("../app/config/lollipopConsumerRequestConfig");
 const { LollipopRequestContentValidationException } = require("../app/requestValidation");
 const { EC_JWK, RSA_JWK, VALIDATION_PARAMS } = require("./constants/lollipopConstantsTest");
-const { VALIDATION_ERROR_CODES } = require("../app/constants/lollipopConstants");
+const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 
 
 

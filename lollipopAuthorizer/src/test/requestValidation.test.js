@@ -17,7 +17,7 @@ const {
 } = require('../app/requestValidation');
 
 const {EC_JWK, RSA_JWK, VALIDATION_PARAMS, VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
-const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopConstants')
+const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 
 describe('validatePublicKey (async)', () => {
     // precodifica delle due chiavi in base64url
