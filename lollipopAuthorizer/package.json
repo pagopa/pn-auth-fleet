@@ -1,5 +1,5 @@
 {
-  "name": "io-authorizer",
+  "name": "lollipop-authorizer",
   "version": "1.0.0",
   "description": "lambda per verificare pseudo anomizzare il codice fiscale passato dal backend di IO",
   "main": "index.js",
@@ -24,6 +24,7 @@
     "sonarqube-scanner": "^3.3.0"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.8.11",
     "aws-xray-sdk-core": "^3.3.6",
     "axios": "^0.28.0",
     "jose": "^6.0.12",
