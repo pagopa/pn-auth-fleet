@@ -6,7 +6,7 @@
   "scripts": {
     "test-build": "npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
     "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
-    "test": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit",
+    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
   },
