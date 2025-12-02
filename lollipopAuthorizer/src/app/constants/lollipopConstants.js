@@ -49,9 +49,9 @@ const DEAFULT_ALG_BY_KTY = {
 const USER_ID_REGEX = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/;
 
 const AssertionRefAlgorithms = {
-  SHA256: { pattern: /^sha256-[A-Za-z0-9_-]{44}$/ },
-  SHA384: { pattern: /^sha384-[A-Za-z0-9_-]{66}$/ },
-  SHA512: { pattern: /^sha512-[A-Za-z0-9_-]{86}$/ },
+  SHA256: { pattern: /^sha256-[A-Za-z0-9\-_=]{1,44}$/ },
+  SHA384: { pattern: /^sha384-[A-Za-z0-9\-_=]{1,66}$/ },
+  SHA512: { pattern: /^sha512-[A-Za-z0-9\-_=]{1,88}$/ },
 };
 
 const COMPATIBLE_ASSERTION_TYPES=[

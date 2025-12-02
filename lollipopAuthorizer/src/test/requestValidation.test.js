@@ -16,18 +16,8 @@ const {
   validateSignatureInputHeader
 } = require('../app/requestValidation');
 
-const {
-  EC_JWK,
-  RSA_JWK,
-  VALIDATION_ERROR_CODES,
-  VALIDATION_PARAMS,
-  EXPECTED_FIRST_LC_ORIGINAL_METHOD,
-  ORIGINAL_URL_REGEX,
-  EXPECTED_FIRST_LC_ORIGINAL_UR,
-  SIGNATURE_INPUT_REGEXP,
-  SIGNATURE_REGEXP
-} = require('../test/constants/lollipopConstantsTest');
-const {VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
+const {EC_JWK, RSA_JWK, VALIDATION_PARAMS, VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
+const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopConstants')
 
 describe('validatePublicKey (async)', () => {
     // precodifica delle due chiavi in base64url
