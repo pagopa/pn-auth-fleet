@@ -59,16 +59,6 @@ const COMPATIBLE_ASSERTION_TYPES=[
 ];
 
 const EXPECTED_FIRST_LC_ORIGINAL_METHOD = "POST;GET";
-/*
-const SAML_ASSERTION = {
-    SAML2_ASSERTION_NS: "urn:oasis:names:tc:SAML:2.0:assertion",
-    ASSERTION: "Assertion",
-    NOT_BEFORE_TAG: "Conditions",
-    NOT_BEFORE: "NotBefore",
-    ASSERTION_FISCAL_CODE_TAG: "Attribute"
-}
-
-const ASSERTION_EXPIRE_IN_DAYS = 365;*/
 const MILLISECONDS_PER_DAY = 86400000; //24 * 60 * 60 * 1000;
 
 module.exports = {
