@@ -92,7 +92,7 @@ describe("validateLollipopRequest - validating headers with EC/RSA key and HTTP 
           expect.fail();
         } catch (err) {
           expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
-          expect(err.errorCode).to.equal("INVALID_ASSERTION_REF");
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR);
         }
       });
 
