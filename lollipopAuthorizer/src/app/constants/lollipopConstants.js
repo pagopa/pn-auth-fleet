@@ -58,37 +58,9 @@ const COMPATIBLE_ASSERTION_TYPES=[
     "SAML"
 ];
 
-
 const EXPECTED_FIRST_LC_ORIGINAL_METHOD = "POST;GET";
-
-const SAML_ASSERTION = {
-    SAML2_ASSERTION_NS: "urn:oasis:names:tc:SAML:2.0:assertion",
-    ASSERTION: "Assertion",
-    NOT_BEFORE_TAG: "Conditions",
-    NOT_BEFORE: "NotBefore",
-    ISSUE_INSTANT: "IssueInstant",
-    ISSUER_ENTITY_ID_TAG: "Issuer",
-    ENTITIES_DESCRIPTOR_TAG: "EntitiesDescriptor",
-    NAMESPACE_TAG: "md:",
-    ENTITY_DESCRIPTOR_TAG: "EntityDescriptor",
-    IDPSSO_DESCRIPTOR_TAG: "IDPSSODescriptor",
-    KEY_DESCRIPTOR_TAG: "KeyDescriptor",
-    DS_KEYINFO_TAG: "ds:KeyInfo",
-    DS_X509DATA_TAG: "ds:X509Data",
-    DS_X509CERTIFICATE_TAG: "ds:X509Certificate",
-}
-
 const ASSERTION_EXPIRE_IN_DAYS = 365;
 const MILLISECONDS_PER_DAY = 86400000; //24 * 60 * 60 * 1000;
-
-const IDP_PROVIDER_CONFIG = {
-    CIE_ENTITY_ID: [ "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO" ],
-    BASE_URI: "https://api.is.eng.pagopa.it",
-    IDP_KEYS_CIE_ENDPOINT: "/idp-keys/cie",
-    IDP_KEYS_SPID_ENDPOINT: "/idp-keys/spid",
-    TIMEOUT_API: 60000, // READ_TIMEOUT_MS,
-    CONNECTION_TIMEOUT_API: 60000, //CONNECTION_TIMEOUT_MS,
-}
 
 module.exports = {
   VALIDATION_ERROR_CODES,
@@ -101,8 +73,6 @@ module.exports = {
   EXPECTED_FIRST_LC_ORIGINAL_URL,
   SIGNATURE_INPUT_REGEXP,
   SIGNATURE_REGEXP,
-  SAML_ASSERTION,
   ASSERTION_EXPIRE_IN_DAYS,
-  MILLISECONDS_PER_DAY,
-  IDP_PROVIDER_CONFIG,
+  MILLISECONDS_PER_DAY
 };
