@@ -4,7 +4,8 @@ const InvalidInstantFormatException  = require('../../exception/invalidInstantFo
 const TagListSearchOutOfBoundException  = require('../../exception/tagListSearchOutOfBoundException');
 const EntityIdNotFoundException  = require( '../../exception/entityIdNotFoundException');
 const {ErrorRetrievingIdpCertDataException, ErrorCode } = require('../../exception/errorRetrievingIdpCertDataException');
-const { SAML_ASSERTION } = require('../../constants/lollipopConstants');
+//const { SAML_ASSERTION } = require('../../constants/lollipopConstants');
+const {lollipopConfig} = require('../../config/lollipopConsumerRequestConfig');
 const ApiException  = require( '../../exception/apiException');
 const CIECertData  = require( '../model/CIECertData');
 const SPIDCertData  = require( '../model/SPIDCertData');
@@ -402,10 +403,10 @@ class IdpCertClient {
        let nameSpace = '';
        let entitiesDescriptorRoot = entitiesDescriptorObject;
        if(tipo === 'SPID'){
-            nameSpace = SAML_ASSERTION.NAMESPACE_TAG;
-            entitiesDescriptorRoot = entitiesDescriptorObject[nameSpace + SAML_ASSERTION.ENTITIES_DESCRIPTOR_TAG];
+            nameSpace = lollipopConfig.NAMESPACE_TAG;
+            entitiesDescriptorRoot = entitiesDescriptorObject[nameSpace + lollipopConfig.ENTITIES_DESCRIPTOR_TAG];
        }
-       const entityDescriptors = entitiesDescriptorRoot[nameSpace + SAML_ASSERTION.ENTITY_DESCRIPTOR_TAG];
+       const entityDescriptors = entitiesDescriptorRoot[nameSpace + lollipopConfig.ENTITY_DESCRIPTOR_TAG];
 
         //console.log("entityDescriptors : ", entityDescriptors);
 
@@ -426,10 +427,10 @@ class IdpCertClient {
         console.log("entityDescriptorList : ", entityDescriptorList[0]);
 
        const entityDescriptor = entityDescriptorList[0];
-       if (entityDescriptor !== undefined && entityDescriptor[nameSpace + SAML_ASSERTION.IDPSSO_DESCRIPTOR_TAG]){
+       if (entityDescriptor !== undefined && entityDescriptor[nameSpace + lollipopConfig.IDPSSO_DESCRIPTOR_TAG]){
 
-           const idpssoDescriptor = entityDescriptor[nameSpace + SAML_ASSERTION.IDPSSO_DESCRIPTOR_TAG];
-           const keyDescriptorsList = getKeyDescriptorsList(idpssoDescriptor, nameSpace + SAML_ASSERTION.KEY_DESCRIPTOR_TAG);
+           const idpssoDescriptor = entityDescriptor[nameSpace + lollipopConfig.IDPSSO_DESCRIPTOR_TAG];
+           const keyDescriptorsList = getKeyDescriptorsList(idpssoDescriptor, nameSpace + lollipopConfig.KEY_DESCRIPTOR_TAG);
 
            const keyInfosList = getKeyInfosList(keyDescriptorsList);
            const listX509Data = getListX509Data(keyInfosList);
@@ -462,7 +463,7 @@ class IdpCertClient {
        let keyInfosList = [];
        //const KEY_INFO_FIELD = KEY_INFO;
        for (const keyDescriptor of keyDescriptorsList) {
-           const keyInfoData = keyDescriptor[SAML_ASSERTION.DS_KEYINFO_TAG];
+           const keyInfoData = keyDescriptor[lollipopConfig.DS_KEYINFO_TAG];
            if (Array.isArray(keyInfoData)) {
                keyInfosList.push(keyInfoData);
            } else if (keyInfoData) {
@@ -477,7 +478,7 @@ class IdpCertClient {
    function getListX509Data(keyInfosList) {
        let listX509Data = [];
        for (const keyInfo of keyInfosList) {
-           const x509Data = keyInfo[SAML_ASSERTION.DS_X509DATA_TAG];
+           const x509Data = keyInfo[lollipopConfig.DS_X509DATA_TAG];
            if (Array.isArray(x509Data)) {
                listX509Data.push(x509Data);
            } else if (x509Data) {
@@ -491,7 +492,7 @@ class IdpCertClient {
   function getExtractedSignatureList(listX509Data) {
        let extractedSignatureList = [];
        for (const x509Data of listX509Data) {
-           const x509CertificateContent = x509Data[SAML_ASSERTION.DS_X509CERTIFICATE_TAG];
+           const x509CertificateContent = x509Data[lollipopConfig.DS_X509CERTIFICATE_TAG];
            if (Array.isArray(x509CertificateContent)) {
                extractedSignatureList.push(x509CertificateContent);
            } else if (x509CertificateContent) {

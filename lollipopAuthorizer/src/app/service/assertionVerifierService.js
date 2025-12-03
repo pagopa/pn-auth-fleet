@@ -1,4 +1,5 @@
-const { SAML_ASSERTION } = require("../../app/constants/lollipopConstants");
+//const { SAML_ASSERTION } = require("../../app/constants/lollipopConstants");
+const {lollipopConfig} = require('../../app/config/lollipopConsumerRequestConfig');
 const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
 const idpCertProvider = require('../../app/idp/idpCertProvider');
@@ -7,8 +8,8 @@ const idpCertProvider = require('../../app/idp/idpCertProvider');
         console.log('[assertionVerifierService - getIdpCertData]');
         const rootElement = assertionDoc.documentElement;
         /** @type {NodeList} array */
-        const listElements = assertionDoc.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.ASSERTION);
-        if( isElementNotFound(listElements, SAML_ASSERTION.ISSUE_INSTANT) ) {
+        const listElements = assertionDoc.getElementsByTagNameNS(lollipopConfig.samlNamespaceAssertion, lollipopConfig.assertionTag);
+        if( isElementNotFound(listElements, lollipopConfig.ISSUE_INSTANT) ) {
             console.error('[ - getIdpCertData] Missing instant field in the retrieved saml assertion');
             throw new ErrorRetrievingIdpCertDataException(
               ErrorRetrievingIdpCertDataException.ErrorCode.INSTANT_FIELD_NOT_FOUND,
@@ -17,9 +18,9 @@ const idpCertProvider = require('../../app/idp/idpCertProvider');
         }
         const firstAssertionElement = listElements[0];
         //IssueInstant
-        const instant = firstAssertionElement.getAttribute(SAML_ASSERTION.ISSUE_INSTANT);
+        const instant = firstAssertionElement.getAttribute(lollipopConfig.ISSUE_INSTANT);
         //Issuer - Identity Provider ID
-        const entityId = getEntityId(firstAssertionElement.childNodes, SAML_ASSERTION.ISSUER_ENTITY_ID_TAG);
+        const entityId = getEntityId(firstAssertionElement.childNodes, lollipopConfig.ISSUER_ENTITY_ID_TAG);
         if (!entityId) {
             throw new ErrorRetrievingIdpCertDataException(
                 ErrorRetrievingIdpCertDataException.ErrorCode.ENTITY_ID_FIELD_NOT_FOUND,

@@ -7,7 +7,8 @@ const path = require('path');
 const fs = require('fs').promises;
 const {ErrorRetrievingIdpCertDataException} = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
-const { VALIDATION_ERROR_CODES, SAML_ASSERTION, IDP_PROVIDER_CONFIG } = require('../../app/constants/lollipopConstants');
+const { VALIDATION_ERROR_CODES } = require('../../app/constants/lollipopConstants'); //, SAML_ASSERTION, IDP_PROVIDER_CONFIG
+const {lollipopConfig, IDP_PROVIDER_CONFIG} = require('../../app/config/lollipopConsumerRequestConfig');
 const { ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITHOUT_CERT,
  ASSERTION_CIE_XML_WITH_VALID_ENTITY_ID_WITH_CERT,
  ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITH_CERT } = require('../fileTest/testUtils');
@@ -45,9 +46,11 @@ describe('getIdpCertData ', async () => {
             console.error("test assertionDoc is NULL");
         }else{
             console.debug("test assertionDoc is NOT NULL");
-            const listElements = assertionDoc.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.ASSERTION);
+            const listElements = assertionDoc.getElementsByTagNameNS(lollipopConfig.samlNamespaceAssertion, lollipopConfig.assertionTag);
             const firstConditionsElement = listElements[0];
-            const instant = firstConditionsElement.getAttribute(SAML_ASSERTION.ISSUE_INSTANT);
+console.log("P firstConditionsElement: ", firstConditionsElement);
+            const instant = firstConditionsElement.getAttribute(lollipopConfig.ISSUE_INSTANT);
+
             console.debug("instant: ", instant);
         }
         console.log("---------------------------------------------");
@@ -92,9 +95,9 @@ describe('getIdpCertData ', async () => {
             console.error("test assertionDoc is NULL");
         }else{
             console.debug("test assertionDoc is NOT NULL");
-            const listElements = assertionDoc.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.ASSERTION);
+            const listElements = assertionDoc.getElementsByTagNameNS(lollipopConfig.samlNamespaceAssertion, lollipopConfig.assertionTag);
             const firstConditionsElement = listElements[0];
-            const instant = firstConditionsElement.getAttribute(SAML_ASSERTION.ISSUE_INSTANT);
+            const instant = firstConditionsElement.getAttribute(lollipopConfig.ISSUE_INSTANT);
             console.debug("instant: ", instant);
         }
         console.log("---------------------------------------------");
@@ -139,9 +142,9 @@ describe('getIdpCertData ', async () => {
             console.error("test assertionDoc is NULL");
         }else{
             console.debug("test assertionDoc is NOT NULL");
-            const listElements = assertionDoc.getElementsByTagNameNS(SAML_ASSERTION.SAML2_ASSERTION_NS, SAML_ASSERTION.ASSERTION);
+            const listElements = assertionDoc.getElementsByTagNameNS(lollipopConfig.samlNamespaceAssertion, lollipopConfig.assertionTag);
             const firstConditionsElement = listElements[0];
-            const instant = firstConditionsElement.getAttribute(SAML_ASSERTION.ISSUE_INSTANT);
+            const instant = firstConditionsElement.getAttribute(lollipopConfig.ISSUE_INSTANT);
             console.debug("instant: ", instant);
         }
         console.log("---------------------------------------------");
