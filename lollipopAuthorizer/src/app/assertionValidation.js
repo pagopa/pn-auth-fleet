@@ -1,5 +1,6 @@
 const xmldom = require('xmldom');
-const { VALIDATION_ERROR_CODES, MILLISECONDS_PER_DAY } = require('../app/constants/lollipopConstants');
+const { MILLISECONDS_PER_DAY } = require('../app/constants/lollipopConstants');
+const { VALIDATION_ERROR_CODES } = require('./constants/lollipopErrorsConstants');
 const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig')
 const LollipopAssertionException = require('./exception/lollipopAssertionException');
 
