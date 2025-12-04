@@ -24,15 +24,18 @@ const { lollipopConfig } = require("../app/config/lollipopConsumerRequestConfig"
 async function validateLollipopRequest(request) {
     console.log("Starting validateLollipopRequest...")
     const headers = request.headerParams.headers || request.headerParams;
-    await validatePublicKey(headers[lollipopConfig.publicKeyHeader]);
-    await validateAssertionRefHeader(headers[lollipopConfig.assertionRefHeader]);
-    validateAssertionTypeHeader(headers[lollipopConfig.assertionTypeHeader]);
-    await validateUserIdHeader(headers[lollipopConfig.userIdHeader]);
-    validateAuthJWTHeader(headers[lollipopConfig.authJWTHeader]);
-    await validateOriginalMethodHeader(headers[lollipopConfig.originalMethodHeader]);
-    await validateOriginalURLHeader(headers[lollipopConfig.originalURLHeader]);
-    await validateSignatureInputHeader(headers[lollipopConfig.signatureInputHeader]);
-    await validateSignatureHeader(headers[lollipopConfig.signatureHeader]);
+    await Promise.all([
+        validatePublicKey(headers[lollipopConfig.publicKeyHeader]),
+        validateAssertionRefHeader(headers[lollipopConfig.assertionRefHeader]),
+        Promise.resolve(validateAssertionTypeHeader(headers[lollipopConfig.assertionTypeHeader])),
+        validateUserIdHeader(headers[lollipopConfig.userIdHeader]),
+        Promise.resolve(validateAuthJWTHeader(headers[lollipopConfig.authJWTHeader])),
+        validateOriginalMethodHeader(headers[lollipopConfig.originalMethodHeader]),
+        validateOriginalURLHeader(headers[lollipopConfig.originalURLHeader]),
+        validateSignatureInputHeader(headers[lollipopConfig.signatureInputHeader]),
+        validateSignatureHeader(headers[lollipopConfig.signatureHeader]),
+    ]);
+
     console.log("Ending validateLollipopRequest")
 }
 
