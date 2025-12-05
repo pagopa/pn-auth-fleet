@@ -7,8 +7,6 @@ const lollipopConfig = {
   assertionTypeHeader: "x-pagopa-lollipop-assertion-type",
   originalMethodHeader: "x-pagopa-lollipop-original-method",
   originalURLHeader: "x-pagopa-lollipop-original-url",
-  assertionRefHeader: "x-pagopa-lollipop-assertion-ref",
-  assertionTypeHeader: "x-pagopa-lollipop-assertion-type",
   authJWTHeader: "x-pagopa-lollipop-auth-jwt",
   userGivenNameHeader: "x-pagopa-lollipop-user-name",
   userFamilyNameHeader: "x-pagopa-lollipop-user-family-name",
@@ -21,6 +19,8 @@ const lollipopConfig = {
   notBeforeAttribute: "NotBefore",
   assertionAttributeTag: "Attribute",
   assertionExpireInDays: 365,
+  assertionInResponseToTag: "SubjectConfirmationData",
+  inResponseToAttribute: "InResponseTo",
 };
 
 module.exports = {

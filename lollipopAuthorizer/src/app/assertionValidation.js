@@ -1,5 +1,6 @@
 const xmldom = require('xmldom');
-const { MILLISECONDS_PER_DAY } = require('../app/constants/lollipopConstants');
+const jose = require('node-jose');
+const { MILLISECONDS_PER_DAY, AssertionRefAlgorithms, DEAFULT_ALG_BY_KTY } = require('../app/constants/lollipopConstants');
 const { VALIDATION_ERROR_CODES } = require('./constants/lollipopErrorsConstants');
 const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig')
 const LollipopAssertionException = require('./exception/lollipopAssertionException');
@@ -110,8 +111,102 @@ function getUserIdFromAssertion(assertionDoc) {
   return null;
 }
 
+
+ async function validateInResponseTo(request, assertionDoc){
+
+    console.log("Starting validateInResponseTo...")
+    const rootElementName = assertionDoc.documentElement.localName;
+    const listElements = assertionDoc.getElementsByTagNameNS(lollipopConfig.samlNamespaceAssertion, lollipopConfig.assertionInResponseToTag);
+    //console.log("listElements: ", listElements);
+
+    if( isElementNotFound(listElements, lollipopConfig.inResponseToAttribute) ) {
+        console.error('[validateInResponseTo] Missing request id in the retrieved saml assertion');
+        throw new LollipopAssertionException(
+            VALIDATION_ERROR_CODES.IN_RESPONSE_TO_FIELD_NOT_FOUND,
+            'Missing request id in the retrieved saml assertion'
+        );
+    }
+    const firstConditionsElement = listElements[0];
+    const inResponseTo = firstConditionsElement.getAttribute(lollipopConfig.inResponseToAttribute);
+
+    const hashAlgorithm = retrieveInResponseToAlgorithm(inResponseTo);
+    //console.log("hashAlgorithm: ", hashAlgorithm);
+
+    //dalla request prendo la publicKey
+    const headers = request.headerParams.headers || request.headerParams;
+
+    const publicKeyBase64Url = headers[lollipopConfig.publicKeyHeader];
+    const assertionRefHeader = headers[lollipopConfig.assertionRefHeader];
+
+    //console.log("publicKeyBase64Url: ", publicKeyBase64Url);
+
+    const calculatedThumbprint = await computeThumbprint(hashAlgorithm, publicKeyBase64Url);
+
+    console.log("inResponseTo: ", inResponseTo);
+    console.log("calculatedThumbprint: ", calculatedThumbprint);
+    console.log("assertionRefHeader: ", assertionRefHeader);
+
+    console.log("(inResponseTo === calculatedThumbprint): ", (inResponseTo === calculatedThumbprint));
+    console.log("(inResponseTo === assertionRefHeader): ", (inResponseTo === assertionRefHeader ));
+
+    return (inResponseTo === calculatedThumbprint && inResponseTo === assertionRefHeader);
+}
+
+
+function retrieveInResponseToAlgorithm(inResponseTo) {
+    if (!inResponseTo || typeof inResponseTo !== 'string') {
+        console.error("[validateInResponseTo] InResponseTo value is missing or not a string");
+        throw new LollipopAssertionException(VALIDATION_ERROR_CODES.IN_RESPONSE_TO_EMPTY_OR_INVALID,
+            "InResponseTo value is missing or not a string");
+    }
+
+    const algorithms = [
+        AssertionRefAlgorithms.SHA256,
+        AssertionRefAlgorithms.SHA384,
+        AssertionRefAlgorithms.SHA512
+    ];
+
+    for (const algo of algorithms) {
+        if (algo.pattern.test(inResponseTo)) {
+            // Se il pattern RegExp corrisponde, restituisce l'algoritmo di hash
+            return algo.hashAlgorithm;
+        }
+    }
+
+    // Se nessun pattern corrisponde, lancia l'eccezione come nel codice Java
+    console.error("[validateInResponseTo] InResponseTo in the assertion do not contains a valid Assertion Ref or it contains an invalid algorithm.");
+    throw new LollipopAssertionException(VALIDATION_ERROR_CODES.IN_RESPONSE_TO_ALGORITHM_NOT_VALID,
+        "InResponseTo in the assertion do not contains a valid Assertion Ref or it contains an invalid algorithm."
+    );
+}
+
+    //Calcola il thumbprint JWK da una chiave pubblica in formato Base64 URL-safe
+    async function computeThumbprint(inResponseToAlgorithm, publicKeyBase64Url) {
+
+        const jwkJsonString = Buffer.from(publicKeyBase64Url, 'base64url').toString('utf8');
+        const jwkObject = JSON.parse(jwkJsonString);
+
+        //Importa l'oggetto JSON JWK in un KeyObject di node-jose
+        const keyObject = await jose.JWK.asKey(jwkObject);
+        const hashAlgorithm = inResponseToAlgorithm.toLowerCase().replace('_', '');
+
+        // Calcolo del Thumbprint (RFC 7638)
+        // jose.JWK.thumbprint() calcola il thumbprint e lo restituisce come Buffer
+        const thumbprintBuffer = keyObject.thumbprint(hashAlgorithm);
+
+        // Converte il Buffer risultante in stringa Base64 URL-safe
+        const calculatedThumbprint = thumbprintBuffer.toString('base64url');
+
+        // Aggiunta del Prefisso (es. "sha256-")
+        const prefixedThumbprint = `${hashAlgorithm}-${calculatedThumbprint}`;
+//console.log("calculatedThumbprint: ", calculatedThumbprint);
+        return prefixedThumbprint;
+
+    }
+
  module.exports = {
   validateAssertionPeriod,
   validateUserId,
+  validateInResponseTo,
   LollipopAssertionException,
 };

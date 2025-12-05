@@ -1,12 +1,13 @@
 const {expect} = require('chai');
 const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+chai.use(chaiAsPromised);
 const xmldom = require('xmldom');
-const path = require('path');
-const fs = require('fs').promises;
-const { validateAssertionPeriod, validateUserId } = require('../app/assertionValidation');
+const base64url = require('base64url');
+const { validateAssertionPeriod, validateUserId, validateInResponseTo } = require('../app/assertionValidation');
 const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
-const { VALID_ASSERTION_XML } = require('../test/constants/lollipopConstantsTest');
+const { VALID_ASSERTION_XML, VALIDATION_PARAMS, EC_JWK, RSA_JWK } = require('../test/constants/lollipopConstantsTest');
 const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
 
 
@@ -186,5 +187,83 @@ describe("validateUserId tests", () => {
 
     expect(() => validateUserId(request, emptyAssertion)).to.throw(LollipopAssertionException); 
   });
+
+});
+
+
+describe("validateInResponseTo tests", () => {
+
+    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+    const ecKeyBase64 = base64url.encode(JSON.stringify( EC_JWK));
+    const rsaKeyBase64 = base64url.encode(JSON.stringify(RSA_JWK));
+
+    const request = {
+      headerParams: {
+        [lollipopConfig.assertionRefHeader]: "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+        [lollipopConfig.publicKeyHeader]: ecKeyBase64
+      }
+    };
+
+    it("TEST_1: should accept valid SHA256 inResponseTo", async () => {
+        const resultPromise = validateInResponseTo(request, assertionDoc);
+        //await expect(resultPromise).to.be.fulfilled;
+        //const result = await resultPromise;
+        await expect(resultPromise).to.eventually.be.true;
+    });
+
+    it('TEST_2: should accept valid SHA384 inResponseTo', async () => {
+        const validAssertionDocSHA384 = VALID_ASSERTION_XML.replace(
+            "sha256-Iz4GEYGtznLdLyHrbtKEkzb6qSJpOkKvsOsCxgXkIhI",
+            VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA384
+        );
+        const assertionDocSHA384 = new xmldom.DOMParser().parseFromString(validAssertionDocSHA384, "text/xml");
+        await expect(validateInResponseTo(request, assertionDocSHA384)).to.be.fulfilled;
+      });
+
+      it('TEST_3: should accept valid SHA512 inResponseTo', async () => {
+        const validAssertionDocSHA512 = VALID_ASSERTION_XML.replace(
+            "sha256-Iz4GEYGtznLdLyHrbtKEkzb6qSJpOkKvsOsCxgXkIhI",
+            VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA512
+        );
+        const assertionDocSHA512 = new xmldom.DOMParser().parseFromString(validAssertionDocSHA512, "text/xml");
+        await expect(validateInResponseTo(request, assertionDocSHA512)).to.be.fulfilled;
+      });
+
+    it("TEST_4: should throw error if header and XML InResponseTo do not match", async () => {
+        // Header con un valore diverso
+        const mismatchRequest = {
+            headerParams: {
+                [lollipopConfig.assertionRefHeader]: "sha256-AAAAA-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw", //VALIDATION_PARAMS.VALID_ASSERTION_REF_SHA256,
+                [lollipopConfig.publicKeyHeader]: ecKeyBase64
+            }
+        };
+        try {
+            await validateInResponseTo(mismatchRequest, assertionDoc);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopAssertionException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.IN_RESPONSE_TO_ALGORITHM_NOT_VALID);
+        }
+    });
+
+    it("TEST_5: should throw error if XML InResponseTo format is invalid", async () => {
+        const invalidXml = VALID_ASSERTION_XML.replace(
+            "sha256-Iz4GEYGtznLdLyHrbtKEkzb6qSJpOkKvsOsCxgXkIhI",
+            "sha256-short"
+        );
+        const invalidDoc = new xmldom.DOMParser().parseFromString(invalidXml, "text/xml");
+        const request = {
+            headerParams: {
+                [lollipopConfig.assertionRefHeader]: "sha256-short",
+                [lollipopConfig.publicKeyHeader]: ecKeyBase64
+            }
+        };
+
+        try {
+            await validateInResponseTo(request, invalidDoc);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopAssertionException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.IN_RESPONSE_TO_FIELD_NOT_FOUND);
+        }
+    });
 
 });
