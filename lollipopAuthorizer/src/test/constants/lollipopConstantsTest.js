@@ -5,6 +5,20 @@ const EC_JWK = {
   y: "hdV0oxmWFSxMoJUDpdihr76rS8VRBEqMFebYyAfK9-k"
 };
 
+const VALID_JWK = {
+               kty: "EC",
+               crv: "P-256",
+               x: "SVqB4JcUD6lsfvqMr-OKUNUphdNn64Eay60978ZlL74",
+               y: "lf0u0pMj4lGAzZix5u4Cm5CMQIgMNpkwy163wtKYVKI"
+            };
+
+const NOT_VALID_JWK  = {
+            kty: "ECX",   ///not supported
+            crv: "P-256",
+            x: "SVqB4JcUD6lsfvqMr-OKUNUphdNn64Eay60978ZlL74",
+            y: "lf0u0pMj4lGAzZix5u4Cm5CMQIgMNpkwy163wtKYVKI"
+         };
+
 const RSA_JWK = {
   alg: "RS256",
   e: "65537",
@@ -181,6 +195,70 @@ const VALID_ASSERTION_XML =
                     + "  </saml:Assertion>\n"
                     + "</samlp:Response>";
 
+
+        const ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><saml2p:Response"
+                + " xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\""
+                + " Destination=\"https://app-backend.io.italia.it/assertionConsumerService\""
+                + " ID=\"_de2ce675-f1e5-46fc-96ed-019803471175\""
+                + " InResponseTo=\"sha384-lqxC_2kqMdwiBWoD-Us63Fha6e3bE1Y3yUz8G6IJTldohJCIBVDfvS8acB3GJBhw\""
+                + " IssueInstant=\"2023-02-28T16:27:26.400Z\" Version=\"2.0\">   <saml2:Assertion"
+                + " xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\""
+                + " ID=\"_6b9580aa-08b1-4f19-8fb6-8b670d070bad\""
+                + " IssueInstant=\"2023-02-28T16:27:25.400Z\" Version=\"2.0\">\t\t<saml2:Subject>\t"
+                + "\t\t<saml2:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\""
+                + " NameQualifier=\"https://posteid.poste.it\">SPID-d4de186b-e103-4b39-8209-0bccc7b1acdd</saml2:NameID>"
+                + "\t\t\t<saml2:SubjectConfirmation"
+                + " Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\">\t\t\t"
+                + "\t<saml2:SubjectConfirmationData"
+                + " InResponseTo=\"sha384-lqxC_2kqMdwiBWoD-Us63Fha6e3bE1Y3yUz8G6IJTldohJCIBVDfvS8acB3GJBhw\""
+                + " NotOnOrAfter=\"2023-02-28T16:28:25.400Z\""
+                + " Recipient=\"https://app-backend.io.italia.it/assertionConsumerService\" />\t\t"
+                + "\t</saml2:SubjectConfirmation>\t\t</saml2:Subject>\t\t<saml2:Conditions"
+                + " NotBefore=\"2023-02-28T16:27:25.400Z\""
+                + " NotOnOrAfter=\"2023-02-28T16:28:25.400Z\">\t\t\t<saml2:AudienceRestriction>\t\t"
+                + "\t\t<saml2:Audience>https://app-backend.io.italia.it</saml2:Audience>\t\t"
+                + "\t</saml2:AudienceRestriction>\t\t</saml2:Conditions>\t"
+                + "\t<saml2:AttributeStatement>\t\t\t<saml2:Attribute FriendlyName=\"Codice"
+                + " fiscale\" Name=\"fiscalNumber\">\t\t\t\t<saml2:AttributeValue"
+                + " xmlns:xs=\"http://www.w3.org/2001/XMLSchema\""
+                + " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+                + " xsi:type=\"xs:string\">TINIT-AAAAAA89S20I111X</saml2:AttributeValue>\t\t"
+                + "\t</saml2:Attribute>\t\t</saml2:AttributeStatement>"
+                + "\t</saml2:Assertion></saml2p:Response>";
+
+
+    const ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA512_ALGORITHM =
+                      "<?xml version=\"1.0\" encoding=\"UTF-8\"?><saml2p:Response"
+                          + " xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\""
+                          + " Destination=\"https://app-backend.io.italia.it/assertionConsumerService\""
+                          + " ID=\"_de2ce675-f1e5-46fc-96ed-019803471175\""
+                          + " InResponseTo=\"sha512-nX5CfUc5R-FoYKYZwvQMuc4Tt-heb7vHi_O-AMUSqHNVCw9kNaN2SVuN-DXtGXyUhrcVcQdCyY6FVzl_vyWXNA\""
+                          + " IssueInstant=\"2023-02-28T16:27:26.400Z\" Version=\"2.0\">   <saml2:Assertion"
+                          + " xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\""
+                          + " ID=\"_6b9580aa-08b1-4f19-8fb6-8b670d070bad\""
+                          + " IssueInstant=\"2023-02-28T16:27:25.400Z\" Version=\"2.0\">\t\t<saml2:Subject>\t"
+                          + "\t\t<saml2:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\""
+                          + " NameQualifier=\"https://posteid.poste.it\">SPID-d4de186b-e103-4b39-8209-0bccc7b1acdd</saml2:NameID>"
+                          + "\t\t\t<saml2:SubjectConfirmation"
+                          + " Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\">\t\t\t"
+                          + "\t<saml2:SubjectConfirmationData"
+                          + " InResponseTo=\"sha512-nX5CfUc5R-FoYKYZwvQMuc4Tt-heb7vHi_O-AMUSqHNVCw9kNaN2SVuN-DXtGXyUhrcVcQdCyY6FVzl_vyWXNA\""
+                          + " NotOnOrAfter=\"2023-02-28T16:28:25.400Z\""
+                          + " Recipient=\"https://app-backend.io.italia.it/assertionConsumerService\" />\t\t"
+                          + "\t</saml2:SubjectConfirmation>\t\t</saml2:Subject>\t\t<saml2:Conditions"
+                          + " NotBefore=\"2023-02-28T16:27:25.400Z\""
+                          + " NotOnOrAfter=\"2023-02-28T16:28:25.400Z\">\t\t\t<saml2:AudienceRestriction>\t\t"
+                          + "\t\t<saml2:Audience>https://app-backend.io.italia.it</saml2:Audience>\t\t"
+                          + "\t</saml2:AudienceRestriction>\t\t</saml2:Conditions>\t"
+                          + "\t<saml2:AttributeStatement>\t\t\t<saml2:Attribute FriendlyName=\"Codice"
+                          + " fiscale\" Name=\"fiscalNumber\">\t\t\t\t<saml2:AttributeValue"
+                          + " xmlns:xs=\"http://www.w3.org/2001/XMLSchema\""
+                          + " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+                          + " xsi:type=\"xs:string\">TINIT-AAAAAA89S20I111X</saml2:AttributeValue>\t\t"
+                          + "\t</saml2:Attribute>\t\t</saml2:AttributeStatement>"
+                          + "\t</saml2:Assertion></saml2p:Response>";
+
 module.exports = {
   EC_JWK,
   RSA_JWK,
@@ -193,5 +271,8 @@ module.exports = {
   EXPECTED_FIRST_LC_ORIGINAL_URL,
   SIGNATURE_INPUT_REGEXP,
   SIGNATURE_REGEXP,
-  VALID_ASSERTION_XML
+  VALID_ASSERTION_XML,
+  VALID_JWK, NOT_VALID_JWK,
+  ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM,
+  ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA512_ALGORITHM
 };
