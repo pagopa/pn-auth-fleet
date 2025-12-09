@@ -1,4 +1,3 @@
-//const { SAML_ASSERTION } = require("../../app/constants/lollipopConstants");
 const {lollipopConfig} = require('../../app/config/lollipopConsumerRequestConfig');
 const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
@@ -93,10 +92,7 @@ const idpCertProvider = require('../../app/idp/idpCertProvider');
             }
 
             // idpCertData è un array
-            //console.debug('[assertionVerifierService.retrieveIdpCertData] - input: entityId %s at instant %s', trimmedEntityId, instant );
             const idpCertData = await idpCertProvider.getIdpCertData(instant, trimmedEntityId);
-            //console.debug('[assertionVerifierService.retrieveIdpCertData] - IdP certificates has been found for entityId %s at instant %s: %o',
-            //    trimmedEntityId, instant, idpCertData );
 
             return idpCertData;
         } catch (e) {

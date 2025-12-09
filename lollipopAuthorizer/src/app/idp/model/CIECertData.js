@@ -11,9 +11,6 @@
  *
  */
 
-//import ApiClient from '../ApiClient.js';
-//import EntityDescriptor from './EntityDescriptor.js';
-
 /**
  * The CIECertData model module.
  * @module model/CIECertData
@@ -37,53 +34,9 @@ class CIECertData {
     static initialize(obj) { 
     }
 
-    /**
-     * Constructs a <code>CIECertData</code> from a plain JavaScript object, optionally creating a new instance.
-     * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
-     * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/CIECertData} obj Optional instance to populate.
-     * @return {module:model/CIECertData} The populated <code>CIECertData</code> instance.
-     */
-/*    static constructFromObject(data, obj) {
-        if (data) {
-            obj = obj || new CIECertData();
-
-            if (data.hasOwnProperty('entityDescriptor')) {
-                obj['entityDescriptor'] = ApiClient.convertToType(data['entityDescriptor'], [EntityDescriptor]);
-            }
-        }
-        return obj;
-    }
-*/
-    /**
-     * Validates the JSON data with respect to <code>CIECertData</code>.
-     * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>CIECertData</code>.
-     */
-/*    static validateJSON(data) {
-        if (data['entityDescriptor']) { // data not null
-            // ensure the json data is an array
-            if (!Array.isArray(data['entityDescriptor'])) {
-                throw new Error("Expected the field `entityDescriptor` to be an array in the JSON data but got " + data['entityDescriptor']);
-            }
-            // validate the optional field `entityDescriptor` (array)
-            for (const item of data['entityDescriptor']) {
-                EntityDescriptor.validateJSON(item);
-            };
-        }
-
-        return true;
-    }
-*/
 
 }
 
-
-
-/**
- * @member {Array.<module:model/EntityDescriptor>} entityDescriptor
- */
-///CIECertData.prototype['entityDescriptor'] = undefined;
 
 
 module.exports = CIECertData;

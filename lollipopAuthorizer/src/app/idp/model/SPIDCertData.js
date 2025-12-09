@@ -34,47 +34,7 @@ class SPIDCertData {
     static initialize(obj) { 
     }
 
-    /**
-     * Constructs a <code>SPIDCertData</code> from a plain JavaScript object, optionally creating a new instance.
-     * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
-     * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @param {module:model/SPIDCertData} obj Optional instance to populate.
-     * @return {module:model/SPIDCertData} The populated <code>SPIDCertData</code> instance.
-     */
-/*    static constructFromObject(data, obj) {
-        if (data) {
-            obj = obj || new SPIDCertData();
-
-            if (data.hasOwnProperty('entitiesDescriptor')) {
-                obj['entitiesDescriptor'] = SPIDCertDataEntitiesDescriptor.constructFromObject(data['entitiesDescriptor']);
-            }
-        }
-        return obj;
-    }
-*/
-    /**
-     * Validates the JSON data with respect to <code>SPIDCertData</code>.
-     * @param {Object} data The plain JavaScript object bearing properties of interest.
-     * @return {boolean} to indicate whether the JSON data is valid with respect to <code>SPIDCertData</code>.
-     */
-/*    static validateJSON(data) {
-        // validate the optional field `entitiesDescriptor`
-        if (data['entitiesDescriptor']) { // data not null
-          SPIDCertDataEntitiesDescriptor.validateJSON(data['entitiesDescriptor']);
-        }
-
-        return true;
-    }
-*/
 
 }
-
-
-
-/**
- * @member {module:model/SPIDCertDataEntitiesDescriptor} entitiesDescriptor
- */
-///SPIDCertData.prototype['entitiesDescriptor'] = undefined;
-
 
 module.exports = SPIDCertData;

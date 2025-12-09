@@ -1,4 +1,3 @@
-//const { IDP_PROVIDER_CONFIG } = require('../constants/lollipopConstants');
 const {IDP_PROVIDER_CONFIG} = require('../config/lollipopConsumerRequestConfig');
 const {ErrorRetrievingIdpCertDataException, ErrorCode} = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
@@ -38,4 +37,3 @@ const ApiClientClass = require('./ApiClient');
 module.exports = {
     getIdpCertData,
 }
-//module.exports = IdpCertProvider;

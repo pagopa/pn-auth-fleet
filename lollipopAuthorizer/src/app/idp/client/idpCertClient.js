@@ -4,7 +4,6 @@ const InvalidInstantFormatException  = require('../../exception/invalidInstantFo
 const TagListSearchOutOfBoundException  = require('../../exception/tagListSearchOutOfBoundException');
 const EntityIdNotFoundException  = require( '../../exception/entityIdNotFoundException');
 const {ErrorRetrievingIdpCertDataException, ErrorCode } = require('../../exception/errorRetrievingIdpCertDataException');
-//const { SAML_ASSERTION } = require('../../constants/lollipopConstants');
 const {lollipopConfig} = require('../../config/lollipopConsumerRequestConfig');
 const ApiException  = require( '../../exception/apiException');
 const CIECertData  = require( '../model/CIECertData');
@@ -84,7 +83,6 @@ class IdpCertClient {
         }
 
         listCertData = await this.processCertTags(tagList, entityId, typeOfData);
-        //console.log('listCertData: ' , listCertData);
         return listCertData;
     }
 
@@ -180,11 +178,10 @@ class IdpCertClient {
                 resolve(result);
             });
         });
-        //console.log('responseAssertion entitiesDescriptorObject: ' , entitiesDescriptorObject);
-        //console.log('entitiesDescriptor: ' , entitiesDescriptorObject);
+
 
         let entityList = unpackNestedSignature( entitiesDescriptorObject, entityId , 'CIE');
-        //console.log('entityList: ' , entityList.length);
+
         return getEntityData(entityList, tag, entityId, new CIECertData());
     }
 
@@ -269,7 +266,6 @@ class IdpCertClient {
             throw new Error('Risposta API non è un Buffer XML come previsto.');
         }
         const xmlString = responseAssertion.toString('utf8');
-        //console.log('responseAssertion xmlString: ' , xmlString);
 
         const entitiesDescriptorObject = await new Promise((resolve, reject) => {
             this.xmlParser.parseString(xmlString, (err, result) => {
@@ -378,8 +374,7 @@ class IdpCertClient {
     **/
     function getEntityData(entityList, tag, entityId, obj) {
         console.log("[idpCertClient.getEntityData]");
-        const newData = obj; //new IdpCertData();
-        //console.log('[getEntityData] - entityList: ' , entityList.length);
+        const newData = obj;
         if (!Array.isArray(entityList) ){
             console.error('ERROR: La struttura XML parsata è inattesa o la lista EntityDescriptor è vuota.');
             throw new Error('La struttura XML parsata è inattesa o la lista EntityDescriptor è vuota.');
@@ -408,8 +403,6 @@ class IdpCertClient {
        }
        const entityDescriptors = entitiesDescriptorRoot[nameSpace + lollipopConfig.ENTITY_DESCRIPTOR_TAG];
 
-        //console.log("entityDescriptors : ", entityDescriptors);
-
         let entityDescriptorList = [];
         if (Array.isArray(entityDescriptors)) {
             entityDescriptorList = entityDescriptors
@@ -418,7 +411,6 @@ class IdpCertClient {
             });
         } else if (entityDescriptors && typeof entityDescriptors === 'object') {
             const entityDescriptorsFound = entityDescriptors;
-            //console.log(" entityDescriptorsFound : ", entityDescriptorsFound);
             const currentEntityID = entityDescriptorsFound['$'] ? entityDescriptorsFound['$'].entityID : null;
             if (currentEntityID === entityId) {
                 entityDescriptorList.push(entityDescriptorsFound);
@@ -442,9 +434,8 @@ class IdpCertClient {
 
    function getKeyDescriptorsList(idpssoDescriptor, KeyDescriptor){
         let keyDescriptorsList = [];
-        //console.log("  keyDescriptorsList : " , KeyDescriptor);
+
         const keyDescriptors = idpssoDescriptor[KeyDescriptor];
-        //console.log("  keyDescriptors : " , keyDescriptors);
         if (Array.isArray(keyDescriptors)) {
             keyDescriptorsList = keyDescriptors
                 .filter(el => {
@@ -461,7 +452,7 @@ class IdpCertClient {
 
    function getKeyInfosList(keyDescriptorsList) {
        let keyInfosList = [];
-       //const KEY_INFO_FIELD = KEY_INFO;
+
        for (const keyDescriptor of keyDescriptorsList) {
            const keyInfoData = keyDescriptor[lollipopConfig.DS_KEYINFO_TAG];
            if (Array.isArray(keyInfoData)) {

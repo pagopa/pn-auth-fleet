@@ -48,7 +48,7 @@ describe('getIdpCertData ', async () => {
             console.debug("test assertionDoc is NOT NULL");
             const listElements = assertionDoc.getElementsByTagNameNS(lollipopConfig.samlNamespaceAssertion, lollipopConfig.assertionTag);
             const firstConditionsElement = listElements[0];
-console.log("P firstConditionsElement: ", firstConditionsElement);
+            console.log(" firstConditionsElement: ", firstConditionsElement);
             const instant = firstConditionsElement.getAttribute(lollipopConfig.ISSUE_INSTANT);
 
             console.debug("instant: ", instant);

@@ -11,9 +11,6 @@
  *
  */
 
-//import ApiClient from '../ApiClient.js';
-//import CIECertData from './CIECertData.js';
-//import SPIDCertData from './SPIDCertData.js';
 
 const CIECertData = require('./CIECertData');
 const SPIDCertData = require('./SPIDCertData');
@@ -34,53 +31,9 @@ class CertData {
             this.actualInstance = null;
             return;
         }
-        //var match = 0;
-        //var errorMessages = [];
 
         this.actualInstance = instance;
-        /*
-        try {
-            if (typeof instance === "CIECertData") {
-                this.actualInstance = instance;
-            } else {
-                // plain JS object
-                // validate the object
-                CIECertData.validateJSON(instance); // throw an exception if no match
-                // create CIECertData from JS object
-                this.actualInstance = CIECertData.constructFromObject(instance);
-            }
-            match++;
-        } catch(err) {
-            // json data failed to deserialize into CIECertData
-            errorMessages.push("Failed to construct CIECertData: " + err)
-        }
 
-        try {
-            if (typeof instance === "SPIDCertData") {
-                this.actualInstance = instance;
-            } else {
-                // plain JS object
-                // validate the object
-                SPIDCertData.validateJSON(instance); // throw an exception if no match
-                // create SPIDCertData from JS object
-                this.actualInstance = SPIDCertData.constructFromObject(instance);
-            }
-            match++;
-        } catch(err) {
-            // json data failed to deserialize into SPIDCertData
-            errorMessages.push("Failed to construct SPIDCertData: " + err)
-        }
-
-        if (match > 1) {
-            throw new Error("Multiple matches found constructing `CertData` with oneOf schemas CIECertData, SPIDCertData. Input: " + JSON.stringify(instance));
-        } else if (match === 0) {
-            this.actualInstance = null; // clear the actual instance in case there are multiple matches
-            throw new Error("No match found constructing `CertData` with oneOf schemas CIECertData, SPIDCertData. Details: " +
-                            errorMessages.join(", "));
-        } else { // only 1 match
-            // the input is valid
-        }
-        */
     }
 
     /**
@@ -127,17 +80,6 @@ class CertData {
         return CertData.constructFromObject(JSON.parse(json_string));
     }
 }
-
-/**
- * @member {Array.<module:model/EntityDescriptor>} entityDescriptor
- */
-//CertData.prototype['entityDescriptor'] = undefined;
-
-/**
- * @member {module:model/SPIDCertDataEntitiesDescriptor} entitiesDescriptor
- */
-//CertData.prototype['entitiesDescriptor'] = undefined;
-
 
 CertData.OneOf = ["CIECertData", "SPIDCertData"];
 
