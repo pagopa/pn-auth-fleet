@@ -110,8 +110,73 @@ function getUserIdFromAssertion(assertionDoc) {
   return null;
 }
 
+
+    async function validateFullNameHeader(assertionDoc){
+      console.log("Starting validateFullNameHeader...");
+
+      const fullNameHeaderFromAssertion = getFullNameHeaderFromAssertion(assertionDoc);
+
+      if (!fullNameHeaderFromAssertion) {
+        console.error('[validateFullNameHeader] Missing givenName in the retrieved SAML assertion.');
+        throw new LollipopAssertionException(
+          VALIDATION_ERROR_CODES.MISSING_FULLNAME,
+          'Missing givenName in the retrieved SAML assertion.'
+        );
+      }
+
+      return fullNameHeaderFromAssertion;
+    }
+
+
+    function getFullNameHeaderFromAssertion(assertionDoc) {
+
+        console.log("Starting retrieving FullName from assertion...")
+        const listElements = assertionDoc.getElementsByTagNameNS(
+            lollipopConfig.samlNamespaceAssertion,
+            lollipopConfig.assertionAttributeTag
+          );
+
+          if (!listElements || listElements.length === 0) {
+            console.error('[validateFullNameHeader] No elements found in the retrieved saml assertion');
+            throw new LollipopAssertionException(
+                VALIDATION_ERROR_CODES.MISSING_ATTRIBUTE_TAG,
+              "No elements found in the retrieved saml assertion"
+            );
+          }
+
+          let mappaOggetto = {"name" : '', "familyName": ''}
+          for (let i = 0; i < listElements.length; i++) {
+            const item = listElements.item(i);
+            if (!item || !item.attributes) continue;
+
+            const nameAttr = item.getAttribute("Name");
+            let nameValue = '';
+            if (nameAttr === "name" && item.textContent) {
+               nameValue = item.textContent.trim();
+               mappaOggetto.name = nameValue;
+            }
+
+            let familyNameValue = '';
+            if (nameAttr === "familyName" && item.textContent) {
+               familyNameValue = item.textContent.trim();
+               mappaOggetto.familyName = familyNameValue;
+            }
+          }
+
+          if ((mappaOggetto.name === null || mappaOggetto.name === undefined) ||
+               (mappaOggetto.familyName === null || mappaOggetto.familyName === undefined) ) {
+               console.error('[validateFullNameHeader] Missing or invalid name/surname in the retrieved SAML assertion.');
+               throw new LollipopAssertionException( VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND,
+                      "Missing or invalid name/surname in the retrieved SAML assertion.");
+          }
+
+          return mappaOggetto;
+    }
+
+
  module.exports = {
   validateAssertionPeriod,
   validateUserId,
+  validateFullNameHeader,
   LollipopAssertionException,
 };

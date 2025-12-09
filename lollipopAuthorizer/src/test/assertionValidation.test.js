@@ -3,10 +3,10 @@ const chai = require('chai');
 const xmldom = require('xmldom');
 const path = require('path');
 const fs = require('fs').promises;
-const { validateAssertionPeriod, validateUserId } = require('../app/assertionValidation');
+const { validateAssertionPeriod, validateUserId, validateFullNameHeader } = require('../app/assertionValidation');
 const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
-const { VALID_ASSERTION_XML } = require('../test/constants/lollipopConstantsTest');
+const { VALID_ASSERTION_XML, ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG } = require('../test/constants/lollipopConstantsTest');
 const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
 
 
@@ -186,5 +186,63 @@ describe("validateUserId tests", () => {
 
     expect(() => validateUserId(request, emptyAssertion)).to.throw(LollipopAssertionException); 
   });
+
+});
+
+
+describe("validateFullNameHeader tests", () => {
+
+    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+
+    it("TEST_1: should accept valid FullName in Header", async () => {
+
+        const mappaOggetto = await validateFullNameHeader( assertionDoc);
+        console.log("MAPPA CORRENTE: ", mappaOggetto);
+        expect(mappaOggetto).to.be.an('object').that.is.not.null;
+    });
+
+    it("TEST_2: should not accept FullName in Header for name null", async () => {
+
+        const invalidName = VALID_ASSERTION_XML.replaceAll( "Mario", "");
+        const invalidNameAssertionDoc = new xmldom.DOMParser().parseFromString(invalidName, "text/xml");
+
+        try {
+            const mappaOggetto = await validateFullNameHeader( invalidNameAssertionDoc);
+            console.log("MAPPA CORRENTE: ", mappaOggetto);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopAssertionException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND);
+        }
+
+    });
+
+    it("TEST_3: should not accept FullName in Header for familyName null", async () => {
+
+        const invalidName = VALID_ASSERTION_XML.replaceAll( "Bianchi", "");
+        const invalidNameAssertionDoc = new xmldom.DOMParser().parseFromString(invalidName, "text/xml");
+
+        try {
+            const mappaOggetto = await validateFullNameHeader( invalidNameAssertionDoc);
+            console.log("MAPPA CORRENTE: ", mappaOggetto);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopAssertionException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND);
+        }
+
+    });
+
+    it("TEST_4: should not accept FullName in Header for Attribute is null", async () => {
+
+            const invalidNameAssertionDoc = new xmldom.DOMParser().parseFromString(ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG, "text/xml");
+
+            try {
+                const mappaOggetto = await validateFullNameHeader( invalidNameAssertionDoc);
+                console.log("MAPPA CORRENTE: ", mappaOggetto);
+            } catch (err) {
+              expect(err).to.be.instanceOf(LollipopAssertionException);
+              expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ATTRIBUTE_TAG);
+            }
+
+        });
 
 });
