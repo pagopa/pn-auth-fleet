@@ -7,39 +7,6 @@ const { EC_JWK, RSA_JWK, VALIDATION_PARAMS } = require("./constants/lollipopCons
 const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 
 
-
-/* Test che prevedeva dati reali. Commentato per non causare errori in fase di build sull'ambiente, a causa dei file non condivisibili.
-
-const reqPost = require("./fileTest/postRequest.json");
-const reqGet = require("./fileTest/getRequest.json");
-
-describe("validateLollipopRequest - real tests success", () => {
-
-  const testCases = [
-    ["request real POST", reqPost],
-    ["request real GET", reqGet]
-  ];
-
-  testCases.forEach(([label, requestContent]) => {
-
-    it(`should validate ${label} without throwing`, async () => {
-    const request = {
-        headerParams: requestContent
-    };
-
-    try {
-        await validateLollipopRequest(request);
-        expect(true).to.be.true; 
-    } catch (e) {
-        console.error(`Validation failed for ${label}:`, e);
-        throw e; 
-    }
-    });
-  });
-});
-
-*/
-
 const TEST_CASES = [
   { name: "EC Public Key", publicKey: EC_JWK },
   { name: "RSA Public Key", publicKey: RSA_JWK },
