@@ -199,6 +199,9 @@ describe("validateFullNameHeader tests", () => {
         const mappaOggetto = await validateFullNameHeader( assertionDoc);
         console.log("MAPPA CORRENTE: ", mappaOggetto);
         expect(mappaOggetto).to.be.an('object').that.is.not.null;
+        expect(mappaOggetto.name).to.equal('Mario');
+        expect(mappaOggetto.familyName).to.equal('Bianchi');
+
     });
 
     it("TEST_2: should not accept FullName in Header for name null", async () => {
@@ -240,7 +243,7 @@ describe("validateFullNameHeader tests", () => {
                 console.log("MAPPA CORRENTE: ", mappaOggetto);
             } catch (err) {
               expect(err).to.be.instanceOf(LollipopAssertionException);
-              expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ATTRIBUTE_TAG);
+              expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.NAME_NOT_FOUND);
             }
 
         });

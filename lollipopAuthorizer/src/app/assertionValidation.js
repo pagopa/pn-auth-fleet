@@ -130,47 +130,42 @@ function getUserIdFromAssertion(assertionDoc) {
 
     function getFullNameHeaderFromAssertion(assertionDoc) {
 
-        console.log("Starting retrieving FullName from assertion...")
-        const listElements = assertionDoc.getElementsByTagNameNS(
-            lollipopConfig.samlNamespaceAssertion,
-            lollipopConfig.assertionAttributeTag
-          );
+        console.log("Starting retrieving FullName from assertion...");
 
-          if (!listElements || listElements.length === 0) {
-            console.error('[validateFullNameHeader] No elements found in the retrieved saml assertion');
+        let result = {}
+        const samlNamespace = lollipopConfig.samlNamespaceAssertion;
+        const tagCode = lollipopConfig.assertionAttributeTag;
+
+        const extractAttributeValue = (targetAttributeValue, errorCode) => {
+            const elements = assertionDoc.getElementsByTagNameNS(samlNamespace, tagCode);
+            if (!elements || elements.length === 0) {
+                console.error('[validateFullNameHeader] No elements found in the retrieved saml assertion');
+                throw new LollipopAssertionException(
+                    errorCode, `Missing elements with tag code '${tagCode}' in the retrieved SAML assertion.`);
+            }
+            for (let i = 0; i < elements.length; i++) {
+                const item = elements.item(i);
+                if (!item || !item.textContent) {
+                    continue;
+                }
+                const nameNode = item.attributes.getNamedItem("Name");
+                if (nameNode && nameNode.nodeValue === targetAttributeValue) {
+                    result[targetAttributeValue] = item.textContent.trim();
+                    return;
+                }
+            }
+        };
+
+        extractAttributeValue("name", VALIDATION_ERROR_CODES.NAME_NOT_FOUND);
+        extractAttributeValue("familyName", VALIDATION_ERROR_CODES.SURNAME_NOT_FOUND);
+
+        if (!("name" in result) || !("familyName" in result)) {
             throw new LollipopAssertionException(
-                VALIDATION_ERROR_CODES.MISSING_ATTRIBUTE_TAG,
-              "No elements found in the retrieved saml assertion"
+                VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND,
+                "Missing or invalid name/surname in the retrieved SAML assertion."
             );
-          }
-
-          let mappaOggetto = {"name" : '', "familyName": ''}
-          for (let i = 0; i < listElements.length; i++) {
-            const item = listElements.item(i);
-            if (!item || !item.attributes) continue;
-
-            const nameAttr = item.getAttribute("Name");
-            let nameValue = '';
-            if (nameAttr === "name" && item.textContent) {
-               nameValue = item.textContent.trim();
-               mappaOggetto.name = nameValue;
-            }
-
-            let familyNameValue = '';
-            if (nameAttr === "familyName" && item.textContent) {
-               familyNameValue = item.textContent.trim();
-               mappaOggetto.familyName = familyNameValue;
-            }
-          }
-
-          if ((mappaOggetto.name === null || mappaOggetto.name === undefined) ||
-               (mappaOggetto.familyName === null || mappaOggetto.familyName === undefined) ) {
-               console.error('[validateFullNameHeader] Missing or invalid name/surname in the retrieved SAML assertion.');
-               throw new LollipopAssertionException( VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND,
-                      "Missing or invalid name/surname in the retrieved SAML assertion.");
-          }
-
-          return mappaOggetto;
+        }
+        return result;
     }
 
 
