@@ -7,8 +7,6 @@ const lollipopConfig = {
   assertionTypeHeader: "x-pagopa-lollipop-assertion-type",
   originalMethodHeader: "x-pagopa-lollipop-original-method",
   originalURLHeader: "x-pagopa-lollipop-original-url",
-  assertionRefHeader: "x-pagopa-lollipop-assertion-ref",
-  assertionTypeHeader: "x-pagopa-lollipop-assertion-type",
   authJWTHeader: "x-pagopa-lollipop-auth-jwt",
   userGivenNameHeader: "x-pagopa-lollipop-user-name",
   userFamilyNameHeader: "x-pagopa-lollipop-user-family-name",
@@ -31,6 +29,8 @@ const lollipopConfig = {
   DS_KEYINFO_TAG: "ds:KeyInfo",
   DS_X509DATA_TAG: "ds:X509Data",
   DS_X509CERTIFICATE_TAG: "ds:X509Certificate",
+  assertionInResponseToTag: "SubjectConfirmationData",
+  inResponseToAttribute: "InResponseTo",
 };
 
 const IDP_PROVIDER_CONFIG = {

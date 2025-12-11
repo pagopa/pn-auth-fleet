@@ -1,12 +1,15 @@
 const {expect} = require('chai');
 const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+chai.use(chaiAsPromised);
 const xmldom = require('xmldom');
-const path = require('path');
-const fs = require('fs').promises;
-const { validateAssertionPeriod, validateUserId, validateFullNameHeader } = require('../app/assertionValidation');
+const base64url = require('base64url');
+const { validateAssertionPeriod, validateUserId, validateInResponseTo, validateFullNameHeader } = require('../app/assertionValidation');
 const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
-const { VALID_ASSERTION_XML, ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG } = require('../test/constants/lollipopConstantsTest');
+const { VALID_ASSERTION_XML, VALIDATION_PARAMS, EC_JWK, VALID_JWK, RSA_JWK, NOT_VALID_JWK,
+		ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG, ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM,
+		ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA512_ALGORITHM } = require('../test/constants/lollipopConstantsTest');
 const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
 
 
@@ -186,6 +189,183 @@ describe("validateUserId tests", () => {
 
     expect(() => validateUserId(request, emptyAssertion)).to.throw(LollipopAssertionException); 
   });
+
+});
+
+
+describe("validateInResponseTo tests", () => {
+
+    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+    const ecKeyBase64 = base64url.encode(JSON.stringify( VALID_JWK));
+    const ecKeyNotValid = base64url.encode(JSON.stringify( NOT_VALID_JWK));
+    const rsaKeyBase64 = base64url.encode(JSON.stringify(RSA_JWK));
+
+    const request = {
+      headerParams: {
+        [lollipopConfig.assertionRefHeader]: "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg", //"sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+        [lollipopConfig.publicKeyHeader]: ecKeyBase64
+      }
+    };
+
+    it("TEST_1: should accept valid SHA256 inResponseTo", async () => {
+
+    const validAssertionDocSHANew = VALID_ASSERTION_XML.replaceAll(
+                "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+                "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
+            );
+            const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+
+        const resultPromise = validateInResponseTo(request, assertionDocNew);
+        await expect(resultPromise).to.eventually.be.true;
+    });
+
+    it('TEST_2: should accept valid SHA384 inResponseTo', async () => {
+
+        const assertionDocSHA384 = new xmldom.DOMParser().parseFromString(ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM, "text/xml");
+        const request = {
+              headerParams: {
+                [lollipopConfig.assertionRefHeader]:  "sha384-lqxC_2kqMdwiBWoD-Us63Fha6e3bE1Y3yUz8G6IJTldohJCIBVDfvS8acB3GJBhw",
+                [lollipopConfig.publicKeyHeader]: ecKeyBase64
+                }
+        };
+
+        await expect(validateInResponseTo(request, assertionDocSHA384)).to.eventually.be.true;
+     });
+
+
+      it('TEST_3: should accept valid SHA512 inResponseTo', async () => {
+
+        const assertionDocSHA512 = new xmldom.DOMParser().parseFromString(ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA512_ALGORITHM, "text/xml");
+        const request = {
+              headerParams: {
+                [lollipopConfig.assertionRefHeader]:  "sha512-nX5CfUc5R-FoYKYZwvQMuc4Tt-heb7vHi_O-AMUSqHNVCw9kNaN2SVuN-DXtGXyUhrcVcQdCyY6FVzl_vyWXNA",
+                [lollipopConfig.publicKeyHeader]: ecKeyBase64
+                }
+        };
+
+        await expect(validateInResponseTo(request, assertionDocSHA512)).to.eventually.be.true;
+      });
+
+
+    it("TEST_4: should throw error if header and XML InResponseTo do not match", async () => {
+
+    const validAssertionDocSHANew = VALID_ASSERTION_XML.replaceAll(
+            "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+            "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
+        );
+        const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+
+        // Header con un valore diverso
+        const mismatchRequest = {
+            headerParams: {
+                [lollipopConfig.assertionRefHeader]: "sha256-AAAAA-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+                [lollipopConfig.publicKeyHeader]: ecKeyBase64
+            }
+        };
+        try {
+            await validateInResponseTo(mismatchRequest, assertionDocNew);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopAssertionException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.IN_RESPONSE_TO_ALGORITHM_NOT_VALID);
+        }
+    });
+
+
+    it("TEST_5: should throw error if InResponseTo format is invalid", async () => {
+        const invalidXml = VALID_ASSERTION_XML.replaceAll(
+            "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+            "sha256-short!!!"
+        );
+        const invalidDoc = new xmldom.DOMParser().parseFromString(invalidXml, "text/xml");
+        try {
+            await validateInResponseTo(request, invalidDoc);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopAssertionException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.IN_RESPONSE_TO_ALGORITHM_NOT_VALID);
+        }
+
+    });
+
+    it("TEST_6: should throw error if InResponseTo is not found ", async () => {
+        const invalidXml = VALID_ASSERTION_XML.replaceAll(
+            "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+            ""
+        );
+        const invalidDoc = new xmldom.DOMParser().parseFromString(invalidXml, "text/xml");
+        try {
+            await validateInResponseTo(request, invalidDoc);
+        } catch (err) {
+          expect(err).to.be.instanceOf(LollipopAssertionException);
+          expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.IN_RESPONSE_TO_FIELD_NOT_FOUND);
+        }
+
+    });
+
+    it("TEST_7: should throw error if JWK is not supported  ", async () => {
+
+        const validAssertionDocSHANew = VALID_ASSERTION_XML.replaceAll(
+            "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+            "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
+        );
+        const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+
+            const request = {
+              headerParams: {
+                [lollipopConfig.assertionRefHeader]: "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg", //"sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+                [lollipopConfig.publicKeyHeader]: ecKeyNotValid
+              }
+            };
+
+            try {
+                await validateInResponseTo(request, assertionDocNew);
+            } catch (err) {
+              expect(err).to.be.instanceOf(LollipopAssertionException);
+              expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY);
+            }
+        });
+
+
+    it("TEST_8: should not match valid SHA256 inResponseTo with rsaKeyBase64 publicKey ", async () => {
+
+        const validAssertionDocSHANew = VALID_ASSERTION_XML.replaceAll(
+            "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+            "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
+        );
+        const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+
+        const request = {
+          headerParams: {
+            [lollipopConfig.assertionRefHeader]: "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg", //"sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+            [lollipopConfig.publicKeyHeader]: rsaKeyBase64
+          }
+        };
+
+        const resultPromise = validateInResponseTo(request, assertionDocNew);
+        await expect(resultPromise).to.eventually.be.false;
+    });
+
+
+
+    it("TEST_8: should not match valid SHA256 inResponseTo with rsaKeyBase64 publicKey ", async () => {
+
+        const validAssertionDocSHANew = VALID_ASSERTION_XML.replaceAll(
+            "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+            "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
+        );
+        const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+
+        const request = {
+          headerParams: {
+            [lollipopConfig.assertionRefHeader]: "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg", //"sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
+            [lollipopConfig.publicKeyHeader]: rsaKeyBase64
+          }
+        };
+
+        const resultPromise = validateInResponseTo(request, assertionDocNew);
+        await expect(resultPromise).to.eventually.be.false;
+    });
+
+
 
 });
 

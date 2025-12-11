@@ -1,5 +1,7 @@
 const xmldom = require('xmldom');
-const { MILLISECONDS_PER_DAY } = require('../app/constants/lollipopConstants');
+const jose = require('node-jose');
+const crypto = require('crypto');
+const { MILLISECONDS_PER_DAY, AssertionRefAlgorithms, DEAFULT_ALG_BY_KTY } = require('../app/constants/lollipopConstants');
 const { VALIDATION_ERROR_CODES } = require('./constants/lollipopErrorsConstants');
 const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig')
 const LollipopAssertionException = require('./exception/lollipopAssertionException');
@@ -111,6 +113,131 @@ function getUserIdFromAssertion(assertionDoc) {
 }
 
 
+ async function validateInResponseTo(request, assertionDoc){
+
+    console.log("Starting validateInResponseTo...")
+    const rootElementName = assertionDoc.documentElement.localName;
+    const listElements = assertionDoc.getElementsByTagNameNS(lollipopConfig.samlNamespaceAssertion, lollipopConfig.assertionInResponseToTag);
+
+    if( isElementNotFound(listElements, lollipopConfig.inResponseToAttribute) ) {
+        console.error('[validateInResponseTo] Missing request id in the retrieved saml assertion');
+        throw new LollipopAssertionException(
+            VALIDATION_ERROR_CODES.IN_RESPONSE_TO_FIELD_NOT_FOUND,
+            'Missing request id in the retrieved saml assertion'
+        );
+    }
+    const firstConditionsElement = listElements[0];
+    const inResponseTo = firstConditionsElement.getAttribute(lollipopConfig.inResponseToAttribute);
+    const hashAlgorithm = retrieveInResponseToAlgorithm(inResponseTo);
+
+    //dalla request prendo la publicKey
+    const headers = request.headerParams.headers || request.headerParams;
+    const publicKeyBase64Url = headers[lollipopConfig.publicKeyHeader];
+    const assertionRefHeader = headers[lollipopConfig.assertionRefHeader];
+    const calculatedThumbprint = await computeThumbprintWithCrypto(hashAlgorithm, publicKeyBase64Url);
+
+    return (inResponseTo === calculatedThumbprint && inResponseTo === assertionRefHeader);
+}
+
+
+function retrieveInResponseToAlgorithm(inResponseTo) {
+    if (!inResponseTo || typeof inResponseTo !== 'string') {
+        console.error("[validateInResponseTo] InResponseTo value is missing or not a string");
+        throw new LollipopAssertionException(VALIDATION_ERROR_CODES.IN_RESPONSE_TO_EMPTY_OR_INVALID,
+            "InResponseTo value is missing or not a string");
+    }
+
+    const algorithms = [
+        AssertionRefAlgorithms.SHA256,
+        AssertionRefAlgorithms.SHA384,
+        AssertionRefAlgorithms.SHA512
+    ];
+
+    for (const algo of algorithms) {
+        if (algo.pattern.test(inResponseTo)) {
+            // Se il pattern RegExp corrisponde, restituisce l'algoritmo di hash
+            return algo.hashAlgorithm;
+        }
+    }
+
+    // Se nessun pattern corrisponde, lancia l'eccezione come nel codice Java
+    console.error("[validateInResponseTo] InResponseTo in the assertion do not contains a valid Assertion Ref or it contains an invalid algorithm.");
+    throw new LollipopAssertionException(VALIDATION_ERROR_CODES.IN_RESPONSE_TO_ALGORITHM_NOT_VALID,
+        "InResponseTo in the assertion do not contains a valid Assertion Ref or it contains an invalid algorithm."
+    );
+}
+
+async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase64Url) {
+
+    //Decodifica la JWK da Base64 URL-safe a JSON stringa
+    const jwkJsonString = Buffer.from(publicKeyBase64Url, 'base64url').toString('utf8');
+    const jwkObject = JSON.parse(jwkJsonString);
+
+    //Normalizzazione dell'algoritmo
+    // Rimuove caratteri non alfanumerici e converte in minuscolo per l'uso nel prefisso.
+    // Esempi: "SHA-256" -> "sha256", "SHA_512" -> "sha512"
+    const hashAlgorithmPrefix = inResponseToAlgorithm.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    // L'algoritmo effettivo per crypto.createHash deve essere nel formato corretto, es. "sha256"
+    // crypto accetta nomi comuni come 'sha256', 'sha384', 'sha512'.
+    const cryptoHashAlgorithm = hashAlgorithmPrefix.toUpperCase().replace('SHA', 'sha'); // Normalizza per crypto
+
+    // Normalizzazione della JWK (RFC 7638 Sezione 3.2)
+    // - Crea un oggetto JSON che contiene solo i membri richiesti per il thumbprint (kty, n, e, etc.).
+    // - I membri devono essere ordinati lessicograficamente per nome.
+    let membersToThumbprint;
+
+    // Seleziona e ordina i membri essenziali in base al 'kty' (Key Type)
+    // Questo è cruciale per la RFC 7638.
+    switch (jwkObject.kty) {
+        case 'RSA':
+            membersToThumbprint = {
+                e: jwkObject.e,
+                kty: jwkObject.kty,
+                n: jwkObject.n,
+            };
+            break;
+        case 'EC': // Elliptic Curve
+            membersToThumbprint = {
+                crv: jwkObject.crv,
+                kty: jwkObject.kty,
+                x: jwkObject.x,
+                y: jwkObject.y,
+            };
+            break;
+        case 'OKP': // Octet Key Pair (es. Ed25519)
+            membersToThumbprint = {
+                crv: jwkObject.crv,
+                kty: jwkObject.kty,
+                x: jwkObject.x,
+            };
+            break;
+        default:
+            // Gestione di kty non supportati o sconosciuti
+            console.error(`Tipo di chiave (kty) non supportato per il thumbprint: ${jwkObject.kty}`);
+            throw new LollipopAssertionException(VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY,
+                    `Tipo di chiave (kty) non supportato per il thumbprint: ${jwkObject.kty}`
+                );
+    }
+
+    // Serializza il JSON normalizzato in formato "Canonical"
+    // JSON.stringify() garantisce l'ordinamento in base ai membri selezionati sopra
+    const canonicalJwkString = JSON.stringify(membersToThumbprint);
+
+    // Calcolo del Thumbprint (Hash)
+    // RFC 7638: "The thumbprint is the value of the hash function applied to the canonicalized JSON object."
+    const thumbprintBuffer = crypto
+        .createHash(cryptoHashAlgorithm) // Crea l'oggetto hash (es. 'sha256')
+        .update(canonicalJwkString)      // Inserisce la stringa canonica
+        .digest();                       // Calcola l'hash come Buffer
+
+    const calculatedThumbprint = thumbprintBuffer.toString('base64url');
+    const prefixedThumbprint = `${hashAlgorithmPrefix}-${calculatedThumbprint}`;
+    return prefixedThumbprint;
+}
+
+
+
     async function validateFullNameHeader(assertionDoc){
       console.log("Starting validateFullNameHeader...");
 
@@ -172,6 +299,7 @@ function getUserIdFromAssertion(assertionDoc) {
  module.exports = {
   validateAssertionPeriod,
   validateUserId,
+  validateInResponseTo,
   validateFullNameHeader,
   LollipopAssertionException,
 };
