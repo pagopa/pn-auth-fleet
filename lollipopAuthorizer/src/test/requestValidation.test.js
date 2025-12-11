@@ -314,9 +314,6 @@ describe('validateSignatureInputHeader (async) ', () => {
     it('should throw INVALID_SIGNATURE_INPUT for noValidSignatureInput', () => {
         const noValidSignatureInput = 'tag1=valueA, sig2=valueB';
         try {
-//            console.log("TEST signatureInput: " + noValidSignatureInput);
-//            const regexOrig = new RegExp(SIGNATURE_INPUT_REGEXP);
-//            console.log("signatureInput: " + regexOrig.test(noValidSignatureInput));
             validateSignatureInputHeader(noValidSignatureInput);
         } catch (err) {
           expect(err).to.be.instanceOf(LollipopRequestContentValidationException);

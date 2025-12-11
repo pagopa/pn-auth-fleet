@@ -73,11 +73,6 @@ const VALIDATION_AUTH_JWT = {
   MISSING: null,
 }
 
-//validare una lista di coppie chiave-valore separate da virgole:
-//Inizia esattamente con sig seguito da uno o più cifre, seguito da '=' seguito da qualsiasi sequenza di caratteri tranne la virgola
-//Separatore tra Coppie: Una virgola opzionale seguita da uno spazio opzionale ((, ?+)?+).
-const SIGNATURE_INPUT_REGEXP = '^sig[\\d]+=([^,]+)(, ?sig[\\d]+=([^,]+))*$';
-
 const VALID_ASSERTION_XML =
             "<samlp:Response xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" Version=\"2.0\""
                     + " ID=\"id_432ca7e6e3fb172b94de5944e6cc0716b08227e7\""
@@ -259,6 +254,21 @@ const VALID_ASSERTION_XML =
                           + "\t</saml2:Attribute>\t\t</saml2:AttributeStatement>"
                           + "\t</saml2:Assertion></saml2p:Response>";
 
+        const ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><saml2p:Response"
+                + " xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\""
+                + " Destination=\"https://app-backend.io.italia.it/assertionConsumerService\""
+                + " ID=\"_de2ce675-f1e5-46fc-96ed-019803471175\""
+                + " InResponseTo=\"sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg\""
+                + " IssueInstant=\"2023-02-28T16:27:26.400Z\" Version=\"2.0\"><saml2:Assertion"
+                + " xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\""
+                + " ID=\"_6b9580aa-08b1-4f19-8fb6-8b670d070bad\""
+                + " IssueInstant=\"2023-02-28T16:27:25.400Z\" Version=\"2.0\"><saml2:Conditions"
+                + " NotBefore=\"2023-02-28T16:27:25.400Z\""
+                + " NotOnOrAfter=\"2023-02-28T16:28:25.400Z\"><saml2:AudienceRestriction><saml2:Audience>https://app-backend.io.italia.it</saml2:Audience></saml2:AudienceRestriction></saml2:Conditions></saml2:Assertion></saml2p:Response>";
+
+
+
 module.exports = {
   EC_JWK,
   RSA_JWK,
@@ -269,10 +279,10 @@ module.exports = {
   EXPECTED_FIRST_LC_ORIGINAL_METHOD,
   ORIGINAL_URL_REGEX,
   EXPECTED_FIRST_LC_ORIGINAL_URL,
-  SIGNATURE_INPUT_REGEXP,
   SIGNATURE_REGEXP,
   VALID_ASSERTION_XML,
   VALID_JWK, NOT_VALID_JWK,
+  ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG,
   ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM,
   ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA512_ALGORITHM
 };
