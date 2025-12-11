@@ -59,11 +59,6 @@ const VALIDATION_AUTH_JWT = {
   MISSING: null,
 }
 
-//validare una lista di coppie chiave-valore separate da virgole:
-//Inizia esattamente con sig seguito da uno o più cifre, seguito da '=' seguito da qualsiasi sequenza di caratteri tranne la virgola
-//Separatore tra Coppie: Una virgola opzionale seguita da uno spazio opzionale ((, ?+)?+).
-const SIGNATURE_INPUT_REGEXP = '^(((sig[\\d]+)=[^,]*)(, ?)?)+$';
-
 const VALID_ASSERTION_XML =
             "<samlp:Response xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" Version=\"2.0\""
                     + " ID=\"id_432ca7e6e3fb172b94de5944e6cc0716b08227e7\""
@@ -206,7 +201,6 @@ module.exports = {
   EXPECTED_FIRST_LC_ORIGINAL_METHOD,
   ORIGINAL_URL_REGEX,
   EXPECTED_FIRST_LC_ORIGINAL_URL,
-  SIGNATURE_INPUT_REGEXP,
   SIGNATURE_REGEXP,
   VALID_ASSERTION_XML,
   ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG
