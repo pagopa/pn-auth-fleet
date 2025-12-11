@@ -181,6 +181,21 @@ const VALID_ASSERTION_XML =
                     + "  </saml:Assertion>\n"
                     + "</samlp:Response>";
 
+        const ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><saml2p:Response"
+                + " xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\""
+                + " Destination=\"https://app-backend.io.italia.it/assertionConsumerService\""
+                + " ID=\"_de2ce675-f1e5-46fc-96ed-019803471175\""
+                + " InResponseTo=\"sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg\""
+                + " IssueInstant=\"2023-02-28T16:27:26.400Z\" Version=\"2.0\"><saml2:Assertion"
+                + " xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\""
+                + " ID=\"_6b9580aa-08b1-4f19-8fb6-8b670d070bad\""
+                + " IssueInstant=\"2023-02-28T16:27:25.400Z\" Version=\"2.0\"><saml2:Conditions"
+                + " NotBefore=\"2023-02-28T16:27:25.400Z\""
+                + " NotOnOrAfter=\"2023-02-28T16:28:25.400Z\"><saml2:AudienceRestriction><saml2:Audience>https://app-backend.io.italia.it</saml2:Audience></saml2:AudienceRestriction></saml2:Conditions></saml2:Assertion></saml2p:Response>";
+
+
+
 module.exports = {
   EC_JWK,
   RSA_JWK,
@@ -193,5 +208,6 @@ module.exports = {
   EXPECTED_FIRST_LC_ORIGINAL_URL,
   SIGNATURE_INPUT_REGEXP,
   SIGNATURE_REGEXP,
-  VALID_ASSERTION_XML
+  VALID_ASSERTION_XML,
+  ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG
 };

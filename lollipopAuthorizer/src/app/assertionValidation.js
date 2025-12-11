@@ -110,8 +110,68 @@ function getUserIdFromAssertion(assertionDoc) {
   return null;
 }
 
+
+    async function validateFullNameHeader(assertionDoc){
+      console.log("Starting validateFullNameHeader...");
+
+      const fullNameHeaderFromAssertion = getFullNameHeaderFromAssertion(assertionDoc);
+
+      if (!fullNameHeaderFromAssertion) {
+        console.error('[validateFullNameHeader] Missing givenName in the retrieved SAML assertion.');
+        throw new LollipopAssertionException(
+          VALIDATION_ERROR_CODES.MISSING_FULLNAME,
+          'Missing givenName in the retrieved SAML assertion.'
+        );
+      }
+
+      return fullNameHeaderFromAssertion;
+    }
+
+
+    function getFullNameHeaderFromAssertion(assertionDoc) {
+
+        console.log("Starting retrieving FullName from assertion...");
+
+        let result = {}
+        const samlNamespace = lollipopConfig.samlNamespaceAssertion;
+        const tagCode = lollipopConfig.assertionAttributeTag;
+
+        const extractAttributeValue = (targetAttributeValue, errorCode) => {
+            const elements = assertionDoc.getElementsByTagNameNS(samlNamespace, tagCode);
+            if (!elements || elements.length === 0) {
+                console.error('[validateFullNameHeader] No elements found in the retrieved saml assertion');
+                throw new LollipopAssertionException(
+                    errorCode, `Missing elements with tag code '${tagCode}' in the retrieved SAML assertion.`);
+            }
+            for (let i = 0; i < elements.length; i++) {
+                const item = elements.item(i);
+                if (!item || !item.textContent) {
+                    continue;
+                }
+                const nameNode = item.attributes.getNamedItem("Name");
+                if (nameNode && nameNode.nodeValue === targetAttributeValue) {
+                    result[targetAttributeValue] = item.textContent.trim();
+                    return;
+                }
+            }
+        };
+
+        extractAttributeValue("name", VALIDATION_ERROR_CODES.NAME_NOT_FOUND);
+        extractAttributeValue("familyName", VALIDATION_ERROR_CODES.SURNAME_NOT_FOUND);
+
+        if (!("name" in result) || !("familyName" in result)) {
+            throw new LollipopAssertionException(
+                VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND,
+                "Missing or invalid name/surname in the retrieved SAML assertion."
+            );
+        }
+        return result;
+    }
+
+
  module.exports = {
   validateAssertionPeriod,
   validateUserId,
+  validateFullNameHeader,
   LollipopAssertionException,
 };
