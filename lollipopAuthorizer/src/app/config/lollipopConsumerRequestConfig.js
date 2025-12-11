@@ -21,8 +21,27 @@ const lollipopConfig = {
   notBeforeAttribute: "NotBefore",
   assertionAttributeTag: "Attribute",
   assertionExpireInDays: 365,
+  ISSUE_INSTANT: "IssueInstant",
+  ISSUER_ENTITY_ID_TAG: "Issuer",
+  ENTITIES_DESCRIPTOR_TAG: "EntitiesDescriptor",
+  NAMESPACE_TAG: "md:",
+  ENTITY_DESCRIPTOR_TAG: "EntityDescriptor",
+  IDPSSO_DESCRIPTOR_TAG: "IDPSSODescriptor",
+  KEY_DESCRIPTOR_TAG: "KeyDescriptor",
+  DS_KEYINFO_TAG: "ds:KeyInfo",
+  DS_X509DATA_TAG: "ds:X509Data",
+  DS_X509CERTIFICATE_TAG: "ds:X509Certificate",
 };
 
+const IDP_PROVIDER_CONFIG = {
+    CIE_ENTITY_ID: [ "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO" ],
+    BASE_URI: "https://api.is.eng.pagopa.it",
+    IDP_KEYS_CIE_ENDPOINT: "/idp-keys/cie",
+    IDP_KEYS_SPID_ENDPOINT: "/idp-keys/spid",
+    TIMEOUT_API: 60000, // READ_TIMEOUT_MS,
+    CONNECTION_TIMEOUT_API: 60000, //CONNECTION_TIMEOUT_MS,
+}
+
 module.exports = {
-  lollipopConfig
+  lollipopConfig, IDP_PROVIDER_CONFIG
 };
