@@ -1,5 +1,5 @@
 {
-  "name": "token-exchange-oneidentity",
+  "name": "token-exchange-v2",
   "version": "1.0.0",
   "description": "Lambda function to handle token exchange with One Identity provider.",
   "private": true,
