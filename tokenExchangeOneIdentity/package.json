@@ -1,0 +1,34 @@
+{
+  "name": "token-exchange-oneidentity",
+  "version": "1.0.0",
+  "description": "Lambda function to handle token exchange with One Identity provider.",
+  "private": true,
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "build": "npm run type-check && esbuild src/app/index.ts --bundle --platform=node --target=node22 --outdir=dist --minify --sourcemap && cd dist && zip -r ../function.zip .",
+    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.ts' --recursive --timeout=6000 --exit",
+    "test-build": "npm run test && npm run coverage && npm run sonar && npm run build",
+    "coverage": "nyc report --reporter=lcov",
+    "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
+    "clean": "rm -rf dist function.zip"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-kms": "^3.948.0",
+    "aws-xray-sdk-core": "^3.12.0",
+    "base64url": "^3.0.1",
+    "bunyan": "^1.8.15",
+    "jsonwebtoken": "^9.0.0",
+    "jwk-to-pem": "^2.0.7"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.159",
+    "@types/bunyan": "^1.8.11",
+    "@types/chai": "^5.2.3",
+    "chai": "^6.2.1",
+    "esbuild": "^0.27.1",
+    "mocha": "^11.7.5",
+    "nyc": "^17.1.0",
+    "typescript": "^5.9.3"
+  }
+}
