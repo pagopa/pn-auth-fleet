@@ -1,5 +1,11 @@
-import { APIGatewayEvent } from "aws-lambda";
+import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 
-export const handler = async (event: APIGatewayEvent) => {
-  console.log("Received event:", event);
+export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: "Hello from AWS Lambda + TypeScript",
+      input: event,
+    }),
+  };
 };
