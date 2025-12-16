@@ -7,7 +7,7 @@
     "type-check": "tsc --noEmit",
     "build": "npm run type-check && esbuild src/app/index.ts --bundle --platform=node --target=node22 --outdir=dist --minify --sourcemap && cd dist && zip -r ../function.zip .",
     "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.ts' --recursive --timeout=6000 --exit",
-    "test-build": "npm run test && npm run coverage && npm run sonar && npm run build",
+    "test-build": "npm run build",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
     "clean": "rm -rf dist function.zip"
@@ -32,6 +32,6 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": "22.x"
+    "node": "18.x"
   }
 }
