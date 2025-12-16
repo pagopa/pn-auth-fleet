@@ -1,16 +1,16 @@
-const CertDataNotFoundException = require('../../exception/certDataNotFoundException');
-const IllegalArgumentException = require('../../exception/illegalArgumentException');
-const InvalidInstantFormatException  = require('../../exception/invalidInstantFormatException');
-const TagListSearchOutOfBoundException  = require('../../exception/tagListSearchOutOfBoundException');
-const EntityIdNotFoundException  = require( '../../exception/entityIdNotFoundException');
-const {ErrorRetrievingIdpCertDataException, ErrorCode } = require('../../exception/errorRetrievingIdpCertDataException');
-const {lollipopConfig} = require('../../config/lollipopConsumerRequestConfig');
-const ApiException  = require( '../../exception/apiException');
+const CertDataNotFoundException = require('../../../exception/certDataNotFoundException');
+const IllegalArgumentException = require('../../../exception/illegalArgumentException');
+const InvalidInstantFormatException  = require('../../../exception/invalidInstantFormatException');
+const TagListSearchOutOfBoundException  = require('../../../exception/tagListSearchOutOfBoundException');
+const EntityIdNotFoundException  = require( '../../../exception/entityIdNotFoundException');
+const {ErrorRetrievingIdpCertDataException, ErrorCode } = require('../../../exception/errorRetrievingIdpCertDataException');
+const {lollipopConfig} = require('../../../config/lollipopConsumerRequestConfig');
+const ApiException  = require( '../../../exception/apiException');
 const CIECertData  = require( '../model/CIECertData');
 const SPIDCertData  = require( '../model/SPIDCertData');
 const DefaultApi  = require( '../api/DefaultApi');
 const EntityDescriptor = require( '../model/EntityDescriptor');
-const IdpCertData = require( '../../model/IdpCertData');
+const IdpCertData = require( '../../../model/IdpCertData');
 const xml2js = require('xml2js');
 
 

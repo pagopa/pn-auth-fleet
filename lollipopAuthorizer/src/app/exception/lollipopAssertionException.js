@@ -2,7 +2,7 @@ class LollipopAssertionException extends Error {
 
   constructor(errorCode, message) {
     super(message);
-    this.name = 'LollipopAssertionException';
+    this.name = this.constructor.name;
     this.errorCode = errorCode;
   }
 }
