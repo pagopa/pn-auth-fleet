@@ -1,11 +1,31 @@
-const xmldom = require('xmldom');
-const jose = require('node-jose');
 const crypto = require('crypto');
-const { MILLISECONDS_PER_DAY, AssertionRefAlgorithms, DEAFULT_ALG_BY_KTY } = require('../app/constants/lollipopConstants');
-const { VALIDATION_ERROR_CODES } = require('./constants/lollipopErrorsConstants');
+const { MILLISECONDS_PER_DAY, AssertionRefAlgorithms } = require('../app/constants/lollipopConstants');
 const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig')
 const LollipopAssertionException = require('./exception/lollipopAssertionException');
+const { DOMParser } = require('xmldom');
+const ErrorRetrievingAssertionException = require('./exception/errorRetrievingAssertionException');
+const OidcAssertionNotSupported = require('./exception/oidcAssertionNotSupported');
+const LollipopAssertionNotFoundException = require('./exception/lollipopAssertionNotFoundException');
+const { getAssertion } = require('./service/assertionService.js');
+const { VALIDATION_ERROR_CODES, ASSERTION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 
+
+async function getAssertionDoc(jwt, assertionRef) {
+    let assertion;
+    try {
+        assertion = await getAssertion(jwt, assertionRef);
+    } catch (e) {
+        if (e instanceof OidcAssertionNotSupported) {
+            throw new ErrorRetrievingAssertionException(ASSERTION_ERROR_CODES.OIDC_ASSERTION_TYPE_NOT_SUPPORTED, e.message);
+        }
+        if (e instanceof LollipopAssertionNotFoundException) {
+            throw new ErrorRetrievingAssertionException(ASSERTION_ERROR_CODES.SAML_ASSERTION_NOT_FOUND, e.message);
+        }
+        throw e;
+    }
+
+    return buildDocumentFromAssertion(assertion);
+}
 
  function validateAssertionPeriod(assertionDoc){
 
@@ -300,10 +320,45 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
     }
 
 
+function buildDocumentFromAssertion(assertion) {
+  const xmlString = assertion.assertionData;
+
+  //protezione doctype, in java viene fatto tramite flag, in js va definito
+  if (xmlString.includes("<!DOCTYPE")) {
+    throw new ErrorRetrievingAssertionException(
+      ASSERTION_ERROR_CODES.ERROR_PARSING_ASSERTION,
+      "DOCTYPE is not allowed in assertion XML"
+    );
+  }
+
+  try {
+    const doc = new DOMParser({
+      errorHandler: {
+        warning: () => { },
+        error: (msg) => { throw new Error(msg); },
+        fatalError: (msg) => { throw new Error(msg); },
+      }
+    }).parseFromString(xmlString, "text/xml");
+
+    return doc;
+  } catch (e) {
+    throw new ErrorRetrievingAssertionException(
+      ASSERTION_ERROR_CODES.ERROR_PARSING_ASSERTION,
+      e.message
+    );
+  }
+}
+
  module.exports = {
   validateAssertionPeriod,
   validateUserId,
   validateInResponseTo,
   validateFullNameHeader,
+  getAssertionDoc,
+  buildDocumentFromAssertion,
   LollipopAssertionException,
+  LollipopAssertionNotFoundException,
+  OidcAssertionNotSupported,
+  ErrorRetrievingAssertionException
+
 };
