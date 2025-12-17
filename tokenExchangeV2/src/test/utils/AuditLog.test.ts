@@ -1,4 +1,4 @@
-import { auditLog } from "../app/log";
+import { auditLog } from "../../app/utils/AuditLog";
 
 describe("Audit Log", () => {
   const cx_type = "AUD";

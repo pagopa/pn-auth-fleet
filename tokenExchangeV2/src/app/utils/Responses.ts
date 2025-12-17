@@ -1,5 +1,5 @@
-import { ErrorResponseBody } from "../models/Responses";
-import { ValidationException } from "./exception/validationException";
+import { ErrorResponseBody } from "../../models/Responses";
+import { ValidationException } from "../exception/validationException";
 
 export function generateKoResponse(
   err: ValidationException | string,

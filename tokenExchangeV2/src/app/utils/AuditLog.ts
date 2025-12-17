@@ -1,5 +1,5 @@
 import { createLogger, LogLevel } from "bunyan";
-import { AUD_TYPE, AuditLogStatus } from "../models/AuditLog";
+import { AUD_TYPE, AuditLogStatus } from "../../models/AuditLog";
 
 const LOG_LEVEL_MAP: Record<
   AuditLogStatus,

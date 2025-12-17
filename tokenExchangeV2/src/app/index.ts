@@ -1,8 +1,10 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { isOriginAllowed, makeLower } from "./utils";
-import { auditLog } from "./log";
-import { generateKoResponse } from "./responses";
 import { ValidationException } from "./exception/validationException";
+import { auditLog } from "./utils/AuditLog";
+import { generateKoResponse } from "./utils/Responses";
+import { makeLower } from "./utils/String";
+import { isOriginAllowed } from "./validation/Origin";
+import { jwtValidator } from "./validation/TokenValidation";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
@@ -57,7 +59,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   try {
-    // const decodedToken = await validation(encodedToken);
+    const decodedToken = await jwtValidator(encodedToken);
   } catch (err: any) {
     auditLog({
       message: `Error generating token ${err.message}`,

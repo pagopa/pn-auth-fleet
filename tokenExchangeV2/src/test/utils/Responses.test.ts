@@ -1,6 +1,6 @@
-import { ValidationException } from "../app/exception/validationException";
-import { generateKoResponse } from "../app/responses";
-import { allowedOrigin, makeKoResponse } from "./__mock__/responses.mock";
+import { ValidationException } from "../../app/exception/validationException";
+import { generateKoResponse } from "../../app/utils/Responses";
+import { allowedOrigin, makeKoResponse } from "../__mock__/responses.mock";
 
 describe("Responses Tests", () => {
   //   it("generateOkResponse", () => {

@@ -1,5 +1,3 @@
-import { APIGatewayProxyEventHeaders } from "aws-lambda";
-
 export function isOriginAllowed(origin: string) {
   if (!process.env.ALLOWED_ORIGIN) {
     console.error("ALLOWED_ORIGIN env var is not set");
@@ -17,17 +15,4 @@ export function isOriginAllowed(origin: string) {
   }
 
   return isOriginIncluded;
-}
-
-export function makeLower(
-  headers: APIGatewayProxyEventHeaders
-): APIGatewayProxyEventHeaders {
-  const head: APIGatewayProxyEventHeaders = {};
-  for (const key in headers) {
-    if (headers.hasOwnProperty(key)) {
-      head[key.toLowerCase()] = headers[key];
-    }
-  }
-
-  return head;
 }
