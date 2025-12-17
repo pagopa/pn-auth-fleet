@@ -307,14 +307,14 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
         extractAttributeValue("familyName", VALIDATION_ERROR_CODES.SURNAME_NOT_FOUND);
 
         if (!("name" in result)){
-            result.name: '';
+            result.name = '';
         }
         if(!("familyName" in result)) {
             /*throw new LollipopAssertionException(
                 VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND,
                 "Missing or invalid name/surname in the retrieved SAML assertion."
             );*/
-            result.familyName : '';
+            result.familyName = '';
         }
         return result;
     }
