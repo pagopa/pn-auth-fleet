@@ -6,11 +6,11 @@
   "scripts": {
     "type-check": "tsc --noEmit",
     "build": "npm run type-check && esbuild src/app/index.ts --bundle --platform=node --target=node22 --outdir=dist --minify --sourcemap && cd dist && zip -r ../function.zip .",
-    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.ts' --recursive --timeout=6000 --exit",
-    "test-build": "npm run build",
-    "coverage": "nyc report --reporter=lcov",
+    "test": "jest --coverage",
+    "test-build": "npm run test && npm run coverage && npm run sonar && npm run build",
+    "coverage": "jest --coverage --coverageReporters=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
-    "clean": "rm -rf dist function.zip"
+    "clean": "rm -rf dist function.zip coverage"
   },
   "license": "ISC",
   "dependencies": {
@@ -24,11 +24,11 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.159",
     "@types/bunyan": "^1.8.11",
-    "@types/chai": "^5.2.3",
-    "chai": "^6.2.1",
+    "@types/jest": "^30.0.0",
     "esbuild": "^0.27.1",
-    "mocha": "^11.7.5",
+    "jest": "^30.2.0",
     "nyc": "^17.1.0",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
   },
   "engines": {
