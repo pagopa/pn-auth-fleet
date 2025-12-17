@@ -13,7 +13,7 @@ const { ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITHOUT_CERT,
  ASSERTION_CIE_XML_WITH_VALID_ENTITY_ID_WITH_CERT,
  ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITH_CERT } = require('../fileTest/testUtils');
 const { getIdpCertData, parseInstantToUnixTimestamp } = require('../../app/service/assertionVerifierService');
-const idpCertProvider = require('../../app/idp/idpCertProvider');
+const idpCertProvider = require('../../app/openapiImpl/idp/idpCertProvider');
 
 describe('getIdpCertData ', async () => {
 
