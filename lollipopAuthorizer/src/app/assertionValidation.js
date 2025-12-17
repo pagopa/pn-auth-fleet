@@ -237,24 +237,23 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
 }
 
 
-
+    //Modiifcata la gestione del name e familyName non valorizzati
     async function validateFullNameHeader(assertionDoc){
       console.log("Starting validateFullNameHeader...");
 
       const fullNameHeaderFromAssertion = getFullNameHeaderFromAssertion(assertionDoc);
-
-      if (!fullNameHeaderFromAssertion) {
-        console.error('[validateFullNameHeader] Missing givenName in the retrieved SAML assertion.');
+      /*if (!fullNameHeaderFromAssertion) {
+        console.warn('[validateFullNameHeader] Missing givenName in the retrieved SAML assertion.');
         throw new LollipopAssertionException(
           VALIDATION_ERROR_CODES.MISSING_FULLNAME,
           'Missing givenName in the retrieved SAML assertion.'
         );
-      }
+      }*/
 
       return fullNameHeaderFromAssertion;
     }
 
-
+    //Modificata la gestione del result per name e familyName non valorizzata
     function getFullNameHeaderFromAssertion(assertionDoc) {
 
         console.log("Starting retrieving FullName from assertion...");
@@ -266,9 +265,10 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
         const extractAttributeValue = (targetAttributeValue, errorCode) => {
             const elements = assertionDoc.getElementsByTagNameNS(samlNamespace, tagCode);
             if (!elements || elements.length === 0) {
-                console.error('[validateFullNameHeader] No elements found in the retrieved saml assertion');
-                throw new LollipopAssertionException(
-                    errorCode, `Missing elements with tag code '${tagCode}' in the retrieved SAML assertion.`);
+                console.warn('[validateFullNameHeader] No elements found in the retrieved saml assertion: ', errorCode);
+                console.warn(`Missing elements with tag code '${tagCode}' in the retrieved SAML assertion.`);
+                //throw new LollipopAssertionException(
+                //    errorCode, `Missing elements with tag code '${tagCode}' in the retrieved SAML assertion.`);
             }
             for (let i = 0; i < elements.length; i++) {
                 const item = elements.item(i);
@@ -286,11 +286,15 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
         extractAttributeValue("name", VALIDATION_ERROR_CODES.NAME_NOT_FOUND);
         extractAttributeValue("familyName", VALIDATION_ERROR_CODES.SURNAME_NOT_FOUND);
 
-        if (!("name" in result) || !("familyName" in result)) {
-            throw new LollipopAssertionException(
+        if (!("name" in result)){
+            result.name: '';
+        }
+        if(!("familyName" in result)) {
+            /*throw new LollipopAssertionException(
                 VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND,
                 "Missing or invalid name/surname in the retrieved SAML assertion."
-            );
+            );*/
+            result.familyName : '';
         }
         return result;
     }

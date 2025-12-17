@@ -1,6 +1,6 @@
 const options = {
   "sonar.organization": "pagopa",
-  "sonar.projectKey": "pagopa_pn-auth-fleet_ioAuthorizer",
+  "sonar.projectKey": "pagopa_pn-auth-fleet_lollipopAuthorizer",
 };
 
 if (process.env.PR_NUM) {
