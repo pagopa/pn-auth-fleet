@@ -5,6 +5,7 @@ const { MILLISECONDS_PER_DAY, AssertionRefAlgorithms, DEAFULT_ALG_BY_KTY } = req
 const { VALIDATION_ERROR_CODES } = require('./constants/lollipopErrorsConstants');
 const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig')
 const LollipopAssertionException = require('./exception/lollipopAssertionException');
+const { validateSignature } = require('./signatureValidation');
 
 
  function validateAssertionPeriod(assertionDoc){
@@ -301,5 +302,6 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
   validateUserId,
   validateInResponseTo,
   validateFullNameHeader,
+  validateSignature,
   LollipopAssertionException,
 };
