@@ -1,7 +1,7 @@
 const {lollipopConfig} = require('../../app/config/lollipopConsumerRequestConfig');
 const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
-const idpCertProvider = require('../../app/idp/idpCertProvider');
+const idpCertProvider = require('../openapiImpl/idp/idpCertProvider');
 
     async function getIdpCertData(assertionDoc){
         console.log('[assertionVerifierService - getIdpCertData]');

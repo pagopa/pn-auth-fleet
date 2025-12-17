@@ -1,7 +1,7 @@
-const {IDP_PROVIDER_CONFIG} = require('../config/lollipopConsumerRequestConfig');
-const {ErrorRetrievingIdpCertDataException, ErrorCode} = require('../../app/exception/errorRetrievingIdpCertDataException');
-const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
-const IllegalArgumentException = require('../../app/exception/illegalArgumentException');
+const {IDP_PROVIDER_CONFIG} = require('../../config/lollipopConsumerRequestConfig');
+const {ErrorRetrievingIdpCertDataException, ErrorCode} = require('../../exception/errorRetrievingIdpCertDataException');
+const CertDataNotFoundException = require('../../exception/certDataNotFoundException');
+const IllegalArgumentException = require('../../exception/illegalArgumentException');
 const IdpCertClient = require('./client/idpCertClient'); //.default;
 const ApiClientClass = require('./ApiClient');
 
