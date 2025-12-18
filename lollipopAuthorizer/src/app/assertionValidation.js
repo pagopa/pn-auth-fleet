@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { MILLISECONDS_PER_DAY, AssertionRefAlgorithms } = require('../app/constants/lollipopConstants');
 const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig')
 const LollipopAssertionException = require('./exception/lollipopAssertionException');
+const { validateSignature } = require('./signatureValidation');
 const { DOMParser } = require('xmldom');
 const ErrorRetrievingAssertionException = require('./exception/errorRetrievingAssertionException');
 const OidcAssertionNotSupported = require('./exception/oidcAssertionNotSupported');
@@ -350,6 +351,7 @@ function buildDocumentFromAssertion(assertion) {
   validateUserId,
   validateInResponseTo,
   validateFullNameHeader,
+  validateSignature,
   getAssertionDoc,
   buildDocumentFromAssertion,
   LollipopAssertionException,
