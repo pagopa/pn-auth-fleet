@@ -1,8 +1,8 @@
-async function retryWithDelay(
-  fn: () => Promise<string>,
+export async function retryWithDelay<T>(
+  fn: () => Promise<T>,
   delay: number,
   retries: number
-): Promise<string> {
+): Promise<T> {
   try {
     return await fn();
   } catch (err) {

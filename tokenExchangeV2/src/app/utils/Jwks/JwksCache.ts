@@ -1,3 +1,6 @@
+// import { JWKS } from "../../../models/Jwks";
+// import { getJwks } from "./JwksRetriever";
+
 // /*
 //   Map structure : {
 //     issuer1: {keys: [...], expiresOn: ..., lastUpdate: ...},
@@ -35,7 +38,7 @@
 //   }
 // };
 
-// const setCachedData = (jwks: string, issuer: string) => {
+// const setCachedData = (jwks: JWKS, issuer: string) => {
 //   const now = Date.now();
 
 //   const value = {
