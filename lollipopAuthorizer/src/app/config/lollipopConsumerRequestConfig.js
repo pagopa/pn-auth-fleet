@@ -31,6 +31,9 @@ const lollipopConfig = {
   DS_X509CERTIFICATE_TAG: "ds:X509Certificate",
   assertionInResponseToTag: "SubjectConfirmationData",
   inResponseToAttribute: "InResponseTo",
+  assertionInstantTag: "Assertion",
+  samlNamespaceSignature:'http://www.w3.org/2000/09/xmldsig#',
+  signatureTag:"Signature",
 };
 
 const IDP_PROVIDER_CONFIG = {
