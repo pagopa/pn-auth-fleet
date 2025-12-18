@@ -7,6 +7,7 @@ const { expect } = chai;
 chai.use(sinonChai);
 
 const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
+const { VALID_ASSERTION_XML, VALIDATION_PARAMS, VALID_JWT } = require('../test/constants/lollipopConstantsTest');
 const CommandResult = require('../app/model/CommandResult');
 const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
 
@@ -31,12 +32,12 @@ const mockRequestValidation = {
 
 // Funzione helper per simulare il successo di tutte le validazioni critiche
 const setupSuccessfulMocks = (stubs) => {
-    stubs.getAssertionDoc.resolves({ /* doc */ });   /// ???
-    stubs.getIdpCertData.resolves([]);            /// ???
+    stubs.getAssertionDoc.resolves({ assertionData: VALID_ASSERTION_XML });   /// ???
+    stubs.getIdpCertData.resolves(idpCertDataList: assertionData);            /// ???
     stubs.validateAssertionPeriod.resolves(true);
     stubs.validateUserId.resolves(true);
     stubs.validateInResponseTo.resolves(true);
-    stubs.validateSignature.resolves(true);
+    stubs.validateSignature.resolves(true: assertionData, idpCertDataList);
     stubs.validateFullNameHeader.resolves({ name: 'Mario', familyName: 'Rossi' });
 };
 
