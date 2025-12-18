@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "type-check": "tsc --noEmit",
-    "build": "npm run type-check && esbuild src/app/index.ts --bundle --platform=node --target=node22 --outdir=dist --minify --sourcemap && cd dist && zip -r ../function.zip .",
+    "build": "npm run type-check && esbuild src/app/index.ts --bundle --platform=node --outdir=dist --minify --sourcemap && cd dist && zip -r ../function.zip .",
     "test": "jest --coverage --silent",
     "test-build": "npm run test && npm run coverage && npm run sonar && npm run build",
     "coverage": "jest --coverage --coverageReporters=lcov",

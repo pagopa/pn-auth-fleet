@@ -10,7 +10,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
 
   const eventOrigin = event.headers?.origin;
-  let encodedToken;
+  let oidcCode: string | undefined;
+  let requestUri: string | undefined;
   let source;
 
   if (!eventOrigin) {
@@ -38,7 +39,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       throw new Error("Missing request body");
     }
     const requestBody = JSON.parse(event.body);
-    encodedToken = requestBody?.authorizationToken;
+    oidcCode = requestBody?.code;
+    requestUri = requestBody?.request_uri;
     source = requestBody?.source;
   } catch (err: any) {
     auditLog({
@@ -49,17 +51,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return generateKoResponse(err, eventOrigin);
   }
 
-  if (!encodedToken) {
+  if (!requestUri) {
     auditLog({
-      message: "Authorization Token not present",
+      message: "One Identity Code not present",
       aud_orig: eventOrigin,
       status: "KO",
     }).warn("error");
-    return generateKoResponse("AuthorizationToken not present", eventOrigin);
+    return generateKoResponse("One Identity Code not present", eventOrigin);
   }
 
   try {
-    const decodedToken = await jwtValidator(encodedToken);
+    // const decodedToken = await jwtValidator(encodedToken);
+    // TODO - 1- Chiamare l'API per ottenere il Token POST https://uat.oneid.pagopa.it/oidc/token
+    // TODO - 2 - Validare il token ricevuto (idToken) con JWKS presa da https://uat.oneid.pagopa.it/oidc/keys
+    // TODO - 3 - Decodificare idToken e creare il session token (sessionToken)
+    // TODO - 4 - Aggiungere le informazioni del source
   } catch (err: any) {
     auditLog({
       message: `Error generating token ${err.message}`,
