@@ -4,7 +4,7 @@ const {
 	validateUserId,
 	validateInResponseTo,
 	getIdpCertData,
-	validateSignature,
+	validateSignatureAssertion,
 	validateFullNameHeader
 } = require("./assertionValidation");
 
@@ -32,7 +32,7 @@ async function validateLollipopAssertion(request) {
 		    headers[lollipopConfig.authJWTHeader],
 		    headers[lollipopConfig.assertionRefHeader]
 		);
-		
+
 		const result = new CommandResult();
 		
 		//Recupero i Dati del Certificato IdP: Necessario per la verifica della Signature
@@ -43,37 +43,38 @@ async function validateLollipopAssertion(request) {
 		}
 
 		//Validazioni asincrone in parallelo
-		const criticalValidationPromises = [
-			// 1 - Validazione Periodo
-			(async () => {
-				const isValid = await validateAssertionPeriod(assertionDoc);
-				if (!isValid) throw new LollipopAssertionException(
-						VALIDATION_ERROR_CODES.INVALID_ASSERTION_PERIOD, "The assertion has expired");
-			})(),
-			// 2 - Validazione User ID
-			(async () => {
-				const isValid = await validateUserId(request, assertionDoc);
-				if (!isValid) throw new LollipopAssertionException(
-						VALIDATION_ERROR_CODES.INVALID_USER_ID, "The user id in the assertion does not match the request header");
-			})(),
-			// 3 - Validazione InResponseTo
-			(async () => {
-				const isValid = await validateInResponseTo(request, assertionDoc);
-				if (!isValid) throw new LollipopAssertionException(
-						VALIDATION_ERROR_CODES.INVALID_IN_RESPONSE_TO, "The hash of provided public key do not match the InResponseTo in the assertion");
-			})(),
-			// 4 - Validazione Firma (Dipende da idpCertDataList)
-			(async () => {
-				const isValid = await validateSignature(assertionDoc, idpCertDataList);
-				if (!isValid) throw new LollipopAssertionException(
-						VALIDATION_ERROR_CODES.INVALID_SIGNATURE, "SAML signature verification failed");
-			})()
-		];
-	
-		// Esecuzione Validazioni Critiche
-		// Se una fallisce, Promise.all() rigetta e l'errore viene lanciato
-		await Promise.all(criticalValidationPromises);
-		
+		// Definiamo un array di funzioni (non ancora eseguite)
+        const validations = [
+            () => validateAssertionPeriod(assertionDoc)
+                .then(isValid => {
+                    if (!isValid) throw new LollipopAssertionException(VALIDATION_ERROR_CODES.INVALID_ASSERTION_PERIOD, "The assertion has expired");
+                }),
+
+            () => validateUserId(request, assertionDoc)
+                .then(isValid => {
+                    if (!isValid) throw new LollipopAssertionException(VALIDATION_ERROR_CODES.INVALID_USER_ID, "The user id in the assertion does not match the request header");
+                }),
+
+            () => validateInResponseTo(request, assertionDoc)
+                .then(isValid => {
+                    if (!isValid) throw new LollipopAssertionException(VALIDATION_ERROR_CODES.INVALID_IN_RESPONSE_TO, "The hash of provided public key do not match the InResponseTo in the assertion");
+                }),
+
+            () => validateSignatureAssertion(assertionDoc, idpCertDataList)
+                .then(isValid => {
+                    if (!isValid) throw new LollipopAssertionException(VALIDATION_ERROR_CODES.INVALID_SIGNATURE, "SAML signature verification failed");
+                })
+        ];
+
+        // Esecuzione in parallelo
+        try {
+            await Promise.all(validations.map(fn => fn()));
+        } catch (error) {
+            // Qui l'eccezione LollipopAssertionException verrà catturata correttamente
+            console.error("Validazione fallita - ErrorCode: ", error.errorCode, " - Message: ", error.message);
+            throw error; // Rilancia per il chiamante superiore
+        }
+
 		// 5 - Validazione FullName e popolamento risultato
 		const fullName = await validateFullNameHeader(assertionDoc);
 
@@ -91,10 +92,6 @@ async function validateLollipopAssertion(request) {
             throw error;
         }
         throw new LollipopAssertionException(error.errorCode || VALIDATION_ERROR_CODES.GENERIC_ERROR, error.message);
-		//if (error instanceof ErrorRetrievingIdpCertDataException){
-		//	throw new LollipopAssertionException(error.errorCode, error.message);
-		//}
-		//throw error;
 	}
 }
 

@@ -28,6 +28,17 @@ async function getAssertionDoc(jwt, assertionRef) {
     return buildDocumentFromAssertion(assertion);
 }
 
+async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
+    let isValid;
+    try {
+        isValid = await validateSignature(assertionDoc, idpCertDataList);
+    } catch (e) {
+        console.error('[validateSignatureAssertion] Error: ', e.errorCode, ' - Message: ', e.message);
+        throw new LollipopAssertionException(e);
+    }
+}
+
+
  function validateAssertionPeriod(assertionDoc){
 
     const rootElementName = assertionDoc.documentElement.localName;
@@ -351,7 +362,7 @@ function buildDocumentFromAssertion(assertion) {
   validateUserId,
   validateInResponseTo,
   validateFullNameHeader,
-  validateSignature,
+  validateSignatureAssertion,
   getAssertionDoc,
   buildDocumentFromAssertion,
   LollipopAssertionException,
