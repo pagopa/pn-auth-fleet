@@ -30,10 +30,13 @@
   "dependencies": {
     "@openapitools/openapi-generator-cli": "^2.25.2",
     "@xmldom/xmldom": "^0.8.11",
+    "asn1.js": "^5.4.1",
     "aws-xray-sdk-core": "^3.3.6",
     "axios": "^0.28.0",
+    "ecdsa-sig-formatter": "^1.0.11",
     "fast-xml-parser": "^5.3.2",
     "jose": "^6.0.12",
+    "jwk-to-pem": "^2.0.7",
     "nock": "^14.0.10",
     "node-jose": "^2.2.0",
     "superagent": "^10.2.3",
