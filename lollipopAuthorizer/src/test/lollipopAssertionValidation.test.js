@@ -24,7 +24,7 @@ const mockRequestValidation = {
     validateAssertionPeriod: sinon.stub(),
     validateUserId: sinon.stub(),
     validateInResponseTo: sinon.stub(),
-    getIdpCertData: sinon.stub(),
+    getIdpCertDataAssertion: sinon.stub(),
     validateSignatureAssertion: sinon.stub(),
     validateFullNameHeader: sinon.stub(),
 };
@@ -32,7 +32,7 @@ const mockRequestValidation = {
 // Funzione helper per simulare il successo di tutte le validazioni critiche
 const setupSuccessfulMocks = (stubs) => {
     stubs.getAssertionDoc.resolves({ assertionData: VALID_ASSERTION_XML });
-    stubs.getIdpCertData.resolves([ { cert: VALID_IDP_CERTIFICATE } ]);   //idpCertDataList: VALID_IDP_CERTIFICATE);
+    stubs.getIdpCertDataAssertion.resolves([ { cert: VALID_IDP_CERTIFICATE } ]);   //idpCertDataList: VALID_IDP_CERTIFICATE);
     stubs.validateAssertionPeriod.resolves(true);
     stubs.validateUserId.resolves(true);
     stubs.validateInResponseTo.resolves(true);

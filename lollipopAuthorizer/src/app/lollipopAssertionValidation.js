@@ -3,7 +3,7 @@ const {
 	validateAssertionPeriod,
 	validateUserId,
 	validateInResponseTo,
-	getIdpCertData,
+	getIdpCertDataAssertion,
 	validateSignatureAssertion,
 	validateFullNameHeader
 } = require("./assertionValidation");
@@ -36,7 +36,7 @@ async function validateLollipopAssertion(request) {
 		const result = new CommandResult();
 		
 		//Recupero i Dati del Certificato IdP: Necessario per la verifica della Signature
-		const idpCertDataList = await getIdpCertData(request, assertionDoc);
+		const idpCertDataList = await getIdpCertDataAssertion( assertionDoc);
 		if(!idpCertDataList){
 			console.error("Some error occurred in retrieving certification data from IDP");
 			throw new LollipopAssertionException(VALIDATION_ERROR_CODES.IDP_CERT_DATA_NOT_FOUND, "Some error occurred in retrieving certification data from IDP");
