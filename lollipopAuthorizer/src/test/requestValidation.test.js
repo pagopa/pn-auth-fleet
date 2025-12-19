@@ -16,18 +16,8 @@ const {
   validateSignatureInputHeader
 } = require('../app/requestValidation');
 
-const {
-  EC_JWK,
-  RSA_JWK,
-  VALIDATION_ERROR_CODES,
-  VALIDATION_PARAMS,
-  EXPECTED_FIRST_LC_ORIGINAL_METHOD,
-  ORIGINAL_URL_REGEX,
-  EXPECTED_FIRST_LC_ORIGINAL_UR,
-  SIGNATURE_INPUT_REGEXP,
-  SIGNATURE_REGEXP
-} = require('../test/constants/lollipopConstantsTest');
-const {VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
+const {EC_JWK, RSA_JWK, VALIDATION_PARAMS, VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
+const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 
 describe('validatePublicKey (async)', () => {
     // precodifica delle due chiavi in base64url
@@ -324,9 +314,6 @@ describe('validateSignatureInputHeader (async) ', () => {
     it('should throw INVALID_SIGNATURE_INPUT for noValidSignatureInput', () => {
         const noValidSignatureInput = 'tag1=valueA, sig2=valueB';
         try {
-//            console.log("TEST signatureInput: " + noValidSignatureInput);
-//            const regexOrig = new RegExp(SIGNATURE_INPUT_REGEXP);
-//            console.log("signatureInput: " + regexOrig.test(noValidSignatureInput));
             validateSignatureInputHeader(noValidSignatureInput);
         } catch (err) {
           expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
