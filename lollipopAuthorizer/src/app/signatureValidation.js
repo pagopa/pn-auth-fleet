@@ -7,10 +7,11 @@ const ValidationException = require('./exception/validationException');
 const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
 
 /**
- * 
+ * Estrae l'assertion firmata da un documento xml. Se il documento contiene più tag <Assertion>, viene selezionata la prima
+ * che presenta una firma valida.
  * @param {Document} doc 
- * @returns {Document} 
- * @throws {LollipopAssertionException} 
+ * @returns {Document} Documento contenente l'assertion firmata
+ * @throws {LollipopAssertionException} Se non viene trovata nessuna <Assertion> o assertion firmata
  */
 function extractAssertion(doc) {
     console.log('[extractAssertion] Searching for Assertion in document...');
@@ -80,11 +81,12 @@ function extractAssertion(doc) {
 }
 
 /**
+ * Valida la firma digitale di un'assertion utilizzando i certificati IDP
  * 
  * @param {Document} assertionDoc
- * @param {Array} idpCertDataList
- * @returns {boolean}
- * @throws {LollipopAssertionException}
+ * @param {Array} idpCertDataList - Lista dei certificati dell'Identity Provider.
+ * @returns {boolean} true se la firma è valida, altrimenti false
+ * @throws {LollipopAssertionException} in caso di errori strutturali
  */
 function validateSignature(assertionDoc, idpCertDataList) {
     console.log('[validateSignature] Starting SAML signature validation.');
@@ -172,12 +174,13 @@ function validateSignature(assertionDoc, idpCertDataList) {
 }
 
 /**
- * 
+ * Verifica la firma XML utilizzando un certificato X509 
+ *
  * @param {Element} signatureElement 
  * @param {string} xmlString 
- * @param {string} certificatePEM 
- * @returns {boolean} 
- * @throws {ValidationException} 
+ * @param {string} certificatePEM - Certificato X509 in formato PEM
+ * @returns {boolean} true se la firma è valida
+ * @throws {ValidationException} Se la firma fallisce
  */
 function verifyXmlSignature(signatureElement, xmlString, certificatePEM) {
     try {
@@ -205,6 +208,7 @@ function verifyXmlSignature(signatureElement, xmlString, certificatePEM) {
 }
 
 /**
+ * Converte un certificato X509 da base64 a PEM. Se il certificato è già in formato PEM, viene restituito così com'è
  * 
  * @param {string} certBase64 
  * @returns {string} 
