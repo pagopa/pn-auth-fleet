@@ -45,7 +45,8 @@ const VALIDATION_PARAMS = {
   VALID_SIGNATURE_INPUT:
                 "sig1=(\"content-digest\" \"x-pagopa-lollipop-original-method\""
                     + " \"x-pagopa-lollipop-original-url\");created=1678293988;nonce=\"aNonce\";alg=\"ecdsa-p256-sha256\";keyid=\"sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg\"",
-   VALID_SIGNATURE: "sig1=:lTuoRytp53GuUMOB4Rz1z97Y96gfSeEOm/xVpO39d3HR6lLAy4KYiGq+1hZ7nmRFBt2bASWEpen7ov5O4wU3kQ==:"
+   VALID_SIGNATURE: "sig1=:lTuoRytp53GuUMOB4Rz1z97Y96gfSeEOm/xVpO39d3HR6lLAy4KYiGq+1hZ7nmRFBt2bASWEpen7ov5O4wU3kQ==:",
+   VALID_SIGNATURE_INPUT_RSA:'sig1=("x-pagopa-lollipop-original-method" "x-pagopa-lollipop-original-url");created=1678293988;alg="rsa-v1_5-sha256";keyid="id"'
 };
 
 const PUBLIC_KEY_HEADER = "x-pagopa-lollipop-public-key";
@@ -299,11 +300,12 @@ const DEAFULT_ALG_BY_KTY = {
   RSA: 'RS256',
 };
 
-const VALID_SIGNATURE_INPUT =
-            "sig1=(\"x-pagopa-lollipop-original-method\""
-                + " \"x-pagopa-lollipop-original-url\");created=1678293988;nonce=\"aNonce\";alg=\"ecdsa-p256-sha256\";keyid=\"sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg\"";
-const VALID_SIGNATURE =
-            "sig1=:lTuoRytp53GuUMOB4Rz1z97Y96gfSeEOm/xVpO39d3HR6lLAy4KYiGq+1hZ7nmRFBt2bASWEpen7ov5O4wU3kQ==:";
+
+
+//validare una lista di coppie chiave-valore separate da virgole:
+//Inizia esattamente con sig seguito da uno o più cifre, seguito da '=' seguito da qualsiasi sequenza di caratteri tranne la virgola
+//Separatore tra Coppie: Una virgola opzionale seguita da uno spazio opzionale ((, ?+)?+).
+const SIGNATURE_INPUT_REGEXP = '^(((sig[\\d]+)=[^,]*)(, ?)?)+$';
 
 
 module.exports = {
@@ -320,8 +322,6 @@ module.exports = {
   SIGNATURE_REGEXP,
   lollipopConfig,
   DEAFULT_ALG_BY_KTY,
-  VALID_SIGNATURE_INPUT,
-  VALID_SIGNATURE,
   VALID_ASSERTION_XML,
   VALID_IDP_CERTIFICATE,
   VALID_JWK, NOT_VALID_JWK,

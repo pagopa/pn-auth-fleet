@@ -44,12 +44,6 @@ const MILLISECONDS_PER_DAY = 86400000; //24 * 60 * 60 * 1000;
 
 const BEGIN_CERTIFICATE='-----BEGIN CERTIFICATE-----'
 const END_CERTIFICATE='-----END CERTIFICATE-----'
-// config come LollipopConsumerRequestConfig sdk
-const lollipopConfig = {
-  signatureHeader: "signature",
-  signatureInputHeader: "signature-input",
-  publicKeyHeader: "x-pagopa-lollipop-public-key",
-};
 
 const JWS_ALG_MAP = {
   // EC (Elliptic Curve)
@@ -101,6 +95,144 @@ const ALG_TO_KTY = {
   EdDSA: "OKP"
 };
 
+const WEBCRYPTO_ALG = {
+  // ECDSA
+  ES256: {
+    kty: "EC",
+    import: {
+      name: "ECDSA",
+      namedCurve: "P-256"
+    },
+    verify: {
+      name: "ECDSA",
+      hash: "SHA-256"
+    },
+    needsDerConversion: true,
+    rawLen: 32
+  },
+
+  ES384: {
+    kty: "EC",
+    import: {
+      name: "ECDSA",
+      namedCurve: "P-384"
+    },
+    verify: {
+      name: "ECDSA",
+      hash: "SHA-384"
+    },
+    needsDerConversion: true,
+    rawLen: 48
+  },
+
+  ES512: {
+    kty: "EC",
+    import: {
+      name: "ECDSA",
+      namedCurve: "P-521"
+    },
+    verify: {
+      name: "ECDSA",
+      hash: "SHA-512"
+    },
+    needsDerConversion: true,
+    rawLen: 66
+  },
+  // RSA-PSS
+  PS256: {
+    kty: "RSA",
+    import: {
+      name: "RSA-PSS",
+      hash: "SHA-256"
+    },
+    verify: {
+      name: "RSA-PSS",
+      hash: "SHA-256",
+      saltLength: 32
+    },
+    needsDerConversion: false
+  },
+
+  PS384: {
+    kty: "RSA",
+    import: {
+      name: "RSA-PSS",
+      hash: "SHA-384"
+    },
+    verify: {
+      name: "RSA-PSS",
+      hash: "SHA-384",
+      saltLength: 48
+    },
+    needsDerConversion: false
+  },
+
+  PS512: {
+    kty: "RSA",
+    import: {
+      name: "RSA-PSS",
+      hash: "SHA-512"
+    },
+    verify: {
+      name: "RSA-PSS",
+      hash: "SHA-512",
+      saltLength: 64
+    },
+    needsDerConversion: false
+  },
+  // RSA PKCS#1 v1.5
+  RS256: {
+    kty: "RSA",
+    import: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256"
+    },
+    verify: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256"
+    },
+    needsDerConversion: false
+  },
+
+  RS384: {
+    kty: "RSA",
+    import: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-384"
+    },
+    verify: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-384"
+    },
+    needsDerConversion: false
+  },
+
+  RS512: {
+    kty: "RSA",
+    import: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-512"
+    },
+    verify: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-512"
+    },
+    needsDerConversion: false
+  },
+  // EdDSA (Ed25519)
+  EdDSA: {
+    kty: "OKP",
+    import: {
+      name: "Ed25519"
+    },
+    verify: {
+      name: "Ed25519"
+    },
+    needsDerConversion: false
+  }
+};
+
+
 
 module.exports = {
   DEAFULT_ALG_BY_KTY,
@@ -117,7 +249,7 @@ module.exports = {
   BEGIN_CERTIFICATE,
   END_CERTIFICATE,
   SIGNATURE_REGEXP,
-  lollipopConfig,
   JWS_ALG_MAP,
-  ALG_TO_KTY
+  ALG_TO_KTY,
+  WEBCRYPTO_ALG
 };
