@@ -13,3 +13,4 @@ class CommandResult{
     }
 
 }
+module.exports = CommandResult;
