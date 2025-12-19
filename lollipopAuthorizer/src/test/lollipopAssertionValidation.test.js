@@ -89,7 +89,7 @@ describe('TEST lollipopValidateLollipopAssertion', () => {
         expect(result.familyName).to.equal("Rossi");
     });
 	
-	// TEST 2: VALIDAZIONE PERIODICA FALLITA (ERRORE CRITICO)
+	// TEST 2: VALIDAZIONE PERIODICA FALLITA
     it('TEST 2: dovrebbe lanciare LollipopAssertionException per INVALID_ASSERTION_PERIOD', async () => {
         // Simula il fallimento della validazione del periodo
         mockRequestValidation.validateAssertionPeriod.resolves(false);
@@ -108,7 +108,7 @@ describe('TEST lollipopValidateLollipopAssertion', () => {
     });	
 	
 	
-// TEST 3: VALIDAZIONE FIRMA FALLITA (ERRORE CRITICO)
+// TEST 3: VALIDAZIONE FIRMA FALLITA
     it('TEST 3: dovrebbe lanciare LollipopAssertionException per INVALID_SIGNATURE', async () => {
         // Simula il fallimento della firma
         mockRequestValidation.validateSignatureAssertion.resolves(false);

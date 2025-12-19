@@ -42,8 +42,7 @@ async function validateLollipopAssertion(request) {
 			throw new LollipopAssertionException(VALIDATION_ERROR_CODES.IDP_CERT_DATA_NOT_FOUND, "Some error occurred in retrieving certification data from IDP");
 		}
 
-		//Validazioni asincrone in parallelo
-		// Definiamo un array di funzioni (non ancora eseguite)
+		//Validazioni asincrone in parallelo - array di funzioni (non ancora eseguite)
         const validations = [
             () => validateAssertionPeriod(assertionDoc)
                 .then(isValid => {
@@ -70,7 +69,6 @@ async function validateLollipopAssertion(request) {
         try {
             await Promise.all(validations.map(fn => fn()));
         } catch (error) {
-            // Qui l'eccezione LollipopAssertionException verrà catturata correttamente
             console.error("Validazione fallita - ErrorCode: ", error.errorCode, " - Message: ", error.message);
             throw error; // Rilancia per il chiamante superiore
         }
