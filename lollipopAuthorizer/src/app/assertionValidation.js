@@ -7,7 +7,8 @@ const { DOMParser } = require('xmldom');
 const ErrorRetrievingAssertionException = require('./exception/errorRetrievingAssertionException');
 const OidcAssertionNotSupported = require('./exception/oidcAssertionNotSupported');
 const LollipopAssertionNotFoundException = require('./exception/lollipopAssertionNotFoundException');
-const { getAssertion } = require('./service/assertionService.js');
+const { getAssertion } = require('./service/assertionService');
+const { getIdpCertData } = require('./service/assertionVerifierService');
 const { VALIDATION_ERROR_CODES, ASSERTION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 
 
@@ -27,6 +28,17 @@ async function getAssertionDoc(jwt, assertionRef) {
 
     return buildDocumentFromAssertion(assertion);
 }
+
+async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
+    let isValid;
+    try {
+        isValid = await validateSignature(assertionDoc, idpCertDataList);
+    } catch (e) {
+        console.error('[validateSignatureAssertion] Error: ', e.errorCode, ' - Message: ', e.message);
+        throw new LollipopAssertionException(e);
+    }
+}
+
 
  function validateAssertionPeriod(assertionDoc){
 
@@ -257,7 +269,15 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
     return prefixedThumbprint;
 }
 
-
+    async function getIdpCertDataAssertion(assertionDoc){
+        let idpCertDataList;
+        try {
+            idpCertDataList = await getIdpCertData(assertionDoc);
+        } catch (e) {
+            console.error('[assertionValidation] Error: ', e.errorCode, ' - Message: ', e.message);
+            throw new LollipopAssertionException(e);
+        }
+    }
 
     async function validateFullNameHeader(assertionDoc){
       console.log("Starting validateFullNameHeader...");
@@ -351,8 +371,9 @@ function buildDocumentFromAssertion(assertion) {
   validateUserId,
   validateInResponseTo,
   validateFullNameHeader,
-  validateSignature,
+  validateSignatureAssertion,
   getAssertionDoc,
+  getIdpCertDataAssertion,
   buildDocumentFromAssertion,
   LollipopAssertionException,
   LollipopAssertionNotFoundException,

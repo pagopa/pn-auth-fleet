@@ -152,7 +152,7 @@ function validateSignature(assertionDoc, idpCertDataList) {
                 const isValid = verifyXmlSignature(signatureElement, xmlString, certificatePEM);
                 
                 if (isValid) {
-                    console.log(`[validateSignature] ✅ Signature validated with certificate ${attemptCount}`);
+                    console.log(`[validateSignature] Signature validated with certificate ${attemptCount}`);
                     return true;
                 }
                 
