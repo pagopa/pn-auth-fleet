@@ -45,6 +45,195 @@ const MILLISECONDS_PER_DAY = 86400000; //24 * 60 * 60 * 1000;
 const BEGIN_CERTIFICATE='-----BEGIN CERTIFICATE-----'
 const END_CERTIFICATE='-----END CERTIFICATE-----'
 
+const JWS_ALG_MAP = {
+  // EC (Elliptic Curve)
+  "ecdsa-p256-sha256": "ES256",
+  "ecdsa-p384-sha384": "ES384",
+  "ecdsa-p521-sha512": "ES512",
+
+  // RSA-PSS
+  "rsa-pss-sha256": "PS256",
+  "rsa-pss-sha384": "PS384",
+  "rsa-pss-sha512": "PS512",
+
+  // RSA v1.5
+  "rsa-v1_5-sha256": "RS256",
+  "rsa-v1_5-sha384": "RS384",
+  "rsa-v1_5-sha512": "RS512",
+
+  // HMAC
+  "hmac-sha256": "HS256",
+  "hmac-sha384": "HS384",
+  "hmac-sha512": "HS512",
+
+  // EdDSA
+  "ed25519": "EdDSA",
+  "ed448": "EdDSA"
+};
+
+
+const ALG_TO_KTY = {
+  // EC
+  ES256: "EC",
+  ES384: "EC",
+  ES512: "EC",
+
+  // RSA
+  PS256: "RSA",
+  PS384: "RSA",
+  PS512: "RSA",
+  RS256: "RSA",
+  RS384: "RSA",
+  RS512: "RSA",
+
+  // HMAC (oct)
+  HS256: "oct",
+  HS384: "oct",
+  HS512: "oct",
+
+  // EdDSA (OKP)
+  EdDSA: "OKP"
+};
+
+const WEBCRYPTO_ALG = {
+  // ECDSA
+  ES256: {
+    kty: "EC",
+    import: {
+      name: "ECDSA",
+      namedCurve: "P-256"
+    },
+    verify: {
+      name: "ECDSA",
+      hash: "SHA-256"
+    },
+    needsDerConversion: true,
+    rawLen: 32
+  },
+
+  ES384: {
+    kty: "EC",
+    import: {
+      name: "ECDSA",
+      namedCurve: "P-384"
+    },
+    verify: {
+      name: "ECDSA",
+      hash: "SHA-384"
+    },
+    needsDerConversion: true,
+    rawLen: 48
+  },
+
+  ES512: {
+    kty: "EC",
+    import: {
+      name: "ECDSA",
+      namedCurve: "P-521"
+    },
+    verify: {
+      name: "ECDSA",
+      hash: "SHA-512"
+    },
+    needsDerConversion: true,
+    rawLen: 66
+  },
+  // RSA-PSS
+  PS256: {
+    kty: "RSA",
+    import: {
+      name: "RSA-PSS",
+      hash: "SHA-256"
+    },
+    verify: {
+      name: "RSA-PSS",
+      hash: "SHA-256",
+      saltLength: 32
+    },
+    needsDerConversion: false
+  },
+
+  PS384: {
+    kty: "RSA",
+    import: {
+      name: "RSA-PSS",
+      hash: "SHA-384"
+    },
+    verify: {
+      name: "RSA-PSS",
+      hash: "SHA-384",
+      saltLength: 48
+    },
+    needsDerConversion: false
+  },
+
+  PS512: {
+    kty: "RSA",
+    import: {
+      name: "RSA-PSS",
+      hash: "SHA-512"
+    },
+    verify: {
+      name: "RSA-PSS",
+      hash: "SHA-512",
+      saltLength: 64
+    },
+    needsDerConversion: false
+  },
+  // RSA PKCS#1 v1.5
+  RS256: {
+    kty: "RSA",
+    import: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256"
+    },
+    verify: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256"
+    },
+    needsDerConversion: false
+  },
+
+  RS384: {
+    kty: "RSA",
+    import: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-384"
+    },
+    verify: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-384"
+    },
+    needsDerConversion: false
+  },
+
+  RS512: {
+    kty: "RSA",
+    import: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-512"
+    },
+    verify: {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-512"
+    },
+    needsDerConversion: false
+  },
+  // EdDSA (Ed25519)
+  EdDSA: {
+    kty: "OKP",
+    import: {
+      name: "Ed25519"
+    },
+    verify: {
+      name: "Ed25519"
+    },
+    needsDerConversion: false
+  }
+};
+
+
+
 module.exports = {
   DEAFULT_ALG_BY_KTY,
   USER_ID_REGEX,
@@ -59,4 +248,8 @@ module.exports = {
   MILLISECONDS_PER_DAY,
   BEGIN_CERTIFICATE,
   END_CERTIFICATE,
+  SIGNATURE_REGEXP,
+  JWS_ALG_MAP,
+  ALG_TO_KTY,
+  WEBCRYPTO_ALG
 };
