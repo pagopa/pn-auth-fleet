@@ -1,5 +1,5 @@
 const { validateLollipopRequest } = require("../app/lollipopRequestValidation");
-//const { validateLollipopHttpSignature } = require("../app/lollipopHttpSignatureValidation");
+const { validateLollipopHttpSignature } = require("../app/lollipopHttpSignatureValidation");
 const { validateLollipopAssertion } = require('../app/lollipopAssertionValidation');
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
 const LollipopHttpSignatureValidationException = require('../app/exception/lollipopHttpSignatureValidationException');
@@ -15,14 +15,14 @@ const LollipopAssertionException = require('../app/exception/LollipopAssertionEx
             await validateLollipopRequest(request);
 
             //STEP 2 - Validazione della Http Signature
-/*            commandResult = await validateLollipopHttpSignature(request);
+            commandResult = await validateLollipopHttpSignature(request);
             if(commandResult.resultCode !== "HTTP_MESSAGE_VALIDATION_SUCCESS"){
                 commandResult.statusCode = 402;
                 console.error("Lollipop Request Http Signature Validation failed - statusCode: ", commandResult.statusCode,
                         " - resultCode: ", commandResult.resultCode, " - resultMessage: ", commandResult.resultMessage);
                 return commandResult;
             }
-*/
+
             //STEP 3 - Validazione della assertion della request Lollipop.
             commandResult = await validateLollipopAssertion(request);
 
