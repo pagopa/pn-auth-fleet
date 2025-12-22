@@ -2,7 +2,9 @@ const EC_JWK = {
   kty: "EC",
   crv: "P-256",
   x: "FqFDuwEgu4MUXERPMVL-85pGv2D3YmL4J1gfMkdbc24",
-  y: "hdV0oxmWFSxMoJUDpdihr76rS8VRBEqMFebYyAfK9-k"
+  y: "hdV0oxmWFSxMoJUDpdihr76rS8VRBEqMFebYyAfK9-k",
+  alg: "ES256"
+
 };
 
 const VALID_JWK = {
@@ -43,7 +45,8 @@ const VALIDATION_PARAMS = {
   VALID_SIGNATURE_INPUT:
                 "sig1=(\"content-digest\" \"x-pagopa-lollipop-original-method\""
                     + " \"x-pagopa-lollipop-original-url\");created=1678293988;nonce=\"aNonce\";alg=\"ecdsa-p256-sha256\";keyid=\"sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg\"",
-   VALID_SIGNATURE: "sig1=:lTuoRytp53GuUMOB4Rz1z97Y96gfSeEOm/xVpO39d3HR6lLAy4KYiGq+1hZ7nmRFBt2bASWEpen7ov5O4wU3kQ==:"
+   VALID_SIGNATURE: "sig1=:lTuoRytp53GuUMOB4Rz1z97Y96gfSeEOm/xVpO39d3HR6lLAy4KYiGq+1hZ7nmRFBt2bASWEpen7ov5O4wU3kQ==:",
+   VALID_SIGNATURE_INPUT_RSA:'sig1=("x-pagopa-lollipop-original-method" "x-pagopa-lollipop-original-url");created=1678293988;alg="rsa-v1_5-sha256";keyid="id"'
 };
 
 const PUBLIC_KEY_HEADER = "x-pagopa-lollipop-public-key";
@@ -190,6 +193,23 @@ const VALID_ASSERTION_XML =
                     + "  </saml:Assertion>\n"
                     + "</samlp:Response>";
 
+        const VALID_IDP_CERTIFICATE =
+              "MIIC7TCCAdWgAwIBAgIJAMbxPOoBth1LMA0GCSqGSIb3DQEBCwUAMA0xCzAJBgNV" +
+              "BAYTAklUMB4XDTE4MDkwNDE0MDAxM1oXDTE4MTAwNDE0MDAxM1owDTELMAkGA1UE" +
+              "BhMCSVQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDJrW3y8Zd2jESP" +
+              "XGMRY04cHC4Qfo3302HEY1C6x1aDfW7aR/tXzNplfdw8ZtZugSSmHZBxVrR8aA08" +
+              "dUVbbtUw5qD0uAWKIeREqGfhM+J1STAMSI2/ZxA6t2fLmv8l1eRd1QGeRDm7yF9E" +
+              "EKGY9iUZD3LJf2mWdVBAzzYlG23M769k+9JuGZxuviNWMjojgYRiQFgzypUJJQz+" +
+              "Ihh3q7LMjjiQiiULVb9vnJg7UdU9Wf3xGRkxk6uiGP9SzWigSObUekYYQ4ZAI/sp" +
+              "ILywgDxVMMtv/eVniUFKLABtljn5cE9zltECahPbm7wIuMJpDDu5GYHGdYO0j+K7" +
+              "fhjvF2mzAgMBAAGjUDBOMB0GA1UdDgQWBBQEVmzA/L1/fd70ok+6xtDRF8A3HjAf" +
+              "BgNVHSMEGDAWgBQEVmzA/L1/fd70ok+6xtDRF8A3HjAMBgNVHRMEBTADAQH/MA0G" +
+              "CSqGSIb3DQEBCwUAA4IBAQCRMo4M4PqS0iLTTRWfikMF4hYMapcpmuna6p8aee7C" +
+              "wTjS5y7y18RLvKTi9l8OI0dVkgokH8fq8/o13vMw4feGxro1hMeUilRtH52funrW" +
+              "C+FgPrqk3o/8cZOnq+CqnFFDfILLiEb/PVJMddvTXgv2f9O6u17f8GmMLzde1yvY" +
+              "Da1fG/Pi0fG2F0yw/CmtP8OTLSvxjPtJ+ZckGzZa9GotwHsoVJ+Od21OU2lOeCnO" +
+              "jJOAbewHgqwkCB4O4AT5RM4ThAQtoU8QibjD1XDk/ZbEHdKcofnziDyl0V8gglP2" +
+              "SxpzDaPX0hm4wgHk9BOtSikb72tfOw+pNfeSrZEr6ItQ";
 
         const ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?><saml2p:Response"
@@ -269,6 +289,25 @@ const VALID_ASSERTION_XML =
 
 
 
+const lollipopConfig = {
+  publicKeyHeader: "x-pagopa-lollipop-public-key",
+  signatureHeader: "Signature",
+  signatureInputHeader: "Signature-Input",
+};
+
+const DEAFULT_ALG_BY_KTY = {
+  EC: 'ES256',
+  RSA: 'RS256',
+};
+
+
+
+//validare una lista di coppie chiave-valore separate da virgole:
+//Inizia esattamente con sig seguito da uno o più cifre, seguito da '=' seguito da qualsiasi sequenza di caratteri tranne la virgola
+//Separatore tra Coppie: Una virgola opzionale seguita da uno spazio opzionale ((, ?+)?+).
+const SIGNATURE_INPUT_REGEXP = '^(((sig[\\d]+)=[^,]*)(, ?)?)+$';
+
+
 module.exports = {
   EC_JWK,
   RSA_JWK,
@@ -279,8 +318,12 @@ module.exports = {
   EXPECTED_FIRST_LC_ORIGINAL_METHOD,
   ORIGINAL_URL_REGEX,
   EXPECTED_FIRST_LC_ORIGINAL_URL,
+  SIGNATURE_INPUT_REGEXP,
   SIGNATURE_REGEXP,
+  lollipopConfig,
+  DEAFULT_ALG_BY_KTY,
   VALID_ASSERTION_XML,
+  VALID_IDP_CERTIFICATE,
   VALID_JWK, NOT_VALID_JWK,
   ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG,
   ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM,

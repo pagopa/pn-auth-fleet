@@ -2,14 +2,24 @@ const crypto = require('crypto');
 const { MILLISECONDS_PER_DAY, AssertionRefAlgorithms } = require('../app/constants/lollipopConstants');
 const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig')
 const LollipopAssertionException = require('./exception/lollipopAssertionException');
+const { validateSignature } = require('./signatureValidation');
 const { DOMParser } = require('xmldom');
 const ErrorRetrievingAssertionException = require('./exception/errorRetrievingAssertionException');
 const OidcAssertionNotSupported = require('./exception/oidcAssertionNotSupported');
 const LollipopAssertionNotFoundException = require('./exception/lollipopAssertionNotFoundException');
-const { getAssertion } = require('./service/assertionService.js');
+const { getAssertion } = require('./service/assertionService');
+const { getIdpCertData } = require('./service/assertionVerifierService');
 const { VALIDATION_ERROR_CODES, ASSERTION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
 
-
+/**
+ * Recupera e costruisce il documento dell'asserzione SAML
+ *
+ * @async
+ * @param {string} jwt - JWT utilizzato per il recupero dell’asserzione
+ * @param {string} assertionRef - Riferimento dell’asserzione
+ * @returns {Promise<Document>} Documento XML dell’asserzione SAML
+ * @throws {ErrorRetrievingAssertionException} in caso di errore nel recupero o parsing
+ */
 async function getAssertionDoc(jwt, assertionRef) {
     let assertion;
     try {
@@ -27,6 +37,31 @@ async function getAssertionDoc(jwt, assertionRef) {
     return buildDocumentFromAssertion(assertion);
 }
 
+/**
+ * Valida la firma digitale dell’asserzione SAML
+ *
+ * @async
+ * @param {Document} assertionDoc - Documento XML dell'assertion
+ * @param {Array} idpCertDataList - Lista dei certificati dell’Identity Provider
+ * @throws {LollipopAssertionException} in caso di errore di validazione
+ */
+async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
+    let isValid;
+    try {
+        isValid = await validateSignature(assertionDoc, idpCertDataList);
+    } catch (e) {
+        console.error('[validateSignatureAssertion] Error: ', e.errorCode, ' - Message: ', e.message);
+        throw new LollipopAssertionException(e);
+    }
+}
+
+/**
+ * Valida il periodo di validità dell’assertion (notBefore e notAfter)
+ *
+ * @param {Document} assertionDoc - Documento XML dell'assertion
+ * @returns {boolean} true se l’asserzione è valida temporalmente
+ * @throws {LollipopAssertionException} In caso di errore di parsing o date non valide
+ */
  function validateAssertionPeriod(assertionDoc){
 
     const rootElementName = assertionDoc.documentElement.localName;
@@ -69,6 +104,13 @@ async function getAssertionDoc(jwt, assertionRef) {
     return (isNotBeforeValid && isNotExpired);
  }
 
+ /**
+ * Verifica se un attributo obbligatorio è mancante nel primo elemento di una nodeList
+ *
+ * @param {NodeListOf<Element>} listElements - Lista di elementi da verificare
+ * @param {string} elementName - Nome dell’attributo da verificare
+ * @returns {boolean} true se l’elemento o l’attributo non è presente
+ */
  function isElementNotFound(listElements, elementName) {
      if (!listElements || listElements.length === 0) {
          return true;
@@ -84,6 +126,14 @@ async function getAssertionDoc(jwt, assertionRef) {
      return false;
  }
 
+ /**
+ * Valida il codice fiscale dell’utente confrontando header e assertion
+ *
+ * @param {Object} request - Oggetto request con gli header
+ * @param {Document} assertionDoc - Documento XML dell'assertion
+ * @returns {boolean} true se il codice fiscale coincide
+ * @throws {LollipopAssertionException} se il codice fiscale non è presente
+ */
  function validateUserId(request, assertionDoc) {
     console.log("Starting validating userId fiscal number...")
   const userIdHeader =
@@ -103,6 +153,13 @@ async function getAssertionDoc(jwt, assertionRef) {
   return userIdFromAssertion === userIdHeader;
 }
 
+/**
+ * Estrae il codice fiscale dell’utente dall’assertion
+ *
+ * @param {Document} assertionDoc - Documento XML dell'assertion
+ * @returns {string|null} Codice fiscale se presente, altrimenti null
+ * @throws {LollipopAssertionException} se gli attributi non sono presenti
+ */
 function getUserIdFromAssertion(assertionDoc) {
     console.log("Starting retrieving userId fiscal number from assertion...")
   const listElements = assertionDoc.getElementsByTagNameNS(
@@ -132,7 +189,15 @@ function getUserIdFromAssertion(assertionDoc) {
   return null;
 }
 
-
+/**
+ * Valida il campo InResponseTo confrontandolo con l’header
+ *
+ * @async
+ * @param {Object} request - Oggetto request con header
+ * @param {Document} assertionDoc - Documento XML
+ * @returns {Promise<boolean>} true se InResponseTo è valido
+ * @throws {LollipopAssertionException} In caso di valori mancanti o invalidi
+ */
  async function validateInResponseTo(request, assertionDoc){
 
     console.log("Starting validateInResponseTo...")
@@ -160,6 +225,13 @@ function getUserIdFromAssertion(assertionDoc) {
 }
 
 
+/**
+ * Determina l’algoritmo di hash utilizzato in InResponseTo
+ *
+ * @param {string} inResponseTo - Valore InResponseTo
+ * @returns {string} Algoritmo di hash
+ * @throws {LollipopAssertionException} Se l’algoritmo non è valido
+ */
 function retrieveInResponseToAlgorithm(inResponseTo) {
     if (!inResponseTo || typeof inResponseTo !== 'string') {
         console.error("[validateInResponseTo] InResponseTo value is missing or not a string");
@@ -187,6 +259,15 @@ function retrieveInResponseToAlgorithm(inResponseTo) {
     );
 }
 
+/**
+ * Calcola il thumbprint della chiave pubblica utilizzando la libreria crypto
+ *
+ * @async
+ * @param {string} inResponseToAlgorithm - Algoritmo di hash
+ * @param {string} publicKeyBase64Url - JWK codificata Base64 URL-safe
+ * @returns {Promise<string>} Thumbprint calcolato con prefisso algoritmo
+ * @throws {LollipopAssertionException} Se il tipo di chiave non è supportato
+ */
 async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase64Url) {
 
     //Decodifica la JWK da Base64 URL-safe a JSON stringa
@@ -256,24 +337,45 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
     return prefixedThumbprint;
 }
 
+/**
+ * Recupera i dati del certificato IDP dall'assertion
+ *
+ * @async
+ * @param {Document} assertionDoc - Documento XML
+ * @throws {LollipopAssertionException} In caso di errore nel recupero
+ */
+    async function getIdpCertDataAssertion(assertionDoc){
+        let idpCertDataList;
+        try {
+            idpCertDataList = await getIdpCertData(assertionDoc);
+        } catch (e) {
+            console.error('[assertionValidation] Error: ', e.errorCode, ' - Message: ', e.message);
+            throw new LollipopAssertionException(e);
+        }
+    }
 
-    //Modiifcata la gestione del name e familyName non valorizzati
+/**
+ * Valida e recupera nome e cognome dall’asserzione SAML
+ *
+ * @param {Document} assertionDoc - Documento XML
+ * @returns {{name: string, familyName: string}} Nome completo dell’utente
+ * @throws {LollipopAssertionException} Se nome o cognome sono mancanti
+ */
     async function validateFullNameHeader(assertionDoc){
       console.log("Starting validateFullNameHeader...");
 
       const fullNameHeaderFromAssertion = getFullNameHeaderFromAssertion(assertionDoc);
-      /*if (!fullNameHeaderFromAssertion) {
-        console.warn('[validateFullNameHeader] Missing givenName in the retrieved SAML assertion.');
-        throw new LollipopAssertionException(
-          VALIDATION_ERROR_CODES.MISSING_FULLNAME,
-          'Missing givenName in the retrieved SAML assertion.'
-        );
-      }*/
 
       return fullNameHeaderFromAssertion;
     }
 
-    //Modificata la gestione del result per name e familyName non valorizzata
+/**
+ * Estrae nome e cognome
+ *
+ * @param {Document} assertionDoc - Documento XML
+ * @returns {{name: string, familyName: string}}
+ * @throws {LollipopAssertionException} Se i campi non sono presenti
+ */
     function getFullNameHeaderFromAssertion(assertionDoc) {
 
         console.log("Starting retrieving FullName from assertion...");
@@ -310,16 +412,19 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
             result.name = '';
         }
         if(!("familyName" in result)) {
-            /*throw new LollipopAssertionException(
-                VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND,
-                "Missing or invalid name/surname in the retrieved SAML assertion."
-            );*/
             result.familyName = '';
         }
         return result;
     }
 
 
+/**
+ * Costruisce un documento XML a partire dall’assertion
+ *
+ * @param {Object} assertion - Oggetto contenente l’assertion XML
+ * @returns {Document} Documento XML parsato
+ * @throws {ErrorRetrievingAssertionException} In caso di errore di parsing
+ */
 function buildDocumentFromAssertion(assertion) {
   const xmlString = assertion.assertionData;
 
@@ -354,7 +459,9 @@ function buildDocumentFromAssertion(assertion) {
   validateUserId,
   validateInResponseTo,
   validateFullNameHeader,
+  validateSignatureAssertion,
   getAssertionDoc,
+  getIdpCertDataAssertion,
   buildDocumentFromAssertion,
   LollipopAssertionException,
   LollipopAssertionNotFoundException,
