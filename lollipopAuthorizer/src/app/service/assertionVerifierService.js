@@ -3,6 +3,15 @@ const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRe
 const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
 const idpCertProvider = require('../openapiImpl/idp/idpCertProvider');
 
+/**
+ * Recupera i dati del certificato dell'Identity Provider (IDP)
+ * a partire da un assertionDoc
+ *
+ * @async
+ * @param {Document} assertionDoc - Documento XML SAML già parsato
+ * @returns {Promise<Array>} Lista dei dati del certificato IDP
+ * @throws {ErrorRetrievingIdpCertDataException} Se mancano campi obbligatori o se il recupero dei dati fallisce.
+ */
     async function getIdpCertData(assertionDoc){
         console.log('[assertionVerifierService - getIdpCertData]');
         const rootElement = assertionDoc.documentElement;
@@ -37,6 +46,14 @@ const idpCertProvider = require('../openapiImpl/idp/idpCertProvider');
         }
     }
 
+/**
+ * Verifica se un attributo obbligatorio non è presente
+ * nel primo elemento di una NodeList
+ *
+ * @param {NodeListOf<Element>} listElements - Lista di elementi da verificare
+ * @param {string} elementName - Nome dell'attributo da verificare
+ * @returns {boolean} true se l'elemento o l'attributo è mancante
+ */
     function isElementNotFound(listElements, elementName) {
         if (!listElements || listElements.length === 0) {
             return true;
@@ -52,7 +69,13 @@ const idpCertProvider = require('../openapiImpl/idp/idpCertProvider');
         return false;
     }
 
-
+/**
+ * Estrae l'entityId (Issuer) dai nodi dell'assertion
+ *
+ * @param {NodeList} childNodeList - Lista dei nodi dell'elemento <Assertion>
+ * @param {string} entityIdTag - Nome del tag (localName) che identifica l'issuer
+ * @returns {string|null} entityID se trovato, altrimenti null
+ */
     function getEntityId(childNodeList, entityIdTag) {
         if (!childNodeList) {
             return null;
@@ -70,6 +93,14 @@ const idpCertProvider = require('../openapiImpl/idp/idpCertProvider');
         return null;
     }
 
+/**
+ * Converte una data in un timestamp Unix (in secondi)
+ *
+ * Se la data non è parsabile, viene restituito il valore originale
+ *
+ * @param {string} instant - stringa data/ora ISO (es. 2024-01-01T12:00:00Z)
+ * @returns {string} Timestamp Unix in secondi o valore originale se non parsabile
+ */
     function parseInstantToUnixTimestamp(instant) {
         let unixTimestampSeconds = instant;
         const milliseconds = Date.parse(instant);
@@ -83,7 +114,15 @@ const idpCertProvider = require('../openapiImpl/idp/idpCertProvider');
         return unixTimestampSeconds;
     }
 
-
+/**
+ * Recupera i dati del certificato IDP utilizzando entityId e instant
+ *
+ * @async
+ * @param {string} entityId - Identificativo dell'Identity Provider
+ * @param {string} instant - Timestamp Unix (in secondi) o data originale
+ * @returns {Promise<Array>} Lista dei dati del certificato IDP
+ * @throws {ErrorRetrievingIdpCertDataException} se i dati del certificato non vengono trovati
+ */
     async function retrieveIdpCertData(entityId, instant) {
         let trimmedEntityId = entityId;
         try {
