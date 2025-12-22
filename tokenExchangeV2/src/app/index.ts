@@ -1,4 +1,5 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { RequestEventBody } from "../models/Event";
 import { ValidationException } from "./exception/validationException";
 import { auditLog } from "./utils/AuditLog";
 import { exchangeOneIdentityCode } from "./utils/OneIdentity";
@@ -12,6 +13,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const eventOrigin = event.headers?.origin;
   let oidcCode: string | undefined;
   let redirectUri: string | undefined;
+  let nonce: string | undefined;
   let source;
 
   if (!eventOrigin) {
@@ -38,9 +40,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!event.body) {
       throw new Error("Missing request body");
     }
-    const requestBody = JSON.parse(event.body);
+    const requestBody: RequestEventBody = JSON.parse(event.body);
     oidcCode = requestBody?.code;
     redirectUri = requestBody?.redirect_uri;
+    nonce = requestBody?.nonce;
     source = requestBody?.source;
   } catch (err: any) {
     auditLog({
