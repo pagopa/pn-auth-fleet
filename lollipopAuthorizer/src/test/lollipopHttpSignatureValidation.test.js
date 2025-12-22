@@ -9,6 +9,7 @@ const { VALIDATION_ERROR_CODES, VERIFY_HTTP_ERROR_CODES } = require('../app/cons
 const { EC_JWK, RSA_JWK, PUBLIC_KEY_HEADER, VALIDATION_PARAMS } = require('../test/constants/lollipopConstantsTest');
 const CommandResult = require('../app/model/CommandResult');
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
+const LollipopHttpSignatureValidationException = require('../app/exception/lollipopHttpSignatureValidationException');
 const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
 const { validateLollipopHttpSignature } = require("../app/lollipopHttpSignatureValidation");
 
@@ -36,7 +37,8 @@ describe('validateLollipopHttpSignature - Test Suite', () => {
             '../app/model/CommandResult': CommandResult,
             '../app/config/lollipopConsumerRequestConfig': mockConfig,
             '../app/constants/lollipopErrorsConstants': { VERIFY_HTTP_ERROR_CODES },
-            '../app/exception/lollipopRequestContentValidationException': LollipopRequestContentValidationException
+            '../app/exception/lollipopRequestContentValidationException': LollipopRequestContentValidationException,
+            '../app/exception/lollipopHttpSignatureValidationException': LollipopHttpSignatureValidationException,
         }).validateLollipopHttpSignature;
 
         // richiesta fittizia
@@ -82,7 +84,7 @@ describe('validateLollipopHttpSignature - Test Suite', () => {
     });
 
     // TEST 3: ERRORE GENERICO (Eccezione imprevista)
-    it('TEST 3: dovrebbe lanciare LollipopRequestContentValidationException in caso di errore interno del modulo verify', async () => {
+    it('TEST 3: dovrebbe lanciare LollipopHttpSignatureValidationException in caso di errore interno del modulo verify', async () => {
         const errorMsg = "Crypto internal error";
         verifyHttpSignatureStub.rejects(new Error(errorMsg));
 
@@ -90,23 +92,23 @@ describe('validateLollipopHttpSignature - Test Suite', () => {
             await validateLollipopHttpSignature(mockRequest);
             expect.fail("Il test avrebbe dovuto lanciare un'eccezione");
         } catch (error) {
-            expect(error).to.be.instanceOf(LollipopRequestContentValidationException);
+            expect(error).to.be.instanceOf(LollipopHttpSignatureValidationException);
             expect(error.errorCode).to.equal(VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE);
             expect(error.message).to.equal(errorMsg);
         }
     });
 
     // TEST 4: RILANCIO ECCEZIONE ESISTENTE
-    it('TEST 4: dovrebbe rilanciare correttamente un\'eccezione di tipo LollipopRequestContentValidationException', async () => {
-        const customError = new LollipopRequestContentValidationException('SPECIFIC_ERR', 'Error detail');
+    it('TEST 4: dovrebbe rilanciare correttamente un\'eccezione di tipo LollipopHttpSignatureValidationException', async () => {
+        const customError = new LollipopHttpSignatureValidationException('SPECIFIC_ERR', 'Error detail');
         verifyHttpSignatureStub.rejects(customError);
 
         try {
             await validateLollipopHttpSignature(mockRequest);
             expect.fail("Il test avrebbe dovuto lanciare un'eccezione");
         } catch (error) {
-            expect(error).to.be.instanceOf(LollipopRequestContentValidationException);
-            expect(error.errorCode).to.equal('SPECIFIC_ERR');
+            expect(error).to.be.instanceOf(LollipopHttpSignatureValidationException);
+            expect(error.errorCode).to.equal('INVALID_SIGNATURE');
             expect(error.message).to.equal('Error detail');
         }
     });

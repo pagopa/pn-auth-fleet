@@ -171,7 +171,7 @@ async function verifyHttpSignature(signature, signatureInput, headers) {
     return true;
 
   } catch (err) {
-    console.error("[verifyHttpSignature] Verification ERROR:", err);
+    console.error("[verifyHttpSignature] Verification ERROR:", err.errorCode, " - Message:", err.message);
     if (err instanceof LollipopRequestContentValidationException) throw err;
 
     throw new LollipopRequestContentValidationException(
