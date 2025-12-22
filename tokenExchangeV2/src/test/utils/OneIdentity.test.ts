@@ -1,4 +1,5 @@
 import { exchangeOneIdentityCode } from "../../app/utils/OneIdentity";
+import * as ParameterStore from "../../app/utils/AwsParameters";
 import { oneIdentityTokenMock } from "../__mock__/token.mock";
 
 describe("One Identity tests", () => {
@@ -10,9 +11,15 @@ describe("One Identity tests", () => {
   const mockOneIdentityUrl = "https://uat.oneid.pagopa.it";
 
   let fetchMock: jest.SpyInstance;
+  let getAWSParameterMock: jest.SpyInstance;
 
   beforeEach(() => {
     fetchMock = jest.spyOn(global, "fetch").mockImplementation();
+
+    getAWSParameterMock = jest
+      .spyOn(ParameterStore, "getAWSParameter")
+      .mockResolvedValue(mockSecret);
+
     process.env = {
       ...originalEnv,
       ONE_IDENTITY_CLIENT_ID: mockClientId,
