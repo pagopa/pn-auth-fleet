@@ -1,11 +1,11 @@
 {
-  "Parameters" : {
+  "Parameters": {
     "JwtAuthorizerLambdaEnvironmentCacheTtl": "120",
     "HelpdeskAuthorizerLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentTokenTtl": "3200",
     "TokenExchangeLatencyLimit": "2000",
-    "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it",
+    "ApikeyAuthorizerV2PDNDIssuer": "uat.interop.pagopa.it",
     "ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl": "300",
     "EnhancedWebSecurityEnabled": "true",
     "JWKSRefreshIntervalMinutes": "5",
@@ -16,12 +16,15 @@
     "B2BAuthorizerLambdaMemorySize": "512",
     "IoAuthorizerLambdaMemorySize": "512",
     "IoAuthorizerLambdaTimeoutInSeconds": "5",
-    "JwksCacheForceRefreshLambdaTimeout": "15" ,
-    "PgCustomAttributeResolverCacheMaxUsageEpochSec":"300",
-    "PgCustomAttributeResolverEnableCache":"true",
+    "JwksCacheForceRefreshLambdaTimeout": "15",
+    "PgCustomAttributeResolverCacheMaxUsageEpochSec": "300",
+    "PgCustomAttributeResolverEnableCache": "true",
     "ConsentTypeEnum": "TOS_DEST_B2B",
     "RedisJwtExpHours": "24",
     "PgEnableAccess": "true",
-    "RedisJtisExcludedInvalidationParameter": "/pn-auth-fleet/redisJtisExcludedInvalidation"  
+    "RedisJtisExcludedInvalidationParameter": "/pn-auth-fleet/redisJtisExcludedInvalidation",
+    "OneIdentityClientId": "s8Etz0L2Y0YsbUuH3mni9agV-QFXKMsuA8EThiO2kQQ",
+    "OneIdentitySecretIdName": "oneIdentitySecretName",
+    "OneIdentityBaseURL": "https://uat.oneid.pagopa.it"
   }
 }

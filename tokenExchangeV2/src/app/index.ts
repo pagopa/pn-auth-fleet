@@ -1,17 +1,19 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { RequestEventBody } from "../models/Event";
 import { ValidationException } from "./exception/validationException";
 import { auditLog } from "./utils/AuditLog";
+import { exchangeOneIdentityCode } from "./utils/OneIdentity";
 import { generateKoResponse } from "./utils/Responses";
 import { makeLower } from "./utils/String";
 import { isOriginAllowed } from "./validation/Origin";
-import { jwtValidator } from "./validation/TokenValidation";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
 
   const eventOrigin = event.headers?.origin;
   let oidcCode: string | undefined;
-  let requestUri: string | undefined;
+  let redirectUri: string | undefined;
+  let nonce: string | undefined;
   let source;
 
   if (!eventOrigin) {
@@ -38,9 +40,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!event.body) {
       throw new Error("Missing request body");
     }
-    const requestBody = JSON.parse(event.body);
+    const requestBody: RequestEventBody = JSON.parse(event.body);
     oidcCode = requestBody?.code;
-    requestUri = requestBody?.request_uri;
+    redirectUri = requestBody?.redirect_uri;
+    nonce = requestBody?.nonce;
     source = requestBody?.source;
   } catch (err: any) {
     auditLog({
@@ -51,18 +54,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return generateKoResponse(err, eventOrigin);
   }
 
-  if (!requestUri) {
-    auditLog({
-      message: "One Identity Code not present",
-      aud_orig: eventOrigin,
-      status: "KO",
-    }).warn("error");
+  if (!oidcCode) {
+    // TODO - Deve lanciare un audit log ?
+    // auditLog({
+    //   message: "One Identity Code not present",
+    //   aud_orig: eventOrigin,
+    //   status: "KO",
+    // }).warn("error");
     return generateKoResponse("One Identity Code not present", eventOrigin);
   }
 
+  if (!redirectUri) {
+    return generateKoResponse("Redirect URI not present", eventOrigin);
+  }
+
   try {
-    // const decodedToken = await jwtValidator(encodedToken);
-    // TODO - 1- Chiamare l'API per ottenere il Token POST https://uat.oneid.pagopa.it/oidc/token
+    const oneIdentityToken = exchangeOneIdentityCode(oidcCode, redirectUri);
+
     // TODO - 2 - Validare il token ricevuto (idToken) con JWKS presa da https://uat.oneid.pagopa.it/oidc/keys
     // TODO - 3 - Decodificare idToken e creare il session token (sessionToken)
     // TODO - 4 - Aggiungere le informazioni del source

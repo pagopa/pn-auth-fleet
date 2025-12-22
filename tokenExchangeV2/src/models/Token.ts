@@ -21,4 +21,14 @@ export interface TokenPayload {
   };
 }
 
+export interface OneIdentityToken {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token: string | null;
+  scope: string;
+  id_token: string;
+  id_token_type: string;
+}
+
 // TODO - capire cosa può diventare un type (ruoli ecc)
