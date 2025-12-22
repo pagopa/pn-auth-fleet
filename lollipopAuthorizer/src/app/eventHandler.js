@@ -45,8 +45,8 @@ async function handleEvent(event) {
           const cxId = await getCxId(taxId);
           if (!cxId) {
               // Caso "User Not Found": Il taxId non è censito nel DataVault/DB
-              statusCode = 404;
-              resultCode = "USER_NOT_FOUND";
+              let statusCode = 404;
+              let resultCode = "USER_NOT_FOUND";
               console.error(`[handleEvent] - ending statusCode: ${statusCode} - resultCode: ${resultCode} - User not found for taxId. Denying access.`);
               return defaultDenyAllPolicy;
           }

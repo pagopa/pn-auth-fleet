@@ -71,7 +71,7 @@ const LollipopAssertionException = require('../app/exception/LollipopAssertionEx
             return {
                 statusCode,
                 resultCode: error.errorCode || resultCode,
-                resultMessage: `Validation failed [${error.errorCode || 'GENERIC'}]: ${error.message}`
+                resultMessage: message || error.message
             };
         }
     }
