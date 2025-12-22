@@ -16,7 +16,7 @@ describe("One Identity tests", () => {
     process.env = {
       ...originalEnv,
       ONE_IDENTITY_CLIENT_ID: mockClientId,
-      ONE_IDENTITY_CLIENT_SECRET_NAME: "oneIdentityClientSecretId",
+      ONE_IDENTITY_CLIENT_SECRET_ID: "oneIdentityClientSecretId",
       ONE_IDENTITY_URL: mockOneIdentityUrl,
     };
   });
@@ -66,12 +66,12 @@ describe("One Identity tests", () => {
     ).rejects.toThrow("ONE_IDENTITY_CLIENT_ID is not set");
   });
 
-  it("should throw error when ONE_IDENTITY_CLIENT_SECRET_NAME is not set", async () => {
-    delete process.env.ONE_IDENTITY_CLIENT_SECRET_NAME;
+  it("should throw error when ONE_IDENTITY_CLIENT_SECRET_ID is not set", async () => {
+    delete process.env.ONE_IDENTITY_CLIENT_SECRET_ID;
 
     await expect(
       exchangeOneIdentityCode(mockCode, mockRedirectUri)
-    ).rejects.toThrow("ONE_IDENTITY_CLIENT_SECRET_NAME is not set");
+    ).rejects.toThrow("ONE_IDENTITY_CLIENT_SECRET_ID is not set");
   });
 
   it("should throw error when response is not ok", async () => {

@@ -8,14 +8,14 @@ export const exchangeOneIdentityCode = async (
   redirect_uri: string
 ): Promise<OneIdentityToken> => {
   const oidcClientId = process.env.ONE_IDENTITY_CLIENT_ID;
-  const oidcClientSecret = process.env.ONE_IDENTITY_CLIENT_SECRET_NAME;
+  const oidcClientSecret = process.env.ONE_IDENTITY_CLIENT_SECRET_ID;
 
   if (!oidcClientId) {
     throw new Error("ONE_IDENTITY_CLIENT_ID is not set");
   }
 
   if (!oidcClientSecret) {
-    throw new Error("ONE_IDENTITY_CLIENT_SECRET_NAME is not set");
+    throw new Error("ONE_IDENTITY_CLIENT_SECRET_ID is not set");
   }
 
   const getOidcSecretKey = await getSecretValue(oidcClientSecret);
