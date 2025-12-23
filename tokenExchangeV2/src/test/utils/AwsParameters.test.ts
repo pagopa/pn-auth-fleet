@@ -1,22 +1,16 @@
-import { getAWSParameter } from "../../app/utils/AwsParameters";
+import {
+  getAWSParameterStore,
+  getAWSSecret,
+} from "../../app/utils/AwsParameters";
 import { setupEnv } from "../test.utils";
 
 global.fetch = jest.fn();
 
 describe("getAWSParameter", () => {
-  //   let originalEnv: NodeJS.ProcessEnv;
-
-  //   beforeAll(() => {
-  //     originalEnv = { ...process.env };
-  //   });
-
   beforeEach(() => {
     setupEnv();
     jest.clearAllMocks();
-    // process.env = { ...originalEnv };
   });
-
-  afterEach(() => {});
 
   it("should fetch SSM parameter successfully", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
@@ -24,7 +18,7 @@ describe("getAWSParameter", () => {
       json: async () => ({ Parameter: { Value: "param-value" } }),
     });
 
-    const result = await getAWSParameter("/test/param");
+    const result = await getAWSParameterStore("/test/param");
 
     expect(result).toBe("param-value");
     expect(global.fetch).toHaveBeenCalledWith(
@@ -41,7 +35,7 @@ describe("getAWSParameter", () => {
       json: async () => ({ SecretString: "secret-value" }),
     });
 
-    const result = await getAWSParameter("my-secret", true);
+    const result = await getAWSSecret("my-secret");
 
     expect(result).toBe("secret-value");
     expect(global.fetch).toHaveBeenCalledWith(
@@ -58,7 +52,7 @@ describe("getAWSParameter", () => {
       json: async () => ({ SecretBinary: "c2VjcmV0LWJpbmFyeQ==" }),
     });
 
-    const result = await getAWSParameter("my-secret-binary", true);
+    const result = await getAWSSecret("my-secret-binary");
 
     expect(result).toBe(JSON.stringify("c2VjcmV0LWJpbmFyeQ=="));
     expect(global.fetch).toHaveBeenCalledWith(
@@ -72,7 +66,7 @@ describe("getAWSParameter", () => {
   it("should throw error when AWS_SESSION_TOKEN is missing", async () => {
     delete process.env.AWS_SESSION_TOKEN;
 
-    await expect(getAWSParameter("/test/param")).rejects.toThrow(
+    await expect(getAWSParameterStore("/test/param")).rejects.toThrow(
       "AWS_SESSION_TOKEN is not set"
     );
   });
@@ -84,7 +78,7 @@ describe("getAWSParameter", () => {
       statusText: "Not Found",
     });
 
-    await expect(getAWSParameter("/invalid/param")).rejects.toThrow(
+    await expect(getAWSParameterStore("/invalid/param")).rejects.toThrow(
       'Failed to fetch parameter "/invalid/param": 404 Not Found'
     );
   });
@@ -96,7 +90,7 @@ describe("getAWSParameter", () => {
       statusText: "Not Found",
     });
 
-    await expect(getAWSParameter("/invalid/secret", true)).rejects.toThrow(
+    await expect(getAWSSecret("/invalid/secret")).rejects.toThrow(
       'Failed to fetch secret "/invalid/secret": 404 Not Found'
     );
   });

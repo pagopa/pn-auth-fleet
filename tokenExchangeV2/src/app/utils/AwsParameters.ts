@@ -1,27 +1,44 @@
 import { retryWithDelay } from "./Retry";
 
+const RETRY_DELAY_MS = 1000;
+const MAX_RETRIES = 3;
+
+type ParameterType = "parameter" | "secret";
+
 /**
- * Retrieves an AWS Parameter Store parameter or Secrets Manager secret with retries
+ * Retrieves an AWS Parameter Store parameter with retries
  *
- * @param parameterName - The name of the parameter or secret to fetch
- * @param isSecret - Whether to fetch from Secrets Manager (true) or Parameter Store (false)
+ * @param parameterName - The name of the parameter to fetch
  */
-export async function getAWSParameter(
-  parameterName: string,
-  isSecret = false
+export async function getAWSParameterStore(
+  parameterName: string
 ): Promise<string> {
   return retryWithDelay(
-    () => fetchAwsParameter(parameterName, isSecret),
-    1000,
-    3
+    () => fetchAwsParameter(parameterName, "parameter"),
+    RETRY_DELAY_MS,
+    MAX_RETRIES
+  );
+}
+
+/**
+ * Retrieves an AWS Secrets Manager secret with retries
+ *
+ * @param parameterName - The name of the secret to fetch
+ */
+export async function getAWSSecret(secretName: string): Promise<string> {
+  return retryWithDelay(
+    () => fetchAwsParameter(secretName, "secret"),
+    RETRY_DELAY_MS,
+    MAX_RETRIES
   );
 }
 
 // Fetches a parameter or secret from AWS Parameter Store or Secrets Manager
 const fetchAwsParameter = async (
   name: string,
-  isSecret = false
+  type: ParameterType
 ): Promise<string> => {
+  const isSecret = type === "secret";
   const sessionToken = process.env.AWS_SESSION_TOKEN;
 
   if (!sessionToken) {

@@ -1,5 +1,5 @@
 import { OneIdentityToken } from "../../models/Token";
-import { getAWSParameter } from "./AwsParameters";
+import { getAWSSecret } from "./AwsParameters";
 
 /**
  * Exchanges a OneIdentity authorization code for a OneIdentity token.
@@ -19,7 +19,7 @@ export const exchangeOneIdentityCode = async (
     throw new Error("ONE_IDENTITY_CLIENT_SECRET_ID is not set");
   }
 
-  const getOidcSecretKey = await getAWSParameter(oidcClientSecretId, true);
+  const getOidcSecretKey = await getAWSSecret(oidcClientSecretId);
 
   const credentials = Buffer.from(
     `${oidcClientId}:${getOidcSecretKey}`
