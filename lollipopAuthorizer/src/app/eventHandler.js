@@ -31,10 +31,21 @@ async function handleEvent(event) {
           };
 
           commandResult = await validateLollipopAuthorizer(request);
+          /* ATTENZIONE: IN FASE DI Enforcement, il seguente if DEVE ESSERE RIPRISTINATO e ELIMINATE LE SUCCESSIVE RIGHE
           if(commandResult.statusCode !== 200){
             console.error(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
             return defaultDenyAllPolicy;
+          }*/
+
+       // Start ATTENZIONE: IN FASE DI Enforcement, le seguenti righe DEVONO ESSERE ELIMINATE
+          if(commandResult.statusCode !== 200){
+              console.warn(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
           }
+      } catch (error) {
+          console.warn("Lollipop Authorizer Validation - ErrorCode: ", error.errorCode, " - Message: ", error.message);
+      }
+      try{
+       // End  ATTENZIONE
 
           // Capture taxId from event
           const taxId = event?.headers?.["x-pagopa-cx-taxid"];
@@ -63,7 +74,7 @@ async function handleEvent(event) {
           return iamPolicy;
 
     } catch (error) {
-        console.error("Lollipop Authorizer Validation - Error during authorization flow (get/generate policy): ", error);
+        console.error("Lollipop Authorizer Validation - Error during authorization flow (get/generate policy): ", error.errorCode, " - Message: ", error.message);
         return defaultDenyAllPolicy;
     }
 }
