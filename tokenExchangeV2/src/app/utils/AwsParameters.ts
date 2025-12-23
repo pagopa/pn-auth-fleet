@@ -1,43 +1,51 @@
-export async function retryWithDelay<T>(
-  fn: () => Promise<T>,
-  delay: number,
-  retries: number
-): Promise<T> {
-  try {
-    return await fn();
-  } catch (err) {
-    if (retries > 0) {
-      await new Promise((r) => setTimeout(r, delay));
-      return await retryWithDelay(fn, delay, retries - 1);
-    } else {
-      throw err;
-    }
-  }
-}
+import { retryWithDelay } from "./Retry";
 
-async function innerGetAwsParameter(
-  name: string,
+/**
+ * Retrieves an AWS Parameter Store parameter or Secrets Manager secret with retries
+ *
+ * @param parameterName - The name of the parameter or secret to fetch
+ * @param isSecret - Whether to fetch from Secrets Manager (true) or Parameter Store (false)
+ */
+export async function getAWSParameter(
+  parameterName: string,
   isSecret = false
 ): Promise<string> {
-  const token = process.env.AWS_SESSION_TOKEN;
+  return retryWithDelay(
+    () => fetchAwsParameter(parameterName, isSecret),
+    1000,
+    3
+  );
+}
 
-  if (!token) {
+// Fetches a parameter or secret from AWS Parameter Store or Secrets Manager
+const fetchAwsParameter = async (
+  name: string,
+  isSecret = false
+): Promise<string> => {
+  const sessionToken = process.env.AWS_SESSION_TOKEN;
+
+  if (!sessionToken) {
     throw new Error("AWS_SESSION_TOKEN is not set");
   }
 
-  const urlPart = isSecret
-    ? "secretsmanager/get?secretId="
-    : "systemsmanager/parameters/get?name=";
-  const url = `http://localhost:2773/${urlPart}${encodeURIComponent(name)}`;
+  const endpoint = isSecret
+    ? `secretsmanager/get?secretId=${encodeURIComponent(name)}`
+    : `systemsmanager/parameters/get?name=${encodeURIComponent(name)}`;
+
+  const url = `http://localhost:2773/${endpoint}`;
 
   const response = await fetch(url, {
     headers: {
-      "X-Aws-Parameters-Secrets-Token": token,
+      "X-Aws-Parameters-Secrets-Token": sessionToken,
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch parameter: ${response.statusText}`);
+    throw new Error(
+      `Failed to fetch ${isSecret ? "secret" : "parameter"} "${name}": ${
+        response.status
+      } ${response.statusText}`
+    );
   }
 
   const data = await response.json();
@@ -47,15 +55,4 @@ async function innerGetAwsParameter(
   }
 
   return data.Parameter.Value;
-}
-
-export async function getAWSParameter(
-  parameterName: string,
-  isSecret = false
-): Promise<string> {
-  return await retryWithDelay(
-    () => innerGetAwsParameter(parameterName, isSecret),
-    1000,
-    3
-  );
-}
+};

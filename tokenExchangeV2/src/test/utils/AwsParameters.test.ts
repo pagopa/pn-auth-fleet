@@ -1,43 +1,7 @@
-import { getAWSParameter, retryWithDelay } from "../../app/utils/AwsParameters";
+import { getAWSParameter } from "../../app/utils/AwsParameters";
 import { setupEnv } from "../test.utils";
 
 global.fetch = jest.fn();
-
-describe("retryWithDelay", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("should return result on first success", async () => {
-    const mockFn = jest.fn().mockResolvedValue("success");
-
-    const result = await retryWithDelay(mockFn, 100, 3);
-
-    expect(result).toBe("success");
-    expect(mockFn).toHaveBeenCalledTimes(1);
-  });
-
-  it("should retry on failure and eventually succeed", async () => {
-    const mockFn = jest
-      .fn()
-      .mockRejectedValueOnce(new Error("fail"))
-      .mockResolvedValue("success");
-
-    const result = await retryWithDelay(mockFn, 100, 2);
-
-    expect(result).toBe("success");
-    expect(mockFn).toHaveBeenCalledTimes(2);
-  });
-
-  it("should throw error after all retries exhausted", async () => {
-    const mockFn = jest.fn().mockRejectedValue(new Error("persistent failure"));
-
-    await expect(retryWithDelay(mockFn, 100, 2)).rejects.toThrow(
-      "persistent failure"
-    );
-    expect(mockFn).toHaveBeenCalledTimes(3);
-  });
-});
 
 describe("getAWSParameter", () => {
   //   let originalEnv: NodeJS.ProcessEnv;
@@ -113,14 +77,27 @@ describe("getAWSParameter", () => {
     );
   });
 
-  it("should throw error when fetch fails", async () => {
+  it("should throw error when parameter fetch fails", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
+      status: 404,
       statusText: "Not Found",
     });
 
-    await expect(getAWSParameter("/test/param")).rejects.toThrow(
-      "Failed to fetch parameter: Not Found"
+    await expect(getAWSParameter("/invalid/param")).rejects.toThrow(
+      'Failed to fetch parameter "/invalid/param": 404 Not Found'
+    );
+  });
+
+  it("should throw error when secret fetch fails", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+    });
+
+    await expect(getAWSParameter("/invalid/secret", true)).rejects.toThrow(
+      'Failed to fetch secret "/invalid/secret": 404 Not Found'
     );
   });
 });
