@@ -2,7 +2,7 @@ import { decode } from "jsonwebtoken";
 import { DecodedToken, TokenPayload } from "../../models/Token";
 import { ValidationException } from "../exception/validationException";
 import { copyAndMaskObject } from "../utils/Object";
-import { getParameterFromStore } from "../utils/ParameterStore";
+import { getAWSParameterStore } from "../utils/AwsParameters";
 
 export async function jwtValidator(jwtToken: string): Promise<TokenPayload> {
   console.debug("Start jwtValidator");
@@ -127,7 +127,7 @@ async function isTaxIdValid(taxIdCode?: string): Promise<boolean> {
   }
 
   try {
-    const allowedTaxIdsFromStore = await getParameterFromStore(
+    const allowedTaxIdsFromStore = await getAWSParameterStore(
       allowedTaxIdsParameter
     );
 

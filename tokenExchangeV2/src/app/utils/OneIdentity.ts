@@ -1,4 +1,5 @@
 import { OneIdentityToken } from "../../models/Token";
+import { getAWSSecret } from "./AwsParameters";
 
 /**
  * Exchanges a OneIdentity authorization code for a OneIdentity token.
@@ -8,17 +9,17 @@ export const exchangeOneIdentityCode = async (
   redirect_uri: string
 ): Promise<OneIdentityToken> => {
   const oidcClientId = process.env.ONE_IDENTITY_CLIENT_ID;
-  const oidcClientSecret = process.env.ONE_IDENTITY_CLIENT_SECRET_ID;
+  const oidcClientSecretId = process.env.ONE_IDENTITY_CLIENT_SECRET_ID;
 
   if (!oidcClientId) {
     throw new Error("ONE_IDENTITY_CLIENT_ID is not set");
   }
 
-  if (!oidcClientSecret) {
+  if (!oidcClientSecretId) {
     throw new Error("ONE_IDENTITY_CLIENT_SECRET_ID is not set");
   }
 
-  const getOidcSecretKey = await getSecretValue(oidcClientSecret);
+  const getOidcSecretKey = await getAWSSecret(oidcClientSecretId);
 
   const credentials = Buffer.from(
     `${oidcClientId}:${getOidcSecretKey}`
@@ -53,7 +54,3 @@ export const exchangeOneIdentityCode = async (
 };
 
 // const getOneIdentityKeys = async (): Promise<Jwks> => {}
-
-// TODO - Capire se possiamo usare @aws-sdk/client-secrets-manager e in caso spostiamo la funzione in un file dedicato
-const getSecretValue = async (secretName: string): Promise<string> =>
-  new Promise((resolve) => resolve("test_secret"));

@@ -1,6 +1,11 @@
 import { isOriginAllowed } from "../../app/validation/Origin";
+import { setupEnv } from "../test.utils";
 
 describe("Origin Validation tests", () => {
+  beforeEach(() => {
+    setupEnv();
+  });
+
   it("checks allowed origin", () => {
     const result = isOriginAllowed(
       "https://portale-pa-develop.fe.dev.pn.pagopa.it"

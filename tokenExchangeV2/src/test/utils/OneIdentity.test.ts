@@ -1,29 +1,30 @@
+import * as ParameterStore from "../../app/utils/AwsParameters";
 import { exchangeOneIdentityCode } from "../../app/utils/OneIdentity";
 import { oneIdentityTokenMock } from "../__mock__/token.mock";
+import { setupEnv } from "../test.utils";
 
 describe("One Identity tests", () => {
-  const originalEnv = process.env;
   const mockCode = "test_auth_code_123";
   const mockRedirectUri = "https://example.com/callback";
-  const mockClientId = "test_client_id";
+  const mockClientId = "one-identity-client-id";
   const mockSecret = "test_secret";
   const mockOneIdentityUrl = "https://uat.oneid.pagopa.it";
 
   let fetchMock: jest.SpyInstance;
+  let getAWSParameterMock: jest.SpyInstance;
 
   beforeEach(() => {
+    setupEnv();
+
     fetchMock = jest.spyOn(global, "fetch").mockImplementation();
-    process.env = {
-      ...originalEnv,
-      ONE_IDENTITY_CLIENT_ID: mockClientId,
-      ONE_IDENTITY_CLIENT_SECRET_ID: "oneIdentityClientSecretId",
-      ONE_IDENTITY_URL: mockOneIdentityUrl,
-    };
+
+    getAWSParameterMock = jest
+      .spyOn(ParameterStore, "getAWSSecret")
+      .mockResolvedValue(mockSecret);
   });
 
   afterEach(() => {
     fetchMock.mockRestore();
-    process.env = originalEnv;
   });
 
   it("should successfully exchange One Identity Code", async () => {

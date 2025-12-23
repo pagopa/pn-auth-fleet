@@ -1,13 +1,12 @@
 import { ValidationException } from "../../app/exception/validationException";
 import { generateKoResponse } from "../../app/utils/Responses";
 import { allowedOrigin, makeKoResponse } from "../__mock__/responses.mock";
+import { setupEnv } from "../test.utils";
 
 describe("Responses Tests", () => {
-  //   it("generateOkResponse", () => {
-  //     const result = generateOkResponse(sessionToken, decodedToken, allowedOrigin);
-
-  //     expect(result).to.eql(okResponse);
-  //   });
+  beforeAll(() => {
+    setupEnv();
+  });
 
   it("generateKoResponse - Generic string error", () => {
     const result = generateKoResponse("Some server error", allowedOrigin);
