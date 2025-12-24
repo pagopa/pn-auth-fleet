@@ -4,7 +4,7 @@ import { ValidationException } from "../exception/validationException";
 import { copyAndMaskObject } from "../utils/Object";
 import { getAWSParameterStore } from "../utils/AwsParameters";
 
-export async function jwtValidator(jwtToken: string): Promise<TokenPayload> {
+export async function validateJwt(jwtToken: string): Promise<TokenPayload> {
   console.debug("Start jwtValidator");
 
   const decodedToken = decode(jwtToken, {

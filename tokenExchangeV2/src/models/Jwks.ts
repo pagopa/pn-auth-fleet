@@ -12,5 +12,11 @@ export interface JWK {
 }
 
 export interface JWKS {
-  keys: JWK[];
+  keys: Array<JWK>;
 }
+
+export type CachedJwks = {
+  keys: Array<JWK>;
+  expiresOn: number;
+  lastUpdate: number;
+};

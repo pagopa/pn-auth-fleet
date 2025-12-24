@@ -6,6 +6,7 @@ import { exchangeOneIdentityCode } from "./utils/OneIdentity";
 import { generateKoResponse } from "./utils/Responses";
 import { makeLower } from "./utils/String";
 import { isOriginAllowed } from "./validation/Origin";
+import { validateJwt } from "./validation/TokenValidation";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
@@ -54,24 +55,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return generateKoResponse(err, eventOrigin);
   }
 
-  if (!oidcCode) {
-    // TODO - Deve lanciare un audit log ?
-    // auditLog({
-    //   message: "One Identity Code not present",
-    //   aud_orig: eventOrigin,
-    //   status: "KO",
-    // }).warn("error");
-    return generateKoResponse("One Identity Code not present", eventOrigin);
-  }
-
-  if (!redirectUri) {
-    return generateKoResponse("Redirect URI not present", eventOrigin);
+  if (!oidcCode || !redirectUri || !nonce) {
+    return generateKoResponse(
+      "Missing required parameters in body",
+      eventOrigin
+    );
   }
 
   try {
-    const oneIdentityToken = exchangeOneIdentityCode(oidcCode, redirectUri);
+    const oneIdentityToken = await exchangeOneIdentityCode(
+      oidcCode,
+      redirectUri
+    );
 
-    // TODO - 2 - Validare il token ricevuto (idToken) con JWKS presa da https://uat.oneid.pagopa.it/oidc/keys
+    const decodedToken = await validateJwt(oneIdentityToken.id_token);
+
+    console.log("TMP - Decoded Token:", decodedToken);
+
     // TODO - 3 - Decodificare idToken e creare il session token (sessionToken)
     // TODO - 4 - Aggiungere le informazioni del source
   } catch (err: any) {
