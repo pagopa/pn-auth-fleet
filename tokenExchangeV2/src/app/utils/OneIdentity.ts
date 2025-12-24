@@ -44,7 +44,10 @@ export const exchangeOneIdentityCode = async (
   );
 
   if (!response.ok) {
-    throw new Error(`Error exchanging code: ${response.statusText}`);
+    const errorBody = await response.text();
+    throw new Error(
+      `Error during code exchange with OneIdentity: ${response.statusText} - ${errorBody}`
+    );
   }
 
   console.info("One Identity Code exchanged successfully");
