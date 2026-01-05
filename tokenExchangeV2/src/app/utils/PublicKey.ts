@@ -33,7 +33,7 @@ async function findPublicKeyWithoutCache(keyId: string) {
 
 function getKeyFromJwks(jwks: JWKS, keyId: string) {
   const publicKey = findKey(jwks, keyId);
-  const keyInPemFormat = jwkToPem(publicKey as any); // TODO - Fix this any
+  const keyInPemFormat = jwkToPem(publicKey);
 
   return keyInPemFormat;
 }

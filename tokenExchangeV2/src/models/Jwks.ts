@@ -1,4 +1,4 @@
-export interface JWK {
+/*interface JWK {
   kty: string;
   use?: string;
   kid: string;
@@ -9,14 +9,23 @@ export interface JWK {
   y?: string;
   crv?: string;
   [key: string]: any;
+}*/
+
+import { JWK } from "jwk-to-pem";
+
+type InternalJWK = JWK & {
+  use?: string;
+  kid: string;
+  alg?: string;
+  [key: string]: any;
 }
 
 export interface JWKS {
-  keys: Array<JWK>;
+  keys: Array<InternalJWK>;
 }
 
 export type CachedJwks = {
-  keys: Array<JWK>;
+  keys: Array<InternalJWK>;
   expiresOn: number;
   lastUpdate: number;
 };
