@@ -68,7 +68,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       redirectUri
     );
 
-    const decodedToken = await validateJwt(oneIdentityToken.id_token);
+    const decodedToken = await validateJwt(oneIdentityToken.id_token, nonce);
 
     console.log("TMP - Decoded Token:", decodedToken);
 

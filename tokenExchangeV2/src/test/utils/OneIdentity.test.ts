@@ -1,6 +1,6 @@
 import * as ParameterStore from "../../app/utils/AwsParameters";
 import { exchangeOneIdentityCode } from "../../app/utils/OneIdentity";
-import { oneIdentityTokenMock } from "../__mock__/token.mock";
+import { oneIdentityExchangeCodeResponseMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
 
 describe("One Identity tests", () => {
@@ -34,14 +34,14 @@ describe("One Identity tests", () => {
 
     const mockResponse = {
       ok: true,
-      json: jest.fn().mockResolvedValue(oneIdentityTokenMock),
+      json: jest.fn().mockResolvedValue(oneIdentityExchangeCodeResponseMock),
     };
 
     fetchMock.mockResolvedValue(mockResponse);
 
     const result = await exchangeOneIdentityCode(mockCode, mockRedirectUri);
 
-    expect(result).toEqual(oneIdentityTokenMock);
+    expect(result).toEqual(oneIdentityExchangeCodeResponseMock);
 
     const fetchCall = fetchMock.mock.calls[0];
     const [url, options] = fetchCall;
@@ -84,6 +84,8 @@ describe("One Identity tests", () => {
 
     await expect(
       exchangeOneIdentityCode(mockCode, mockRedirectUri)
-    ).rejects.toThrow("Error exchanging code: Bad Request");
+    ).rejects.toThrow(
+      "Error during code exchange with OneIdentity: Bad Request"
+    );
   });
 });

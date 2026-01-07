@@ -1,27 +1,26 @@
-export interface DecodedToken {
+export interface OIDecodedToken {
   header: {
     alg: string;
     kid: string;
   };
-  payload: TokenPayload;
+  payload: OIDecodedIdToken;
   signature: string;
 }
 
-export interface TokenPayload {
-  iss: string;
+export interface OIDecodedIdToken {
+  sub: string;
   aud: string;
-  email?: string;
-  family_name?: string;
-  fiscal_number?: string;
-  name?: string;
-  organization?: {
-    roles: Array<{
-      role: string;
-    }>;
-  };
+  pairwise: string;
+  familyName: string;
+  iss: string;
+  name: string;
+  exp: number;
+  iat: number;
+  nonce: string;
+  fiscalNumber: string;
 }
 
-export interface OneIdentityToken {
+export interface OIExchangeCodeResponse {
   access_token: string;
   token_type: string;
   expires_in: number;
@@ -31,4 +30,4 @@ export interface OneIdentityToken {
   id_token_type: string;
 }
 
-// TODO - capire cosa può diventare un type (ruoli ecc)
+// Token
