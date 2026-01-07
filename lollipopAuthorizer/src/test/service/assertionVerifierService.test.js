@@ -177,7 +177,7 @@ describe('getIdpCertData ', async () => {
 
         } catch (e) {
             // Verifica che l'errore sia del tipo corretto
-            console.error("ERROR: ",e);
+            console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
             expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
         }
         console.log("---------------------------------------------");
@@ -193,7 +193,7 @@ describe('getIdpCertData ', async () => {
             throw new Error('Expected exception was not thrown.');
         } catch (e) {
             // Verifica che l'errore sia del tipo corretto
-            console.error("ERROR: ",e);
+            console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
             expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
         }
         console.log("---------------------------------------------");
@@ -209,7 +209,7 @@ describe('getIdpCertData ', async () => {
             throw new Error('Expected exception was not thrown.');
         } catch (e) {
             // Verifica che l'errore sia del tipo corretto
-            console.error("ERROR: ",e);
+            console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
             expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
         }
         console.log("---------------------------------------------");
@@ -226,7 +226,7 @@ describe('getIdpCertData ', async () => {
                 throw new Error('Expected exception was not thrown.');
             } catch (e) {
                 // Verifica che l'errore sia del tipo corretto
-                console.error("ERROR: ",e);
+                console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
                 expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
             }
             console.log("---------------------------------------------");
@@ -243,7 +243,7 @@ describe('getIdpCertData ', async () => {
                 throw new Error('Expected exception was not thrown.');
             } catch (e) {
                 // Verifica che l'errore sia del tipo corretto
-                console.error("ERROR: ",e);
+                console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
                 expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
             }
             console.log("---------------------------------------------");
@@ -259,7 +259,7 @@ describe('getIdpCertData ', async () => {
                 throw new Error('Expected exception was not thrown.');
             } catch (e) {
                 // Verifica che l'errore sia del tipo corretto
-                console.error("ERROR: ",e);
+                console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
                 expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
             }
             console.log("---------------------------------------------");
@@ -276,7 +276,7 @@ describe('getIdpCertData ', async () => {
                 expect(result).to.be.a('array');
             } catch (e) {
                 // Verifica che l'errore sia del tipo corretto
-                console.error("ERROR: ",e);
+                console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
                 expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
             }
             console.log("---------------------------------------------");

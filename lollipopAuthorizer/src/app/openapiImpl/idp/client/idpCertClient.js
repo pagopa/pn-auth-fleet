@@ -92,7 +92,7 @@ class IdpCertClient {
        let responseAssertion = await new Promise((resolve, reject) => {
             this.defaultApi.idpKeysCieGet((error, data) => {
                 if (error) {
-                    console.error("Errore nella chiamata idpKeysCieGet: ", error);
+                    console.error("Errore nella chiamata idpKeysCieGet: ", error.errorCode, " - Message:", error.message);
                     reject(error);
                     return;
                 }
@@ -141,7 +141,7 @@ class IdpCertClient {
                 this.defaultApi.idpKeysCieTagGet(tag, (error, data, response) => {
                     if (error) {
                         // Se c'è un errore, rigetta la Promise
-                        console.error("Errore nella chiamata idpKeysCieTagGet:", error);
+                        console.error("Errore nella chiamata idpKeysCieTagGet:", error.errorCode, " - Message:", error.message);
                         reject(error);
                         return;
                     }
@@ -150,7 +150,7 @@ class IdpCertClient {
                 });
             });
         } catch (error) {
-            console.error("Errore nella chiamata idpKeysCieTagGet: ", error);
+            console.error("Errore nella chiamata idpKeysCieTagGet: ", error.errorCode, " - Message:", error.message);
             throw new EntityIdNotFoundException(`Error retrieving certificates tag list: ${error.message}`, error);
         }
 
@@ -213,7 +213,7 @@ class IdpCertClient {
         let responseAssertion = await new Promise((resolve, reject) => {
             this.defaultApi.idpKeysSpidGet((error, data) => {
                 if (error) {
-                    console.error("Errore nella chiamata idpKeysSpidGet: ", error);
+                    console.error("Errore nella chiamata idpKeysSpidGet: ", error.errorCode, " - Message:", error.message);
                     reject(error);
                     return;
                 }
@@ -238,7 +238,7 @@ class IdpCertClient {
                 this.defaultApi.idpKeysSpidTagGet(tag, (error, data, response) => {
                     if (error) {
                         // Se c'è un errore, rigetta la Promise
-                        console.error('Errore nella chiamata idpKeysSpidTagGet: ', error);
+                        console.error('Errore nella chiamata idpKeysSpidTagGet: ', error.errorCode, " - Message:", error.message);
                         reject(error);
                         return;
                     }
@@ -248,7 +248,7 @@ class IdpCertClient {
             });
 
         } catch (error) {
-            console.error('Errore nella chiamata idpKeysSpidTagGet: ', error);
+            console.error('Errore nella chiamata idpKeysSpidTagGet: ', error.errorCode, " - Message:", error.message);
             throw new EntityIdNotFoundException(`Error retrieving certificates tag list: ${error.message}`, error);
         }
 

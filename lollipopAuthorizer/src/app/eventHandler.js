@@ -1,5 +1,6 @@
-const { getCxId } = require("./dataVaultClient.js");
-const { generateIAMPolicy } = require("./iamPolicyGen.js");
+const { validateLollipopAuthorizer } = require('./lollipopAuthorizerValidation');
+const { generateIAMPolicy } = require("./iamPolicyGen");
+const { getCxId } = require("./dataVaultClient");
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -16,28 +17,67 @@ const defaultDenyAllPolicy = {
 };
 
 async function handleEvent(event) {
-  // Declare Policy
-  let iamPolicy = null;
 
-  // Capture taxId from event
-  const taxId = event?.headers?.["x-pagopa-cx-taxid"];
-  if (taxId) {
-    // console.info('taxId', taxId); non si può loggare il codice fiscale, magari mettiamo solo un pezzo!
+    console.log("[handleEvent] Lollipop Authorizer Validation Allowed");
+    let commandResult;
+    let commandResultName ='';
+    let commandResultFamilyName='';
     try {
-      const cxId = await getCxId(taxId);
-      console.info("cxId", cxId);
-      // Generate IAM Policy
-      iamPolicy = await generateIAMPolicy(event.methodArn, cxId);
-      console.log("IAM Policy", JSON.stringify(iamPolicy));
-      return iamPolicy;
-    } catch (err) {
-      console.error("Error generating IAM policy with error ", err);
-      return defaultDenyAllPolicy;
+          const request = {
+            // Mapping degli header ricevuti dall'evento
+            headerParams: {
+                headers: event.headers || {}
+            },
+          };
+
+          commandResult = await validateLollipopAuthorizer(request);
+          /* ATTENZIONE: IN FASE DI Enforcement, il seguente if DEVE ESSERE RIPRISTINATO e ELIMINATE LE SUCCESSIVE RIGHE
+          if(commandResult.statusCode !== 200){
+            console.error(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
+            return defaultDenyAllPolicy;
+          }*/
+
+       // Start ATTENZIONE: IN FASE DI Enforcement, le seguenti righe DEVONO ESSERE ELIMINATE
+          if(commandResult.statusCode !== 200){
+              console.warn(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
+          }
+      } catch (error) {
+          console.warn("Lollipop Authorizer Validation - ErrorCode: ", error.errorCode, " - Message: ", error.message);
+      }
+      try{
+       // End  ATTENZIONE
+
+          // Capture taxId from event
+          const taxId = event?.headers?.["x-pagopa-cx-taxid"];
+          if (!taxId) {
+              console.error("Header 'x-pagopa-cx-taxid' is missing. Denying access.");
+              return defaultDenyAllPolicy;
+          }
+          const cxId = await getCxId(taxId);
+          if (!cxId) {
+              // Caso "User Not Found": Il taxId non è censito nel DataVault/DB
+              let statusCode = 404;
+              let resultCode = "USER_NOT_FOUND";
+              console.error(`[handleEvent] - ending statusCode: ${statusCode} - resultCode: ${resultCode} - User not found for taxId. Denying access.`);
+              return defaultDenyAllPolicy;
+          }
+          console.log(`[handleEvent] User found: ${cxId}`);
+
+          const contextMap = {
+              name: commandResult.name || '',
+              familyName: commandResult.familyName || '',
+              cxId: cxId,
+          };
+          // Generate IAM Policy
+          const iamPolicy = await generateIAMPolicy(event.methodArn, cxId, contextMap);
+          console.debug("IAM Policy ", JSON.stringify(iamPolicy));
+          return iamPolicy;
+
+    } catch (error) {
+        console.error("Lollipop Authorizer Validation - Error during authorization flow (get/generate policy): ", error.errorCode, " - Message: ", error.message);
+        return defaultDenyAllPolicy;
     }
-  } else {
-    console.error("taxId is null");
-    return defaultDenyAllPolicy;
-  }
 }
+
 
 module.exports = { handleEvent };

@@ -194,7 +194,7 @@ function getUserIdFromAssertion(assertionDoc) {
  *
  * @async
  * @param {Object} request - Oggetto request con header
- * @param {Document} assertionDoc - Documento XML 
+ * @param {Document} assertionDoc - Documento XML
  * @returns {Promise<boolean>} true se InResponseTo è valido
  * @throws {LollipopAssertionException} In caso di valori mancanti o invalidi
  */
@@ -228,7 +228,7 @@ function getUserIdFromAssertion(assertionDoc) {
 /**
  * Determina l’algoritmo di hash utilizzato in InResponseTo
  *
- * @param {string} inResponseTo - Valore InResponseTo 
+ * @param {string} inResponseTo - Valore InResponseTo
  * @returns {string} Algoritmo di hash
  * @throws {LollipopAssertionException} Se l’algoritmo non è valido
  */
@@ -341,7 +341,7 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
  * Recupera i dati del certificato IDP dall'assertion
  *
  * @async
- * @param {Document} assertionDoc - Documento XML 
+ * @param {Document} assertionDoc - Documento XML
  * @throws {LollipopAssertionException} In caso di errore nel recupero
  */
     async function getIdpCertDataAssertion(assertionDoc){
@@ -357,7 +357,7 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
 /**
  * Valida e recupera nome e cognome dall’asserzione SAML
  *
- * @param {Document} assertionDoc - Documento XML 
+ * @param {Document} assertionDoc - Documento XML
  * @returns {{name: string, familyName: string}} Nome completo dell’utente
  * @throws {LollipopAssertionException} Se nome o cognome sono mancanti
  */
@@ -366,21 +366,13 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
 
       const fullNameHeaderFromAssertion = getFullNameHeaderFromAssertion(assertionDoc);
 
-      if (!fullNameHeaderFromAssertion) {
-        console.error('[validateFullNameHeader] Missing givenName in the retrieved SAML assertion.');
-        throw new LollipopAssertionException(
-          VALIDATION_ERROR_CODES.MISSING_FULLNAME,
-          'Missing givenName in the retrieved SAML assertion.'
-        );
-      }
-
       return fullNameHeaderFromAssertion;
     }
 
 /**
- * Estrae nome e cognome 
+ * Estrae nome e cognome
  *
- * @param {Document} assertionDoc - Documento XML 
+ * @param {Document} assertionDoc - Documento XML
  * @returns {{name: string, familyName: string}}
  * @throws {LollipopAssertionException} Se i campi non sono presenti
  */
@@ -395,9 +387,10 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
         const extractAttributeValue = (targetAttributeValue, errorCode) => {
             const elements = assertionDoc.getElementsByTagNameNS(samlNamespace, tagCode);
             if (!elements || elements.length === 0) {
-                console.error('[validateFullNameHeader] No elements found in the retrieved saml assertion');
-                throw new LollipopAssertionException(
-                    errorCode, `Missing elements with tag code '${tagCode}' in the retrieved SAML assertion.`);
+                console.warn('[validateFullNameHeader] No elements found in the retrieved saml assertion: ', errorCode);
+                console.warn(`Missing elements with tag code '${tagCode}' in the retrieved SAML assertion.`);
+                //throw new LollipopAssertionException(
+                //    errorCode, `Missing elements with tag code '${tagCode}' in the retrieved SAML assertion.`);
             }
             for (let i = 0; i < elements.length; i++) {
                 const item = elements.item(i);
@@ -415,11 +408,11 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
         extractAttributeValue("name", VALIDATION_ERROR_CODES.NAME_NOT_FOUND);
         extractAttributeValue("familyName", VALIDATION_ERROR_CODES.SURNAME_NOT_FOUND);
 
-        if (!("name" in result) || !("familyName" in result)) {
-            throw new LollipopAssertionException(
-                VALIDATION_ERROR_CODES.NAME_OR_SURNAME_NOT_FOUND,
-                "Missing or invalid name/surname in the retrieved SAML assertion."
-            );
+        if (!("name" in result)){
+            result.name = '';
+        }
+        if(!("familyName" in result)) {
+            result.familyName = '';
         }
         return result;
     }

@@ -193,7 +193,7 @@ async function validateUserIdHeader(userId) {
  * @throws {LollipopRequestContentValidationException} Se è assente o vuoto
  */
 function validateAuthJWTHeader(authJWT) {
-  console.log("Starting validateUserIdHeader...");
+  console.log("Starting validateAuthJWTHeader...");
 
   if (authJWT === null) {
     throw new LollipopRequestContentValidationException(
@@ -207,7 +207,7 @@ function validateAuthJWTHeader(authJWT) {
       "Invalid AuthJWT Header value, cannot be empty"
     );
   }
-  console.log("Ending validateUserIdHeader without error");
+  console.log("Ending validateAuthJWTHeader without error");
 }
 
 /**

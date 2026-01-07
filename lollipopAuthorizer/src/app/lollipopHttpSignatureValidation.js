@@ -3,6 +3,7 @@ const CommandResult = require('../app/model/CommandResult');
 const { lollipopConfig } = require("../app/config/lollipopConsumerRequestConfig");
 const { VERIFY_HTTP_ERROR_CODES } = require("../app/constants/lollipopErrorsConstants");
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
+const LollipopHttpSignatureValidationException = require('../app/exception/lollipopHttpSignatureValidationException');
 
 /**
  * Checks whether the calculated signatures of the required parameter matches with those
@@ -11,7 +12,7 @@ const LollipopRequestContentValidationException = require('../app/exception/loll
  * @async
  * @param {Object} request - Oggetto contenente gli header della richiesta
  * @return {Object} CommandResult
- * @throws {LollipopRequestContentValidationException} Se una delle validazioni fallisce
+ * @throws {LollipopHttpSignatureValidationException} Se una delle validazioni fallisce
  */
 async function validateLollipopHttpSignature(request) {
 
@@ -37,11 +38,11 @@ async function validateLollipopHttpSignature(request) {
     }catch(error){
         console.error("Lollipop Request Http Signature Validation failed: ", error.name, " - Message: ", error.message);
         if (error instanceof LollipopRequestContentValidationException) {
-            throw error;
+            throw new LollipopHttpSignatureValidationException(error);
         }
 
         // Mapping dell'errore generico
-        throw new LollipopRequestContentValidationException(
+        throw new LollipopHttpSignatureValidationException(
             error.code || VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE,
             error.message
         );

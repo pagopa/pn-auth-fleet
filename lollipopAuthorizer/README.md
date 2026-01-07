@@ -1,5 +1,10 @@
 # Lollipop Authorizer
 
+La Lambda agisce come un Custom Authorizer per AWS API Gateway. Il suo scopo è:
+- validare le richieste in entrata secondo lo standard Lollipop, 
+- verificare l'identità dell'utente tramite il taxId, 
+- generare una IAM Policy che permette o nega l'accesso alle risorse API protette.
+
 Modulo Node.js per la **validazione delle richieste** con intestazioni JWK codificate in base64Url, utilizzate nel contesto di autenticazioni di Assertion.
 
 ---
