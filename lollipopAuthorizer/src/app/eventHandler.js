@@ -69,7 +69,7 @@ async function handleEvent(event) {
               cxId: cxId,
           };
           // Generate IAM Policy
-          const iamPolicy = await generateIAMPolicy(event.methodArn, cxId, contextMap);
+          const iamPolicy = await generateIAMPolicy(event.methodArn, contextMap);
           console.debug("IAM Policy ", JSON.stringify(iamPolicy));
           return iamPolicy;
 

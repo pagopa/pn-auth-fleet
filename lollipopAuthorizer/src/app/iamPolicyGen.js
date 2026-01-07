@@ -1,13 +1,13 @@
 const ValidationException = require("./exception/validationException.js");
 
-async function generateIAMPolicy(resourceArn, cxId, contextMap) {
-    if (!cxId || !resourceArn ) {
+async function generateIAMPolicy(resourceArn, contextMap) {
+    if (!contextMap || !resourceArn ) {
         throw new Error('Missing required arguments for policy generation.');
     }
   const policyStatement = generatePolicyStatement(resourceArn, "Allow");
   if (policyStatement) {
     console.debug("Policy statement generated", policyStatement);
-    return generatePolicy("user", cxId, policyStatement, contextMap);
+    return generatePolicy("user", policyStatement, contextMap);
   } else {
     throw new ValidationException("Unable to generate policy statement");
   }
@@ -33,15 +33,19 @@ function generatePolicyStatement(resourceArn, action) {
   }
 }
 
-function generatePolicy(principalId, cxId, policyStatement, contextMap) {
+function generatePolicy(principalId, policyStatement, contextMap) {
   let nome = '';
   let cognome = '';
+  let cxId = '';
   if (contextMap && Object.keys(contextMap).length > 0) {
         if ('name' in contextMap) {
             nome = contextMap.name;
         }
         if ('familyName' in contextMap) {
             cognome = contextMap.familyName;
+        }
+        if ('cxId' in contextMap) {
+            cxId = contextMap.cxId;
         }
   }
   // Generate a fully formed IAM policy
