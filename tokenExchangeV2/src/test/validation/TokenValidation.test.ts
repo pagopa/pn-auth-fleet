@@ -119,6 +119,39 @@ describe("validateJwt", () => {
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
     expect(mockVerify).toHaveBeenCalledWith(validToken, "mock-public-key");
   });
+
+  it("should throw ValidationException when JWT verification fails", async () => {
+    mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
+    mockGetPublicKey.mockResolvedValue("mock-public-key");
+    mockVerify.mockImplementation(() => {
+      throw new Error("Invalid signature");
+    });
+
+    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
+      new ValidationException("Invalid signature")
+    );
+  });
+
+  it("should handle non Error exceptions during JWT verification", async () => {
+    mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
+    mockGetPublicKey.mockResolvedValue("mock-public-key");
+    mockVerify.mockImplementation(() => {
+      throw "String error";
+    });
+
+    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
+      new ValidationException("Unknown error")
+    );
+  });
+
+  it("should return true when parameter store returns empty string", async () => {
+    process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
+    mockGetAWSParameterStore.mockResolvedValue("");
+    mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
+
+    const result = await validateJwt(validToken, tokenNonce);
+    expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
+  });
 });
 
 describe("isIssuerValid", () => {
@@ -179,7 +212,7 @@ describe("isTaxIdValid", () => {
   it("should return true when no ALLOWED_TAXIDS_PARAMETER is set", async () => {
     delete process.env.ALLOWED_TAXIDS_PARAMETER;
 
-    const result = await isTaxIdValid("ANYTAXID");
+    const result = await isTaxIdValid("any-tax-id");
     expect(result).toBe(true);
   });
 
@@ -187,31 +220,73 @@ describe("isTaxIdValid", () => {
     process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
     mockGetAWSParameterStore.mockResolvedValue("*");
 
-    const result = await isTaxIdValid("ANYTAXID");
+    const result = await isTaxIdValid("any-tax-id");
     expect(result).toBe(true);
   });
 
   it("should return true for allowed tax ID", async () => {
     process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
-    mockGetAWSParameterStore.mockResolvedValue("TAXID1,TAXID2,ANYTAXID");
+    mockGetAWSParameterStore.mockResolvedValue("tax-id-1,tax-id-2,any-tax-id");
 
-    const result = await isTaxIdValid("ANYTAXID");
+    const result = await isTaxIdValid("any-tax-id");
     expect(result).toBe(true);
   });
 
   it("should return false for disallowed tax ID", async () => {
     process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
-    mockGetAWSParameterStore.mockResolvedValue("TAXID1,TAXID2");
+    mockGetAWSParameterStore.mockResolvedValue("tax-id-1,tax-id-2");
 
-    const result = await isTaxIdValid("DISALLOWEDTAXID");
+    const result = await isTaxIdValid("dissalowed-tax-id");
     expect(result).toBe(false);
   });
 
   it("should return false for explicitly blocked tax ID", async () => {
     process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
-    mockGetAWSParameterStore.mockResolvedValue("TAXID1,TAXID2,!BLOCKEDTAXID");
+    mockGetAWSParameterStore.mockResolvedValue(
+      "tax-id-1,tax-id-2,!blocked-tax-id"
+    );
 
-    const result = await isTaxIdValid("BLOCKEDTAXID");
+    const result = await isTaxIdValid("blocked-tax-id");
+    expect(result).toBe(false);
+  });
+
+  it("should handle blocked tax ID with wildcard present", async () => {
+    process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
+    mockGetAWSParameterStore.mockResolvedValue("*,!blocked-tax-id");
+
+    const result = await isTaxIdValid("blocked-tax-id");
+    expect(result).toBe(false);
+  });
+
+  it("should allow tax ID when wildcard is present despite explicit block check order", async () => {
+    process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
+    mockGetAWSParameterStore.mockResolvedValue("*,!blocked-tax-id");
+
+    const result = await isTaxIdValid("ALLOWEDTAXID");
+    expect(result).toBe(true);
+  });
+
+  it("should return true when parameter store returns empty string", async () => {
+    process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
+    mockGetAWSParameterStore.mockResolvedValue("");
+
+    const result = await isTaxIdValid("any-tax-id");
+    expect(result).toBe(true);
+  });
+
+  it("should return false when parameter store retrieval fails", async () => {
+    process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
+    mockGetAWSParameterStore.mockRejectedValue(new Error("AWS error"));
+
+    const result = await isTaxIdValid("any-tax-id");
+    expect(result).toBe(false);
+  });
+
+  it("should return false when taxIdCode is undefined and not in wildcard mode", async () => {
+    process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
+    mockGetAWSParameterStore.mockResolvedValue("tax-id-1,tax-id-2");
+
+    const result = await isTaxIdValid(undefined);
     expect(result).toBe(false);
   });
 });
