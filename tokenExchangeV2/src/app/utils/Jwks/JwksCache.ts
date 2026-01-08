@@ -50,7 +50,7 @@ const handleCacheRefreshFail = (error: any, issuer: string) => {
     throw error;
   }
 
-  if (checkLastUpdateTresholdExceeded(issuer)) {
+  if (checkLastUpdateThresholdExceeded(issuer)) {
     console.error(
       `Couldnt refresh cache in last two hours for issuer : ${issuer}, old value will be used`
     );
@@ -61,13 +61,13 @@ const handleCacheRefreshFail = (error: any, issuer: string) => {
   }
 };
 
-const checkLastUpdateTresholdExceeded = (issuer: string) => {
+const checkLastUpdateThresholdExceeded = (issuer: string) => {
   const jwks = cachedJwks.get(issuer);
   if (!jwks) {
     return false;
   }
-  const treshold = jwks.lastUpdate + TWO_HOURS_IN_MILLISECONDS;
-  return jwks.lastUpdate > treshold;
+  const threshold = jwks.lastUpdate + TWO_HOURS_IN_MILLISECONDS;
+  return Date.now() > threshold;
 };
 
 export const clearCache = () => cachedJwks.clear();

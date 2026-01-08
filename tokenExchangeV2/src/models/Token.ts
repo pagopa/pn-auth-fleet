@@ -29,5 +29,3 @@ export interface OIExchangeCodeResponse {
   id_token: string;
   id_token_type: string;
 }
-
-// Token

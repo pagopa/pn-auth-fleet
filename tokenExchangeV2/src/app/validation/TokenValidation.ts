@@ -7,17 +7,17 @@ import { getPublicKey } from "../utils/PublicKey";
 
 /**
  * Validate a JWT token from OneIdentity
- * @param oneIdentityJwt - JWT token from OneIdentity
+ * @param oneIdentityIdToken - JWT token from OneIdentity (id_token)
  * @param nonce - Nonce to validate against the token payload
  * @returns The payload of the decoded token if valid
  */
 export async function validateJwt(
-  oneIdentityJwt: string,
+  oneIdentityIdToken: string,
   nonce: string
 ): Promise<OIDecodedIdToken> {
   console.debug("Start JWT Validation");
 
-  const decodedToken = decode(oneIdentityJwt, {
+  const decodedToken = decode(oneIdentityIdToken, {
     complete: true,
   }) as OIDecodedToken | null;
 
@@ -84,10 +84,10 @@ export async function validateJwt(
   console.debug("kid from header", kid);
   try {
     const keyInPemFormat = await getPublicKey(issuer, kid);
-    verify(oneIdentityJwt, keyInPemFormat);
+    verify(oneIdentityIdToken, keyInPemFormat);
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "Unknown error";
     console.warn("JWT Validation error ", err);
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
     throw new ValidationException(errorMessage);
   }
 
