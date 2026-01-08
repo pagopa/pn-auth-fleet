@@ -23,6 +23,9 @@
     "RedisJwtExpHours": "24",
     "PgEnableAccess": "true",
     "RedisJtisExcludedInvalidationParameter": "/pn-auth-fleet/redisJtisExcludedInvalidation",
+    "TokenExchangeOidcLambdaEnvironmentAllowedIssuer": "https://uat.oneid.pagopa.it",
+    "TokenExchangeOidcLambdaEnvironmentAllowedOrigin": "https://cittadini.dev.notifichedigitali.it",
+    "TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter": "/pn-auth-fleet/allowedLoginTaxids",
     "OneIdentityClientId": "s8Etz0L2Y0YsbUuH3mni9agV-QFXKMsuA8EThiO2kQQ",
     "OneIdentitySecretIdName": "oneIdentitySecretName",
     "OneIdentityBaseURL": "https://uat.oneid.pagopa.it"

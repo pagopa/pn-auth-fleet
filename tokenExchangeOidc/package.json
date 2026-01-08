@@ -1,5 +1,5 @@
 {
-  "name": "token-exchange-v2",
+  "name": "token-exchange-oidc",
   "version": "1.0.0",
   "description": "Lambda function to handle token exchange with One Identity provider.",
   "private": true,
