@@ -199,6 +199,69 @@ Parameters:
   PnRaddBaseliningLambdaName:
     Type: String
 
+  # - Token Exchange OIDC Parameters
+  TokenExchangeOidcLambdaName:
+    Type: String
+    Description: 'Name for TokenExchangeOidc Lambda function'
+
+  # TokenExchangeOidcLambdaEnvironmentCacheTtl:
+  #   Type: String
+  #   Description: Cryptography keys cache entry duration in seconds TODO/TBD
+
+  # TokenExchangeOidcLambdaEnvironmentTokenTtl:
+  #   Type: String
+  #   Description: Session token duration TODO/TBD
+
+  # TokenExchangeOidcLambdaEnvironmentIssuer:
+  #   Type: String
+  #   Description: Session token issuer TODO/TBD
+
+  TokenExchangeOidcLambdaEnvironmentAllowedIssuer:
+    Type: String
+    Description: "Comma separated list of external authentication token issuers"
+
+  TokenExchangeOidcLambdaEnvironmentAllowedOrigin:
+    Type: String
+    Description: 'Comma separated list of websites allowed to use SEND back-ends API'
+
+  TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter:
+    Type: String
+    Description: "Parameter of allowed login Tax Ids"
+    Default: "/pn-auth-fleet/allowedLoginTaxids"
+
+  # TokenExchangeOidcLambdaEnvironmentJwksMapping:
+  #   Type: String
+  #   Description: "Mapping tra issuer e jwks url non standard in formato json (NOT USED?)"
+
+  TokenExchangeOidcLambdaEnvironmentAcceptedAudience:
+    Type: String
+    Description: Comma separated list of token audience accepted
+
+  # TokenExchangeOidcLambdaEnvironmentAudience:
+  #   Type: String
+  #   Description: Audience value for token generation  TODO/TBD
+
+  OneIdentityClientId:
+    Type: String
+    Description: 'OneIdentity OAuth2 Client ID'
+
+  OneIdentitySecretIdName:
+    Type: String
+    Description: 'Name of secret in Secrets Manager containing OneIdentity client secret'
+
+  OneIdentityBaseURL:
+    Type: String
+    Description: 'Base URL for OneIdentity API (e.g., https://uat.oneid.pagopa.it)'
+
+  TokenExchangeOidcLatencyLimit:
+    Type: Number
+    Default: 2000
+    Description: Default latency limit for token exchange oidc api
+
+  TokenExchangeOidcWafLimit:
+    Type: Number
+    Default: 600000
+
   TokenExchangeWafLimit:
     Type: Number
     Default: "600000"
@@ -1288,6 +1351,116 @@ Resources:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
       Parameters:
         FunctionName: !Ref TokenExchangeLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###           TOKEN EXCHANGE OIDC LAMBDA                ###
+  ###########################################################
+
+  TokenExchangeOidcLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-token-exchange-oidc-SecGrp
+      VpcId: !Ref VpcId
+
+  # Lambda function
+  TokenExchangeOidcLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref TokenExchangeOidcLambdaName
+      Runtime: nodejs22.x
+      Handler: "index.handler"
+      MemorySize: 256
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/tokenExchangeOidc.zip"
+      Environment:
+        Variables:
+          # Variables actively used in code
+          ALLOWED_ISSUER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedIssuer
+          ALLOWED_ORIGIN: !Ref TokenExchangeOidcLambdaEnvironmentAllowedOrigin
+          ALLOWED_TAXIDS_PARAMETER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter
+          ACCEPTED_AUDIENCE: !Ref TokenExchangeOidcLambdaEnvironmentAcceptedAudience
+          # OneIdentity specific variables (used)
+          ONE_IDENTITY_CLIENT_ID: !Ref OneIdentityClientId
+          ONE_IDENTITY_CLIENT_SECRET_ID: !Ref OneIdentitySecretIdName
+          ONE_IDENTITY_BASEURL: !Ref OneIdentityBaseURL
+          KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
+          # Variables for future use (TODO in code - session token generation)
+          # TOKEN_TTL: !Ref TokenExchangeOidcLambdaEnvironmentTokenTtl
+          # ISSUER: !Ref TokenExchangeOidcLambdaEnvironmentIssuer
+          # AUDIENCE: !Ref TokenExchangeOidcLambdaEnvironmentAudience
+          # SSM_PARAMETER_STORE_TIMEOUT_MILLIS: 5000
+          # PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
+          # Not used (code commented)
+          # CACHE_TTL: !Ref TokenExchangeOidcLambdaEnvironmentCacheTtl
+          # JWKS_MAPPING: !Ref TokenExchangeOidcLambdaEnvironmentJwksMapping
+      Role: !GetAtt TokenExchangeOidcLambdaRole.Arn
+      Timeout: 10
+      TracingConfig:
+        Mode: Active
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref TokenExchangeOidcLambdaSecurityGroup
+        SubnetIds: !Ref VpcEgressSubnetsIds
+      Layers:
+        - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
+
+  # Lambda function role
+  TokenExchangeOidcLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-tokenExchangeOidcLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  # Lambda function IAM policy
+  TokenExchangeOidcLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-tokenExchangeOidcLambdaPolicy
+      Roles:
+        - !Ref TokenExchangeOidcLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "kms:Sign"
+              - "kms:DescribeKey"
+            Resource: "*"
+          - Sid: AllowLambdaToCreateLogs
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${TokenExchangeOidcLambdaName}:*
+          - Sid: AllowLambdaToReadParameterStore
+            Action:
+              - ssm:GetParameter
+            Effect: Allow
+            Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/pn-auth-fleet/allowedLoginTaxids"
+          - Sid: AllowLambdaToReadSecretsManager
+            Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${OneIdentitySecretIdName}*"
+
+  TokenExchangeOidcLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref TokenExchangeOidcLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   ###          JWKS CACHE FORCE REFRESH LAMBDA          ###
