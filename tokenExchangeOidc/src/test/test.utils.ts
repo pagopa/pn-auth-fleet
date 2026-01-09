@@ -1,0 +1,23 @@
+// Mock the environment variables
+export function setupEnv() {
+  process.env = {
+    KEY_ALIAS: "SessionKey",
+    CACHE_TTL: "3600",
+    TOKEN_TTL: "7200",
+    ISSUER: "pn-develop.pn.pagopa.it",
+    ALLOWED_ISSUER:
+      "https://spid-hub-test.dev.pn.pagopa.it,api.selfcare.pagopa.it",
+    ALLOWED_ORIGIN:
+      "https://portale-pa-develop.fe.dev.pn.pagopa.it,https://portale-pf-develop.fe.dev.pn.pagopa.it",
+    ALLOWED_ROLES: "admin,operator",
+    ALLOWED_TAXIDS_PARAMETER: "fake-path/fake-param",
+    ACCEPTED_AUDIENCE:
+      "portale-pa-develop.fe.dev.pn.pagopa.it,portale-pf-develop.fe.dev.pn.pagopa.it",
+    AUDIENCE: "webapi.dev.pn.pagopa.it",
+    _X_AMZN_TRACE_ID: "my_trace_id",
+    ONE_IDENTITY_CLIENT_ID: "one-identity-client-id",
+    ONE_IDENTITY_CLIENT_SECRET_ID: "one-identity-client-secret-id",
+    ONE_IDENTITY_BASEURL: "https://uat.oneid.pagopa.it",
+    AWS_SESSION_TOKEN: "fake-session-token",
+  };
+}
