@@ -1,4 +1,4 @@
-# Token Exchange V2
+# Token Exchange One Identity
 
 Questa lambda si occupa di eseguire la token exchange andando a scambiare il codice OIDC ricevuto da One Identity con un token JWT che permette l'accesso alle piattaforme frontend di SEND.
 
