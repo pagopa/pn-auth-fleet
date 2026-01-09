@@ -1,27 +1,36 @@
-import { decode } from "jsonwebtoken";
-import { DecodedToken, TokenPayload } from "../../models/Token";
+import { decode, verify } from "jsonwebtoken";
+import { OIDecodedIdToken, OIDecodedToken } from "../../models/Token";
 import { ValidationException } from "../exception/validationException";
-import { copyAndMaskObject } from "../utils/Object";
 import { getAWSParameterStore } from "../utils/AwsParameters";
+import { copyAndMaskObject } from "../utils/Object";
+import { getPublicKey } from "../utils/PublicKey";
 
-export async function jwtValidator(jwtToken: string): Promise<TokenPayload> {
-  console.debug("Start jwtValidator");
+/**
+ * Validate a JWT token from OneIdentity
+ * @param oneIdentityIdToken - JWT token from OneIdentity (id_token)
+ * @param nonce - Nonce to validate against the token payload
+ * @returns The payload of the decoded token if valid
+ */
+export async function validateOneIdentityIdToken(
+  oneIdentityIdToken: string,
+  nonce: string
+): Promise<OIDecodedIdToken> {
+  console.debug("Start JWT Validation");
 
-  const decodedToken = decode(jwtToken, {
+  const decodedToken = decode(oneIdentityIdToken, {
     complete: true,
-  }) as DecodedToken | null;
+  }) as OIDecodedToken | null;
 
   if (!decodedToken) {
-    console.warn("decoded token is null, token is not valid");
+    console.warn("Decoded token is null, token is not valid");
     throw new ValidationException("Token is not valid");
   }
 
   // Log masked token for security
-  const sensitiveFields: (keyof TokenPayload)[] = [
-    "email",
-    "family_name",
-    "fiscal_number",
+  const sensitiveFields: (keyof OIDecodedIdToken)[] = [
+    "familyName",
     "name",
+    "fiscalNumber",
   ];
 
   const decodedTokenMaskedPayload = copyAndMaskObject(
@@ -37,16 +46,9 @@ export async function jwtValidator(jwtToken: string): Promise<TokenPayload> {
 
   const { payload, header } = decodedToken;
 
-  const {
-    iss: issuer,
-    aud,
-    fiscal_number: fiscalNumber,
-    organization,
-  } = payload;
+  const { iss: issuer, aud: audience, fiscalNumber } = payload;
 
   const { alg, kid } = header;
-
-  const role = organization?.roles[0]?.role.replace(/pg-/, "");
 
   // Validate algorithm
   if (alg !== "RS256") {
@@ -55,8 +57,8 @@ export async function jwtValidator(jwtToken: string): Promise<TokenPayload> {
   }
 
   // Validate audience
-  if (!isAudienceValid(aud)) {
-    console.warn("Audience=%s not known", aud);
+  if (!isAudienceValid(audience)) {
+    console.warn("Audience=%s not known", audience);
     throw new ValidationException("Invalid Audience");
   }
 
@@ -66,10 +68,10 @@ export async function jwtValidator(jwtToken: string): Promise<TokenPayload> {
     throw new ValidationException("Issuer not known");
   }
 
-  // Validate role (only if organization is defined)
-  if (organization !== undefined && !isRoleValid(role)) {
-    console.warn("Role=%s not allowed", role);
-    throw new ValidationException("Role not allowed");
+  // Validate nonce
+  if (payload.nonce !== nonce) {
+    console.warn("Invalid nonce=%s", payload.nonce);
+    throw new ValidationException("Invalid nonce");
   }
 
   // Validate tax ID
@@ -79,22 +81,25 @@ export async function jwtValidator(jwtToken: string): Promise<TokenPayload> {
   }
 
   // Verify JWT signature
-  // console.debug("kid from header", kid);
-  // try {
-  //   const keyInPemFormat = await getPublicKey(issuer, kid);
-  //   verify(jwtToken, keyInPemFormat);
-  // } catch (err) {
-  //   const errorMessage = err instanceof Error ? err.message : "Unknown error";
-  //   console.warn("Validation error ", err);
-  //   throw new ValidationException(errorMessage);
-  // }
+  console.debug("kid from header", kid);
+  try {
+    const keyInPemFormat = await getPublicKey(issuer, kid);
+    verify(oneIdentityIdToken, keyInPemFormat);
+  } catch (err) {
+    console.warn("JWT Validation error ", err);
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    throw new ValidationException(errorMessage);
+  }
 
-  console.debug("success!");
-  console.debug("payload", decodedTokenMaskedPayload);
+  console.debug("JWT validated successfully", decodedTokenMaskedPayload);
   return payload;
 }
 
-function isIssuerValid(iss: string): boolean {
+/**
+ * Check if the issuer is in the allowed list
+ * @param iss - Issuer from the token
+ */
+export function isIssuerValid(iss: string): boolean {
   const allowedIssuersEnv = process.env.ALLOWED_ISSUER;
 
   if (!allowedIssuersEnv) {
@@ -106,7 +111,11 @@ function isIssuerValid(iss: string): boolean {
   return allowedIssuers.length > 0 && allowedIssuers.includes(iss);
 }
 
-function isAudienceValid(aud: string): boolean {
+/**
+ * Check if the audience is in the allowed list
+ * @param aud - Audience from the token
+ */
+export function isAudienceValid(aud: string): boolean {
   const allowedAudiencesEnv = process.env.ACCEPTED_AUDIENCE;
 
   if (!allowedAudiencesEnv) {
@@ -118,7 +127,12 @@ function isAudienceValid(aud: string): boolean {
   return allowedAudiences.length > 0 && allowedAudiences.includes(aud);
 }
 
-async function isTaxIdValid(taxIdCode?: string): Promise<boolean> {
+/**
+ * Check if the tax ID is allowed based on parameter store configuration.
+ * If no configuration is set or is *, all tax IDs are allowed.
+ * @param taxIdCode - Tax ID from the token
+ */
+export async function isTaxIdValid(taxIdCode?: string): Promise<boolean> {
   const allowedTaxIdsParameter = process.env.ALLOWED_TAXIDS_PARAMETER;
 
   // If no parameter is set, all tax IDs are allowed
@@ -153,10 +167,4 @@ async function isTaxIdValid(taxIdCode?: string): Promise<boolean> {
     console.log("Error retrieving allowed tax IDs from parameter store", e);
     return false;
   }
-}
-
-function isRoleValid(role?: string): boolean {
-  const allowedRoles = ["admin", "operator"];
-
-  return !!role && allowedRoles.includes(role);
 }

@@ -6,6 +6,11 @@ import { setupEnv } from "../test.utils";
 
 global.fetch = jest.fn();
 
+// Mock retryWithDelay to call the function immediately without delay
+jest.mock("../../app/utils/Retry.ts", () => ({
+  retryWithDelay: jest.fn((fn) => fn()),
+}));
+
 describe("getAWSParameter", () => {
   beforeEach(() => {
     setupEnv();

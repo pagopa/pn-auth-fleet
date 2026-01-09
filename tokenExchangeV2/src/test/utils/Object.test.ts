@@ -1,31 +1,21 @@
 import { copyAndMaskObject } from "../../app/utils/Object";
-import { TokenPayload } from "../../models/Token";
+import { oneIdentityIdTokenMock } from "../__mock__/token.mock";
 
 describe("Object utils Tests", () => {
   describe("copyAndMaskObject", () => {
-    const objectToMask: TokenPayload = {
-      email: "mario.rossi@fakemail.it",
-      family_name: "Rossi",
-      fiscal_number: "FRMTTR76M06B715E",
-      name: "Mario",
-      iss: "fake-issuer",
-      aud: "fake-audience",
-    };
-
     it("checks mask object", () => {
-      const sensitiveFields: (keyof typeof objectToMask)[] = [
-        "email",
-        "family_name",
-        "fiscal_number",
+      const sensitiveFields: (keyof typeof oneIdentityIdTokenMock)[] = [
+        "familyName",
+        "fiscalNumber",
         "name",
       ];
-      const result = copyAndMaskObject(objectToMask, sensitiveFields);
-      expect(result.email).toEqual("ma*******************it");
-      expect(result.fiscal_number).toEqual("FR************5E");
-      expect(result.family_name).toEqual("*****");
+      const result = copyAndMaskObject(oneIdentityIdTokenMock, sensitiveFields);
+
+      expect(result.fiscalNumber).toEqual("RR************2Y");
+      expect(result.familyName).toEqual("*****");
       expect(result.name).toEqual("*****");
-      expect(result.iss).toEqual("fake-issuer");
-      expect(result.aud).toEqual("fake-audience");
+      expect(result.iss).toEqual("https://spid-hub-test.dev.pn.pagopa.it");
+      expect(result.aud).toEqual("portale-pf-develop.fe.dev.pn.pagopa.it");
     });
 
     it("should not mask non-string fields", () => {

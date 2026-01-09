@@ -1,4 +1,4 @@
-import { OneIdentityToken } from "../../models/Token";
+import { OIExchangeCodeResponse } from "../../models/Token";
 import { getAWSSecret } from "./AwsParameters";
 
 /**
@@ -7,7 +7,7 @@ import { getAWSSecret } from "./AwsParameters";
 export const exchangeOneIdentityCode = async (
   code: string,
   redirect_uri: string
-): Promise<OneIdentityToken> => {
+): Promise<OIExchangeCodeResponse> => {
   const oidcClientId = process.env.ONE_IDENTITY_CLIENT_ID;
   const oidcClientSecretId = process.env.ONE_IDENTITY_CLIENT_SECRET_ID;
 
@@ -44,13 +44,13 @@ export const exchangeOneIdentityCode = async (
   );
 
   if (!response.ok) {
-    throw new Error(`Error exchanging code: ${response.statusText}`);
+    throw new Error(
+      `Error during code exchange with OneIdentity: ${response.statusText}`
+    );
   }
 
   console.info("One Identity Code exchanged successfully");
 
-  const data: OneIdentityToken = await response.json();
+  const data: OIExchangeCodeResponse = await response.json();
   return data;
 };
-
-// const getOneIdentityKeys = async (): Promise<Jwks> => {}
