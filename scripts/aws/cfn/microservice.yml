@@ -262,6 +262,14 @@ Parameters:
     Type: Number
     Default: 600000
 
+  EnableTokenExchangeOidcApi:
+    Type: String
+    Default: false
+    Description: Enable API Gateway for TokenExchangeOidc (feature flag for gradual rollout)
+    AllowedValues:
+      - true
+      - false
+
   TokenExchangeWafLimit:
     Type: Number
     Default: "600000"
@@ -584,6 +592,7 @@ Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
   HasToRefreshJWKSCache: !Not [!Equals [!Ref JWKSRefreshIntervalMinutes, 0]]
+  EnableOidcApi: !Equals ["true", !Ref EnableTokenExchangeOidcApi]
 
 Resources:
   ###             API KEY AUTHORIZERV2 LAMBDA             ###
@@ -1470,6 +1479,7 @@ Resources:
   # API definition
   TokenExchangeOidcRestApi:
     Type: AWS::ApiGateway::RestApi
+    Condition: EnableOidcApi
     Properties:
       Name: !Sub "${ProjectName}-token-exchange-oidc-api"
       FailOnWarnings: true
@@ -1481,6 +1491,7 @@ Resources:
   # Deployment
   TokenExchangeOidcRestApiDeployment:
     Type: AWS::ApiGateway::Deployment
+    Condition: EnableOidcApi
     DependsOn:
       - TokenExchangeOidcPostMethod
       - TokenExchangeOidcOptionsMethod
@@ -1490,6 +1501,7 @@ Resources:
   # Stage
   TokenExchangeOidcRestApiStage:
     Type: AWS::ApiGateway::Stage
+    Condition: EnableOidcApi
     Properties:
       RestApiId: !Ref TokenExchangeOidcRestApi
       StageName: unique
@@ -1508,12 +1520,14 @@ Resources:
   # Log Group
   TokenExchangeOidcApiLogGroup:
     Type: AWS::Logs::LogGroup
+    Condition: EnableOidcApi
     Properties:
       RetentionInDays: !Ref LogRetention
 
   # Expose API to custom domain
   TokenExchangeOidcAPIMapping:
     Type: AWS::ApiGateway::BasePathMapping
+    Condition: EnableOidcApi
     Properties:
       BasePath: "token-exchange-oidc"
       DomainName: !Ref WebApiDnsName
@@ -1523,6 +1537,7 @@ Resources:
   # Lambda access right for POST method
   TokenExchangeOidcLambdaPermission:
     Type: AWS::Lambda::Permission
+    Condition: EnableOidcApi
     DependsOn:
       - TokenExchangeOidcLambda
       - TokenExchangeOidcRestApi
@@ -1536,6 +1551,7 @@ Resources:
   # Token Exchange OIDC Body model
   TokenExchangeOidcModel:
     Type: "AWS::ApiGateway::Model"
+    Condition: EnableOidcApi
     Properties:
       RestApiId: !Ref TokenExchangeOidcRestApi
       ContentType: application/json
@@ -1561,6 +1577,7 @@ Resources:
   TokenExchangeOidcPostMethod:
     DependsOn: TokenExchangeOidcLambda
     Type: AWS::ApiGateway::Method
+    Condition: EnableOidcApi
     Properties:
       OperationName: "Proxy to Token Exchange OIDC Lambda"
       RestApiId: !Ref TokenExchangeOidcRestApi
@@ -1583,6 +1600,7 @@ Resources:
 
   TokenExchangeOidcPostMethodRequestValidator:
     Type: AWS::ApiGateway::RequestValidator
+    Condition: EnableOidcApi
     Properties:
       RestApiId: !Ref TokenExchangeOidcRestApi
       ValidateRequestBody: true
@@ -1592,6 +1610,7 @@ Resources:
   TokenExchangeOidcOptionsMethod:
     DependsOn: TokenExchangeOidcLambda
     Type: AWS::ApiGateway::Method
+    Condition: EnableOidcApi
     Properties:
       OperationName: "Options for Token Exchange OIDC"
       RestApiId: !Ref TokenExchangeOidcRestApi
