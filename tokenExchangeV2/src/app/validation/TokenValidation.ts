@@ -11,7 +11,7 @@ import { getPublicKey } from "../utils/PublicKey";
  * @param nonce - Nonce to validate against the token payload
  * @returns The payload of the decoded token if valid
  */
-export async function validateJwt(
+export async function validateOneIdentityIdToken(
   oneIdentityIdToken: string,
   nonce: string
 ): Promise<OIDecodedIdToken> {

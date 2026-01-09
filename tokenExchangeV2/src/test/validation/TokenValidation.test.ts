@@ -6,7 +6,7 @@ import {
   isAudienceValid,
   isIssuerValid,
   isTaxIdValid,
-  validateJwt,
+  validateOneIdentityIdToken,
 } from "../../app/validation/TokenValidation";
 import {
   oneIdentityDecodedTokenMock,
@@ -27,7 +27,7 @@ const mockGetPublicKey = getPublicKey as jest.MockedFunction<
   typeof getPublicKey
 >;
 
-describe("validateJwt", () => {
+describe("validateOneIdentityIdToken", () => {
   const validToken = "valid-jwt-token";
 
   beforeEach(() => {
@@ -41,9 +41,9 @@ describe("validateJwt", () => {
   it("should throw ValidationException when token is null", async () => {
     mockDecode.mockReturnValue(null);
 
-    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
-      new ValidationException("Token is not valid")
-    );
+    await expect(
+      validateOneIdentityIdToken(validToken, tokenNonce)
+    ).rejects.toThrow(new ValidationException("Token is not valid"));
   });
 
   it("should throw ValidationException for invalid algorithm", async () => {
@@ -52,9 +52,9 @@ describe("validateJwt", () => {
       header: { ...oneIdentityDecodedTokenMock.header, alg: "HS256" },
     } as any);
 
-    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
-      new ValidationException("Invalid algorithm")
-    );
+    await expect(
+      validateOneIdentityIdToken(validToken, tokenNonce)
+    ).rejects.toThrow(new ValidationException("Invalid algorithm"));
   });
 
   it("should throw ValidationException for invalid audience", async () => {
@@ -66,9 +66,9 @@ describe("validateJwt", () => {
       },
     } as any);
 
-    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
-      new ValidationException("Invalid Audience")
-    );
+    await expect(
+      validateOneIdentityIdToken(validToken, tokenNonce)
+    ).rejects.toThrow(new ValidationException("Invalid Audience"));
   });
 
   it("should throw ValidationException for invalid issuer", async () => {
@@ -80,9 +80,9 @@ describe("validateJwt", () => {
       },
     } as any);
 
-    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
-      new ValidationException("Issuer not known")
-    );
+    await expect(
+      validateOneIdentityIdToken(validToken, tokenNonce)
+    ).rejects.toThrow(new ValidationException("Issuer not known"));
   });
 
   it("should throw ValidationException for blocked tax ID", async () => {
@@ -90,9 +90,9 @@ describe("validateJwt", () => {
     mockGetAWSParameterStore.mockResolvedValue("some-other-taxid");
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
 
-    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
-      new ValidationException("TaxId not allowed")
-    );
+    await expect(
+      validateOneIdentityIdToken(validToken, tokenNonce)
+    ).rejects.toThrow(new ValidationException("TaxId not allowed"));
   });
 
   it("should throw ValidationException for invalid nonce", async () => {
@@ -104,9 +104,9 @@ describe("validateJwt", () => {
       },
     } as any);
 
-    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
-      new ValidationException("Invalid nonce")
-    );
+    await expect(
+      validateOneIdentityIdToken(validToken, tokenNonce)
+    ).rejects.toThrow(new ValidationException("Invalid nonce"));
   });
 
   it("should successfully validate token with wildcard tax ID", async () => {
@@ -114,7 +114,7 @@ describe("validateJwt", () => {
     mockGetAWSParameterStore.mockResolvedValue("*");
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
 
-    const result = await validateJwt(validToken, tokenNonce);
+    const result = await validateOneIdentityIdToken(validToken, tokenNonce);
 
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
     expect(mockVerify).toHaveBeenCalledWith(validToken, "mock-public-key");
@@ -127,9 +127,9 @@ describe("validateJwt", () => {
       throw new Error("Invalid signature");
     });
 
-    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
-      new ValidationException("Invalid signature")
-    );
+    await expect(
+      validateOneIdentityIdToken(validToken, tokenNonce)
+    ).rejects.toThrow(new ValidationException("Invalid signature"));
   });
 
   it("should handle non Error exceptions during JWT verification", async () => {
@@ -139,9 +139,9 @@ describe("validateJwt", () => {
       throw "String error";
     });
 
-    await expect(validateJwt(validToken, tokenNonce)).rejects.toThrow(
-      new ValidationException("Unknown error")
-    );
+    await expect(
+      validateOneIdentityIdToken(validToken, tokenNonce)
+    ).rejects.toThrow(new ValidationException("Unknown error"));
   });
 
   it("should return true when parameter store returns empty string", async () => {
@@ -149,7 +149,7 @@ describe("validateJwt", () => {
     mockGetAWSParameterStore.mockResolvedValue("");
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
 
-    const result = await validateJwt(validToken, tokenNonce);
+    const result = await validateOneIdentityIdToken(validToken, tokenNonce);
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
   });
 });

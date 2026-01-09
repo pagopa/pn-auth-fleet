@@ -6,7 +6,7 @@ import { exchangeOneIdentityCode } from "./utils/OneIdentity";
 import { generateKoResponse } from "./utils/Responses";
 import { makeLower } from "./utils/String";
 import { isOriginAllowed } from "./validation/Origin";
-import { validateJwt } from "./validation/TokenValidation";
+import { validateOneIdentityIdToken } from "./validation/TokenValidation";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
@@ -68,7 +68,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       redirectUri
     );
 
-    const decodedToken = await validateJwt(oneIdentityToken.id_token, nonce);
+    const decodedToken = await validateOneIdentityIdToken(
+      oneIdentityToken.id_token,
+      nonce
+    );
 
     console.log("TMP - Decoded Token:", decodedToken);
 
