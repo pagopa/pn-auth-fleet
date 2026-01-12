@@ -15,8 +15,7 @@ export function setupEnv() {
       "portale-pa-develop.fe.dev.pn.pagopa.it,portale-pf-develop.fe.dev.pn.pagopa.it",
     AUDIENCE: "webapi.dev.pn.pagopa.it",
     _X_AMZN_TRACE_ID: "my_trace_id",
-    ONE_IDENTITY_CLIENT_ID: "one-identity-client-id",
-    ONE_IDENTITY_CLIENT_SECRET_ID: "one-identity-client-secret-id",
+    ONE_IDENTITY_SECRET_NAME: "one-identity-secret-name",
     ONE_IDENTITY_BASEURL: "https://uat.oneid.pagopa.it",
     AWS_SESSION_TOKEN: "fake-session-token",
   };

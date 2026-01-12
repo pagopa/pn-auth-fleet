@@ -204,9 +204,9 @@ Parameters:
     Type: String
     Description: 'Name for TokenExchangeOidc Lambda function'
 
-  # TokenExchangeOidcLambdaEnvironmentCacheTtl:
-  #   Type: String
-  #   Description: Cryptography keys cache entry duration in seconds TODO/TBD
+  TokenExchangeOidcLambdaEnvironmentCacheTtl:
+    Type: String
+    Description: Cryptography keys cache entry duration in seconds
 
   # TokenExchangeOidcLambdaEnvironmentTokenTtl:
   #   Type: String
@@ -229,10 +229,6 @@ Parameters:
     Description: "Parameter of allowed login Tax Ids"
     Default: "/pn-auth-fleet/allowedLoginTaxids"
 
-  # TokenExchangeOidcLambdaEnvironmentJwksMapping:
-  #   Type: String
-  #   Description: "Mapping tra issuer e jwks url non standard in formato json (NOT USED - code commented)"
-
   # TokenExchangeOidcLambdaEnvironmentAcceptedAudience:
   #   Type: String
   #   Description: Comma separated list of token audience accepted (REMOVED - uses OneIdentityClientId directly)
@@ -241,17 +237,13 @@ Parameters:
   #   Type: String
   #   Description: Audience value for token generation  TODO/TBD
 
-  OneIdentityClientId:
-    Type: String
-    Description: 'OneIdentity OAuth2 Client ID'
-
-  OneIdentitySecretIdName:
-    Type: String
-    Description: 'Name of secret in Secrets Manager containing OneIdentity client secret'
-
   OneIdentityBaseURL:
     Type: String
     Description: 'Base URL for OneIdentity API (e.g., https://uat.oneid.pagopa.it)'
+
+  OneIdentitySecretName:
+    Type: String
+    Description: 'AWS secret name for One Identity credentials'
 
   TokenExchangeOidcLatencyLimit:
     Type: Number
@@ -1390,9 +1382,8 @@ Resources:
           ALLOWED_TAXIDS_PARAMETER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter
           ACCEPTED_AUDIENCE: !Ref OneIdentityClientId
           # OneIdentity specific variables (used)
-          ONE_IDENTITY_CLIENT_ID: !Ref OneIdentityClientId
-          ONE_IDENTITY_CLIENT_SECRET_ID: !Ref OneIdentitySecretIdName
           ONE_IDENTITY_BASEURL: !Ref OneIdentityBaseURL
+          ONE_IDENTITY_SECRET_NAME: !Ref OneIdentitySecretName
           # For JWT session token generation (when TODO is implemented)
           KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
           # Variables for future use (TODO in code - session token generation)
@@ -1401,9 +1392,7 @@ Resources:
           # AUDIENCE: !Ref TokenExchangeOidcLambdaEnvironmentAudience
           # SSM_PARAMETER_STORE_TIMEOUT_MILLIS: 5000
           # PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
-          # Not used (code commented)
-          # CACHE_TTL: !Ref TokenExchangeOidcLambdaEnvironmentCacheTtl
-          # JWKS_MAPPING: !Ref TokenExchangeOidcLambdaEnvironmentJwksMapping
+          CACHE_TTL: !Ref TokenExchangeOidcLambdaEnvironmentCacheTtl
       Role: !GetAtt TokenExchangeOidcLambdaRole.Arn
       Timeout: 10
       TracingConfig:
@@ -1463,7 +1452,7 @@ Resources:
             Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${OneIdentitySecretIdName}*"
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${OneIdentitySecretName}*"
 
   TokenExchangeOidcLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -1563,6 +1552,7 @@ Resources:
           - code
           - redirect_uri
           - nonce
+          - state
         properties:
           code:
             type: string
@@ -1570,7 +1560,7 @@ Resources:
             type: string
           nonce:
             type: string
-          source:
+          state:
             type: string
 
   # Token Exchange OIDC POST method

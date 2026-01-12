@@ -1,3 +1,4 @@
+import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import { OIExchangeCodeResponse } from "../../models/Token";
 import { getAWSSecret } from "./AwsParameters";
 
@@ -8,21 +9,17 @@ export const exchangeOneIdentityCode = async (
   code: string,
   redirect_uri: string
 ): Promise<OIExchangeCodeResponse> => {
-  const oidcClientId = process.env.ONE_IDENTITY_CLIENT_ID;
-  const oidcClientSecretId = process.env.ONE_IDENTITY_CLIENT_SECRET_ID;
+  const oneIdentitySecretName = process.env.ONE_IDENTITY_SECRET_NAME;
 
-  if (!oidcClientId) {
-    throw new Error("ONE_IDENTITY_CLIENT_ID is not set");
+  if (!oneIdentitySecretName) {
+    throw new Error("ONE_IDENTITY_SECRET_NAME is not set");
   }
 
-  if (!oidcClientSecretId) {
-    throw new Error("ONE_IDENTITY_CLIENT_SECRET_ID is not set");
-  }
-
-  const getOidcSecretKey = await getAWSSecret(oidcClientSecretId);
+  const { oneIdentityClientId, oneIdentityClientSecret } =
+    await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
 
   const credentials = Buffer.from(
-    `${oidcClientId}:${getOidcSecretKey}`
+    `${oneIdentityClientId}:${oneIdentityClientSecret}`
   ).toString("base64");
 
   const body = new URLSearchParams({
