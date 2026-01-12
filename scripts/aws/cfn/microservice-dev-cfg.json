@@ -28,6 +28,7 @@
     "TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter": "/pn-auth-fleet/allowedLoginTaxids",
     "EnableTokenExchangeOidcApi": "true",
     "OneIdentitySecretName": "pn-auth-fleet/one-identity-credentials",
-    "OneIdentityBaseURL": "https://uat.oneid.pagopa.it"
+    "OneIdentityBaseURL": "https://uat.oneid.pagopa.it",
+    "TokenExchangeOidcLambdaEnvironmentCacheTtl": "120"
   }
 }
