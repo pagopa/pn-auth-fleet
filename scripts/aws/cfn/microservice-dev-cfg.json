@@ -27,8 +27,7 @@
     "TokenExchangeOidcLambdaEnvironmentAllowedOrigin": "https://cittadini.dev.notifichedigitali.it",
     "TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter": "/pn-auth-fleet/allowedLoginTaxids",
     "EnableTokenExchangeOidcApi": "true",
-    "OneIdentityClientId": "s8Etz0L2Y0YsbUuH3mni9agV-QFXKMsuA8EThiO2kQQ",
-    "OneIdentitySecretIdName": "oneIdentitySecretName",
+    "OneIdentitySecretName": "pn-auth-fleet/one-identity-credentials",
     "OneIdentityBaseURL": "https://uat.oneid.pagopa.it"
   }
 }

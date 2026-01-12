@@ -11,7 +11,7 @@ jest.mock("../../app/utils/Retry.ts", () => ({
   retryWithDelay: jest.fn((fn) => fn()),
 }));
 
-describe("getAWSParameter", () => {
+describe("AwsParameters", () => {
   beforeEach(() => {
     setupEnv();
     jest.clearAllMocks();
@@ -37,12 +37,12 @@ describe("getAWSParameter", () => {
   it("should fetch secret successfully", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => ({ SecretString: "secret-value" }),
+      json: async () => ({ SecretString: '{"secret-key":"my-secret-value"}' }),
     });
 
     const result = await getAWSSecret("my-secret");
 
-    expect(result).toBe("secret-value");
+    expect(result).toEqual({ "secret-key": "my-secret-value" });
     expect(global.fetch).toHaveBeenCalledWith(
       "http://localhost:2773/secretsmanager/get?secretId=my-secret",
       expect.objectContaining({
@@ -51,21 +51,17 @@ describe("getAWSParameter", () => {
     );
   });
 
-  it("should fetch secret binary successfully", async () => {
+  it("should handle SecretBinary when SecretString is not present", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => ({ SecretBinary: "c2VjcmV0LWJpbmFyeQ==" }),
+      json: async () => ({
+        SecretBinary: { key: "binary-value" },
+      }),
     });
 
-    const result = await getAWSSecret("my-secret-binary");
+    const result = await getAWSSecret("my-secret");
 
-    expect(result).toBe(JSON.stringify("c2VjcmV0LWJpbmFyeQ=="));
-    expect(global.fetch).toHaveBeenCalledWith(
-      "http://localhost:2773/secretsmanager/get?secretId=my-secret-binary",
-      expect.objectContaining({
-        headers: { "X-Aws-Parameters-Secrets-Token": "fake-session-token" },
-      })
-    );
+    expect(result).toEqual({ key: "binary-value" });
   });
 
   it("should throw error when AWS_SESSION_TOKEN is missing", async () => {
@@ -98,5 +94,46 @@ describe("getAWSParameter", () => {
     await expect(getAWSSecret("/invalid/secret")).rejects.toThrow(
       'Failed to fetch secret "/invalid/secret": 404 Not Found'
     );
+  });
+
+  it("should throw error when secret JSON parsing fails", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ SecretString: "invalid-json{" }),
+    });
+
+    await expect(getAWSSecret("my-secret")).rejects.toThrow(
+      'Failed to parse secret "my-secret" as JSON:'
+    );
+  });
+
+  // it("should throw error when key is not found in secret", async () => {
+  //   (global.fetch as jest.Mock).mockResolvedValue({
+  //     ok: true,
+  //     json: async () => ({ SecretString: '{"other-key":"value"}' }),
+  //   });
+
+  //   await expect(
+  //     getAWSSecret({ secretName: "my-secret", key: "missing-key" })
+  //   ).rejects.toThrow('Key "missing-key" not found in secret "my-secret".');
+  // });
+
+  it("should handle non Error objects in JSON parsing failure", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ SecretString: "invalid-json{" }),
+    });
+
+    // Mock JSON.parse to throw a non Error object
+    const originalParse = JSON.parse;
+    JSON.parse = jest.fn(() => {
+      throw "Generic error";
+    });
+
+    await expect(getAWSSecret("my-secret")).rejects.toThrow(
+      'Failed to parse secret "my-secret" as JSON: Generic error'
+    );
+
+    JSON.parse = originalParse;
   });
 });

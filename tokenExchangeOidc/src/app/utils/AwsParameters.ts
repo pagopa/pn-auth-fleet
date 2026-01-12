@@ -22,15 +22,30 @@ export async function getAWSParameterStore(
 
 /**
  * Retrieves an AWS Secrets Manager secret with retries
+ * Expects the secret to contain key/value pairs in JSON format
  *
- * @param parameterName - The name of the secret to fetch
+ * @param secretName - The name of the secret to fetch
+ * @param key - The key to retrieve from the secret
+ * @returns The value for the specified key as a string
  */
-export async function getAWSSecret(secretName: string): Promise<string> {
-  return retryWithDelay(
+export async function getAWSSecret<T extends Record<string, string>>(
+  secretName: string
+): Promise<T> {
+  const secretString = await retryWithDelay(
     () => fetchAwsParameter(secretName, "secret"),
     RETRY_DELAY_MS,
     MAX_RETRIES
   );
+
+  try {
+    return JSON.parse(secretString) as T;
+  } catch (error) {
+    throw new Error(
+      `Failed to parse secret "${secretName}" as JSON: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
 }
 
 // Fetches a parameter or secret from AWS Parameter Store or Secrets Manager

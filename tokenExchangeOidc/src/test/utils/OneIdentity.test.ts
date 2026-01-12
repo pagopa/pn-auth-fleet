@@ -6,8 +6,11 @@ import { setupEnv } from "../test.utils";
 describe("One Identity tests", () => {
   const mockCode = "test_auth_code_123";
   const mockRedirectUri = "https://example.com/callback";
-  const mockClientId = "one-identity-client-id";
-  const mockSecret = "test_secret";
+
+  const mockSecret = {
+    oneIdentityClientId: "test-client-id",
+    oneIdentityClientSecret: "test-client-secret",
+  };
   const mockOneIdentityUrl = "https://uat.oneid.pagopa.it";
 
   let fetchMock: jest.SpyInstance;
@@ -29,7 +32,7 @@ describe("One Identity tests", () => {
 
   it("should successfully exchange One Identity Code", async () => {
     const expectedCredentials = Buffer.from(
-      `${mockClientId}:${mockSecret}`
+      `${mockSecret.oneIdentityClientId}:${mockSecret.oneIdentityClientSecret}`
     ).toString("base64");
 
     const mockResponse = {
@@ -59,20 +62,12 @@ describe("One Identity tests", () => {
     expect(bodyParams.get("redirect_uri")).toBe(mockRedirectUri);
   });
 
-  it("should throw error when ONE_IDENTITY_CLIENT_ID is not set", async () => {
-    delete process.env.ONE_IDENTITY_CLIENT_ID;
+  it("should throw error when ONE_IDENTITY_SECRET_NAME is not set", async () => {
+    delete process.env.ONE_IDENTITY_SECRET_NAME;
 
     await expect(
       exchangeOneIdentityCode(mockCode, mockRedirectUri)
-    ).rejects.toThrow("ONE_IDENTITY_CLIENT_ID is not set");
-  });
-
-  it("should throw error when ONE_IDENTITY_CLIENT_SECRET_ID is not set", async () => {
-    delete process.env.ONE_IDENTITY_CLIENT_SECRET_ID;
-
-    await expect(
-      exchangeOneIdentityCode(mockCode, mockRedirectUri)
-    ).rejects.toThrow("ONE_IDENTITY_CLIENT_SECRET_ID is not set");
+    ).rejects.toThrow("ONE_IDENTITY_SECRET_NAME is not set");
   });
 
   it("should throw error when response is not ok", async () => {
