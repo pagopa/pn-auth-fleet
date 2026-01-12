@@ -105,6 +105,14 @@ Parameters:
     Type: String
     Description: application loadbalancer used from b2bAuthorizer to call pn-external-registries and pn-user-attributes
 
+  LollipopBlock:
+    Type: String
+    Description: Control flag that conditions the behavior of the Lollipop Authorizer Validation lambda in case the validation yields a negative result.
+    Default: false
+    AllowedValues:
+      - "true"
+      - "false"
+
   # Unused but required by CD pipeline
   MicroserviceNumber:
     Type: Number
