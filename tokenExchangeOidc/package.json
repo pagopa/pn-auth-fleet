@@ -7,7 +7,7 @@
     "type-check": "tsc --noEmit",
     "build": "npm run type-check && esbuild src/app/index.ts --bundle --platform=node --outdir=dist --minify --sourcemap --external:dtrace-provider && cd dist && zip -r ../function.zip .",
     "test": "npm run type-check && jest --coverage --silent",
-    "test-build": "npm run build",
+    "test-build": "npm run test && npm run coverage && npm run sonar && npm run build",
     "coverage": "jest --coverage --coverageReporters=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
     "clean": "rm -rf dist function.zip coverage"
