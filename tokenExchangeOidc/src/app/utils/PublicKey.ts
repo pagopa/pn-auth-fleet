@@ -4,47 +4,37 @@ import { ValidationException } from "../exception/validationException";
 import { get, isCacheActive } from "./Jwks/JwksCache";
 import { getJwks } from "./Jwks/JwksRetriever";
 
-export async function getPublicKey(issuer: string, kid: string) {
-  let publicKey;
+export async function getPublicKeys(issuer: string) {
+  let publicKeys: Array<string>;
 
   if (isCacheActive) {
-    publicKey = await findPublicKeyUsingCache(kid, issuer);
+    publicKeys = await findPublicKeysUsingCache(issuer);
   } else {
-    publicKey = await findPublicKeyWithoutCache(kid);
+    publicKeys = await findPublicKeysWithoutCache();
   }
 
-  return publicKey;
+  return publicKeys;
 }
 
-async function findPublicKeyUsingCache(keyId: string, issuer: string) {
+async function findPublicKeysUsingCache(issuer: string) {
   console.log("Using cache");
   const cachedJwks = await get(issuer);
   if (!cachedJwks) {
     throw new ValidationException("Public key not found in cache");
   }
-  return getKeyFromJwks(cachedJwks, keyId);
+  return getKeysFromJwks(cachedJwks);
 }
 
-async function findPublicKeyWithoutCache(keyId: string) {
+async function findPublicKeysWithoutCache() {
   console.debug("Retrieving public key without cache");
   const jwks = await getJwks();
-  return getKeyFromJwks(jwks, keyId);
+  return getKeysFromJwks(jwks);
 }
 
-function getKeyFromJwks(jwks: JWKS, keyId: string) {
-  const publicKey = findKey(jwks, keyId);
-  const keyInPemFormat = jwkToPem(publicKey);
-
-  return keyInPemFormat;
-}
-
-function findKey(jwks: JWKS, keyId: string) {
-  for (let key of jwks.keys) {
-    if (key.kid === keyId) {
-      console.debug("Found key", key.kid);
-      return key;
-    }
+function getKeysFromJwks(jwks: JWKS) {
+  if (!jwks.keys || jwks.keys.length === 0) {
+    throw new ValidationException("No keys found in JWKS");
   }
 
-  throw new ValidationException("Public key not found");
+  return jwks.keys.map((key) => jwkToPem(key));
 }
