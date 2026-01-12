@@ -9,6 +9,7 @@
     "test": "npm run type-check && jest --coverage --silent",
     "test-build": "npm run build",
     "coverage": "jest --coverage --coverageReporters=lcov",
+    "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
     "clean": "rm -rf dist function.zip coverage"
   },
   "license": "ISC",
@@ -29,6 +30,7 @@
     "esbuild": "^0.27.1",
     "jest": "^30.2.0",
     "nyc": "^17.1.0",
+    "sonarqube-scanner": "^3.0.1",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
   },
