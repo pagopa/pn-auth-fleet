@@ -125,11 +125,24 @@ Resources:
   TokenExchangeLambdaLogGroup:
     Type: AWS::CloudFormation::Stack
     UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain    
+    DeletionPolicy: Retain
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
       Parameters:
         LogGroupName: !Sub '${ProjectName}-tokenExchangeLambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+        LogEnableMasking: true
+
+  TokenExchangeOidcLambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-tokenExchangeOidcLambda'
         LogGroupPrefix: '/aws/lambda'
         LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
@@ -348,6 +361,9 @@ Outputs:
 
   TokenExchangeLambdaName:
     Value: !Sub '${ProjectName}-tokenExchangeLambda'
+
+  TokenExchangeOidcLambdaName:
+    Value: !GetAtt TokenExchangeOidcLambdaLogGroup.Outputs.LogGroupNameNoPrefix
 
   JwksCacheForceRefreshLambdaName:
     Value: !Sub '${ProjectName}-jwksCacheForceRefreshLambda'

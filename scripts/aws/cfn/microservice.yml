@@ -199,6 +199,77 @@ Parameters:
   PnRaddBaseliningLambdaName:
     Type: String
 
+  # - Token Exchange OIDC Parameters
+  TokenExchangeOidcLambdaName:
+    Type: String
+    Description: 'Name for TokenExchangeOidc Lambda function'
+
+  # TokenExchangeOidcLambdaEnvironmentCacheTtl:
+  #   Type: String
+  #   Description: Cryptography keys cache entry duration in seconds TODO/TBD
+
+  # TokenExchangeOidcLambdaEnvironmentTokenTtl:
+  #   Type: String
+  #   Description: Session token duration TODO/TBD
+
+  # TokenExchangeOidcLambdaEnvironmentIssuer:
+  #   Type: String
+  #   Description: Session token issuer TODO/TBD
+
+  TokenExchangeOidcLambdaEnvironmentAllowedIssuer:
+    Type: String
+    Description: "Comma separated list of external authentication token issuers"
+
+  TokenExchangeOidcLambdaEnvironmentAllowedOrigin:
+    Type: String
+    Description: 'Comma separated list of websites allowed to use SEND back-ends API'
+
+  TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter:
+    Type: String
+    Description: "Parameter of allowed login Tax Ids"
+    Default: "/pn-auth-fleet/allowedLoginTaxids"
+
+  # TokenExchangeOidcLambdaEnvironmentJwksMapping:
+  #   Type: String
+  #   Description: "Mapping tra issuer e jwks url non standard in formato json (NOT USED - code commented)"
+
+  # TokenExchangeOidcLambdaEnvironmentAcceptedAudience:
+  #   Type: String
+  #   Description: Comma separated list of token audience accepted (REMOVED - uses OneIdentityClientId directly)
+
+  # TokenExchangeOidcLambdaEnvironmentAudience:
+  #   Type: String
+  #   Description: Audience value for token generation  TODO/TBD
+
+  OneIdentityClientId:
+    Type: String
+    Description: 'OneIdentity OAuth2 Client ID'
+
+  OneIdentitySecretIdName:
+    Type: String
+    Description: 'Name of secret in Secrets Manager containing OneIdentity client secret'
+
+  OneIdentityBaseURL:
+    Type: String
+    Description: 'Base URL for OneIdentity API (e.g., https://uat.oneid.pagopa.it)'
+
+  TokenExchangeOidcLatencyLimit:
+    Type: Number
+    Default: 2000
+    Description: Default latency limit for token exchange oidc api
+
+  TokenExchangeOidcWafLimit:
+    Type: Number
+    Default: 600000
+
+  EnableTokenExchangeOidcApi:
+    Type: String
+    Default: false
+    Description: Enable API Gateway for TokenExchangeOidc (feature flag for gradual rollout)
+    AllowedValues:
+      - true
+      - false
+
   TokenExchangeWafLimit:
     Type: Number
     Default: "600000"
@@ -521,6 +592,7 @@ Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
   HasToRefreshJWKSCache: !Not [!Equals [!Ref JWKSRefreshIntervalMinutes, 0]]
+  EnableOidcApi: !Equals ["true", !Ref EnableTokenExchangeOidcApi]
 
 Resources:
   ###             API KEY AUTHORIZERV2 LAMBDA             ###
@@ -1289,6 +1361,430 @@ Resources:
       Parameters:
         FunctionName: !Ref TokenExchangeLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###           TOKEN EXCHANGE OIDC LAMBDA                ###
+  ###########################################################
+
+  TokenExchangeOidcLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-token-exchange-oidc-SecGrp
+      VpcId: !Ref VpcId
+
+  # Lambda function
+  TokenExchangeOidcLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref TokenExchangeOidcLambdaName
+      Runtime: nodejs22.x
+      Handler: "index.handler"
+      MemorySize: 256
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/tokenExchangeOidc.zip"
+      Environment:
+        Variables:
+          # Variables actively used in code
+          ALLOWED_ISSUER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedIssuer
+          ALLOWED_ORIGIN: !Ref TokenExchangeOidcLambdaEnvironmentAllowedOrigin
+          ALLOWED_TAXIDS_PARAMETER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter
+          ACCEPTED_AUDIENCE: !Ref OneIdentityClientId
+          # OneIdentity specific variables (used)
+          ONE_IDENTITY_CLIENT_ID: !Ref OneIdentityClientId
+          ONE_IDENTITY_CLIENT_SECRET_ID: !Ref OneIdentitySecretIdName
+          ONE_IDENTITY_BASEURL: !Ref OneIdentityBaseURL
+          # For JWT session token generation (when TODO is implemented)
+          KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
+          # Variables for future use (TODO in code - session token generation)
+          # TOKEN_TTL: !Ref TokenExchangeOidcLambdaEnvironmentTokenTtl
+          # ISSUER: !Ref TokenExchangeOidcLambdaEnvironmentIssuer
+          # AUDIENCE: !Ref TokenExchangeOidcLambdaEnvironmentAudience
+          # SSM_PARAMETER_STORE_TIMEOUT_MILLIS: 5000
+          # PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
+          # Not used (code commented)
+          # CACHE_TTL: !Ref TokenExchangeOidcLambdaEnvironmentCacheTtl
+          # JWKS_MAPPING: !Ref TokenExchangeOidcLambdaEnvironmentJwksMapping
+      Role: !GetAtt TokenExchangeOidcLambdaRole.Arn
+      Timeout: 10
+      TracingConfig:
+        Mode: Active
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref TokenExchangeOidcLambdaSecurityGroup
+        SubnetIds: !Ref VpcEgressSubnetsIds
+      Layers:
+        - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
+
+  # Lambda function role
+  TokenExchangeOidcLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-tokenExchangeOidcLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  # Lambda function IAM policy
+  TokenExchangeOidcLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-tokenExchangeOidcLambdaPolicy
+      Roles:
+        - !Ref TokenExchangeOidcLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "kms:Sign"
+              - "kms:DescribeKey"
+            Resource: "*"
+          - Sid: AllowLambdaToCreateLogs
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${TokenExchangeOidcLambdaName}:*
+          - Sid: AllowLambdaToReadParameterStore
+            Action:
+              - ssm:GetParameter
+            Effect: Allow
+            Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/pn-auth-fleet/allowedLoginTaxids"
+          - Sid: AllowLambdaToReadSecretsManager
+            Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${OneIdentitySecretIdName}*"
+
+  TokenExchangeOidcLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref TokenExchangeOidcLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###       TOKEN EXCHANGE OIDC API          SERVICE      ###
+  ###########################################################
+
+  # API definition
+  TokenExchangeOidcRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Condition: EnableOidcApi
+    Properties:
+      Name: !Sub "${ProjectName}-token-exchange-oidc-api"
+      FailOnWarnings: true
+      DisableExecuteApiEndpoint: true
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  # Deployment
+  TokenExchangeOidcRestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Condition: EnableOidcApi
+    DependsOn:
+      - TokenExchangeOidcPostMethod
+      - TokenExchangeOidcOptionsMethod
+    Properties:
+      RestApiId: !Ref TokenExchangeOidcRestApi
+
+  # Stage
+  TokenExchangeOidcRestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Condition: EnableOidcApi
+    Properties:
+      RestApiId: !Ref TokenExchangeOidcRestApi
+      StageName: unique
+      TracingEnabled: true
+      DeploymentId: !Ref TokenExchangeOidcRestApiDeployment
+      AccessLogSetting:
+        DestinationArn: !GetAtt "TokenExchangeOidcApiLogGroup.Arn"
+        Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","resourcePath":"$context.resourcePath","status":$context.status,"responseLatency":$context.responseLatency,"xrayTraceId":"$context.xrayTraceId","errorMessage":"$context.error.message","validationError":"$context.error.validationErrorString","integrationRequestId":"$context.integration.requestId","functionResponseStatus":"$context.integration.status","integrationLatency":"$context.integration.latency","integrationServiceStatus":"$context.integration.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}'
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          MetricsEnabled: "true"
+          DataTraceEnabled: "false"
+          LoggingLevel: "INFO"
+
+  # Log Group
+  TokenExchangeOidcApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: EnableOidcApi
+    Properties:
+      RetentionInDays: !Ref LogRetention
+
+  # Expose API to custom domain
+  TokenExchangeOidcAPIMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Condition: EnableOidcApi
+    Properties:
+      BasePath: "token-exchange-oidc"
+      DomainName: !Ref WebApiDnsName
+      RestApiId: !Ref TokenExchangeOidcRestApi
+      Stage: !Ref TokenExchangeOidcRestApiStage
+
+  # Lambda access right for POST method
+  TokenExchangeOidcLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Condition: EnableOidcApi
+    DependsOn:
+      - TokenExchangeOidcLambda
+      - TokenExchangeOidcRestApi
+    Properties:
+      FunctionName: !Ref TokenExchangeOidcLambdaName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${TokenExchangeOidcRestApi}/*/POST/"
+      SourceAccount: !Ref AWS::AccountId
+
+  # Token Exchange OIDC Body model
+  TokenExchangeOidcModel:
+    Type: "AWS::ApiGateway::Model"
+    Condition: EnableOidcApi
+    Properties:
+      RestApiId: !Ref TokenExchangeOidcRestApi
+      ContentType: application/json
+      Description: Schema for Token Exchange OIDC body
+      Name: TokenExchangeOidcModel
+      Schema:
+        type: object
+        required:
+          - code
+          - redirect_uri
+          - nonce
+        properties:
+          code:
+            type: string
+          redirect_uri:
+            type: string
+          nonce:
+            type: string
+          source:
+            type: string
+
+  # Token Exchange OIDC POST method
+  TokenExchangeOidcPostMethod:
+    DependsOn: TokenExchangeOidcLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableOidcApi
+    Properties:
+      OperationName: "Proxy to Token Exchange OIDC Lambda"
+      RestApiId: !Ref TokenExchangeOidcRestApi
+      ResourceId: !GetAtt TokenExchangeOidcRestApi.RootResourceId
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestValidatorId: !Ref TokenExchangeOidcPostMethodRequestValidator
+      RequestParameters:
+        "method.request.header.Origin": true
+      RequestModels:
+        "application/json": !Ref TokenExchangeOidcModel
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokenExchangeOidcLambda.Arn}/invocations"
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  TokenExchangeOidcPostMethodRequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Condition: EnableOidcApi
+    Properties:
+      RestApiId: !Ref TokenExchangeOidcRestApi
+      ValidateRequestBody: true
+      ValidateRequestParameters: true
+
+  # Token Exchange OIDC OPTIONS method
+  TokenExchangeOidcOptionsMethod:
+    DependsOn: TokenExchangeOidcLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableOidcApi
+    Properties:
+      OperationName: "Options for Token Exchange OIDC"
+      RestApiId: !Ref TokenExchangeOidcRestApi
+      ResourceId: !GetAtt TokenExchangeOidcRestApi.RootResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          ResponseModels:
+            "application/json": "Empty"
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          "application/json": '{"statusCode": 200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates:
+              "application/json": ""
+
+  # TokenExchangeOidcApiSubscriptionFilter:
+  #   Condition: SendLogToKinesis
+  #   Type: AWS::Logs::SubscriptionFilter
+  #   Properties:
+  #     RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
+  #     LogGroupName: !Ref TokenExchangeOidcApiLogGroup
+  #     FilterPattern: !Ref CloudwatchFilterPattern
+  #     DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  # TokenExchangeOidcApiWaf:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
+  #     Parameters:
+  #       WAFName: !Sub "${ProjectName}-token-exchange-oidc-web"
+  #       IntendedUsage: WEB
+  #       APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeOidcRestApi}/stages/${TokenExchangeOidcRestApiStage}"
+  #       Limit: !Ref TokenExchangeOidcWafLimit
+  #       EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+
+  # TokenExchangeOidcAPIGatewayApiLatencyAlarm:
+  #   Type: AWS::CloudWatch::Alarm
+  #   Properties:
+  #     AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-LatencyAlarm"
+  #     AlarmDescription: "CloudWatch alarm for when API Gateway OIDC latency exceeds the limit."
+  #     AlarmActions:
+  #       - !Ref AlarmSNSTopicArn
+  #     InsufficientDataActions:
+  #       - !Ref AlarmSNSTopicArn
+  #     OKActions:
+  #       - !Ref AlarmSNSTopicArn
+  #     DatapointsToAlarm: 15
+  #     ComparisonOperator: GreaterThanOrEqualToThreshold
+  #     EvaluationPeriods: 20
+  #     Period: 60
+  #     Threshold: !Ref TokenExchangeOidcLatencyLimit
+  #     TreatMissingData: notBreaching
+  #     Namespace: "AWS/ApiGateway"
+  #     MetricName: "Latency"
+  #     Dimensions:
+  #       - Name: ApiName
+  #         Value: !Sub "${ProjectName}-token-exchange-oidc-api"
+  #     ExtendedStatistic: "p90"
+
+  # TokenExchangeOidcAPIGatewayApiErrorAlarm:
+  #   Type: AWS::CloudWatch::Alarm
+  #   Properties:
+  #     AlarmName: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
+  #     AlarmDescription: "CloudWatch alarm for when API Gateway OIDC has 4xx or 5xx error."
+  #     AlarmActions:
+  #       - !Ref AlarmSNSTopicArn
+  #     InsufficientDataActions:
+  #       - !Ref AlarmSNSTopicArn
+  #     OKActions:
+  #       - !Ref AlarmSNSTopicArn
+  #     DatapointsToAlarm: 1
+  #     ComparisonOperator: GreaterThanOrEqualToThreshold
+  #     EvaluationPeriods: 5
+  #     Threshold: 1
+  #     TreatMissingData: notBreaching
+  #     Metrics:
+  #       - Id: m1
+  #         MetricStat:
+  #           Metric:
+  #             Dimensions:
+  #               - Name: ApiName
+  #                 Value: !Sub ${ProjectName}-token-exchange-oidc-api
+  #             MetricName: 4XXError
+  #             Namespace: AWS/ApiGateway
+  #           Period: 60
+  #           Stat: Sum
+  #         ReturnData: False
+  #       - Id: m2
+  #         MetricStat:
+  #           Metric:
+  #             Dimensions:
+  #               - Name: ApiName
+  #                 Value: !Sub ${ProjectName}-token-exchange-oidc-api
+  #             MetricName: 5XXError
+  #             Namespace: AWS/ApiGateway
+  #           Period: 60
+  #           Stat: Sum
+  #         ReturnData: False
+  #       - Id: e2
+  #         Expression: "m1*(0.1)"
+  #         Label: "4XXError-weight-adjust"
+  #         ReturnData: False
+  #       - Id: e1
+  #         Expression: SUM([e2,m2])
+  #         Label: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorMetric"
+
+  # TokenExchangeOidcAPIGatewayApiErrorAlarmWakeup:
+  #   Type: AWS::CloudWatch::Alarm
+  #   Properties:
+  #     AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
+  #     AlarmDescription: "CloudWatch alarm for when API Gateway OIDC has 4xx or 5xx error."
+  #     AlarmActions:
+  #       - !Ref AlarmSNSTopicArn
+  #     InsufficientDataActions:
+  #       - !Ref AlarmSNSTopicArn
+  #     OKActions:
+  #       - !Ref AlarmSNSTopicArn
+  #     DatapointsToAlarm: 7
+  #     ComparisonOperator: GreaterThanOrEqualToThreshold
+  #     EvaluationPeriods: 10
+  #     Threshold: 1
+  #     TreatMissingData: notBreaching
+  #     Metrics:
+  #       - Id: m1
+  #         MetricStat:
+  #           Metric:
+  #             Dimensions:
+  #               - Name: ApiName
+  #                 Value: !Sub ${ProjectName}-token-exchange-oidc-api
+  #             MetricName: 4XXError
+  #             Namespace: AWS/ApiGateway
+  #           Period: 60
+  #           Stat: Sum
+  #         ReturnData: False
+  #       - Id: m2
+  #         MetricStat:
+  #           Metric:
+  #             Dimensions:
+  #               - Name: ApiName
+  #                 Value: !Sub ${ProjectName}-token-exchange-oidc-api
+  #             MetricName: 5XXError
+  #             Namespace: AWS/ApiGateway
+  #           Period: 60
+  #           Stat: Sum
+  #         ReturnData: False
+  #       - Id: m3
+  #         MetricStat:
+  #           Metric:
+  #             Dimensions:
+  #               - Name: ApiName
+  #                 Value: !Sub "${ProjectName}-token-exchange-oidc-api"
+  #             MetricName: Count
+  #             Namespace: AWS/ApiGateway
+  #           Period: 60
+  #           Stat: Sum
+  #         ReturnData: False
+  #       - Id: e1
+  #         Expression: IF(m3>=10 AND (m1/m3>=0.9 OR m2/m3>=0.1), 1, 0)
+  #         Label: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorMetric-OnCall"
 
   ###          JWKS CACHE FORCE REFRESH LAMBDA          ###
   #########################################################
