@@ -1,3 +1,4 @@
+import { ValidationException } from "../../app/exception/validationException";
 import { exchangeOneIdentityCode } from "../../app/utils/OneIdentity";
 import { oneIdentityCredentialsMock } from "../__mock__/oneIdentity.mock";
 import { oneIdentityExchangeCodeResponseMock } from "../__mock__/token.mock";
@@ -60,7 +61,9 @@ describe("One Identity tests", () => {
   it("should throw error when response is not ok", async () => {
     const mockResponse = {
       ok: false,
+      status: 400,
       statusText: "Bad Request",
+      text: jest.fn().mockResolvedValue("Error during code exchange"),
     };
     fetchMock.mockResolvedValue(mockResponse);
 
@@ -71,7 +74,9 @@ describe("One Identity tests", () => {
         oneIdentityCredentials: oneIdentityCredentialsMock,
       })
     ).rejects.toThrow(
-      "Error during code exchange with OneIdentity: Bad Request"
+      new ValidationException(
+        "Error during code exchange with OneIdentity: Error during code exchange"
+      )
     );
   });
 });

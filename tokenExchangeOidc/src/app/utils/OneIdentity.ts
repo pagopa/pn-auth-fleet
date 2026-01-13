@@ -1,5 +1,6 @@
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import { OIExchangeCodeResponse } from "../../models/Token";
+import { ValidationException } from "../exception/validationException";
 
 type ExchangeOneIdentityCodeProps = {
   code: string;
@@ -44,9 +45,14 @@ export const exchangeOneIdentityCode = async ({
   );
 
   if (!response.ok) {
-    throw new Error(
-      `Error during code exchange with OneIdentity: ${response.statusText}`
-    );
+    const responseBody = await response.text();
+    const errorMessage = `Error during code exchange with OneIdentity: ${responseBody}`;
+
+    if (response.status === 400) {
+      throw new ValidationException(errorMessage);
+    }
+
+    throw new Error(errorMessage);
   }
 
   console.info("One Identity Code exchanged successfully");
