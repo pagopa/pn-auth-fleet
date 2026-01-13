@@ -19,7 +19,7 @@ const defaultDenyAllPolicy = {
 async function handleEvent(event) {
 
     const lollipopBlock = process.env.LOLLIPOP_BLOCK;
-    console.log("[handleEvent] Lollipop Authorizer Validation Allowed - Modaliyta: ", lollipopBlock);
+    console.log("[handleEvent] Lollipop Authorizer Validation Allowed - Modalita: ", lollipopBlock);
 
     let commandResult;
     let commandResultName ='';
@@ -33,8 +33,8 @@ async function handleEvent(event) {
           };
 
           commandResult = await validateLollipopAuthorizer(request);
-          // ATTENZIONE: IN FASE DI Enforcement, il seguente flag lollipopBlock deve essere valorizzato a true
-            if(lollipopBlock === "true"){
+            // ATTENZIONE: IN FASE DI Enforcement, la variabile lollipopBlock deve essere valorizzato a true
+            if (String(lollipopBlock).toLowerCase() === "true") {
               if(commandResult.statusCode !== 200){
                 console.error(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
                 return defaultDenyAllPolicy;
@@ -45,7 +45,7 @@ async function handleEvent(event) {
               }
             }
       } catch (error) {
-            if(lollipopBlock === "true"){
+            if (String(lollipopBlock).toLowerCase() === "true") {
                   console.error(`[handleEvent] - Lollipop Authorizer Validation fallita: ${commandResult.resultCode}. Denying access.`);
                   return defaultDenyAllPolicy;
             }else{
