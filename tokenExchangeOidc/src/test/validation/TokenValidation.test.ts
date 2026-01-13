@@ -42,11 +42,11 @@ describe("validateOneIdentityIdToken", () => {
     mockDecode.mockReturnValue(null);
 
     await expect(
-      validateOneIdentityIdToken(
-        validToken,
-        tokenNonce,
-        oneIdentityClientIdMock
-      )
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Token is not valid"));
   });
 
@@ -57,11 +57,11 @@ describe("validateOneIdentityIdToken", () => {
     } as any);
 
     await expect(
-      validateOneIdentityIdToken(
-        validToken,
-        tokenNonce,
-        oneIdentityClientIdMock
-      )
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Invalid algorithm"));
   });
 
@@ -75,11 +75,11 @@ describe("validateOneIdentityIdToken", () => {
     } as any);
 
     await expect(
-      validateOneIdentityIdToken(
-        validToken,
-        tokenNonce,
-        oneIdentityClientIdMock
-      )
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Invalid Audience"));
   });
 
@@ -93,11 +93,11 @@ describe("validateOneIdentityIdToken", () => {
     } as any);
 
     await expect(
-      validateOneIdentityIdToken(
-        validToken,
-        tokenNonce,
-        oneIdentityClientIdMock
-      )
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Issuer not known"));
   });
 
@@ -107,11 +107,11 @@ describe("validateOneIdentityIdToken", () => {
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
 
     await expect(
-      validateOneIdentityIdToken(
-        validToken,
-        tokenNonce,
-        oneIdentityClientIdMock
-      )
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("TaxId not allowed"));
   });
 
@@ -125,11 +125,11 @@ describe("validateOneIdentityIdToken", () => {
     } as any);
 
     await expect(
-      validateOneIdentityIdToken(
-        validToken,
-        tokenNonce,
-        oneIdentityClientIdMock
-      )
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Invalid nonce"));
   });
 
@@ -138,11 +138,11 @@ describe("validateOneIdentityIdToken", () => {
     mockGetAWSParameterStore.mockResolvedValue("*");
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
 
-    const result = await validateOneIdentityIdToken(
-      validToken,
-      tokenNonce,
-      oneIdentityClientIdMock
-    );
+    const result = await validateOneIdentityIdToken({
+      oneIdentityIdToken: validToken,
+      nonce: tokenNonce,
+      oneIdentityClientId: oneIdentityClientIdMock,
+    });
 
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
     expect(mockVerify).toHaveBeenCalledWith(validToken, "mock-public-key");
@@ -153,11 +153,11 @@ describe("validateOneIdentityIdToken", () => {
     mockGetAWSParameterStore.mockResolvedValue("");
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
 
-    const result = await validateOneIdentityIdToken(
-      validToken,
-      tokenNonce,
-      oneIdentityClientIdMock
-    );
+    const result = await validateOneIdentityIdToken({
+      oneIdentityIdToken: validToken,
+      nonce: tokenNonce,
+      oneIdentityClientId: oneIdentityClientIdMock,
+    });
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
   });
 
@@ -175,11 +175,11 @@ describe("validateOneIdentityIdToken", () => {
       })
       .mockReturnValueOnce({} as any);
 
-    const result = await validateOneIdentityIdToken(
-      validToken,
-      tokenNonce,
-      oneIdentityClientIdMock
-    );
+    const result = await validateOneIdentityIdToken({
+      oneIdentityIdToken: validToken,
+      nonce: tokenNonce,
+      oneIdentityClientId: oneIdentityClientIdMock,
+    });
 
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
     expect(mockVerify).toHaveBeenCalledTimes(2);
@@ -208,11 +208,11 @@ describe("validateOneIdentityIdToken", () => {
     });
 
     await expect(
-      validateOneIdentityIdToken(
-        validToken,
-        tokenNonce,
-        oneIdentityClientIdMock
-      )
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Invalid signature"));
 
     expect(mockVerify).toHaveBeenCalledTimes(2);
@@ -226,11 +226,11 @@ describe("validateOneIdentityIdToken", () => {
     });
 
     await expect(
-      validateOneIdentityIdToken(
-        validToken,
-        tokenNonce,
-        oneIdentityClientIdMock
-      )
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Unknown error"));
   });
 });

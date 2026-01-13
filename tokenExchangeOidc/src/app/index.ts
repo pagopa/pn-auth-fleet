@@ -74,17 +74,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const oneIdentityCredentials =
       await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
 
-    const oneIdentityToken = await exchangeOneIdentityCode(
-      oidcCode,
+    const oneIdentityToken = await exchangeOneIdentityCode({
+      code: oidcCode,
       redirectUri,
-      oneIdentityCredentials
-    );
+      oneIdentityCredentials,
+    });
 
-    const decodedToken = await validateOneIdentityIdToken(
-      oneIdentityToken.id_token,
+    const decodedToken = await validateOneIdentityIdToken({
+      oneIdentityIdToken: oneIdentityToken.id_token,
       nonce,
-      oneIdentityCredentials.oneIdentityClientId
-    );
+      oneIdentityClientId: oneIdentityCredentials.oneIdentityClientId,
+    });
 
     console.log("TMP - Decoded Token:", decodedToken);
 

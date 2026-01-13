@@ -5,6 +5,12 @@ import { getAWSParameterStore } from "../utils/AwsParameters";
 import { copyAndMaskObject } from "../utils/Object";
 import { getPublicKeys } from "../utils/PublicKey";
 
+type ValidateOneIdentityIdTokenProps = {
+  oneIdentityIdToken: string;
+  nonce: string;
+  oneIdentityClientId: string;
+};
+
 /**
  * Validate a JWT token from OneIdentity
  * @param oneIdentityIdToken - JWT token from OneIdentity (id_token)
@@ -12,11 +18,11 @@ import { getPublicKeys } from "../utils/PublicKey";
  * @param oneIdentityClientId - One Identity client ID used to validate the audience
  * @returns The payload of the decoded token if valid
  */
-export async function validateOneIdentityIdToken(
-  oneIdentityIdToken: string,
-  nonce: string,
-  oneIdentityClientId: string
-): Promise<OIDecodedIdToken> {
+export async function validateOneIdentityIdToken({
+  oneIdentityIdToken,
+  oneIdentityClientId,
+  nonce,
+}: ValidateOneIdentityIdTokenProps): Promise<OIDecodedIdToken> {
   console.debug("Start JWT Validation");
 
   const decodedToken = decode(oneIdentityIdToken, {

@@ -1,14 +1,23 @@
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import { OIExchangeCodeResponse } from "../../models/Token";
 
+type ExchangeOneIdentityCodeProps = {
+  code: string;
+  redirectUri: string;
+  oneIdentityCredentials: OneIdentityAwsSecretObject;
+};
+
 /**
  * Exchanges a OneIdentity authorization code for a OneIdentity token.
+ * @param code - The OneIdentity code to exchange
+ * @redirectUri - The redirect URI to pass in the request body
+ * @oneIdentityCredentials - One Identity credentials used to authenticate
  */
-export const exchangeOneIdentityCode = async (
-  code: string,
-  redirect_uri: string,
-  oneIdentityCredentials: OneIdentityAwsSecretObject
-): Promise<OIExchangeCodeResponse> => {
+export const exchangeOneIdentityCode = async ({
+  code,
+  redirectUri,
+  oneIdentityCredentials,
+}: ExchangeOneIdentityCodeProps): Promise<OIExchangeCodeResponse> => {
   const { oneIdentityClientId, oneIdentityClientSecret } =
     oneIdentityCredentials;
 
@@ -19,7 +28,7 @@ export const exchangeOneIdentityCode = async (
   const body = new URLSearchParams({
     code,
     grant_type: "authorization_code",
-    redirect_uri,
+    redirect_uri: redirectUri,
   });
 
   const response = await fetch(

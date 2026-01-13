@@ -33,11 +33,11 @@ describe("One Identity tests", () => {
 
     fetchMock.mockResolvedValue(mockResponse);
 
-    const result = await exchangeOneIdentityCode(
-      mockCode,
-      mockRedirectUri,
-      oneIdentityCredentialsMock
-    );
+    const result = await exchangeOneIdentityCode({
+      code: mockCode,
+      redirectUri: mockRedirectUri,
+      oneIdentityCredentials: oneIdentityCredentialsMock,
+    });
 
     expect(result).toEqual(oneIdentityExchangeCodeResponseMock);
 
@@ -65,11 +65,11 @@ describe("One Identity tests", () => {
     fetchMock.mockResolvedValue(mockResponse);
 
     await expect(
-      exchangeOneIdentityCode(
-        mockCode,
-        mockRedirectUri,
-        oneIdentityCredentialsMock
-      )
+      exchangeOneIdentityCode({
+        code: mockCode,
+        redirectUri: mockRedirectUri,
+        oneIdentityCredentials: oneIdentityCredentialsMock,
+      })
     ).rejects.toThrow(
       "Error during code exchange with OneIdentity: Bad Request"
     );
