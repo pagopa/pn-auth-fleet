@@ -54,4 +54,12 @@ describe("Audit Log", () => {
       "[AUD_ACC_LOGIN] - INFO - Start Token validation"
     );
   });
+
+  // it.only("test", () => {
+  //   auditLog({
+  //     message: "Origin not allowed",
+  //     aud_orig: "cioa",
+  //     status: "KO",
+  //   }).error("Errore custom");
+  // });
 });

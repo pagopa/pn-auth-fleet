@@ -2,7 +2,7 @@ import { ErrorResponseBody } from "../../models/Responses";
 import { ValidationException } from "../exception/validationException";
 
 export function generateKoResponse(
-  err: ValidationException | string,
+  err: ValidationException | string | Error,
   allowedOrigin: string
 ) {
   console.debug("GenerateKoResponse this err", err);
@@ -14,15 +14,15 @@ export function generateKoResponse(
     "Role not allowed": 403,
     "TaxId not allowed": 451,
   };
+  const errorMessage = typeof err === "string" ? err : err.message;
 
   if (err instanceof ValidationException) {
-    statusCode = statusMap[err.message] ?? 400;
-    responseBody.error = err.message;
+    statusCode = statusMap[errorMessage] ?? 400;
   } else {
     statusCode = 500;
-    responseBody.error = err;
   }
 
+  responseBody.error = errorMessage;
   responseBody.status = statusCode;
   responseBody.traceId = traceId;
 

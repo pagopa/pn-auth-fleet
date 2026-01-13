@@ -3,7 +3,6 @@ import { ValidationException } from "../../app/exception/validationException";
 import { getAWSParameterStore } from "../../app/utils/AwsParameters";
 import { getPublicKeys } from "../../app/utils/PublicKey";
 import {
-  isAudienceValid,
   isIssuerValid,
   isTaxIdValid,
   validateOneIdentityIdToken,
@@ -13,6 +12,7 @@ import {
   tokenNonce,
 } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
+import { oneIdentityClientIdMock } from "../__mock__/oneIdentity.mock";
 
 jest.mock("jsonwebtoken");
 jest.mock("../../app/utils/AwsParameters.ts");
@@ -42,7 +42,11 @@ describe("validateOneIdentityIdToken", () => {
     mockDecode.mockReturnValue(null);
 
     await expect(
-      validateOneIdentityIdToken(validToken, tokenNonce)
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Token is not valid"));
   });
 
@@ -53,7 +57,11 @@ describe("validateOneIdentityIdToken", () => {
     } as any);
 
     await expect(
-      validateOneIdentityIdToken(validToken, tokenNonce)
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Invalid algorithm"));
   });
 
@@ -67,7 +75,11 @@ describe("validateOneIdentityIdToken", () => {
     } as any);
 
     await expect(
-      validateOneIdentityIdToken(validToken, tokenNonce)
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Invalid Audience"));
   });
 
@@ -81,7 +93,11 @@ describe("validateOneIdentityIdToken", () => {
     } as any);
 
     await expect(
-      validateOneIdentityIdToken(validToken, tokenNonce)
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Issuer not known"));
   });
 
@@ -91,7 +107,11 @@ describe("validateOneIdentityIdToken", () => {
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
 
     await expect(
-      validateOneIdentityIdToken(validToken, tokenNonce)
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("TaxId not allowed"));
   });
 
@@ -105,7 +125,11 @@ describe("validateOneIdentityIdToken", () => {
     } as any);
 
     await expect(
-      validateOneIdentityIdToken(validToken, tokenNonce)
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Invalid nonce"));
   });
 
@@ -114,7 +138,11 @@ describe("validateOneIdentityIdToken", () => {
     mockGetAWSParameterStore.mockResolvedValue("*");
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
 
-    const result = await validateOneIdentityIdToken(validToken, tokenNonce);
+    const result = await validateOneIdentityIdToken({
+      oneIdentityIdToken: validToken,
+      nonce: tokenNonce,
+      oneIdentityClientId: oneIdentityClientIdMock,
+    });
 
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
     expect(mockVerify).toHaveBeenCalledWith(validToken, "mock-public-key");
@@ -125,7 +153,11 @@ describe("validateOneIdentityIdToken", () => {
     mockGetAWSParameterStore.mockResolvedValue("");
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
 
-    const result = await validateOneIdentityIdToken(validToken, tokenNonce);
+    const result = await validateOneIdentityIdToken({
+      oneIdentityIdToken: validToken,
+      nonce: tokenNonce,
+      oneIdentityClientId: oneIdentityClientIdMock,
+    });
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
   });
 
@@ -143,7 +175,11 @@ describe("validateOneIdentityIdToken", () => {
       })
       .mockReturnValueOnce({} as any);
 
-    const result = await validateOneIdentityIdToken(validToken, tokenNonce);
+    const result = await validateOneIdentityIdToken({
+      oneIdentityIdToken: validToken,
+      nonce: tokenNonce,
+      oneIdentityClientId: oneIdentityClientIdMock,
+    });
 
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
     expect(mockVerify).toHaveBeenCalledTimes(2);
@@ -172,7 +208,11 @@ describe("validateOneIdentityIdToken", () => {
     });
 
     await expect(
-      validateOneIdentityIdToken(validToken, tokenNonce)
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Invalid signature"));
 
     expect(mockVerify).toHaveBeenCalledTimes(2);
@@ -186,7 +226,11 @@ describe("validateOneIdentityIdToken", () => {
     });
 
     await expect(
-      validateOneIdentityIdToken(validToken, tokenNonce)
+      validateOneIdentityIdToken({
+        oneIdentityIdToken: validToken,
+        nonce: tokenNonce,
+        oneIdentityClientId: oneIdentityClientIdMock,
+      })
     ).rejects.toThrow(new ValidationException("Unknown error"));
   });
 });
@@ -214,29 +258,6 @@ describe("isIssuerValid", () => {
     const issuer = "https://spid-hub-test.dev.pn.pagopa.it";
 
     expect(isIssuerValid(issuer)).toBe(false);
-  });
-});
-
-describe("isAudienceValid", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    setupEnv();
-  });
-
-  it("should return true for allowed audience", () => {
-    const audience = "portale-pf-develop.fe.dev.pn.pagopa.it";
-    expect(isAudienceValid(audience)).toBe(true);
-  });
-
-  it("should return false for disallowed audience", () => {
-    const audience = "disallowed-audience";
-    expect(isAudienceValid(audience)).toBe(false);
-  });
-
-  it("should return false if ACCEPTED_AUDIENCE env var is not set", () => {
-    delete process.env.ACCEPTED_AUDIENCE;
-    const audience = "portale-pf-develop.fe.dev.pn.pagopa.it";
-    expect(isAudienceValid(audience)).toBe(false);
   });
 });
 

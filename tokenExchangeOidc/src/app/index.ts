@@ -7,6 +7,8 @@ import { generateKoResponse } from "./utils/Responses";
 import { makeLower } from "./utils/String";
 import { isOriginAllowed } from "./validation/Origin";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
+import { getAWSSecret } from "./utils/AwsParameters";
+import { OneIdentityAwsSecretObject } from "../models/Aws";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
@@ -63,15 +65,26 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   try {
-    const oneIdentityToken = await exchangeOneIdentityCode(
-      oidcCode,
-      redirectUri
-    );
+    const oneIdentitySecretName = process.env.ONE_IDENTITY_SECRET_NAME;
 
-    const decodedToken = await validateOneIdentityIdToken(
-      oneIdentityToken.id_token,
-      nonce
-    );
+    if (!oneIdentitySecretName) {
+      throw new Error("ONE_IDENTITY_SECRET_NAME is not set");
+    }
+
+    const oneIdentityCredentials =
+      await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
+
+    const oneIdentityToken = await exchangeOneIdentityCode({
+      code: oidcCode,
+      redirectUri,
+      oneIdentityCredentials,
+    });
+
+    const decodedToken = await validateOneIdentityIdToken({
+      oneIdentityIdToken: oneIdentityToken.id_token,
+      nonce,
+      oneIdentityClientId: oneIdentityCredentials.oneIdentityClientId,
+    });
 
     console.log("TMP - Decoded Token:", decodedToken);
 

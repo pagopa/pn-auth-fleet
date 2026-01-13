@@ -229,10 +229,6 @@ Parameters:
     Description: "Parameter of allowed login Tax Ids"
     Default: "/pn-auth-fleet/allowedLoginTaxids"
 
-  # TokenExchangeOidcLambdaEnvironmentAcceptedAudience:
-  #   Type: String
-  #   Description: Comma separated list of token audience accepted (REMOVED - uses OneIdentityClientId directly)
-
   # TokenExchangeOidcLambdaEnvironmentAudience:
   #   Type: String
   #   Description: Audience value for token generation  TODO/TBD
@@ -1380,7 +1376,6 @@ Resources:
           ALLOWED_ISSUER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedIssuer
           ALLOWED_ORIGIN: !Ref TokenExchangeOidcLambdaEnvironmentAllowedOrigin
           ALLOWED_TAXIDS_PARAMETER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter
-          ACCEPTED_AUDIENCE: !Ref OneIdentityClientId
           # OneIdentity specific variables (used)
           ONE_IDENTITY_BASEURL: !Ref OneIdentityBaseURL
           ONE_IDENTITY_SECRET_NAME: !Ref OneIdentitySecretName

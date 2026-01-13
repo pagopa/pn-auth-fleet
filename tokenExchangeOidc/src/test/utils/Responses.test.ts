@@ -14,6 +14,15 @@ describe("Responses Tests", () => {
     expect(result).toEqual(makeKoResponse("Some server error", 500));
   });
 
+  it("generateKoResponse - Generic error", () => {
+    const result = generateKoResponse(
+      new Error("Generic Error"),
+      allowedOrigin
+    );
+
+    expect(result).toEqual(makeKoResponse("Generic Error", 500));
+  });
+
   it("generateKoResponse - Role not allowed", () => {
     const result = generateKoResponse(
       new ValidationException("Role not allowed"),

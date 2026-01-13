@@ -15,7 +15,7 @@ describe("Object utils Tests", () => {
       expect(result.familyName).toEqual("*****");
       expect(result.name).toEqual("*****");
       expect(result.iss).toEqual("https://spid-hub-test.dev.pn.pagopa.it");
-      expect(result.aud).toEqual("portale-pf-develop.fe.dev.pn.pagopa.it");
+      expect(result.aud).toEqual("one-identity-client-id");
     });
 
     it("should not mask non-string fields", () => {

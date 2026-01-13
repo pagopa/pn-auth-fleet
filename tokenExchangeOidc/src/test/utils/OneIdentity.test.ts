@@ -1,5 +1,6 @@
-import * as ParameterStore from "../../app/utils/AwsParameters";
+import { ValidationException } from "../../app/exception/validationException";
 import { exchangeOneIdentityCode } from "../../app/utils/OneIdentity";
+import { oneIdentityCredentialsMock } from "../__mock__/oneIdentity.mock";
 import { oneIdentityExchangeCodeResponseMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
 
@@ -7,23 +8,14 @@ describe("One Identity tests", () => {
   const mockCode = "test_auth_code_123";
   const mockRedirectUri = "https://example.com/callback";
 
-  const mockSecret = {
-    oneIdentityClientId: "test-client-id",
-    oneIdentityClientSecret: "test-client-secret",
-  };
   const mockOneIdentityUrl = "https://uat.oneid.pagopa.it";
 
   let fetchMock: jest.SpyInstance;
-  let getAWSParameterMock: jest.SpyInstance;
 
   beforeEach(() => {
     setupEnv();
 
     fetchMock = jest.spyOn(global, "fetch").mockImplementation();
-
-    getAWSParameterMock = jest
-      .spyOn(ParameterStore, "getAWSSecret")
-      .mockResolvedValue(mockSecret);
   });
 
   afterEach(() => {
@@ -32,7 +24,7 @@ describe("One Identity tests", () => {
 
   it("should successfully exchange One Identity Code", async () => {
     const expectedCredentials = Buffer.from(
-      `${mockSecret.oneIdentityClientId}:${mockSecret.oneIdentityClientSecret}`
+      `${oneIdentityCredentialsMock.oneIdentityClientId}:${oneIdentityCredentialsMock.oneIdentityClientSecret}`
     ).toString("base64");
 
     const mockResponse = {
@@ -42,7 +34,11 @@ describe("One Identity tests", () => {
 
     fetchMock.mockResolvedValue(mockResponse);
 
-    const result = await exchangeOneIdentityCode(mockCode, mockRedirectUri);
+    const result = await exchangeOneIdentityCode({
+      code: mockCode,
+      redirectUri: mockRedirectUri,
+      oneIdentityCredentials: oneIdentityCredentialsMock,
+    });
 
     expect(result).toEqual(oneIdentityExchangeCodeResponseMock);
 
@@ -62,25 +58,25 @@ describe("One Identity tests", () => {
     expect(bodyParams.get("redirect_uri")).toBe(mockRedirectUri);
   });
 
-  it("should throw error when ONE_IDENTITY_SECRET_NAME is not set", async () => {
-    delete process.env.ONE_IDENTITY_SECRET_NAME;
-
-    await expect(
-      exchangeOneIdentityCode(mockCode, mockRedirectUri)
-    ).rejects.toThrow("ONE_IDENTITY_SECRET_NAME is not set");
-  });
-
   it("should throw error when response is not ok", async () => {
     const mockResponse = {
       ok: false,
+      status: 400,
       statusText: "Bad Request",
+      text: jest.fn().mockResolvedValue("Error during code exchange"),
     };
     fetchMock.mockResolvedValue(mockResponse);
 
     await expect(
-      exchangeOneIdentityCode(mockCode, mockRedirectUri)
+      exchangeOneIdentityCode({
+        code: mockCode,
+        redirectUri: mockRedirectUri,
+        oneIdentityCredentials: oneIdentityCredentialsMock,
+      })
     ).rejects.toThrow(
-      "Error during code exchange with OneIdentity: Bad Request"
+      new ValidationException(
+        "Error during code exchange with OneIdentity: Error during code exchange"
+      )
     );
   });
 });
