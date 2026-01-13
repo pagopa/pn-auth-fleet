@@ -1,22 +1,16 @@
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import { OIExchangeCodeResponse } from "../../models/Token";
-import { getAWSSecret } from "./AwsParameters";
 
 /**
  * Exchanges a OneIdentity authorization code for a OneIdentity token.
  */
 export const exchangeOneIdentityCode = async (
   code: string,
-  redirect_uri: string
+  redirect_uri: string,
+  oneIdentityCredentials: OneIdentityAwsSecretObject
 ): Promise<OIExchangeCodeResponse> => {
-  const oneIdentitySecretName = process.env.ONE_IDENTITY_SECRET_NAME;
-
-  if (!oneIdentitySecretName) {
-    throw new Error("ONE_IDENTITY_SECRET_NAME is not set");
-  }
-
   const { oneIdentityClientId, oneIdentityClientSecret } =
-    await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
+    oneIdentityCredentials;
 
   const credentials = Buffer.from(
     `${oneIdentityClientId}:${oneIdentityClientSecret}`

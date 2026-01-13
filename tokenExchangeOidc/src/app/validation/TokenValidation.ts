@@ -9,11 +9,13 @@ import { getPublicKeys } from "../utils/PublicKey";
  * Validate a JWT token from OneIdentity
  * @param oneIdentityIdToken - JWT token from OneIdentity (id_token)
  * @param nonce - Nonce to validate against the token payload
+ * @param oneIdentityClientId - One Identity client ID used to validate the audience
  * @returns The payload of the decoded token if valid
  */
 export async function validateOneIdentityIdToken(
   oneIdentityIdToken: string,
-  nonce: string
+  nonce: string,
+  oneIdentityClientId: string
 ): Promise<OIDecodedIdToken> {
   console.debug("Start JWT Validation");
 
@@ -48,7 +50,7 @@ export async function validateOneIdentityIdToken(
 
   const { iss: issuer, aud: audience, fiscalNumber } = payload;
 
-  const { alg, kid } = header;
+  const { alg } = header;
 
   // Validate algorithm
   if (alg !== "RS256") {
@@ -57,7 +59,7 @@ export async function validateOneIdentityIdToken(
   }
 
   // Validate audience
-  if (!isAudienceValid(audience)) {
+  if (audience !== oneIdentityClientId) {
     console.warn("Audience=%s not known", audience);
     throw new ValidationException("Invalid Audience");
   }
@@ -127,22 +129,6 @@ export function isIssuerValid(iss: string): boolean {
 
   const allowedIssuers = allowedIssuersEnv.split(",");
   return allowedIssuers.length > 0 && allowedIssuers.includes(iss);
-}
-
-/**
- * Check if the audience is in the allowed list
- * @param aud - Audience from the token
- */
-export function isAudienceValid(aud: string): boolean {
-  const allowedAudiencesEnv = process.env.ACCEPTED_AUDIENCE;
-
-  if (!allowedAudiencesEnv) {
-    console.error("Invalid env vars ACCEPTED_AUDIENCE", allowedAudiencesEnv);
-    return false;
-  }
-
-  const allowedAudiences = allowedAudiencesEnv.split(",");
-  return allowedAudiences.length > 0 && allowedAudiences.includes(aud);
 }
 
 /**

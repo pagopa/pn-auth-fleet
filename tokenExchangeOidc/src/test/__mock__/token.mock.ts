@@ -3,6 +3,7 @@ import {
   OIDecodedToken,
   OIExchangeCodeResponse,
 } from "../../models/Token";
+import { oneIdentityClientIdMock } from "./oneIdentity.mock";
 
 export const oneIdentityExchangeCodeResponseMock: OIExchangeCodeResponse = {
   access_token: "mock_access_token",
@@ -18,7 +19,7 @@ export const tokenNonce = "test-nonce-123";
 
 export const oneIdentityIdTokenMock: OIDecodedIdToken = {
   iss: "https://spid-hub-test.dev.pn.pagopa.it",
-  aud: "portale-pf-develop.fe.dev.pn.pagopa.it",
+  aud: oneIdentityClientIdMock,
   fiscalNumber: "RRRPRR50L17C282Y",
   nonce: tokenNonce,
   name: "Mario",
