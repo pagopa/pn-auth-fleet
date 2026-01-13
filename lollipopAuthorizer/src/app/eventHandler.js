@@ -18,7 +18,7 @@ const defaultDenyAllPolicy = {
 
 async function handleEvent(event) {
 
-    const lollipopBlock = process.env.LOLLIPOP_BLOCK;
+    const lollipopBlock = process.env.LOLLIPOP_BLOCK || 'false';
     console.log("[handleEvent] Lollipop Authorizer Validation Allowed - Modalita: ", lollipopBlock);
 
     let commandResult;
