@@ -3,4 +3,5 @@ export type RequestEventBody = {
   redirect_uri: string;
   nonce?: string;
   source?: string;
+  state?: string;
 };

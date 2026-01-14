@@ -1,14 +1,22 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { OneIdentityAwsSecretObject } from "../models/Aws";
 import { RequestEventBody } from "../models/Event";
 import { ValidationException } from "./exception/validationException";
 import { auditLog } from "./utils/AuditLog";
+import { getAWSSecret } from "./utils/AwsParameters";
 import { exchangeOneIdentityCode } from "./utils/OneIdentity";
-import { generateKoResponse } from "./utils/Responses";
+import {
+  generateKoResponse,
+  generateOkResponse,
+  generateTokenExchangeResponse,
+} from "./utils/Responses";
 import { makeLower } from "./utils/String";
+import {
+  generateJwtPayload,
+  generateSessionToken,
+} from "./utils/TokenGenerator";
 import { isOriginAllowed } from "./validation/Origin";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
-import { getAWSSecret } from "./utils/AwsParameters";
-import { OneIdentityAwsSecretObject } from "../models/Aws";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
@@ -17,6 +25,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   let oidcCode: string | undefined;
   let redirectUri: string | undefined;
   let nonce: string | undefined;
+  let state: string | undefined;
   let source;
 
   if (!eventOrigin) {
@@ -47,6 +56,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     oidcCode = requestBody?.code;
     redirectUri = requestBody?.redirect_uri;
     nonce = requestBody?.nonce;
+    state = requestBody?.state;
     source = requestBody?.source;
   } catch (err: any) {
     auditLog({
@@ -57,7 +67,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return generateKoResponse(err, eventOrigin);
   }
 
-  if (!oidcCode || !redirectUri || !nonce) {
+  if (!oidcCode || !redirectUri || !nonce || !state) {
     return generateKoResponse(
       "Missing required parameters in body",
       eventOrigin
@@ -86,10 +96,30 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       oneIdentityClientId: oneIdentityCredentials.oneIdentityClientId,
     });
 
-    console.log("TMP - Decoded Token:", decodedToken);
+    const tokenPayload = generateJwtPayload({
+      pairwise: decodedToken.pairwise,
+      state,
+    });
+    const sessionToken = await generateSessionToken(tokenPayload);
 
-    // TODO - 3 - Decodificare idToken e creare il session token (sessionToken)
-    // TODO - 4 - Aggiungere le informazioni del source
+    const response = await generateTokenExchangeResponse({
+      decodedToken,
+      payload: tokenPayload,
+      sessionToken,
+      state,
+    });
+
+    auditLog({
+      message: `Token successful generated with id: ${state}`,
+      aud_orig: eventOrigin,
+      status: "OK",
+      cx_type: "PF",
+      cx_id: `PF-${decodedToken.pairwise}`,
+      uid: decodedToken.pairwise,
+      jti: state,
+    }).info("success");
+
+    return generateOkResponse(response, eventOrigin);
   } catch (err: any) {
     auditLog({
       message: `Error generating token ${err.message}`,
@@ -98,12 +128,4 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }).warn(err instanceof ValidationException ? "warn" : "error");
     return generateKoResponse(err, eventOrigin);
   }
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: "Hello from AWS Lambda + TypeScript",
-      input: event,
-    }),
-  };
 };

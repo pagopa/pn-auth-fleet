@@ -29,3 +29,40 @@ export interface OIExchangeCodeResponse {
   id_token: string;
   id_token_type: string;
 }
+
+export interface JwtPayload {
+  iat: number;
+  exp: number;
+  uid: string;
+  iss: string;
+  aud: string;
+  jti: string;
+}
+
+export interface TokenExchangeResponse extends JwtPayload {
+  sessionToken: string;
+  name: string;
+  family_name: string;
+  fiscal_number: string;
+  from_aa: boolean;
+  level: string;
+  // source?: UserSource;
+}
+
+export interface JwtParts {
+  header: string;
+  payload: string;
+  signature?: string;
+}
+
+// enum SourceChannel {
+//   B2B = 'B2B',
+//   WEB = 'WEB',
+//   TPP = 'TPP',
+// }
+
+// interface UserSource {
+//   channel: SourceChannel;
+//   details: string;
+//   retrievalId: string;
+// }
