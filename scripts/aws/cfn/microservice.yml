@@ -113,6 +113,26 @@ Parameters:
       - "true"
       - "false"
 
+  ExpectedFirstLcOriginalUrl:
+    Type: String
+    Default: "^https://api-app.io.pagopa.it/\\S+$"
+
+  AssertionExpireInDays:
+    Type: Number
+    Default: 365
+
+  ExpectedFirstLcOriginalMethod:
+    Type: String
+    Default: "POST;GET"
+
+  IdpCieEntityId:
+    Type: String
+    Default: "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO"
+
+  IdpProviderConfigBaseUri:
+    Type: String
+    Default: "https://api.is.eng.pagopa.it"
+
   # Unused but required by CD pipeline
   MicroserviceNumber:
     Type: Number

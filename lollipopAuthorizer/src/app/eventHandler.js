@@ -1,6 +1,7 @@
 const { validateLollipopAuthorizer } = require('./lollipopAuthorizerValidation');
 const { generateIAMPolicy } = require("./iamPolicyGen");
 const { getCxId } = require("./dataVaultClient");
+const {lollipopConfig} = require('./config/lollipopConsumerRequestConfig');
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -18,7 +19,12 @@ const defaultDenyAllPolicy = {
 
 async function handleEvent(event) {
 
-    const lollipopBlock = process.env.LOLLIPOP_BLOCK || 'false';
+    let lollipopBlock;
+        if( process.env.LOLLIPOP_BLOCK === undefined || process.env.LOLLIPOP_BLOCK === '')
+            lollipopBlock = lollipopConfig.lollipopBlock;
+        else
+            lollipopBlock = process.env.LOLLIPOP_BLOCK;
+
     console.log("[handleEvent] Lollipop Authorizer Validation Allowed - Modalita: ", lollipopBlock);
 
     let commandResult;

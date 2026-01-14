@@ -34,6 +34,7 @@ const lollipopConfig = {
   assertionInstantTag: "Assertion",
   samlNamespaceSignature:'http://www.w3.org/2000/09/xmldsig#',
   signatureTag:"Signature",
+  lollipopBlock:"false"
 };
 
 const IDP_PROVIDER_CONFIG = {
