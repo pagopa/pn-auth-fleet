@@ -6,7 +6,7 @@ const LOG_LEVEL_MAP: Record<
   { level: LogLevel; value: number }
 > = {
   OK: { level: "info", value: 20000 },
-  KO: { level: "error", value: 40000 },
+  KO: { level: "warn", value: 40000 },
 };
 
 const statusPrefixMap: Record<AuditLogStatus, string> = {
