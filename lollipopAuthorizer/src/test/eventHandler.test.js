@@ -74,8 +74,11 @@ describe('EventHandler - Test Suite', () => {
         expect(stubs.getCxId.calledWith('TAX12345')).to.be.true;
         expect(stubs.generateIAMPolicy.calledWith(
             mockEvent.methodArn,
-            'CX-ID-999',
-            sinon.match.object
+            sinon.match({
+                name: 'Mario',
+                familyName: 'Rossi',
+                cxId: 'CX-ID-999'
+            })
         )).to.be.true;
     });
 
