@@ -1,12 +1,8 @@
 import chai from "chai";
 import sinon from "sinon";
 import esmock from "esmock";
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
 
 const { expect } = chai;
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 describe('EventHandler - Test Suite', () => {
     let handleEvent;
@@ -28,15 +24,15 @@ describe('EventHandler - Test Suite', () => {
         };
 
         const module = await esmock(
-            resolve(__dirname, '../app/eventHandler.js'),
+            '../app/eventHandler.js',
             {
-                [resolve(__dirname, '../app/lollipopAuthorizerValidation.js')]: {
+                '../app/lollipopAuthorizerValidation.js': {
                     validateLollipopAuthorizer: stubs.validateLollipopAuthorizer
                 },
-                [resolve(__dirname, '../app/iamPolicyGen.js')]: {
+                '../app/iamPolicyGen.js': {
                     generateIAMPolicy: stubs.generateIAMPolicy
                 },
-                [resolve(__dirname, '../app/dataVaultClient.js')]: {
+                '../app/dataVaultClient.js': {
                     getCxId: stubs.getCxId
                 }
             }

@@ -1,14 +1,9 @@
-import { expect  } from "chai";
+import {expect} from "chai";
 import lambdaTester from "lambda-tester";
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
 import sinon from "sinon";
 import esmock from "esmock";
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 describe("index tests", function () {
   let mock;
@@ -24,21 +19,15 @@ describe("index tests", function () {
       validateLollipopAuthorizer: sinon.stub(),
     };
 
-    const eventHandlerModule = await esmock(
-      resolve(__dirname, '../app/eventHandler.js'),
-      {
-        [resolve(__dirname, '../app/lollipopAuthorizerValidation.js')]: {
-          validateLollipopAuthorizer: stubs.validateLollipopAuthorizer
+    const eventHandlerModule = await esmock('../app/eventHandler.js', {
+        '../app/lollipopAuthorizerValidation.js': {
+            validateLollipopAuthorizer: stubs.validateLollipopAuthorizer
         }
-      }
-    );
+    });
 
-    lambda = await esmock(
-      resolve(__dirname, '../../index.js'),
-      {
-        [resolve(__dirname, '../../src/app/eventHandler.js')]: eventHandlerModule
-      }
-    );
+    lambda = await esmock('../../index.js', {
+        '../app/eventHandler.js': eventHandlerModule  // ← Path relativo a src/test/
+    });
 
     mock = new MockAdapter(axios);
   });
