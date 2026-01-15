@@ -1,14 +1,19 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { OneIdentityAwsSecretObject } from "../models/Aws";
 import { RequestEventBody } from "../models/Event";
+import { TokenExchangeResponse } from "../models/Token";
 import { ValidationException } from "./exception/validationException";
 import { auditLog } from "./utils/AuditLog";
+import { getAWSSecret } from "./utils/AwsParameters";
 import { exchangeOneIdentityCode } from "./utils/OneIdentity";
-import { generateKoResponse } from "./utils/Responses";
-import { makeLower } from "./utils/String";
+import {
+  generateKoResponse,
+  generateOkResponse,
+  generateTokenExchangeResponse,
+} from "./utils/Responses";
+import { makeLower, retrieveEnvVariable } from "./utils/String";
 import { isOriginAllowed } from "./validation/Origin";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
-import { getAWSSecret } from "./utils/AwsParameters";
-import { OneIdentityAwsSecretObject } from "../models/Aws";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
@@ -17,6 +22,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   let oidcCode: string | undefined;
   let redirectUri: string | undefined;
   let nonce: string | undefined;
+  let state: string | undefined;
   let source;
 
   if (!eventOrigin) {
@@ -47,7 +53,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     oidcCode = requestBody?.code;
     redirectUri = requestBody?.redirect_uri;
     nonce = requestBody?.nonce;
+    state = requestBody?.state;
     source = requestBody?.source;
+
+    if (!oidcCode || !redirectUri || !nonce || !state) {
+      return generateKoResponse(
+        "Missing required parameters in body",
+        eventOrigin
+      );
+    }
   } catch (err: any) {
     auditLog({
       message: `Error generating token ${err.message}`,
@@ -57,19 +71,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return generateKoResponse(err, eventOrigin);
   }
 
-  if (!oidcCode || !redirectUri || !nonce) {
-    return generateKoResponse(
-      "Missing required parameters in body",
-      eventOrigin
-    );
-  }
-
   try {
-    const oneIdentitySecretName = process.env.ONE_IDENTITY_SECRET_NAME;
-
-    if (!oneIdentitySecretName) {
-      throw new Error("ONE_IDENTITY_SECRET_NAME is not set");
-    }
+    const oneIdentitySecretName = retrieveEnvVariable(
+      "ONE_IDENTITY_SECRET_NAME"
+    );
 
     const oneIdentityCredentials =
       await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
@@ -80,30 +85,40 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       oneIdentityCredentials,
     });
 
-    const decodedToken = await validateOneIdentityIdToken({
+    const decodedIdToken = await validateOneIdentityIdToken({
       oneIdentityIdToken: oneIdentityToken.id_token,
       nonce,
       oneIdentityClientId: oneIdentityCredentials.oneIdentityClientId,
     });
 
-    console.log("TMP - Decoded Token:", decodedToken);
+    const response = await generateTokenExchangeResponse({
+      decodedIdToken,
+      state,
+    });
 
-    // TODO - 3 - Decodificare idToken e creare il session token (sessionToken)
-    // TODO - 4 - Aggiungere le informazioni del source
-  } catch (err: any) {
     auditLog({
+      message: `Token successful generated with id: ${state}`,
+      aud_orig: eventOrigin,
+      status: "OK",
+      cx_type: "PF",
+      cx_id: `PF-${decodedIdToken.pairwise}`,
+      uid: decodedIdToken.pairwise,
+      jti: state,
+    }).info("success");
+
+    return generateOkResponse<TokenExchangeResponse>(response, eventOrigin);
+  } catch (err: any) {
+    const log = auditLog({
       message: `Error generating token ${err.message}`,
       aud_orig: eventOrigin,
       status: "KO",
-    }).warn(err instanceof ValidationException ? "warn" : "error");
+    });
+
+    if (err instanceof ValidationException) {
+      log.warn("error");
+    } else {
+      log.error("error");
+    }
     return generateKoResponse(err, eventOrigin);
   }
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: "Hello from AWS Lambda + TypeScript",
-      input: event,
-    }),
-  };
 };
