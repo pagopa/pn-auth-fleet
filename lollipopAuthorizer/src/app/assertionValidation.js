@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { MILLISECONDS_PER_DAY, AssertionRefAlgorithms } = require('../app/constants/lollipopConstants');
-const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig')
+const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig');
 const LollipopAssertionException = require('./exception/lollipopAssertionException');
 const { validateSignature } = require('./signatureValidation');
 const { DOMParser } = require('xmldom');
@@ -87,8 +87,13 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
          );
     }
 
+    let assertionExpireInDays;
+    if( process.env.ASSERTION_EXPIRE_IN_DAYS === undefined || process.env.ASSERTION_EXPIRE_IN_DAYS === '')
+        assertionExpireInDays = lollipopConfig.assertionExpireInDays;
+    else
+        assertionExpireInDays = process.env.ASSERTION_EXPIRE_IN_DAYS;
     const dateNowMilliseconds = new Date().getTime();
-    const expiresAfterMilliseconds = lollipopConfig.assertionExpireInDays * MILLISECONDS_PER_DAY;
+    const expiresAfterMilliseconds = assertionExpireInDays * MILLISECONDS_PER_DAY;
     const dateNowLessNotBefore = (dateNowMilliseconds - notBeforeMilliseconds);
     if (isNaN(dateNowLessNotBefore) || isNaN(expiresAfterMilliseconds)) {
         console.error('[validateAssertionPeriod] the parameter dateNowLessNotBefore or the parameter expiresAfterMilliseconds is invalid or there is a parsing error');
