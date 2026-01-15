@@ -1,9 +1,9 @@
-const { validateLollipopRequest } = require("../app/lollipopRequestValidation");
-const { validateLollipopHttpSignature } = require("../app/lollipopHttpSignatureValidation");
-const { validateLollipopAssertion } = require('../app/lollipopAssertionValidation');
-const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const LollipopHttpSignatureValidationException = require('../app/exception/lollipopHttpSignatureValidationException');
-const LollipopAssertionException = require('../app/exception/LollipopAssertionException');
+import { validateLollipopRequest  } from "../app/lollipopRequestValidation.js";
+import { validateLollipopHttpSignature  } from "../app/lollipopHttpSignatureValidation.js";
+import { validateLollipopAssertion  } from "../app/lollipopAssertionValidation.js";
+import LollipopRequestContentValidationException from "../app/exception/lollipopRequestContentValidationException.js";
+import LollipopHttpSignatureValidationException from "../app/exception/lollipopHttpSignatureValidationException.js";
+import LollipopAssertionException from "../app/exception/lollipopAssertionException.js";
 
 
     async function validateLollipopAuthorizer(request){
@@ -76,4 +76,4 @@ const LollipopAssertionException = require('../app/exception/LollipopAssertionEx
         }
     }
 
-module.exports = { validateLollipopAuthorizer };
+export { validateLollipopAuthorizer };

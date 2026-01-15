@@ -37,4 +37,4 @@ class SPIDCertData {
 
 }
 
-module.exports = SPIDCertData;
+export default SPIDCertData;

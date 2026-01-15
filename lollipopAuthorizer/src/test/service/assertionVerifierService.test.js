@@ -1,34 +1,47 @@
-const {expect} = require('chai');
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { expect } from "chai";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
-const xmldom = require('xmldom');
-const path = require('path');
-const fs = require('fs').promises;
-const {ErrorRetrievingIdpCertDataException} = require('../../app/exception/errorRetrievingIdpCertDataException');
-const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
-const { VALIDATION_ERROR_CODES } = require('../../app/constants/lollipopConstants'); //, SAML_ASSERTION, IDP_PROVIDER_CONFIG
-const {lollipopConfig, IDP_PROVIDER_CONFIG} = require('../../app/config/lollipopConsumerRequestConfig');
-const { ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITHOUT_CERT,
+import xmldom from "xmldom";
+import path from "path";
+import fs from "fs";
+import sinon from "sinon";
+import { ErrorRetrievingIdpCertDataException } from "../../app/exception/errorRetrievingIdpCertDataException.js";
+import CertDataNotFoundException from "../../app/exception/certDataNotFoundException.js";
+import { VALIDATION_ERROR_CODES  } from "../../app/constants/lollipopErrorsConstants.js";
+import { lollipopConfig, IDP_PROVIDER_CONFIG } from "../../app/config/lollipopConsumerRequestConfig.js";
+import { ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITHOUT_CERT,
  ASSERTION_CIE_XML_WITH_VALID_ENTITY_ID_WITH_CERT,
- ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITH_CERT } = require('../fileTest/testUtils');
-const { getIdpCertData, parseInstantToUnixTimestamp } = require('../../app/service/assertionVerifierService');
-const idpCertProvider = require('../../app/openapiImpl/idp/idpCertProvider');
+ ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITH_CERT  } from "../fileTest/testUtils.js";
+import { getIdpCertData, parseInstantToUnixTimestamp  } from "../../app/service/assertionVerifierService.js";
+import idpCertProvider from "../../app/openapiImpl/idp/idpCertProvider.js";
 
 describe('getIdpCertData ', async () => {
 
     console.log('getIdpCertData TEST');
 
+    let idpCertProviderStub;
+
+    beforeEach(() => {
+        idpCertProviderStub = sinon.stub(idpCertProvider, 'getIdpCertData');
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
     it('TEST 1 - SPID dovrebbe restituire un IdpCertData[] valido', async () => {
 
         console.log('TEST 1 - SPID Caricamento Document Assertion fake per test ');
+        
+        idpCertProviderStub.resolves([{
+            entityId: 'https://posteid.poste.it',
+            tag: '20230228',
+            certData: 'MIIExTCCA62gAwIBAgIQIHtEvEhGM77HLa/0uvj98jANBgkqhkiG9w0BAQsFADBs'
+        }]);
+        
         let assertionDoc;
         try {
-
-        //  LETTURA DA FILE
-        //    const getAssertionXMLPath = path.join(__dirname, '..//fileTest//getAssertion.xml');
-        //    console.log("gestAssertionPath: " , getAssertionXMLPath);
-        //    const getAssertionXmlString = await fs.readFile(getAssertionXMLPath, 'utf8');
 
             const getAssertionXmlString = ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITH_CERT;
             const parserXML = new xmldom.DOMParser();
@@ -55,7 +68,7 @@ describe('getIdpCertData ', async () => {
         }
         console.log("---------------------------------------------");
         console.log("getIdpCertData ...");
-        const result = await getIdpCertData(assertionDoc);  //lista di IdpCertData
+        const result = await getIdpCertData(assertionDoc);
 
         expect(result).to.be.a('array').that.is.not.empty;
 
@@ -76,6 +89,13 @@ describe('getIdpCertData ', async () => {
     it('TEST 2 - CIE dovrebbe restituire un IdpCertData[] valido', async () => {
 
         console.log('TEST 2 - CIE Caricamento Document Assertion fake per test ');
+        
+        idpCertProviderStub.resolves([{
+            entityId: 'https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO',
+            tag: '20230228',
+            certData: 'MIIExTCCA62gAwIBAgIQIHtEvEhGM77HLa/0uvj98jANBgkqhkiG9w0BAQsFADBs'
+        }]);
+        
         let assertionDoc;
         try {
             const getAssertionXmlString = ASSERTION_CIE_XML_WITH_VALID_ENTITY_ID_WITH_CERT;
@@ -102,7 +122,7 @@ describe('getIdpCertData ', async () => {
         }
         console.log("---------------------------------------------");
         console.log("getIdpCertData ...");
-        const result = await getIdpCertData(assertionDoc);  //lista di IdpCertData
+        const result = await getIdpCertData(assertionDoc);
 
         expect(result).to.be.a('array').that.is.not.empty;
 
@@ -123,6 +143,9 @@ describe('getIdpCertData ', async () => {
     it('TEST 3 - SPID validateLollipopGetIdpCertData Failure For IdpCertData Not Found Exception', async () => {
 
         console.log('TEST 3 - SPID Caricamento Document Assertion fake per test ');
+        
+        idpCertProviderStub.rejects(new ErrorRetrievingIdpCertDataException('IDP_CERT_DATA_NOT_FOUND', 'Certificate not found'));
+        
         let assertionDoc;
         try {
             const getAssertionXmlString = ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITHOUT_CERT;
@@ -155,7 +178,6 @@ describe('getIdpCertData ', async () => {
             throw new Error('Expected exception was not thrown.');
 
         } catch (e) {
-            // Verifica che l'errore sia del tipo corretto
             expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
         }
         console.log("---------------------------------------------");
@@ -168,6 +190,8 @@ describe('getIdpCertData ', async () => {
 
         console.log("---------------------------------------------");
         console.log("getIdpCertData ...");
+        
+        idpCertProviderStub.rejects(new ErrorRetrievingIdpCertDataException('IDP_CERT_DATA_NOT_FOUND', 'Wrong EntityID'));
 
         try {
 
@@ -176,7 +200,6 @@ describe('getIdpCertData ', async () => {
             throw new Error('Expected exception was not thrown.');
 
         } catch (e) {
-            // Verifica che l'errore sia del tipo corretto
             console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
             expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
         }
@@ -187,12 +210,14 @@ describe('getIdpCertData ', async () => {
         console.log('TEST 5 - SPID CertData Failure for Wrong EntityID ');
         console.log("---------------------------------------------");
         console.log("getIdpCertData ...");
+        
+        idpCertProviderStub.rejects(new ErrorRetrievingIdpCertDataException('IDP_CERT_DATA_NOT_FOUND', 'Wrong EntityID'));
+        
         try {
             const parserizedInstant = parseInstantToUnixTimestamp("2023-02-28T16:27:25.400Z");
             await idpCertProvider.getIdpCertData(parserizedInstant, "https://postXXXXXXX.pugigste.it" );
             throw new Error('Expected exception was not thrown.');
         } catch (e) {
-            // Verifica che l'errore sia del tipo corretto
             console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
             expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
         }
@@ -203,12 +228,14 @@ describe('getIdpCertData ', async () => {
         console.log('TEST 6 - SPID CertData Failure for Wrong instant ');
         console.log("---------------------------------------------");
         console.log("getIdpCertData ...");
+        
+        idpCertProviderStub.rejects(new ErrorRetrievingIdpCertDataException('IDP_CERT_DATA_NOT_FOUND', 'Wrong instant'));
+        
         try {
             const parserizedInstant = parseInstantToUnixTimestamp("2023-02-28T16:27:88.400Z");
             await idpCertProvider.getIdpCertData(parserizedInstant, "https://posteid.poste.it" );
             throw new Error('Expected exception was not thrown.');
         } catch (e) {
-            // Verifica che l'errore sia del tipo corretto
             console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
             expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
         }
@@ -220,12 +247,14 @@ describe('getIdpCertData ', async () => {
             console.log('TEST 7 - CIE CertData Failure for Wrong instant ');
             console.log("---------------------------------------------");
             console.log("getIdpCertData ...");
+            
+            idpCertProviderStub.rejects(new ErrorRetrievingIdpCertDataException('IDP_CERT_DATA_NOT_FOUND', 'Wrong instant'));
+            
             try {
                 const parserizedInstant = parseInstantToUnixTimestamp("2023-02-28T16:27:88.400Z");
                 await idpCertProvider.getIdpCertData(parserizedInstant, IDP_PROVIDER_CONFIG.CIE_ENTITY_ID );
                 throw new Error('Expected exception was not thrown.');
             } catch (e) {
-                // Verifica che l'errore sia del tipo corretto
                 console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
                 expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
             }
@@ -237,12 +266,14 @@ describe('getIdpCertData ', async () => {
             console.log('TEST 8 - CertData Failure for ENTITY_ID is null');
             console.log("---------------------------------------------");
             console.log("getIdpCertData ...");
+            
+            idpCertProviderStub.rejects(new ErrorRetrievingIdpCertDataException('IDP_CERT_DATA_NOT_FOUND', 'EntityID is null'));
+            
             try {
                 const parserizedInstant = parseInstantToUnixTimestamp("2023-02-28T16:27:25.400Z");
                 await idpCertProvider.getIdpCertData(parserizedInstant, null );
                 throw new Error('Expected exception was not thrown.');
             } catch (e) {
-                // Verifica che l'errore sia del tipo corretto
                 console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
                 expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
             }
@@ -253,12 +284,13 @@ describe('getIdpCertData ', async () => {
             console.log('TEST 9 -  CertData Failure for Wrong instant NULL');
             console.log("---------------------------------------------");
             console.log("getIdpCertData ...");
+            
+            idpCertProviderStub.rejects(new ErrorRetrievingIdpCertDataException('IDP_CERT_DATA_NOT_FOUND', 'Instant is null'));
+            
             try {
-               // const parserizedInstant = parseInstantToUnixTimestamp("2023-02-28T16:27:88.400Z");
                 await idpCertProvider.getIdpCertData(null, IDP_PROVIDER_CONFIG.CIE_ENTITY_ID );
                 throw new Error('Expected exception was not thrown.');
             } catch (e) {
-                // Verifica che l'errore sia del tipo corretto
                 console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
                 expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
             }
@@ -270,12 +302,18 @@ describe('getIdpCertData ', async () => {
             console.log('TEST 10 - SPID_ENTITY_ID_MULTIPLE_SIGNATURE');
             console.log("---------------------------------------------");
             console.log("getIdpCertData ...");
+            
+            idpCertProviderStub.resolves([{
+                entityId: 'https://loginspid.aruba.it',
+                tag: '20230228',
+                certData: 'MIIExTCCA62gAwIBAgIQIHtEvEhGM77HLa/0uvj98jANBgkqhkiG9w0BAQsFADBs'
+            }]);
+            
             try {
                 const parserizedInstant = parseInstantToUnixTimestamp("2023-02-28T16:27:25.400Z");
                 const result = await idpCertProvider.getIdpCertData(parserizedInstant, "https://loginspid.aruba.it" );
                 expect(result).to.be.a('array');
             } catch (e) {
-                // Verifica che l'errore sia del tipo corretto
                 console.error("ERROR: ",e.errorCode, " - Message: ", e.message);
                 expect(e).to.be.an.instanceOf(ErrorRetrievingIdpCertDataException);
             }

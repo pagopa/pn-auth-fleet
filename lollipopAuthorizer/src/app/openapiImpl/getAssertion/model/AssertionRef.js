@@ -11,7 +11,7 @@
  *
  */
 
-const ApiClient = require('../ApiClient')
+import ApiClient from "../ApiClient.js"
 /**
  * The AssertionRef model module.
  * @module model/AssertionRef
@@ -136,4 +136,4 @@ AssertionRef.OneOf = ["String"];
 
 AssertionRef.instance = new AssertionRef();
 
-module.exports = AssertionRef;
+export default AssertionRef;

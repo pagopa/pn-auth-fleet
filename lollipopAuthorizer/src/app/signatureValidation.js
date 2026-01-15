@@ -1,10 +1,10 @@
-const { SignedXml } = require('xml-crypto');
-const { DOMParser, XMLSerializer } = require('@xmldom/xmldom');
-const LollipopAssertionException = require('./exception/lollipopAssertionException');
-const { VALIDATION_ERROR_CODES } = require('./constants/lollipopErrorsConstants');
-const { BEGIN_CERTIFICATE, END_CERTIFICATE } = require('./constants/lollipopConstants');
-const ValidationException = require('./exception/validationException');
-const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
+import { SignedXml  } from "xml-crypto";
+import { DOMParser, XMLSerializer  } from "@xmldom/xmldom";
+import LollipopAssertionException from "./exception/lollipopAssertionException.js";
+import { VALIDATION_ERROR_CODES  } from "./constants/lollipopErrorsConstants.js";
+import { BEGIN_CERTIFICATE, END_CERTIFICATE  } from "./constants/lollipopConstants.js";
+import ValidationException from "./exception/validationException.js";
+import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js";
 
 /**
  * Estrae l'assertion firmata da un documento xml. Se il documento contiene più tag <Assertion>, viene selezionata la prima
@@ -232,7 +232,5 @@ function getX509CertificatePEM(certBase64) {
     }
 }
 
-module.exports = {
-    validateSignature,
-    extractAssertion 
-}
+export { validateSignature,
+    extractAssertion }

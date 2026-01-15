@@ -7,4 +7,4 @@ class CertDataNotFoundException extends Error {
   }
 }
 
-module.exports = CertDataNotFoundException;
+export default CertDataNotFoundException;

@@ -1,15 +1,14 @@
-const { expect } = require('chai');
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { expect  } from "chai";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
-const { DOMParser, XMLSerializer } = require('@xmldom/xmldom');
-const { validateSignature } = require('../app/signatureValidation');
-const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
-const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
-const { 
-    VALID_ASSERTION_XML, 
+import { DOMParser, XMLSerializer  } from "@xmldom/xmldom";
+import { validateSignature  } from "../app/signatureValidation.js";
+import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
+import LollipopAssertionException from "../app/exception/lollipopAssertionException.js";
+import { VALID_ASSERTION_XML, 
     VALID_IDP_CERTIFICATE
-} = require('./constants/lollipopConstantsTest');
+ } from "./constants/lollipopConstantsTest.js";
 
 describe('signatureValidation Tests - Complete Suite', () => {
     

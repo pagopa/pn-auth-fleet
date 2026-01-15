@@ -1,4 +1,4 @@
-const LollipopAssertionException = require('./lollipopAssertionException');
+import LollipopAssertionException from "./lollipopAssertionException.js";
 
 class OidcAssertionNotSupported extends LollipopAssertionException {
   constructor(errorCode, message) {
@@ -6,4 +6,4 @@ class OidcAssertionNotSupported extends LollipopAssertionException {
   }
 }
 
-module.exports = OidcAssertionNotSupported;
+export default OidcAssertionNotSupported;

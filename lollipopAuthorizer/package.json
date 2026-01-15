@@ -1,12 +1,13 @@
 {
   "name": "lollipop-authorizer",
   "version": "1.0.0",
+  "type": "module",
   "description": "lambda per verificare pseudo anomizzare il codice fiscale passato dal backend di IO",
   "main": "index.js",
   "scripts": {
     "test-build": "npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
     "build": "npm prune --production && rm -f ./function.zip && zip -r ./function.zip . -x './src/test/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
-    "test": "nyc --reporter=html --reporter=text mocha --require ./src/test/tests-setup.js './src/test/**/*.test.js' --recursive --timeout=3000 --require dotenv/config --exit",
+    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=30000 --exit",
     "coverage": "nyc report --reporter=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
   },
@@ -18,6 +19,7 @@
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
     "cross-env": "^10.1.0",
+    "esmock": "^2.7.3",
     "dotenv-expand": "^12.0.3",
     "lambda-tester": "^4.0.1",
     "mocha": "^9.2.2",

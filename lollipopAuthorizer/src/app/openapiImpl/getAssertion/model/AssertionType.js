@@ -11,7 +11,7 @@
  *
  */
 
-const ApiClient = require('../ApiClient').default/**
+import ApiClient from "../ApiClient.js"/**
 * Enum class AssertionType.
 * @enum {}
 * @readonly
@@ -32,4 +32,4 @@ class AssertionType {
         return object;
     }
 }
-module.exports = AssertionType;
+export default AssertionType;

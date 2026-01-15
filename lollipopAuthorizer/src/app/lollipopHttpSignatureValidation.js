@@ -1,9 +1,9 @@
-const { verifyHttpSignature} = require("./verifyHttpSignature");
-const CommandResult = require('../app/model/CommandResult');
-const { lollipopConfig } = require("../app/config/lollipopConsumerRequestConfig");
-const { VERIFY_HTTP_ERROR_CODES } = require("../app/constants/lollipopErrorsConstants");
-const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const LollipopHttpSignatureValidationException = require('../app/exception/lollipopHttpSignatureValidationException');
+import { verifyHttpSignature } from "./verifyHttpSignature.js";
+import CommandResult from "../app/model/CommandResult.js";
+import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js";
+import { VERIFY_HTTP_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
+import LollipopRequestContentValidationException from "../app/exception/lollipopRequestContentValidationException.js";
+import LollipopHttpSignatureValidationException from "../app/exception/lollipopHttpSignatureValidationException.js";
 
 /**
  * Checks whether the calculated signatures of the required parameter matches with those
@@ -49,6 +49,4 @@ async function validateLollipopHttpSignature(request) {
     }
 }
 
-module.exports = {
-    validateLollipopHttpSignature,
-};
+export { validateLollipopHttpSignature, };

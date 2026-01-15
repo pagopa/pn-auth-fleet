@@ -1,17 +1,16 @@
-const {
-    getAssertionDoc,
+import { getAssertionDoc,
 	validateAssertionPeriod,
 	validateUserId,
 	validateInResponseTo,
 	getIdpCertDataAssertion,
 	validateSignatureAssertion,
 	validateFullNameHeader
-} = require("./assertionValidation");
+ } from "./assertionValidation.js";
 
-const CommandResult = require('./model/CommandResult');
-const { lollipopConfig } = require("../app/config/lollipopConsumerRequestConfig");
-const { VALIDATION_ERROR_CODES } = require("../app/constants/lollipopErrorsConstants");
-const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
+import CommandResult from "./model/CommandResult.js";
+import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js";
+import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
+import LollipopAssertionException from "../app/exception/lollipopAssertionException.js";
 
 /**
  * Validazione delle request assertion.
@@ -93,6 +92,4 @@ async function validateLollipopAssertion(request) {
 	}
 }
 
-module.exports = {
-    validateLollipopAssertion,
-};
+export { validateLollipopAssertion, };

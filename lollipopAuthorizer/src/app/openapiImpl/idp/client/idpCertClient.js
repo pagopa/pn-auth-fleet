@@ -1,17 +1,17 @@
-const CertDataNotFoundException = require('../../../exception/certDataNotFoundException');
-const IllegalArgumentException = require('../../../exception/illegalArgumentException');
-const InvalidInstantFormatException  = require('../../../exception/invalidInstantFormatException');
-const TagListSearchOutOfBoundException  = require('../../../exception/tagListSearchOutOfBoundException');
-const EntityIdNotFoundException  = require( '../../../exception/entityIdNotFoundException');
-const {ErrorRetrievingIdpCertDataException, ErrorCode } = require('../../../exception/errorRetrievingIdpCertDataException');
-const {lollipopConfig} = require('../../../config/lollipopConsumerRequestConfig');
-const ApiException  = require( '../../../exception/apiException');
-const CIECertData  = require( '../model/CIECertData');
-const SPIDCertData  = require( '../model/SPIDCertData');
-const DefaultApi  = require( '../api/DefaultApi');
-const EntityDescriptor = require( '../model/EntityDescriptor');
-const IdpCertData = require( '../../../model/IdpCertData');
-const xml2js = require('xml2js');
+import CertDataNotFoundException from "../../../exception/certDataNotFoundException.js";
+import IllegalArgumentException from "../../../exception/illegalArgumentException.js";
+import InvalidInstantFormatException from "../../../exception/invalidInstantFormatException.js";
+import TagListSearchOutOfBoundException from "../../../exception/tagListSearchOutOfBoundException.js";
+import EntityIdNotFoundException from '../../../exception/entityIdNotFoundException.js';
+import { ErrorRetrievingIdpCertDataException, ErrorCode } from "../../../exception/errorRetrievingIdpCertDataException.js";
+import { lollipopConfig } from "../../../config/lollipopConsumerRequestConfig.js";
+import ApiException from '../../../exception/apiException.js';
+import CIECertData from '../model/CIECertData.js';
+import SPIDCertData from '../model/SPIDCertData.js';
+import DefaultApi from '../api/DefaultApi.js';
+import EntityDescriptor from '../model/EntityDescriptor.js';
+import IdpCertData from '../../../model/IdpCertData.js';
+import xml2js from "xml2js";
 
 
 class IdpCertClient {
@@ -500,4 +500,4 @@ class IdpCertClient {
    }
 
 
-module.exports = IdpCertClient;
+export default IdpCertClient;

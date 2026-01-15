@@ -9,7 +9,7 @@ if (process.env.PR_NUM) {
   options["sonar.pullrequest.key"] = process.env.PR_NUM;
 }
 
-const scanner = require("sonarqube-scanner");
+import scanner from "sonarqube-scanner";
 
 scanner(
   {

@@ -1,4 +1,4 @@
-const {expect} = require('chai');
+import chai from "chai";
 // test utile solo per  testare la valorizzazione del .env
 describe('ENV TEST ', () => {
 

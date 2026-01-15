@@ -39,4 +39,4 @@ class CIECertData {
 
 
 
-module.exports = CIECertData;
+export default CIECertData;

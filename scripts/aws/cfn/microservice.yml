@@ -216,6 +216,9 @@ Parameters:
   PnRaddBaseliningLambdaName:
     Type: String
 
+  LollipopAuthorizerLambdaName:
+    Type: String
+
   TokenExchangeWafLimit:
     Type: Number
     Default: "600000"
@@ -700,6 +703,102 @@ Resources:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
       Parameters:
         FunctionName: !Ref IoAuthorizerLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###               LOLLIPOP AUTHORIZER LAMBDA                ###
+  #########################################################
+
+  # Lambda function
+  LollipopAuthorizerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref LollipopAuthorizerLambdaName
+      Runtime: nodejs22.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/lollipopAuthorizerLambda.zip"
+      Environment:
+        Variables:
+          CX_TAXID_HEADER: "x-pagopa-cx-taxid"
+          LOLLIPOP_BLOCK: "false"
+          EXPECTED_FIRST_LC_ORIGINAL_URL: " ^https://api-app.io.pagopa.it/\\S+$"
+          ASSERTION_EXPIRE_IN_DAYS: "365"
+          EXPECTED_FIRST_LC_ORIGINAL_METHOD: "POST;GET"
+          IDP_CLIENT_CIEID: "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO"
+          IDP_CONFIG_BASE_URI: "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO"
+          PN_DATA_VAULT_BASEURL: "http://alb.confidential.pn.internal:8080"
+      Role: !GetAtt lollipopAuthorizerLambdaRole.Arn
+      VpcConfig:
+        Fn::If:
+          - HaveToDefineVpcs
+          - SecurityGroupIds:
+              - !GetAtt DataVaultLollipopAuthorizerServiceSecurityGroup.GroupId
+            SubnetIds: !Ref SubnetsIds
+          - !Ref AWS::NoValue
+      TracingConfig:
+        Mode: Active
+      Tags:
+        - Key: "pn-eni-related"
+          Value: "true"
+        - Key: "pn-eni-related-groupName-regexp"
+          Value: !Base64 "^pn-auth-fleet-microsvc-prod-DataVaultLollipopAuthorizerServiceSecurityGroup.*$"
+
+  # Lambda function role
+  lollipopAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-lollipopAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: !Sub ${ProjectName}-lollipopAuthorizerLambdaRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+
+  # Data vault Service security group
+  DataVaultLollipopAuthorizerServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: HaveToDefineVpcs
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-data-vault-lollipopAuthorizer-SecGrp
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+
+  lollipopAuthorizerLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref LollipopAuthorizerLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   ###               JWT AUTHORIZER LAMBDA               ###
@@ -2188,7 +2287,7 @@ Resources:
         DashboardName: !Sub "${ProjectName}-auth-fleet-v2"
         LambdaArns: !Join
           - ","
-          - - !GetAtt IoAuthorizerLambda.Arn
+          - - !GetAtt lollipopAuthorizerLambda.Arn
             - !GetAtt ApiKeyAuthorizerV2Lambda.Arn
             - !GetAtt JwtAuthorizerLambda.Arn
             - !GetAtt B2BAuthorizerLambda.Arn            
@@ -2203,7 +2302,7 @@ Resources:
         AlarmArns: !Join
           - ","
           - - !GetAtt ApiKeyAuthorizerV2LambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
-            - !GetAtt IoAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt lollipopAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwtAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt BackofficeAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt B2BAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
@@ -2216,7 +2315,7 @@ Resources:
         LogGroupsNames: !Join
           - ","
           - - !Sub "/aws/lambda/${ApiKeyAuthorizerV2LambdaName}"
-            - !Sub "/aws/lambda/${IoAuthorizerLambdaName}"
+            - !Sub "/aws/lambda/${LollipopAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${JwtAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${BackofficeAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${JWKSCacheRefreshLambdaName}"

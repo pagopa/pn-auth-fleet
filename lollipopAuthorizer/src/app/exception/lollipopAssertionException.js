@@ -7,4 +7,4 @@ class LollipopAssertionException extends Error {
   }
 }
 
-module.exports = LollipopAssertionException;
+export default LollipopAssertionException;

@@ -1,9 +1,9 @@
-const {IDP_PROVIDER_CONFIG} = require('../../config/lollipopConsumerRequestConfig');
-const {ErrorRetrievingIdpCertDataException, ErrorCode} = require('../../exception/errorRetrievingIdpCertDataException');
-const CertDataNotFoundException = require('../../exception/certDataNotFoundException');
-const IllegalArgumentException = require('../../exception/illegalArgumentException');
-const IdpCertClient = require('./client/idpCertClient'); //.default;
-const ApiClientClass = require('./ApiClient');
+import { IDP_PROVIDER_CONFIG } from "../../config/lollipopConsumerRequestConfig.js";
+import { ErrorRetrievingIdpCertDataException, ErrorCode } from "../../exception/errorRetrievingIdpCertDataException.js";
+import CertDataNotFoundException from "../../exception/certDataNotFoundException.js";
+import IllegalArgumentException from "../../exception/illegalArgumentException.js";
+import IdpCertClient from "./client/idpCertClient.js"; //.default;
+import ApiClientClass from "./ApiClient.js";
 
 
     async function getIdpCertData(instant, entityId) {
@@ -41,6 +41,4 @@ const ApiClientClass = require('./ApiClient');
     }
 
 
-module.exports = {
-    getIdpCertData,
-}
+export default { getIdpCertData };

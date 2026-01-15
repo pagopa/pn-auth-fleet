@@ -1,4 +1,4 @@
-const ValidationException = require("./exception/validationException.js");
+import ValidationException from "./exception/validationException.js";
 
 async function generateIAMPolicy(resourceArn, contextMap) {
     if (!contextMap || !resourceArn ) {
@@ -65,4 +65,4 @@ function generatePolicy(principalId, policyStatement, contextMap) {
   };
 }
 
-module.exports = { generateIAMPolicy };
+export { generateIAMPolicy };

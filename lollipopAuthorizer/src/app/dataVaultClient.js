@@ -1,12 +1,12 @@
-const AWSXRay = require("aws-xray-sdk-core");
-const http = require("http");
-const https = require("https");
+import AWSXRay from "aws-xray-sdk-core";
+import http from "http";
+import https from "https";
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
 
 // the axios import must be after the xray capture, otherwise the xray tracking will not work
-const axios = require("axios");
+import axios from "axios";
 
 function anonymizeTaxId(taxId){
   if (!taxId) return "";
@@ -65,4 +65,4 @@ async function getCxId(taxId) {
   }
 }
 
-module.exports = { getCxId };
+export { getCxId };

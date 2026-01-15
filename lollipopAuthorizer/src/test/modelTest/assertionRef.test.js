@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const AssertionRef = require('../../app/openapiImpl/getAssertion/model/AssertionRef');
+import { expect  } from "chai";
+import AssertionRef from "../../app/openapiImpl/getAssertion/model/AssertionRef.js";
 
 describe('AssertionRef', () => {
 
