@@ -8,7 +8,7 @@ import { ValidationException } from "../exception/validationException";
 
 interface GenerateTokenResponseProps {
   sessionToken: string;
-  decodedToken: OIDecodedIdToken;
+  decodedIdToken: OIDecodedIdToken;
   payload: JwtPayload;
   state: string;
 }
@@ -17,21 +17,21 @@ interface GenerateTokenResponseProps {
  * Generate a token exchange response compatible with SEND
  *
  * @param sessionToken - The generate Session Token JWT
- * @param decodedToken - One Identity decoded token
+ * @param decodedIdToken - One Identity ID token decoded
  * @param payload - The payload of Session Token
  * @param state - The state from request body
  */
 export const generateTokenExchangeResponse = async ({
   sessionToken,
-  decodedToken,
+  decodedIdToken,
   payload,
   state,
 }: GenerateTokenResponseProps): Promise<TokenExchangeResponse> => ({
   sessionToken,
-  name: decodedToken.name,
-  family_name: decodedToken.familyName,
-  uid: decodedToken.pairwise,
-  fiscal_number: decodedToken.fiscalNumber,
+  name: decodedIdToken.name,
+  family_name: decodedIdToken.familyName,
+  uid: decodedIdToken.pairwise,
+  fiscal_number: decodedIdToken.fiscalNumber,
   from_aa: false,
   level: "L2",
   aud: payload.aud,
@@ -41,10 +41,7 @@ export const generateTokenExchangeResponse = async ({
   jti: state,
 });
 
-export function generateOkResponse(
-  response: TokenExchangeResponse,
-  allowedOrigin: string
-) {
+export function generateOkResponse<T>(response: T, allowedOrigin: string) {
   return {
     statusCode: 200,
     headers: {

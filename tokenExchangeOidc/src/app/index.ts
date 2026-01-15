@@ -17,6 +17,7 @@ import {
 } from "./utils/TokenGenerator";
 import { isOriginAllowed } from "./validation/Origin";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
+import { TokenExchangeResponse } from "../models/Token";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
@@ -58,6 +59,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     nonce = requestBody?.nonce;
     state = requestBody?.state;
     source = requestBody?.source;
+
+    if (!oidcCode || !redirectUri || !nonce || !state) {
+      return generateKoResponse(
+        "Missing required parameters in body",
+        eventOrigin
+      );
+    }
   } catch (err: any) {
     auditLog({
       message: `Error generating token ${err.message}`,
@@ -65,13 +73,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       status: "KO",
     }).warn("error");
     return generateKoResponse(err, eventOrigin);
-  }
-
-  if (!oidcCode || !redirectUri || !nonce || !state) {
-    return generateKoResponse(
-      "Missing required parameters in body",
-      eventOrigin
-    );
   }
 
   try {
@@ -90,20 +91,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       oneIdentityCredentials,
     });
 
-    const decodedToken = await validateOneIdentityIdToken({
+    const decodedIdToken = await validateOneIdentityIdToken({
       oneIdentityIdToken: oneIdentityToken.id_token,
       nonce,
       oneIdentityClientId: oneIdentityCredentials.oneIdentityClientId,
     });
 
     const tokenPayload = generateJwtPayload({
-      pairwise: decodedToken.pairwise,
+      pairwise: decodedIdToken.pairwise,
       state,
     });
     const sessionToken = await generateSessionToken(tokenPayload);
 
     const response = await generateTokenExchangeResponse({
-      decodedToken,
+      decodedIdToken,
       payload: tokenPayload,
       sessionToken,
       state,
@@ -114,18 +115,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       aud_orig: eventOrigin,
       status: "OK",
       cx_type: "PF",
-      cx_id: `PF-${decodedToken.pairwise}`,
-      uid: decodedToken.pairwise,
+      cx_id: `PF-${decodedIdToken.pairwise}`,
+      uid: decodedIdToken.pairwise,
       jti: state,
     }).info("success");
 
-    return generateOkResponse(response, eventOrigin);
+    return generateOkResponse<TokenExchangeResponse>(response, eventOrigin);
   } catch (err: any) {
-    auditLog({
+    const log = auditLog({
       message: `Error generating token ${err.message}`,
       aud_orig: eventOrigin,
       status: "KO",
-    }).warn(err instanceof ValidationException ? "warn" : "error");
+    });
+
+    if (err instanceof ValidationException) {
+      log.warn("error");
+    } else {
+      log.error("error");
+    }
     return generateKoResponse(err, eventOrigin);
   }
 };
