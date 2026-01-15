@@ -1,6 +1,7 @@
 const { validateLollipopAuthorizer } = require('./lollipopAuthorizerValidation');
 const { generateIAMPolicy } = require("./iamPolicyGen");
 const { getCxId } = require("./dataVaultClient");
+const {lollipopConfig} = require('./config/lollipopConsumerRequestConfig');
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -18,7 +19,14 @@ const defaultDenyAllPolicy = {
 
 async function handleEvent(event) {
 
-    console.log("[handleEvent] Lollipop Authorizer Validation Allowed");
+    let lollipopBlock;
+        if( process.env.LOLLIPOP_BLOCK === undefined || process.env.LOLLIPOP_BLOCK === '')
+            lollipopBlock = lollipopConfig.lollipopBlock;
+        else
+            lollipopBlock = process.env.LOLLIPOP_BLOCK;
+
+    console.log("[handleEvent] Lollipop Authorizer Validation Allowed - Modalita: ", lollipopBlock);
+
     let commandResult;
     let commandResultName ='';
     let commandResultFamilyName='';
@@ -31,21 +39,27 @@ async function handleEvent(event) {
           };
 
           commandResult = await validateLollipopAuthorizer(request);
-          /* ATTENZIONE: IN FASE DI Enforcement, il seguente if DEVE ESSERE RIPRISTINATO e ELIMINATE LE SUCCESSIVE RIGHE
-          if(commandResult.statusCode !== 200){
-            console.error(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
-            return defaultDenyAllPolicy;
-          }*/
-
-       // Start ATTENZIONE: IN FASE DI Enforcement, le seguenti righe DEVONO ESSERE ELIMINATE
-          if(commandResult.statusCode !== 200){
-              console.warn(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
-          }
+            // ATTENZIONE: IN FASE DI Enforcement, la variabile lollipopBlock deve essere valorizzato a true
+            if (String(lollipopBlock).toLowerCase() === "true") {
+              if(commandResult.statusCode !== 200){
+                console.error(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
+                return defaultDenyAllPolicy;
+              }
+            }else{
+              if(commandResult.statusCode !== 200){
+                  console.warn(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
+              }
+            }
       } catch (error) {
-          console.warn("Lollipop Authorizer Validation - ErrorCode: ", error.errorCode, " - Message: ", error.message);
+            if (String(lollipopBlock).toLowerCase() === "true") {
+                  console.error(`[handleEvent] - Lollipop Authorizer Validation fallita: ${commandResult.resultCode}. Denying access.`);
+                  return defaultDenyAllPolicy;
+            }else{
+                  console.warn("Lollipop Authorizer Validation - ErrorCode: ", error.errorCode, " - Message: ", error.message);
+            }
       }
+
       try{
-       // End  ATTENZIONE
 
           // Capture taxId from event
           const taxId = event?.headers?.["x-pagopa-cx-taxid"];

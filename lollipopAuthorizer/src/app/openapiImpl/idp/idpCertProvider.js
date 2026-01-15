@@ -28,7 +28,14 @@ const ApiClientClass = require('./ApiClient');
 
  
     function provideClient(){
-        const apiClientInstance = new ApiClientClass(IDP_PROVIDER_CONFIG.BASE_URI);
+
+        let idpProviderConfigBaseUri;
+        if( process.env.IDP_CONFIG_BASE_URI === undefined || process.env.IDP_CONFIG_BASE_URI === '')
+            idpProviderConfigBaseUri = IDP_PROVIDER_CONFIG.BASE_URI;
+        else
+            idpProviderConfigBaseUri = process.env.IDP_CONFIG_BASE_URI;
+
+        const apiClientInstance = new ApiClientClass(idpProviderConfigBaseUri);
         //apiClient.basePath = IDP_PROVIDER_CONFIG.BASE_URI;
         return new IdpCertClient(apiClientInstance, IDP_PROVIDER_CONFIG);
     }

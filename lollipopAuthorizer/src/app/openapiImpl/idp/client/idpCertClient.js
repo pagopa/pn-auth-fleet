@@ -48,8 +48,14 @@ class IdpCertClient {
 
         //(CIE vs SPID) getListCertData
         try {
-            //this.idpClientConfig è settato IDP_PROVIDER_CONFIG nel costruttore
-            if (this.idpClientConfig.CIE_ENTITY_ID[0].includes(entityId)) {
+            //this.idpClientConfig è settato IDP_PROVIDER_CONFIG nel costruttore - this.idpClientConfig.CIE_ENTITY_ID[0];
+            let idpCieEntityId;
+            if( process.env.IDP_CLIENT_CIEID === undefined || process.env.IDP_CLIENT_CIEID === '')
+                idpCieEntityId = lollipopConfig.idpCieEntityId;
+            else
+                idpCieEntityId = process.env.IDP_CLIENT_CIEID;
+
+            if (idpCieEntityId.includes(entityId)) {
                 listCertData = await this.getCieCerts(entityId, instant, listCertData, "CIECertData");
             } else {
                 listCertData = await this.getSpidCerts(entityId, instant, listCertData, "SPIDCertData");

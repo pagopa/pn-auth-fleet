@@ -232,7 +232,13 @@ async function validateOriginalMethodHeader(originalMethod) {
   }
 
 
-  const validMethods = lollipopConfig.expectedFirstLcOriginalMethod.split(';');
+    let expectedFirstLcOriginalMethod;
+    if( process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === undefined || process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === '')
+        expectedFirstLcOriginalMethod = lollipopConfig.expectedFirstLcOriginalMethod;
+    else
+        expectedFirstLcOriginalMethod = process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD;
+
+  const validMethods = expectedFirstLcOriginalMethod.split(';');
   if (!Object.values(validMethods).includes(originalMethod)) {
     console.error('[validateOriginalMethodHeader] ERROR: Unexpected originalMethod: "' + originalMethod + '"');
     throw new LollipopRequestContentValidationException(
@@ -256,7 +262,7 @@ async function validateOriginalMethodHeader(originalMethod) {
  * @throws {LollipopRequestContentValidationException} Se è mancante, non rispetta il formato previsto o non ha il prefisso corretto
  */
 async function validateOriginalURLHeader(originalURL) {
-  console.log("Starting validateOriginalURLHeader...")
+  console.log("Starting validateOriginalURLHeader...");
   if (!originalURL) {
     console.error('[validateOriginalURLHeader] ERROR: Missing Original URL Header');
     throw new LollipopRequestContentValidationException(
@@ -274,7 +280,13 @@ async function validateOriginalURLHeader(originalURL) {
     );
   }
 
-  const regex = new RegExp(lollipopConfig.expectedFirstLcOriginalUrl);
+    let expectedFirstLcOriginalUrl;
+    if( process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === undefined || process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === '')
+        expectedFirstLcOriginalUrl = lollipopConfig.expectedFirstLcOriginalUrl;
+    else
+        expectedFirstLcOriginalUrl = process.env.EXPECTED_FIRST_LC_ORIGINAL_URL;
+
+  const regex = new RegExp(expectedFirstLcOriginalUrl);
   if (!(regex.test(originalURL))) {
     console.error('[validateOriginalURLHeader] ERROR: Unexpected original url ' + originalURL);
     throw new LollipopRequestContentValidationException(
