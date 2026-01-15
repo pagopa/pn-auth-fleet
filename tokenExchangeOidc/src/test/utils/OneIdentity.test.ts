@@ -14,7 +14,6 @@ describe("One Identity tests", () => {
 
   beforeEach(() => {
     setupEnv();
-
     fetchMock = jest.spyOn(global, "fetch").mockImplementation();
   });
 
@@ -58,7 +57,7 @@ describe("One Identity tests", () => {
     expect(bodyParams.get("redirect_uri")).toBe(mockRedirectUri);
   });
 
-  it("should throw error when response is not ok", async () => {
+  it("should throw ValidationException when response status is 400", async () => {
     const mockResponse = {
       ok: false,
       status: 400,
@@ -78,5 +77,47 @@ describe("One Identity tests", () => {
         "Error during code exchange with OneIdentity: Error during code exchange"
       )
     );
+  });
+
+  it("should throw generic Error when response status is not 400 (e.g., 500)", async () => {
+    const mockResponse = {
+      ok: false,
+      status: 500,
+      statusText: "Internal Server Error",
+      text: jest.fn().mockResolvedValue("Server error occurred"),
+    };
+    fetchMock.mockResolvedValue(mockResponse);
+
+    await expect(
+      exchangeOneIdentityCode({
+        code: mockCode,
+        redirectUri: mockRedirectUri,
+        oneIdentityCredentials: oneIdentityCredentialsMock,
+      })
+    ).rejects.toThrow(
+      new Error(
+        "Error during code exchange with OneIdentity: Server error occurred"
+      )
+    );
+
+    await expect(
+      exchangeOneIdentityCode({
+        code: mockCode,
+        redirectUri: mockRedirectUri,
+        oneIdentityCredentials: oneIdentityCredentialsMock,
+      })
+    ).rejects.not.toThrow(ValidationException);
+  });
+
+  it("should throw error if ONE_IDENTITY_BASEURL is not set", async () => {
+    delete process.env.ONE_IDENTITY_BASEURL;
+
+    await expect(
+      exchangeOneIdentityCode({
+        code: mockCode,
+        redirectUri: mockRedirectUri,
+        oneIdentityCredentials: oneIdentityCredentialsMock,
+      })
+    ).rejects.toThrow(new Error("ONE_IDENTITY_BASEURL is not set"));
   });
 });

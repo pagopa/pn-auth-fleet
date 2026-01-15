@@ -2,6 +2,7 @@ import { DescribeKeyCommand, KMS, SignCommand } from "@aws-sdk/client-kms";
 import { captureAWSv3Client } from "aws-xray-sdk-core";
 import base64url from "base64url";
 import { JwtParts, JwtPayload } from "../../models/Token";
+import { retrieveEnvVariable } from "./String";
 
 const kms = captureAWSv3Client(new KMS());
 
@@ -23,11 +24,7 @@ interface GenerateJwtPayloadProps {
 export const generateSessionToken = async (
   payload: JwtPayload
 ): Promise<string> => {
-  const keyAlias = process.env.KEY_ALIAS;
-  if (!keyAlias) {
-    throw new Error("KEY_ALIAS is not set");
-  }
-
+  const keyAlias = retrieveEnvVariable("KEY_ALIAS");
   const keyId = await getKeyIdFromAlias(keyAlias);
   const jwtParts = createJwtParts({ payload, keyId });
   const sessionToken = await signJwt(jwtParts, keyId);
@@ -45,22 +42,16 @@ export const generateJwtPayload = ({
   pairwise,
   state,
 }: GenerateJwtPayloadProps): JwtPayload => {
-  if (!process.env.ISSUER) {
-    throw new Error("ISSUER is not set");
-  }
-
-  if (!process.env.AUDIENCE) {
-    throw new Error("AUDIENCE is not set");
-  }
-
+  const issuer = retrieveEnvVariable("ISSUER");
+  const audience = retrieveEnvVariable("AUDIENCE");
   const expDate = getExpDate();
 
   return {
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(expDate.getTime() / 1000),
     uid: pairwise,
-    iss: process.env.ISSUER,
-    aud: process.env.AUDIENCE,
+    iss: issuer,
+    aud: audience,
     jti: state,
   };
 };
@@ -105,10 +96,7 @@ const createJwtParts = ({ payload, keyId }: CreateJwtPartsProps) => {
  * Calculates the expiration date for the session token
  */
 const getExpDate = () => {
-  const secondsToAdd = process.env.TOKEN_TTL;
-  if (!secondsToAdd) {
-    throw new Error("TOKEN_TTL is not set");
-  }
+  const secondsToAdd = retrieveEnvVariable("TOKEN_TTL");
   const expDate = Date.now() + Number(secondsToAdd) * 1000;
   return new Date(expDate);
 };

@@ -1,4 +1,5 @@
 import { retryWithDelay } from "./Retry";
+import { retrieveEnvVariable } from "./String";
 
 const RETRY_DELAY_MS = 1000;
 const MAX_RETRIES = 3;
@@ -41,7 +42,7 @@ export async function getAWSSecret<T extends Record<string, string>>(
     return JSON.parse(secretString) as T;
   } catch (error) {
     throw new Error(
-      `Failed to parse secret "${secretName}" as JSON: ${
+      `Failed to parse secret as JSON: ${
         error instanceof Error ? error.message : String(error)
       }`
     );
@@ -54,11 +55,7 @@ const fetchAwsParameter = async (
   type: ParameterType
 ): Promise<string> => {
   const isSecret = type === "secret";
-  const sessionToken = process.env.AWS_SESSION_TOKEN;
-
-  if (!sessionToken) {
-    throw new Error("AWS_SESSION_TOKEN is not set");
-  }
+  const sessionToken = retrieveEnvVariable("AWS_SESSION_TOKEN");
 
   const endpoint = isSecret
     ? `secretsmanager/get?secretId=${encodeURIComponent(name)}`

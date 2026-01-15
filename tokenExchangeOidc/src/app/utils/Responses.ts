@@ -1,45 +1,44 @@
 import { ErrorResponseBody } from "../../models/Responses";
-import {
-  JwtPayload,
-  OIDecodedIdToken,
-  TokenExchangeResponse,
-} from "../../models/Token";
+import { OIDecodedIdToken, TokenExchangeResponse } from "../../models/Token";
 import { ValidationException } from "../exception/validationException";
+import { generateJwtPayload, generateSessionToken } from "./TokenGenerator";
 
 interface GenerateTokenResponseProps {
-  sessionToken: string;
   decodedIdToken: OIDecodedIdToken;
-  payload: JwtPayload;
   state: string;
 }
 
 /**
  * Generate a token exchange response compatible with SEND
  *
- * @param sessionToken - The generate Session Token JWT
  * @param decodedIdToken - One Identity ID token decoded
- * @param payload - The payload of Session Token
  * @param state - The state from request body
  */
 export const generateTokenExchangeResponse = async ({
-  sessionToken,
   decodedIdToken,
-  payload,
   state,
-}: GenerateTokenResponseProps): Promise<TokenExchangeResponse> => ({
-  sessionToken,
-  name: decodedIdToken.name,
-  family_name: decodedIdToken.familyName,
-  uid: decodedIdToken.pairwise,
-  fiscal_number: decodedIdToken.fiscalNumber,
-  from_aa: false,
-  level: "L2",
-  aud: payload.aud,
-  iat: payload.iat,
-  exp: payload.exp,
-  iss: payload.iss,
-  jti: state,
-});
+}: GenerateTokenResponseProps): Promise<TokenExchangeResponse> => {
+  const tokenPayload = generateJwtPayload({
+    pairwise: decodedIdToken.pairwise,
+    state,
+  });
+  const sessionToken = await generateSessionToken(tokenPayload);
+
+  return {
+    sessionToken,
+    name: decodedIdToken.name,
+    family_name: decodedIdToken.familyName,
+    uid: decodedIdToken.pairwise,
+    fiscal_number: decodedIdToken.fiscalNumber,
+    from_aa: false,
+    level: "L2",
+    aud: tokenPayload.aud,
+    iat: tokenPayload.iat,
+    exp: tokenPayload.exp,
+    iss: tokenPayload.iss,
+    jti: state,
+  };
+};
 
 export function generateOkResponse<T>(response: T, allowedOrigin: string) {
   return {

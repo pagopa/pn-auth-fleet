@@ -1,6 +1,7 @@
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import { OIExchangeCodeResponse } from "../../models/Token";
 import { ValidationException } from "../exception/validationException";
+import { retrieveEnvVariable } from "./String";
 
 type ExchangeOneIdentityCodeProps = {
   code: string;
@@ -11,8 +12,8 @@ type ExchangeOneIdentityCodeProps = {
 /**
  * Exchanges a OneIdentity authorization code for a OneIdentity token.
  * @param code - The OneIdentity code to exchange
- * @redirectUri - The redirect URI to pass in the request body
- * @oneIdentityCredentials - One Identity credentials used to authenticate
+ * @param redirectUri - The redirect URI to pass in the request body
+ * @param oneIdentityCredentials - One Identity credentials used to authenticate
  */
 export const exchangeOneIdentityCode = async ({
   code,
@@ -21,6 +22,7 @@ export const exchangeOneIdentityCode = async ({
 }: ExchangeOneIdentityCodeProps): Promise<OIExchangeCodeResponse> => {
   const { oneIdentityClientId, oneIdentityClientSecret } =
     oneIdentityCredentials;
+  const oneIdentityBaseUrl = retrieveEnvVariable("ONE_IDENTITY_BASEURL");
 
   const credentials = Buffer.from(
     `${oneIdentityClientId}:${oneIdentityClientSecret}`
@@ -32,17 +34,14 @@ export const exchangeOneIdentityCode = async ({
     redirect_uri: redirectUri,
   });
 
-  const response = await fetch(
-    `${process.env.ONE_IDENTITY_BASEURL}/oidc/token`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${credentials}`,
-      },
-      body: body.toString(),
-    }
-  );
+  const response = await fetch(`${oneIdentityBaseUrl}/oidc/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${credentials}`,
+    },
+    body: body.toString(),
+  });
 
   if (!response.ok) {
     const responseBody = await response.text();

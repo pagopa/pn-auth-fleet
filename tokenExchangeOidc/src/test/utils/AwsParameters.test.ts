@@ -103,20 +103,9 @@ describe("AwsParameters", () => {
     });
 
     await expect(getAWSSecret("my-secret")).rejects.toThrow(
-      'Failed to parse secret "my-secret" as JSON:'
+      "Failed to parse secret as JSON:"
     );
   });
-
-  // it("should throw error when key is not found in secret", async () => {
-  //   (global.fetch as jest.Mock).mockResolvedValue({
-  //     ok: true,
-  //     json: async () => ({ SecretString: '{"other-key":"value"}' }),
-  //   });
-
-  //   await expect(
-  //     getAWSSecret({ secretName: "my-secret", key: "missing-key" })
-  //   ).rejects.toThrow('Key "missing-key" not found in secret "my-secret".');
-  // });
 
   it("should handle non Error objects in JSON parsing failure", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
@@ -131,7 +120,7 @@ describe("AwsParameters", () => {
     });
 
     await expect(getAWSSecret("my-secret")).rejects.toThrow(
-      'Failed to parse secret "my-secret" as JSON: Generic error'
+      "Failed to parse secret as JSON: Generic error"
     );
 
     JSON.parse = originalParse;

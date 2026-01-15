@@ -4,6 +4,7 @@ import https from "https";
 
 import { JWKS } from "../../../models/Jwks";
 import { retryWithDelay } from "../Retry";
+import { retrieveEnvVariable } from "../String";
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
@@ -12,8 +13,12 @@ const DEFAULT_TIMEOUT = 2000;
 const RETRY_DELAY = 1000;
 const MAX_RETRIES = 3;
 
+/**
+ * Fetches JWKS (JSON Web Key Set) from the OneIdentity OIDC endpoint.
+ */
 async function innerGetJwks(): Promise<JWKS> {
-  const jwksEndpoint = `${process.env.ONE_IDENTITY_BASEURL}/oidc/keys`;
+  const oneIdentityBaseUrl = retrieveEnvVariable("ONE_IDENTITY_BASEURL");
+  const jwksEndpoint = `${oneIdentityBaseUrl}/oidc/keys`;
 
   console.info("Fetching JWKS from:", jwksEndpoint);
 

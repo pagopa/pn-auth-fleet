@@ -1,6 +1,7 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { OneIdentityAwsSecretObject } from "../models/Aws";
 import { RequestEventBody } from "../models/Event";
+import { TokenExchangeResponse } from "../models/Token";
 import { ValidationException } from "./exception/validationException";
 import { auditLog } from "./utils/AuditLog";
 import { getAWSSecret } from "./utils/AwsParameters";
@@ -10,14 +11,9 @@ import {
   generateOkResponse,
   generateTokenExchangeResponse,
 } from "./utils/Responses";
-import { makeLower } from "./utils/String";
-import {
-  generateJwtPayload,
-  generateSessionToken,
-} from "./utils/TokenGenerator";
+import { makeLower, retrieveEnvVariable } from "./utils/String";
 import { isOriginAllowed } from "./validation/Origin";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
-import { TokenExchangeResponse } from "../models/Token";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   event.headers = makeLower(event.headers);
@@ -76,11 +72,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   try {
-    const oneIdentitySecretName = process.env.ONE_IDENTITY_SECRET_NAME;
-
-    if (!oneIdentitySecretName) {
-      throw new Error("ONE_IDENTITY_SECRET_NAME is not set");
-    }
+    const oneIdentitySecretName = retrieveEnvVariable(
+      "ONE_IDENTITY_SECRET_NAME"
+    );
 
     const oneIdentityCredentials =
       await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
@@ -97,16 +91,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       oneIdentityClientId: oneIdentityCredentials.oneIdentityClientId,
     });
 
-    const tokenPayload = generateJwtPayload({
-      pairwise: decodedIdToken.pairwise,
-      state,
-    });
-    const sessionToken = await generateSessionToken(tokenPayload);
-
     const response = await generateTokenExchangeResponse({
       decodedIdToken,
-      payload: tokenPayload,
-      sessionToken,
       state,
     });
 
