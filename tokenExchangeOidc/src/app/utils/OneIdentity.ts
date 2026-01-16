@@ -25,7 +25,10 @@ export const exchangeOneIdentityCode = async ({
   const oneIdentityBaseUrl = retrieveEnvVariable("ONE_IDENTITY_BASEURL");
 
   const credentials = Buffer.from(
-    `${oneIdentityClientId}:${oneIdentityClientSecret}`
+    `${encodeURIComponent(oneIdentityClientId)}:${encodeURIComponent(
+      oneIdentityClientSecret
+    )}`,
+    "utf8"
   ).toString("base64");
 
   const body = new URLSearchParams({
