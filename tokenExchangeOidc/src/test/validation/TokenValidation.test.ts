@@ -7,12 +7,10 @@ import {
   isTaxIdValid,
   validateOneIdentityIdToken,
 } from "../../app/validation/TokenValidation";
-import {
-  oneIdentityDecodedTokenMock,
-  tokenNonce,
-} from "../__mock__/token.mock";
+import { oneIdentityDecodedTokenMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
 import { oneIdentityClientIdMock } from "../__mock__/oneIdentity.mock";
+import { tokenNonce } from "../__mock__/event.mock";
 
 jest.mock("jsonwebtoken");
 jest.mock("../../app/utils/AwsParameters.ts");
@@ -242,7 +240,7 @@ describe("isIssuerValid", () => {
   });
 
   it("should return true for allowed issuer", () => {
-    const issuer = "https://spid-hub-test.dev.pn.pagopa.it";
+    const issuer = "https://uat.oneid.pagopa.it";
 
     expect(isIssuerValid(issuer)).toBe(true);
   });
@@ -255,7 +253,7 @@ describe("isIssuerValid", () => {
 
   it("should return false if ALLOWED_ISSUER env var is not set", () => {
     delete process.env.ALLOWED_ISSUER;
-    const issuer = "https://spid-hub-test.dev.pn.pagopa.it";
+    const issuer = "https://uat.oneid.pagopa.it";
 
     expect(isIssuerValid(issuer)).toBe(false);
   });

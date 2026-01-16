@@ -1385,8 +1385,7 @@ Resources:
           # TOKEN_TTL: !Ref TokenExchangeOidcLambdaEnvironmentTokenTtl
           # ISSUER: !Ref TokenExchangeOidcLambdaEnvironmentIssuer
           # AUDIENCE: !Ref TokenExchangeOidcLambdaEnvironmentAudience
-          # SSM_PARAMETER_STORE_TIMEOUT_MILLIS: 5000
-          # PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
+          PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
           CACHE_TTL: !Ref TokenExchangeOidcLambdaEnvironmentCacheTtl
       Role: !GetAtt TokenExchangeOidcLambdaRole.Arn
       Timeout: 10

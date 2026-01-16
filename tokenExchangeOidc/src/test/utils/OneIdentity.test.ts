@@ -1,7 +1,9 @@
 import { ValidationException } from "../../app/exception/validationException";
 import { exchangeOneIdentityCode } from "../../app/utils/OneIdentity";
-import { oneIdentityCredentialsMock } from "../__mock__/oneIdentity.mock";
-import { oneIdentityExchangeCodeResponseMock } from "../__mock__/token.mock";
+import {
+  oneIdentityCredentialsMock,
+  oneIdentityExchangeCodeResponseMock,
+} from "../__mock__/oneIdentity.mock";
 import { setupEnv } from "../test.utils";
 
 describe("One Identity tests", () => {

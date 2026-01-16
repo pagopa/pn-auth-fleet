@@ -8,7 +8,7 @@ describe("Origin Validation tests", () => {
 
   it("checks allowed origin", () => {
     const result = isOriginAllowed(
-      "https://portale-pa-develop.fe.dev.pn.pagopa.it"
+      "https://cittadini.dev.notifichedigitali.it"
     );
 
     expect(result).toBeTruthy();

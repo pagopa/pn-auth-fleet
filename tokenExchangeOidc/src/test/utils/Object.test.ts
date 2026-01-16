@@ -14,7 +14,7 @@ describe("Object utils Tests", () => {
       expect(result.fiscalNumber).toEqual("RR************2Y");
       expect(result.familyName).toEqual("*****");
       expect(result.name).toEqual("*****");
-      expect(result.iss).toEqual("https://spid-hub-test.dev.pn.pagopa.it");
+      expect(result.iss).toEqual("https://uat.oneid.pagopa.it");
       expect(result.aud).toEqual("one-identity-client-id");
     });
 
