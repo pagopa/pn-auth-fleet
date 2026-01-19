@@ -7,12 +7,22 @@ import {
   SignCommand,
 } from "@aws-sdk/client-kms";
 import { AwsStub, mockClient } from "aws-sdk-client-mock";
+import { ValidationException } from "../../app/exception/validationException";
+import { getRetrievalPayload } from "../../app/utils/EmdIntegrationClient";
 import {
   generateJwtPayload,
   generateSessionToken,
+  generateSourceObject,
 } from "../../app/utils/TokenGenerator";
+import { SourceChannel, SourceEventType } from "../../models/Source";
+import {
+  checkTppResponseMock,
+  retrievalIdMock,
+} from "../__mock__/emdIntegration.mock";
 import { payloadMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
+
+jest.mock("../../app/utils/EmdIntegrationClient.ts");
 
 describe("TokenGenerator", () => {
   let kmsClientMock: AwsStub<
@@ -304,6 +314,58 @@ describe("TokenGenerator", () => {
       await expect(generateSessionToken(payloadMock)).rejects.toThrow(
         "Signing failed"
       );
+    });
+  });
+
+  describe("generateSourceObject", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should return valid object when source is TPP", async () => {
+      (getRetrievalPayload as jest.Mock).mockResolvedValue(
+        checkTppResponseMock
+      );
+
+      const source = { type: SourceEventType.TPP, id: retrievalIdMock };
+      const result = await generateSourceObject(source);
+
+      expect(result).toEqual({
+        channel: SourceChannel.TPP,
+        details: checkTppResponseMock.tppId,
+        retrievalId: retrievalIdMock,
+      });
+      expect(getRetrievalPayload).toHaveBeenCalledWith(retrievalIdMock);
+    });
+
+    it("should return valid object when source is QR", async () => {
+      const source = { type: SourceEventType.QR, id: "qr-123" };
+      const result = await generateSourceObject(source);
+
+      expect(result).toEqual({
+        channel: SourceChannel.WEB,
+        details: "QR_CODE",
+      });
+      expect(getRetrievalPayload).not.toHaveBeenCalled();
+    });
+
+    it("should return undefined when source is not defined", async () => {
+      const result = await generateSourceObject(undefined);
+
+      expect(result).toBeUndefined();
+      expect(getRetrievalPayload).not.toHaveBeenCalled();
+    });
+
+    it("should throw a ValidationException when source is not valid", async () => {
+      const source = { type: "INVALID", id: "invalid-123" } as any;
+
+      await expect(generateSourceObject(source)).rejects.toThrow(
+        ValidationException
+      );
+      await expect(generateSourceObject(source)).rejects.toThrow(
+        "Invalid source type"
+      );
+      expect(getRetrievalPayload).not.toHaveBeenCalled();
     });
   });
 });

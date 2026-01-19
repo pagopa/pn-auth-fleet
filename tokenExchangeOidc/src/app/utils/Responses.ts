@@ -1,4 +1,5 @@
 import { ErrorResponseBody } from "../../models/Responses";
+import { Source } from "../../models/Source";
 import { OIDecodedIdToken, TokenExchangeResponse } from "../../models/Token";
 import { ValidationException } from "../exception/validationException";
 import { generateJwtPayload, generateSessionToken } from "./TokenGenerator";
@@ -6,6 +7,7 @@ import { generateJwtPayload, generateSessionToken } from "./TokenGenerator";
 interface GenerateTokenResponseProps {
   decodedIdToken: OIDecodedIdToken;
   state: string;
+  source?: Source;
 }
 
 /**
@@ -17,6 +19,7 @@ interface GenerateTokenResponseProps {
 export const generateTokenExchangeResponse = async ({
   decodedIdToken,
   state,
+  source,
 }: GenerateTokenResponseProps): Promise<TokenExchangeResponse> => {
   const tokenPayload = generateJwtPayload({
     pairwise: decodedIdToken.pairwise,
@@ -37,6 +40,7 @@ export const generateTokenExchangeResponse = async ({
     exp: tokenPayload.exp,
     iss: tokenPayload.iss,
     jti: state,
+    source,
   };
 };
 

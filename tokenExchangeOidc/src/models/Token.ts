@@ -1,3 +1,5 @@
+import { Source } from "./Source";
+
 export interface OIDecodedToken {
   header: {
     alg: string;
@@ -46,7 +48,7 @@ export interface TokenExchangeResponse extends JwtPayload {
   fiscal_number: string;
   from_aa: boolean;
   level: string;
-  // source?: UserSource;
+  source?: Source;
 }
 
 export interface JwtParts {
@@ -54,15 +56,3 @@ export interface JwtParts {
   payload: string;
   signature?: string;
 }
-
-// enum SourceChannel {
-//   B2B = 'B2B',
-//   WEB = 'WEB',
-//   TPP = 'TPP',
-// }
-
-// interface UserSource {
-//   channel: SourceChannel;
-//   details: string;
-//   retrievalId: string;
-// }

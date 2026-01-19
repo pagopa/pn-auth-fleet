@@ -1,7 +1,10 @@
 import { DescribeKeyCommand, KMS, SignCommand } from "@aws-sdk/client-kms";
 import { captureAWSv3Client } from "aws-xray-sdk-core";
 import base64url from "base64url";
+import { Source, SourceChannel, SourceEvent } from "../../models/Source";
 import { JwtParts, JwtPayload } from "../../models/Token";
+import { ValidationException } from "../exception/validationException";
+import { getRetrievalPayload } from "./EmdIntegrationClient";
 import { retrieveEnvVariable } from "./String";
 
 const kms = captureAWSv3Client(new KMS());
@@ -54,6 +57,38 @@ export const generateJwtPayload = ({
     aud: audience,
     jti: state,
   };
+};
+
+/**
+ * Retrieves and composes a source object based on the provided source event
+ *
+ * @param source - The source event containing type and id information
+ */
+export const generateSourceObject = async (
+  source?: SourceEvent
+): Promise<Source | undefined> => {
+  if (!source) {
+    return undefined;
+  }
+
+  if (source.type === "TPP") {
+    const payload = await getRetrievalPayload(source.id);
+    return {
+      channel: SourceChannel.TPP,
+      details: payload.tppId,
+      retrievalId: source.id,
+    };
+  }
+
+  if (source.type === "QR") {
+    return {
+      channel: SourceChannel.WEB,
+      details: "QR_CODE",
+    };
+  }
+
+  console.error("Invalid source type:", source.type);
+  throw new ValidationException("Invalid source type");
 };
 
 /**
