@@ -13,5 +13,6 @@ export function setupEnv() {
     ONE_IDENTITY_SECRET_NAME: "one-identity-secret-name",
     ONE_IDENTITY_BASEURL: "https://uat.oneid.pagopa.it",
     AWS_SESSION_TOKEN: "fake-session-token",
+    PN_EMD_INTEGRATION_BASEURL: "http://${ApplicationLoadBalancerDomain}:8080",
   };
 }

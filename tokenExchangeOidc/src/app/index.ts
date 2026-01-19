@@ -12,6 +12,7 @@ import {
   generateTokenExchangeResponse,
 } from "./utils/Responses";
 import { makeLower, retrieveEnvVariable } from "./utils/String";
+import { generateSourceObject } from "./utils/TokenGenerator";
 import { isOriginAllowed } from "./validation/Origin";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
 
@@ -91,9 +92,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       oneIdentityClientId: oneIdentityCredentials.oneIdentityClientId,
     });
 
+    const sourceResponse = await generateSourceObject(source);
+
     const response = await generateTokenExchangeResponse({
       decodedIdToken,
       state,
+      source: sourceResponse,
     });
 
     auditLog({
