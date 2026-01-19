@@ -19,13 +19,13 @@ servers:
     description: API Gateway endpoint
     variables:
       api-id:
-        default: your-api-id
+        default: t0n64hed8b
         description: Your API Gateway ID
       region:
         default: eu-south-1
         description: AWS Region
       stage:
-        default: dev
+        default: unique
         description: Deployment stage
 
 # Security requirement applies globally to all operations
