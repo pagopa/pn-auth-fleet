@@ -2,14 +2,11 @@ import AWSXRay from "aws-xray-sdk-core";
 import http from "http";
 import https from "https";
 
+import { GetRetrievalPayloadResponse } from "../../models/Source";
 import { retrieveEnvVariable } from "./String";
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
-
-type GetRetrievalPayloadResponse = {
-  tppId: string;
-};
 
 /**
  * Retrieves the payload data for a given retrieval ID from the pn-emd-integration service.
@@ -22,8 +19,8 @@ export const getRetrievalPayload = async (
   const pnEmdIntegrationBaseUrl = retrieveEnvVariable(
     "PN_EMD_INTEGRATION_BASEURL"
   );
-  const pnEmdIntegrationUrl =
-    pnEmdIntegrationBaseUrl + "/emd-integration-private/token/check-tpp";
+
+  const pnEmdIntegrationUrl = `${pnEmdIntegrationBaseUrl}/emd-integration-private/token/check-tpp?retrievalId=${retrievalId}`;
 
   console.log(
     "Invoking external service pn-emd-integration. Waiting Sync response.",
@@ -33,11 +30,8 @@ export const getRetrievalPayload = async (
     }
   );
 
-  const url = new URL(pnEmdIntegrationUrl);
-  url.searchParams.append("retrievalId", retrievalId);
-
   try {
-    const response = await fetch(url.toString(), {
+    const response = await fetch(pnEmdIntegrationUrl, {
       method: "GET",
       headers: {
         "Content-Type": "text/plain",
@@ -56,6 +50,6 @@ export const getRetrievalPayload = async (
       url: pnEmdIntegrationUrl,
       retrievalId: retrievalId,
     });
-    throw new Error("Error in get retrievalId");
+    throw new Error("Failed to retrieve TPP payload");
   }
 };

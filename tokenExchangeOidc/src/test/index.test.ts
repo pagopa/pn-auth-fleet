@@ -6,6 +6,8 @@ import * as OneIdentity from "../app/utils/OneIdentity";
 import * as Responses from "../app/utils/Responses";
 import * as Origin from "../app/validation/Origin";
 import * as TokenValidation from "../app/validation/TokenValidation";
+import * as EmdIntegrationClient from "../app/utils/EmdIntegrationClient";
+import * as TokenGenerator from "../app/utils/TokenGenerator";
 import {
   mockAllowedOrigin,
   mockState,
@@ -18,6 +20,10 @@ import {
 import { tokenExchangeResponse } from "./__mock__/responses.mock";
 import { oneIdentityIdTokenMock } from "./__mock__/token.mock";
 import { setupEnv } from "./test.utils";
+import {
+  checkTppResponseMock,
+  retrievalIdMock,
+} from "./__mock__/emdIntegration.mock";
 
 const parseResponse = (result: any) => ({
   statusCode: result.statusCode,
@@ -368,6 +374,108 @@ describe("Event Handler tests", () => {
       // Non-ValidationException should trigger error, not warn
       expect(mockAuditLog.error).toHaveBeenCalledWith("error");
       expect(mockAuditLog.warn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Token Exchange with source", () => {
+    let getRetrievalPayloadSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      getRetrievalPayloadSpy = jest
+        .spyOn(EmdIntegrationClient, "getRetrievalPayload")
+        .mockResolvedValue(checkTppResponseMock);
+
+      generateTokenExchangeResponseSpy = jest
+        .spyOn(Responses, "generateTokenExchangeResponse")
+        .mockImplementation(async ({ source }) => ({
+          ...tokenExchangeResponse,
+          source,
+        }));
+    });
+
+    afterEach(() => {
+      getRetrievalPayloadSpy.mockRestore();
+    });
+
+    it("should successfully handle token exchange with TPP source", async () => {
+      const eventWithTppSource = {
+        ...mockTokenExchangeEvent,
+        body: JSON.stringify({
+          ...JSON.parse(mockTokenExchangeEvent.body as string),
+          source: {
+            type: "TPP",
+            id: retrievalIdMock,
+          },
+        }),
+      };
+
+      const result = await handler(eventWithTppSource, {} as any, () => {});
+      const { statusCode, body } = parseResponse(result);
+
+      expect(statusCode).toBe(200);
+      expect(body.source).toEqual({
+        channel: "TPP",
+        details: checkTppResponseMock.tppId,
+        retrievalId: retrievalIdMock,
+      });
+      expect(getRetrievalPayloadSpy).toHaveBeenCalledWith(retrievalIdMock);
+    });
+
+    it("should successfully handle token exchange with QR source", async () => {
+      const eventWithQrSource = {
+        ...mockTokenExchangeEvent,
+        body: JSON.stringify({
+          ...JSON.parse(mockTokenExchangeEvent.body as string),
+          source: {
+            type: "QR",
+            id: "qr-123",
+          },
+        }),
+      };
+
+      const result = await handler(eventWithQrSource, {} as any, () => {});
+      const { statusCode, body } = parseResponse(result);
+
+      expect(statusCode).toBe(200);
+      expect(body.source).toEqual({
+        channel: "WEB",
+        details: "QR_CODE",
+      });
+    });
+
+    it("should successfully handle token exchange without source", async () => {
+      const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
+      const { statusCode, body } = parseResponse(result);
+
+      expect(statusCode).toBe(200);
+      expect(body.source).toBeUndefined();
+    });
+
+    it("should handle error when generateSourceObject fails", async () => {
+      const generateSourceObjectSpy = jest
+        .spyOn(TokenGenerator, "generateSourceObject")
+        .mockRejectedValue(new Error("Failed to retrieve TPP payload"));
+
+      const eventWithTppSource = {
+        ...mockTokenExchangeEvent,
+        body: JSON.stringify({
+          ...JSON.parse(mockTokenExchangeEvent.body as string),
+          source: {
+            type: "TPP",
+            id: retrievalIdMock,
+          },
+        }),
+      };
+
+      const result = await handler(eventWithTppSource, {} as any, () => {});
+      const { statusCode, body } = parseResponse(result);
+
+      expect(statusCode).toBe(500);
+      expect(body.error).toEqual("Failed to retrieve TPP payload");
+
+      expect(mockAuditLog.error).toHaveBeenCalledWith("error");
+
+      generateSourceObjectSpy.mockRestore();
     });
   });
 });

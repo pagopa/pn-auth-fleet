@@ -1,11 +1,11 @@
 import { DescribeKeyCommand, KMS, SignCommand } from "@aws-sdk/client-kms";
 import { captureAWSv3Client } from "aws-xray-sdk-core";
 import base64url from "base64url";
-import { JwtParts, JwtPayload } from "../../models/Token";
-import { retrieveEnvVariable } from "./String";
-import { ValidationException } from "../exception/validationException";
 import { Source, SourceChannel, SourceEvent } from "../../models/Source";
+import { JwtParts, JwtPayload } from "../../models/Token";
+import { ValidationException } from "../exception/validationException";
 import { getRetrievalPayload } from "./EmdIntegrationClient";
+import { retrieveEnvVariable } from "./String";
 
 const kms = captureAWSv3Client(new KMS());
 
