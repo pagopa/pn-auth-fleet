@@ -199,7 +199,7 @@ Parameters:
   PnRaddBaseliningLambdaName:
     Type: String
 
-  # - Token Exchange OIDC Parameters
+  # - Token Exchange Lambda OIDC Parameters
   TokenExchangeOidcLambdaName:
     Type: String
     Description: 'Name for TokenExchangeOidc Lambda function'
@@ -207,14 +207,12 @@ Parameters:
   TokenExchangeOidcLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
+    Default: 120
 
-  # TokenExchangeOidcLambdaEnvironmentTokenTtl:
-  #   Type: String
-  #   Description: Session token duration TODO/TBD
-
-  # TokenExchangeOidcLambdaEnvironmentIssuer:
-  #   Type: String
-  #   Description: Session token issuer TODO/TBD
+  TokenExchangeOidcLambdaEnvironmentTokenTtl:
+    Type: String
+    Description: Session token duration (in seconds) for "Piattaforman Notifiche" sessions for TokenExchangeOidcLambda.
+    Default: 3200
 
   TokenExchangeOidcLambdaEnvironmentAllowedIssuer:
     Type: String
@@ -229,13 +227,9 @@ Parameters:
     Description: "Parameter of allowed login Tax Ids"
     Default: "/pn-auth-fleet/allowedLoginTaxids"
 
-  # TokenExchangeOidcLambdaEnvironmentAudience:
-  #   Type: String
-  #   Description: Audience value for token generation  TODO/TBD
-
   OneIdentityBaseURL:
     Type: String
-    Description: 'Base URL for OneIdentity API (e.g., https://uat.oneid.pagopa.it)'
+    Description: 'Base URL for OneIdentity API'
 
   OneIdentitySecretName:
     Type: String
@@ -1372,21 +1366,20 @@ Resources:
         S3Key: !Sub "${BucketBasePath}/tokenExchangeOidc.zip"
       Environment:
         Variables:
-          # Variables actively used in code
+          PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
+          KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
+          ### TokenExchangeOidcLambda specific variables ###
           ALLOWED_ISSUER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedIssuer
           ALLOWED_ORIGIN: !Ref TokenExchangeOidcLambdaEnvironmentAllowedOrigin
-          ALLOWED_TAXIDS_PARAMETER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter
-          # OneIdentity specific variables (used)
           ONE_IDENTITY_BASEURL: !Ref OneIdentityBaseURL
           ONE_IDENTITY_SECRET_NAME: !Ref OneIdentitySecretName
-          # For JWT session token generation (when TODO is implemented)
-          KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
-          # Variables for future use (TODO in code - session token generation)
-          # TOKEN_TTL: !Ref TokenExchangeOidcLambdaEnvironmentTokenTtl
-          # ISSUER: !Ref TokenExchangeOidcLambdaEnvironmentIssuer
-          # AUDIENCE: !Ref TokenExchangeOidcLambdaEnvironmentAudience
-          PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
+          ALLOWED_TAXIDS_PARAMETER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter
+          TOKEN_TTL: !Ref TokenExchangeOidcLambdaEnvironmentTokenTtl
           CACHE_TTL: !Ref TokenExchangeOidcLambdaEnvironmentCacheTtl
+          ### TokenExchange shared variables,values are inherited from pn-ipc.yml stack ###
+          ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
+          AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
+          PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
       Role: !GetAtt TokenExchangeOidcLambdaRole.Arn
       Timeout: 10
       TracingConfig:
@@ -1625,150 +1618,150 @@ Resources:
             ResponseTemplates:
               "application/json": ""
 
-  # TokenExchangeOidcApiSubscriptionFilter:
-  #   Condition: SendLogToKinesis
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Properties:
-  #     RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
-  #     LogGroupName: !Ref TokenExchangeOidcApiLogGroup
-  #     FilterPattern: !Ref CloudwatchFilterPattern
-  #     DestinationArn: !Ref LogsKinesisSourceStreamArn
+  TokenExchangeOidcApiSubscriptionFilter:
+    Condition: SendLogToKinesis
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
+      LogGroupName: !Ref TokenExchangeOidcApiLogGroup
+      FilterPattern: !Ref CloudwatchFilterPattern
+      DestinationArn: !Ref LogsKinesisSourceStreamArn
 
-  # TokenExchangeOidcApiWaf:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
-  #     Parameters:
-  #       WAFName: !Sub "${ProjectName}-token-exchange-oidc-web"
-  #       IntendedUsage: WEB
-  #       APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeOidcRestApi}/stages/${TokenExchangeOidcRestApiStage}"
-  #       Limit: !Ref TokenExchangeOidcWafLimit
-  #       EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+  TokenExchangeOidcApiWaf:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
+      Parameters:
+        WAFName: !Sub "${ProjectName}-token-exchange-oidc-web"
+        IntendedUsage: WEB
+        APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeOidcRestApi}/stages/${TokenExchangeOidcRestApiStage}"
+        Limit: !Ref TokenExchangeOidcWafLimit
+        EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
 
-  # TokenExchangeOidcAPIGatewayApiLatencyAlarm:
-  #   Type: AWS::CloudWatch::Alarm
-  #   Properties:
-  #     AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-LatencyAlarm"
-  #     AlarmDescription: "CloudWatch alarm for when API Gateway OIDC latency exceeds the limit."
-  #     AlarmActions:
-  #       - !Ref AlarmSNSTopicArn
-  #     InsufficientDataActions:
-  #       - !Ref AlarmSNSTopicArn
-  #     OKActions:
-  #       - !Ref AlarmSNSTopicArn
-  #     DatapointsToAlarm: 15
-  #     ComparisonOperator: GreaterThanOrEqualToThreshold
-  #     EvaluationPeriods: 20
-  #     Period: 60
-  #     Threshold: !Ref TokenExchangeOidcLatencyLimit
-  #     TreatMissingData: notBreaching
-  #     Namespace: "AWS/ApiGateway"
-  #     MetricName: "Latency"
-  #     Dimensions:
-  #       - Name: ApiName
-  #         Value: !Sub "${ProjectName}-token-exchange-oidc-api"
-  #     ExtendedStatistic: "p90"
+  TokenExchangeOidcAPIGatewayApiLatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-LatencyAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway OIDC latency exceeds the limit."
+      AlarmActions:
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 15
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 20
+      Period: 60
+      Threshold: !Ref TokenExchangeOidcLatencyLimit
+      TreatMissingData: notBreaching
+      Namespace: "AWS/ApiGateway"
+      MetricName: "Latency"
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub "${ProjectName}-token-exchange-oidc-api"
+      ExtendedStatistic: "p90"
 
-  # TokenExchangeOidcAPIGatewayApiErrorAlarm:
-  #   Type: AWS::CloudWatch::Alarm
-  #   Properties:
-  #     AlarmName: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
-  #     AlarmDescription: "CloudWatch alarm for when API Gateway OIDC has 4xx or 5xx error."
-  #     AlarmActions:
-  #       - !Ref AlarmSNSTopicArn
-  #     InsufficientDataActions:
-  #       - !Ref AlarmSNSTopicArn
-  #     OKActions:
-  #       - !Ref AlarmSNSTopicArn
-  #     DatapointsToAlarm: 1
-  #     ComparisonOperator: GreaterThanOrEqualToThreshold
-  #     EvaluationPeriods: 5
-  #     Threshold: 1
-  #     TreatMissingData: notBreaching
-  #     Metrics:
-  #       - Id: m1
-  #         MetricStat:
-  #           Metric:
-  #             Dimensions:
-  #               - Name: ApiName
-  #                 Value: !Sub ${ProjectName}-token-exchange-oidc-api
-  #             MetricName: 4XXError
-  #             Namespace: AWS/ApiGateway
-  #           Period: 60
-  #           Stat: Sum
-  #         ReturnData: False
-  #       - Id: m2
-  #         MetricStat:
-  #           Metric:
-  #             Dimensions:
-  #               - Name: ApiName
-  #                 Value: !Sub ${ProjectName}-token-exchange-oidc-api
-  #             MetricName: 5XXError
-  #             Namespace: AWS/ApiGateway
-  #           Period: 60
-  #           Stat: Sum
-  #         ReturnData: False
-  #       - Id: e2
-  #         Expression: "m1*(0.1)"
-  #         Label: "4XXError-weight-adjust"
-  #         ReturnData: False
-  #       - Id: e1
-  #         Expression: SUM([e2,m2])
-  #         Label: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorMetric"
+  TokenExchangeOidcAPIGatewayApiErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway OIDC has 4xx or 5xx error."
+      AlarmActions:
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-token-exchange-oidc-api
+              MetricName: 4XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m2
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-token-exchange-oidc-api
+              MetricName: 5XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: e2
+          Expression: "m1*(0.1)"
+          Label: "4XXError-weight-adjust"
+          ReturnData: False
+        - Id: e1
+          Expression: SUM([e2,m2])
+          Label: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorMetric"
 
-  # TokenExchangeOidcAPIGatewayApiErrorAlarmWakeup:
-  #   Type: AWS::CloudWatch::Alarm
-  #   Properties:
-  #     AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
-  #     AlarmDescription: "CloudWatch alarm for when API Gateway OIDC has 4xx or 5xx error."
-  #     AlarmActions:
-  #       - !Ref AlarmSNSTopicArn
-  #     InsufficientDataActions:
-  #       - !Ref AlarmSNSTopicArn
-  #     OKActions:
-  #       - !Ref AlarmSNSTopicArn
-  #     DatapointsToAlarm: 7
-  #     ComparisonOperator: GreaterThanOrEqualToThreshold
-  #     EvaluationPeriods: 10
-  #     Threshold: 1
-  #     TreatMissingData: notBreaching
-  #     Metrics:
-  #       - Id: m1
-  #         MetricStat:
-  #           Metric:
-  #             Dimensions:
-  #               - Name: ApiName
-  #                 Value: !Sub ${ProjectName}-token-exchange-oidc-api
-  #             MetricName: 4XXError
-  #             Namespace: AWS/ApiGateway
-  #           Period: 60
-  #           Stat: Sum
-  #         ReturnData: False
-  #       - Id: m2
-  #         MetricStat:
-  #           Metric:
-  #             Dimensions:
-  #               - Name: ApiName
-  #                 Value: !Sub ${ProjectName}-token-exchange-oidc-api
-  #             MetricName: 5XXError
-  #             Namespace: AWS/ApiGateway
-  #           Period: 60
-  #           Stat: Sum
-  #         ReturnData: False
-  #       - Id: m3
-  #         MetricStat:
-  #           Metric:
-  #             Dimensions:
-  #               - Name: ApiName
-  #                 Value: !Sub "${ProjectName}-token-exchange-oidc-api"
-  #             MetricName: Count
-  #             Namespace: AWS/ApiGateway
-  #           Period: 60
-  #           Stat: Sum
-  #         ReturnData: False
-  #       - Id: e1
-  #         Expression: IF(m3>=10 AND (m1/m3>=0.9 OR m2/m3>=0.1), 1, 0)
-  #         Label: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorMetric-OnCall"
+  TokenExchangeOidcAPIGatewayApiErrorAlarmWakeup:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway OIDC has 4xx or 5xx error."
+      AlarmActions:
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 7
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 10
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-token-exchange-oidc-api
+              MetricName: 4XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m2
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-token-exchange-oidc-api
+              MetricName: 5XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m3
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${ProjectName}-token-exchange-oidc-api"
+              MetricName: Count
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: e1
+          Expression: IF(m3>=10 AND (m1/m3>=0.9 OR m2/m3>=0.1), 1, 0)
+          Label: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorMetric-OnCall"
 
   ###          JWKS CACHE FORCE REFRESH LAMBDA          ###
   #########################################################
@@ -2671,15 +2664,18 @@ Resources:
           - - !GetAtt IoAuthorizerLambda.Arn
             - !GetAtt ApiKeyAuthorizerV2Lambda.Arn
             - !GetAtt JwtAuthorizerLambda.Arn
-            - !GetAtt B2BAuthorizerLambda.Arn            
+            - !GetAtt B2BAuthorizerLambda.Arn
             - !GetAtt TokenExchangeLambda.Arn
             - !GetAtt JwksCacheForceRefreshLambda.Arn
+            - !GetAtt TokenExchangeOidcLambda.Arn
         RestApiStageArns: !Join
           - ","
           - - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
+            - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeOidcRestApi}/stages/${TokenExchangeOidcRestApiStage}"
         RestApiNames: !Join
           - ","
           - - !Ref TokenExchangeRestApiStage
+            - !Ref TokenExchangeOidcRestApiStage
         AlarmArns: !Join
           - ","
           - - !GetAtt ApiKeyAuthorizerV2LambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
@@ -2690,7 +2686,9 @@ Resources:
             - !GetAtt JWKSCacheRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwksCacheForceRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt TokenExchangeOidcLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
+            - !GetAtt TokenExchangeOidcAPIGatewayApiErrorAlarm.Arn
             - !Ref JWKSCacheForceRefreshDLQAlarmARN
             - !Ref JWKSCacheForceRefreshAlarmARN
         LogGroupsNames: !Join
@@ -2703,6 +2701,7 @@ Resources:
             - !Sub "/aws/lambda/${B2BAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${TokenExchangeLambdaName}"
             - !Sub "/aws/lambda/${JwksCacheForceRefreshLambdaName}"
+            - !Sub "/aws/lambda/${TokenExchangeOidcLambdaName}"
 
   # Event Bridge rule to trigger JWKSCacheRefreshLambda every JWKSCacheRefreshIntervalInMinutes minutes
   JWKSCacheRefreshEventRule:
