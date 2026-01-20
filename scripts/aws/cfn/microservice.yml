@@ -1368,7 +1368,7 @@ Resources:
         Variables:
           PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
           KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
-          ### TokenExchangeOidcLambda specific variables ###
+          ### variables varorized by TokenExchangeOidcLambda specific parameters ###
           ALLOWED_ISSUER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedIssuer
           ALLOWED_ORIGIN: !Ref TokenExchangeOidcLambdaEnvironmentAllowedOrigin
           ONE_IDENTITY_BASEURL: !Ref OneIdentityBaseURL
@@ -1376,10 +1376,9 @@ Resources:
           ALLOWED_TAXIDS_PARAMETER: !Ref TokenExchangeOidcLambdaEnvironmentAllowedTaxIdsParameter
           TOKEN_TTL: !Ref TokenExchangeOidcLambdaEnvironmentTokenTtl
           CACHE_TTL: !Ref TokenExchangeOidcLambdaEnvironmentCacheTtl
-          ### TokenExchange shared variables,values are inherited from pn-ipc.yml stack ###
+          ### Variables valorized by shared parameters used ALSO for TokenExchangeLambda,values are inherited from pn-ipc.yml stack ###
           ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
-          PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
       Role: !GetAtt TokenExchangeOidcLambdaRole.Arn
       Timeout: 10
       TracingConfig:
