@@ -24,7 +24,7 @@ function auditLog(
     message: `[${aud_type}] - ${statusMessage}`,
     aud_type: aud_type,
     aud_orig: aud_orig,
-    level: status === "KO" ? "ERROR" : "INFO",
+    level: status === "KO" ? "WARN" : "INFO",
     level_value: status === "KO" ? 40000 : 20000,
     logger_name: "tokenExchange",
     uid: uid,
