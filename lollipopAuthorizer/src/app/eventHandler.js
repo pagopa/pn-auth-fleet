@@ -78,6 +78,7 @@ async function handleEvent(event) {
           console.log(`[handleEvent] User found: ${cxId}`);
 
           const contextMap = {
+              resultCode: commandResult.resultCode,
               name: commandResult.name || '',
               familyName: commandResult.familyName || '',
               cxId: cxId,
