@@ -78,7 +78,7 @@ async function validateLollipopAssertion(request) {
 
 		result.name = fullName.name; 
 		result.familyName = fullName.familyName;
-		result.resultCode = "ASSERTION_VERIFICATION_SUCCESS";
+		result.resultCode = "VERIFICATION_SUCCESS_CODE";
 		result.resultMessage = "Name and surname successfully validated";
 		
 		console.log("Ending validateLollipopAssertion - Success");

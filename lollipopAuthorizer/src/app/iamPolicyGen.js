@@ -34,10 +34,14 @@ function generatePolicyStatement(resourceArn, action) {
 }
 
 function generatePolicy(principalId, policyStatement, contextMap) {
+  let resultCode = '';
   let nome = '';
   let cognome = '';
   let cxId = '';
   if (contextMap && Object.keys(contextMap).length > 0) {
+        if('resultCode' in contextMap) {
+            resultCode = contextMap.resultCode;
+        }
         if ('name' in contextMap) {
             nome = contextMap.name;
         }
@@ -61,6 +65,7 @@ function generatePolicy(principalId, policyStatement, contextMap) {
       uid: "IO-" + cxId,
       name: nome,
       familyName: cognome,
+      resultCode: resultCode,
     },
   };
 }
