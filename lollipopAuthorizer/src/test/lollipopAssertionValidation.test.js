@@ -84,7 +84,7 @@ describe('TEST lollipopValidateLollipopAssertion', () => {
         
         // 2. Verifica che il risultato sia popolato correttamente
         //expect(result).to.be.an.instanceOf(CommandResult);
-        expect(result.resultCode).to.equal("ASSERTION_VERIFICATION_SUCCESS");
+        expect(result.resultCode).to.equal("VERIFICATION_SUCCESS_CODE");
         expect(result.name).to.equal('Mario');
         expect(result.familyName).to.equal("Rossi");
     });
