@@ -113,6 +113,12 @@ Parameters:
       - "true"
       - "false"
 
+  IOBackendCidrs:
+    Type: String
+    Default: ""
+    Description: 'Comma separated list of CIDR ranges representing the IPs of
+      the IO backend systems'
+
   ExpectedFirstLcOriginalUrl:
     Type: String
     Default: "^https://api-app.io.pagopa.it/\\S+$"
@@ -529,10 +535,31 @@ Parameters:
     Default: 24
     Description: "Redis Jti expiration in hours  "
 
+  LollipopAuthorizerLambdaName:
+    Type: String
+    Description: "Lollipop Authorizer Lambda Name"
+
+  NetworkLoadBalancerLink:
+    Type: String
+    Description: "network load balancer link for API-GW"
+
+  EnvironmentType:
+    Type: String
+    Description: "Environment type (e.g., dev, staging, prod)"
+
+  IoApiDnsName:
+    Type: String
+    Description: "The DNS name used for IO rest API."
+
 Conditions:
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
   HasToRefreshJWKSCache: !Not [!Equals [!Ref JWKSRefreshIntervalMinutes, 0]]
+  IsDevEnvironment: !Equals [!Ref EnvironmentType, "dev"]
+  IsUatEnvironment: !Equals [!Ref EnvironmentType, "uat"]
+  RequiresIoPlayground: !Or
+    - !Equals [!Ref EnvironmentType, "dev"]
+    - !Equals [!Ref EnvironmentType, "uat"]
 
 Resources:
   ###             API KEY AUTHORIZERV2 LAMBDA             ###
@@ -700,6 +727,83 @@ Resources:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
       Parameters:
         FunctionName: !Ref IoAuthorizerLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###               LOLLIPOP AUTHORIZER LAMBDA                ###
+  #########################################################
+
+  # Lambda function
+  LollipopAuthorizerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref LollipopAuthorizerLambdaName
+      Runtime: nodejs22.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/lollipopAuthorizer.zip"
+      Environment:
+        Variables:
+          CX_TAXID_HEADER: "x-pagopa-cx-taxid"
+          PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
+      Role: !GetAtt LollipopAuthorizerLambdaRole.Arn
+      VpcConfig:
+        Fn::If:
+          - HaveToDefineVpcs
+          - SecurityGroupIds:
+              - !GetAtt DataVaultServiceSecurityGroup.GroupId
+            SubnetIds: !Ref SubnetsIds
+          - !Ref AWS::NoValue
+      TracingConfig:
+        Mode: Active
+      Tags:
+        - Key: "pn-eni-related"
+          Value: "true"
+        - Key: "pn-eni-related-groupName-regexp"
+          Value: !Base64 "^pn-auth-fleet-microsvc-prod-DataVaultServiceSecurityGroup.*$"
+
+  # Lambda function role
+  LollipopAuthorizerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-lollipopAuthorizerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: !Sub ${ProjectName}-lollipopAuthorizerLambdaRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowLambdaToCreateLogs
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Sid: AllowLambdaToCreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        # - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+
+  LollipopAuthorizerLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref LollipopAuthorizerLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   ###               JWT AUTHORIZER LAMBDA               ###
@@ -2361,3 +2465,77 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: "ecs-tasks.amazonaws.com"
       SourceArn: !Sub arn:aws:iam::${AWS::AccountId}:role/pn-apikey-manager-TaskRole/*
+      
+  # lambda per lollipop playground
+  IoPlaygroundAPI:
+    Condition: RequiresIoPlayground
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-expose-service-openapi.yaml"
+      Parameters:
+        MicroServiceUniqueName: !Sub "${ProjectName}-io-playground"
+        IntendedUsage: IO_EXP
+        DnsName: !Ref IoApiDnsName
+        ProjectName: !Ref ProjectName
+        ServiceApiPath: "io-playground"
+        NetworkLoadBalancerLink: !Ref NetworkLoadBalancerLink
+        ApplicationLoadBalancerDomain: !Ref ApplicationLoadBalancerDomain
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+        CloudwatchLogKinesisStreamArn: !Ref LogsKinesisSourceStreamArn
+        OpenApiBucketName: !Ref LambdasBucketName
+        OpenApiBucketKey: !Sub ${BucketBasePath}/docs/openapi/aws/api-io-playground-IO-aws.yaml
+
+  IoPlaygroundIoApiWaf:
+    Condition: RequiresIoPlayground
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
+      Parameters:
+        WAFName: !Sub "${ProjectName}-io-playground"
+        IntendedUsage: IO_EXP
+        APIGatewayARNs: !GetAtt IoPlaygroundAPI.Outputs.APIGatewayARN
+        Limit: 0 # disable IP limit based rule
+        AllowedCidrs: !Ref IOBackendCidrs
+
+  LollipopAuthorizerTestLambda:
+    Condition: RequiresIoPlayground
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-lollipopAuthorizerTestLambda"
+      Runtime: nodejs22.x
+      Handler: "index.handler"
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/lollipopAuthorizerTestLambda.zip"
+      Role: !GetAtt LollipopAuthorizerTestLambdaRole.Arn
+      Timeout: 10
+      TracingConfig:
+        Mode: Active
+    
+  LollipopAuthorizerTestLambdaRole:
+    Condition: RequiresIoPlayground
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-lollipopAuthorizerTestLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: 
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        
+  # Lambda access right
+  LollipopAuthorizerTestLambdaPermission:
+    Condition: RequiresIoPlayground
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LollipopAuthorizerTestLambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*"

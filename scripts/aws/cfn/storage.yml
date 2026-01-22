@@ -158,7 +158,19 @@ Resources:
         LogGroupPrefix: '/aws/lambda'
         LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn        
-        
+
+  LollipopAuthorizerLambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain    
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-lollipopAuthorizerLambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
   # ###########################################################
   PnAuthFleetJwtSignKey:
@@ -411,3 +423,7 @@ Outputs:
   JWKSCacheForceRefreshAlarmARN:
     Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.SqsAgeAlarmArn  
     Description: JWKSCacheForceRefresh-DLQ age alarm ARN
+    
+  LollipopAuthorizerLambdaName:
+    Value: !Sub '${ProjectName}-lollipopAuthorizerLambda'
+    Description: Name of Lollipop Authorizer Lambda
