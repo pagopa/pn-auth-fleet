@@ -482,7 +482,8 @@ components:
           arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:pn-lollipopAuthorizerLambda/invocations
         authorizerResultTtlInSeconds: 300
         identitySource: >-
-          x-pagopa-lollipop-auth-jwt
+          method.request.header.x-pagopa-lollipop-auth-jwt,
+          method.request.header.x-pagopa-cx-taxid
         type: request
 tags:
   - name: Test Endpoints
