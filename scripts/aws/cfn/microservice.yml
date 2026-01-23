@@ -3006,7 +3006,7 @@ Resources:
         IntendedUsage: IO_EXP
         APIGatewayARNs: !GetAtt IoPlaygroundAPI.Outputs.APIGatewayARN
         Limit: 0 # disable IP limit based rule
-        AllowedCidrs: !Ref IOBackendCidrs
+        # AllowedCidrs: !Ref IOBackendCidrs
 
   LollipopAuthorizerTestLambda:
     Condition: RequiresIoPlayground
