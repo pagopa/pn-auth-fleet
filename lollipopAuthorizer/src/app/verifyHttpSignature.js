@@ -249,7 +249,8 @@ function parseSignatureInput(sigInput) {
  */
 function parseCoveredComponents(sigInput) {
   console.log("[parseCoveredComponents] Proceeding parsing covered components from signature-input");
-  const match = sigInput.match(/\(([^)]+)\)/);
+  //const match = sigInput.match(/\(([^)]+)\)/);
+  const match = sigInput.match(/\((.*?)\)/);
   const components = match ? match[1].split(/\s+/).map(s => s.replace(/"/g, '').trim()).filter(Boolean) : [];
   console.log("[parseCoveredComponents] Covered components detached");
   return components;
