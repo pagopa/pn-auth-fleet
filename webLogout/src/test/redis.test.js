@@ -25,4 +25,13 @@ describe("insertJti", () => {
     expect(pnAuthCommon.RedisHandler.set).toHaveBeenCalledWith("pn-session::abc123", "1", { EX: 12 * 3600 });
     expect(pnAuthCommon.RedisHandler.disconnectRedis).toHaveBeenCalled();
   });
+
+  it("should handle errors during redis operations", async () => {
+    const jti = "errorJti";
+    const errorMessage = "Redis error";
+
+    pnAuthCommon.RedisHandler.set.mockRejectedValue(new Error(errorMessage));
+
+    await expect(insertJti(jti)).rejects.toThrow(errorMessage);
+  });
 });

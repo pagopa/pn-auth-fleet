@@ -1,11 +1,11 @@
 {
-  "Parameters" : {
+  "Parameters": {
     "JwtAuthorizerLambdaEnvironmentCacheTtl": "120",
     "HelpdeskAuthorizerLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentCacheTtl": "120",
     "TokenExchangeLambdaEnvironmentTokenTtl": "3200",
     "TokenExchangeLatencyLimit": "2000",
-    "ApikeyAuthorizerV2PDNDIssuer":"uat.interop.pagopa.it",
+    "ApikeyAuthorizerV2PDNDIssuer": "uat.interop.pagopa.it",
     "ApiKeyAuthorizerV2LambdaEnvironmentCacheTtl": "300",
     "EnhancedWebSecurityEnabled": "true",
     "JWKSRefreshIntervalMinutes": "5",
@@ -14,9 +14,11 @@
     "JwksDownloaderContentLimitBytes": "1038336",
     "B2BAuthorizerLambdaTimeout": "25",
     "B2BAuthorizerLambdaMemorySize": "512",
-    "JwksCacheForceRefreshLambdaTimeout": "15" ,
-    "PgCustomAttributeResolverCacheMaxUsageEpochSec":"300",
-    "PgCustomAttributeResolverEnableCache":"true",
+    "IoAuthorizerLambdaMemorySize": "512",
+    "IoAuthorizerLambdaTimeoutInSeconds": "5",
+    "JwksCacheForceRefreshLambdaTimeout": "15",
+    "PgCustomAttributeResolverCacheMaxUsageEpochSec": "300",
+    "PgCustomAttributeResolverEnableCache": "true",
     "ConsentTypeEnum": "TOS_DEST_B2B",
     "RedisJwtExpHours": "24",
     "PgEnableAccess": "true",
@@ -25,6 +27,12 @@
     "AssertionExpireInDays": 365,
     "ExpectedFirstLcOriginalMethod": "POST;GET",
     "IdpCieEntityId": "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO",
-    "IdpProviderConfigBaseUri": "https://api.is.eng.pagopa.it"
+    "IdpProviderConfigBaseUri": "https://api.is.eng.pagopa.it",
+    "RedisJtisExcludedInvalidationParameter": "/pn-auth-fleet/redisJtisExcludedInvalidation",
+    "TokenExchangeOidcLambdaEnvironmentAllowedIssuer": "https://uat.oneid.pagopa.it",
+    "TokenExchangeOidcLambdaEnvironmentAllowedOrigin": "https://cittadini.dev.notifichedigitali.it",
+    "EnableTokenExchangeOidcApi": "true",
+    "OneIdentitySecretName": "pn-auth-fleet/one-identity-credentials",
+    "OneIdentityBaseURL": "https://uat.oneid.pagopa.it"
   }
 }
