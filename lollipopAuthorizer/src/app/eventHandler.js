@@ -77,15 +77,16 @@ async function handleEvent(event) {
         }
         console.log(`[handleEvent] User found: ${cxId}`);
 
-        const contextMap = {
-            name: commandResult.name || '',
-            familyName: commandResult.familyName || '',
-            cxId: cxId,
-        };
-        // Generate IAM Policy
-        const iamPolicy = await generateIAMPolicy(event.methodArn, contextMap);
-        console.debug("IAM Policy ", JSON.stringify(iamPolicy));
-        return iamPolicy;
+          const contextMap = {
+              resultCode: commandResult.resultCode || '',
+              name: commandResult.name || '',
+              familyName: commandResult.familyName || '',
+              cxId: cxId,
+          };
+          // Generate IAM Policy
+          const iamPolicy = await generateIAMPolicy(event.methodArn, contextMap);
+          console.debug("IAM Policy ", JSON.stringify(iamPolicy));
+          return iamPolicy;
 
     } catch (error) {
         console.error("Lollipop Authorizer Validation - Error during authorization flow (get/generate policy): ", error.errorCode, " - Message: ", error.message);

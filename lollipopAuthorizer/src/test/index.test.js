@@ -45,7 +45,7 @@ describe("index tests", function () {
 
     stubs.validateLollipopAuthorizer.resolves({
       statusCode: 200,
-      resultCode: "ASSERTION_VERIFICATION_SUCCESS",
+      resultCode: "VERIFICATION_SUCCESS_CODE",
       name: "Mario",
       familyName: "Rossi"
     });
@@ -124,7 +124,7 @@ describe("index tests", function () {
 
         stubs.validateLollipopAuthorizer.resolves({
           statusCode: 200,
-          resultCode: "ASSERTION_VERIFICATION_SUCCESS"
+          resultCode: "VERIFICATION_SUCCESS_CODE"
         });
 
         mock.onPost(expectedUrl, taxId).reply(500);

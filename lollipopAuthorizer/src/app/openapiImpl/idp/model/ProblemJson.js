@@ -11,7 +11,7 @@
  *
  */
 
-import ApiClient from '../ApiClient.js';
+const ApiClient = require('../ApiClient');
 
 /**
  * The ProblemJson model module.
@@ -129,10 +129,5 @@ ProblemJson.prototype['detail'] = undefined;
  */
 ProblemJson.prototype['instance'] = undefined;
 
-
-
-
-
-
-export default ProblemJson;
+module.exports = ProblemJson;
 

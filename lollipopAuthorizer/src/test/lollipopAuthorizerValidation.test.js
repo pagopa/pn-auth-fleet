@@ -38,11 +38,11 @@ describe("Lollipop Authorizer Validation Suite Test", () => {
     it("TEST 1: Successo: deve restituire 200 quando l'assertion è valida", async () => {
         stubs.validateLollipopRequest.resolves();
         stubs.validateLollipopHttpSignature.resolves({ resultCode: "HTTP_MESSAGE_VALIDATION_SUCCESS" });
-        stubs.validateLollipopAssertion.resolves({ resultCode: "ASSERTION_VERIFICATION_SUCCESS", name: "Mario" });
+        stubs.validateLollipopAssertion.resolves({ resultCode: "VERIFICATION_SUCCESS_CODE", name: "Mario" });
 
         const result = await validateLollipopAuthorizer(mockRequest);
         expect(result.statusCode).to.equal(200);
-        expect(result.resultCode).to.equal("ASSERTION_VERIFICATION_SUCCESS");
+        expect(result.resultCode).to.equal("VERIFICATION_SUCCESS_CODE");
         expect(result.name).to.equal("Mario");
     });
 

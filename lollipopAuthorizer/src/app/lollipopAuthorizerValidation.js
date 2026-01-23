@@ -26,8 +26,8 @@ import LollipopAssertionException from "../app/exception/lollipopAssertionExcept
             //STEP 3 - Validazione della assertion della request Lollipop.
             commandResult = await validateLollipopAssertion(request);
 
-            // Se la validazione è completata con successo
-            if(commandResult.resultCode === "ASSERTION_VERIFICATION_SUCCESS"){
+            // Se la validazione è completata con successo - VERIFICATION_SUCCESS_CODE
+            if(commandResult.resultCode === "VERIFICATION_SUCCESS_CODE"){
                 commandResult.statusCode = 200;
             }
             console.log("[validateLollipopAuthorizer] - ending statusCode: ", commandResult.statusCode,
