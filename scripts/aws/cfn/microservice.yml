@@ -2980,6 +2980,7 @@ Resources:
   IoPlaygroundAPI:
     Condition: RequiresIoPlayground
     Type: AWS::CloudFormation::Stack
+    DependsOn: LollipopAuthorizerLambda
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-expose-service-openapi.yaml"
       Parameters:

@@ -30,6 +30,8 @@ paths:
         Accepts a GET request authenticated via Lollipop headers.
         Returns comprehensive information about the request.
       operationId: testLollipopGet
+      x-pagopa-lambda-name: pn-lollipopAuthorizerTestLambda
+      x-pagopa-lambda-account: core
       tags:
         - Test Endpoints
 
@@ -106,6 +108,8 @@ paths:
         Accepts a POST request with JSON body authenticated via Lollipop headers.
         Returns comprehensive information about the request.
       operationId: testLollipopPost
+      x-pagopa-lambda-name: pn-lollipopAuthorizerTestLambda
+      x-pagopa-lambda-account: core
       tags:
         - Test Endpoints
 

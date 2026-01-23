@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: >-
     ${stageVariables.ProjectName}-${stageVariables.MicroServiceUniqueName}-${stageVariables.IntendedUsage}
-  version: hfkJo+VFOl8+Iu3aUmOVOugWXBB5pj//SrG5loNQjdA=
+  version: HAGpEx/TLcybzrYaAKNaAaCn0tmWlAI+h77GMse6lQ8=
 servers:
   - url: https://${stageVariables.DnsName}/{basePath}
     variables:
@@ -18,6 +18,8 @@ paths:
         Accepts a GET request authenticated via Lollipop headers.
         Returns comprehensive information about the request.
       operationId: testLollipopGet
+      x-pagopa-lambda-name: pn-lollipopAuthorizerTestLambda
+      x-pagopa-lambda-account: core
       tags:
         - Test Endpoints
       parameters:
@@ -81,13 +83,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
-        - pn-auth-fleet_IoAuthorizer_openapi: []
+        - pn-auth-fleet_LollipopAuthorizer_openapi: []
         - api_key_openapi: []
       x-amazon-apigateway-integration:
         uri: >-
-          http://${stageVariables.ApplicationLoadBalancerDomain}:8080/${stageVariables.ServiceApiPath}/lollipop-test
-        connectionId: ${stageVariables.NetworkLoadBalancerLink}
-        httpMethod: ANY
+          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:pn-lollipopAuthorizerTestLambda/invocations
+        httpMethod: POST
         requestParameters:
           integration.request.header.x-pagopa-pn-cx-id: context.authorizer.cx_id
           integration.request.header.x-pagopa-pn-cx-role: context.authorizer.cx_role
@@ -98,9 +99,9 @@ paths:
           integration.request.header.x-pagopa-pn-src-ch-details: context.authorizer.sourceChannelDetails
           integration.request.header.x-pagopa-pn-src-ch: '''IO'''
         passthroughBehavior: when_no_match
-        connectionType: VPC_LINK
+        contentHandling: CONVERT_TO_TEXT
         timeoutInMillis: 29000
-        type: http_proxy
+        type: aws_proxy
     post:
       summary: Test POST request with Lollipop authentication
       description: >
@@ -109,6 +110,8 @@ paths:
 
         Returns comprehensive information about the request.
       operationId: testLollipopPost
+      x-pagopa-lambda-name: pn-lollipopAuthorizerTestLambda
+      x-pagopa-lambda-account: core
       tags:
         - Test Endpoints
       parameters:
@@ -200,13 +203,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
-        - pn-auth-fleet_IoAuthorizer_openapi: []
+        - pn-auth-fleet_LollipopAuthorizer_openapi: []
         - api_key_openapi: []
       x-amazon-apigateway-integration:
         uri: >-
-          http://${stageVariables.ApplicationLoadBalancerDomain}:8080/${stageVariables.ServiceApiPath}/lollipop-test
-        connectionId: ${stageVariables.NetworkLoadBalancerLink}
-        httpMethod: ANY
+          arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:pn-lollipopAuthorizerTestLambda/invocations
+        httpMethod: POST
         requestParameters:
           integration.request.header.x-pagopa-pn-cx-id: context.authorizer.cx_id
           integration.request.header.x-pagopa-pn-cx-role: context.authorizer.cx_role
@@ -217,21 +219,9 @@ paths:
           integration.request.header.x-pagopa-pn-src-ch-details: context.authorizer.sourceChannelDetails
           integration.request.header.x-pagopa-pn-src-ch: '''IO'''
         passthroughBehavior: when_no_match
-        connectionType: VPC_LINK
+        contentHandling: CONVERT_TO_TEXT
         timeoutInMillis: 29000
-        type: http_proxy
-    options:
-      operationId: Options for /lollipop-test API CORS
-      x-amazon-apigateway-integration:
-        uri: >-
-          http://${stageVariables.ApplicationLoadBalancerDomain}:8080/${stageVariables.ServiceApiPath}/lollipop-test
-        connectionId: ${stageVariables.NetworkLoadBalancerLink}
-        httpMethod: ANY
-        requestParameters: {}
-        passthroughBehavior: when_no_match
-        connectionType: VPC_LINK
-        timeoutInMillis: 29000
-        type: http_proxy
+        type: aws_proxy
 components:
   parameters:
     cxTaxIdAuthFleet:
