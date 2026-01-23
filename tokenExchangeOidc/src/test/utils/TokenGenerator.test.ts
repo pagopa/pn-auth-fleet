@@ -59,6 +59,8 @@ describe("TokenGenerator", () => {
         aud: "webapi.dev.pn.pagopa.it",
         jti: state,
       });
+
+      expect(payload.source).toBeUndefined();
     });
 
     it("should calculate correct expiration time based on TOKEN_TTL", () => {
@@ -111,6 +113,22 @@ describe("TokenGenerator", () => {
 
       expect(payload.jti).toBe(state);
     });
+
+    it("should include source information when provided", () => {
+      const source = {
+        channel: SourceChannel.TPP,
+        details: "Test TPP",
+        retrievalId: "retrieval-123",
+      };
+
+      const payload = generateJwtPayload({
+        pairwise: "test-pairwise",
+        state: "test-state",
+        source,
+      });
+
+      expect(payload.source).toEqual(source);
+    });
   });
 
   describe("generateSessionToken", () => {
@@ -157,7 +175,7 @@ describe("TokenGenerator", () => {
 
       expect(kmsClientMock.commandCalls(DescribeKeyCommand)).toHaveLength(1);
       expect(
-        kmsClientMock.commandCalls(DescribeKeyCommand)[0].args[0].input
+        kmsClientMock.commandCalls(DescribeKeyCommand)[0].args[0].input,
       ).toEqual({
         KeyId: "SessionKey", // KEY_ALIAS from setupEnv
       });
@@ -194,7 +212,7 @@ describe("TokenGenerator", () => {
       });
 
       await expect(generateSessionToken(payloadMock)).rejects.toThrow(
-        "Unable to resolve KMS keyId for alias"
+        "Unable to resolve KMS keyId for alias",
       );
     });
 
@@ -210,7 +228,7 @@ describe("TokenGenerator", () => {
       });
 
       await expect(generateSessionToken(payloadMock)).rejects.toThrow(
-        "KMS returned an empty signature"
+        "KMS returned an empty signature",
       );
     });
 
@@ -298,7 +316,7 @@ describe("TokenGenerator", () => {
         .rejects(new Error("KMS service unavailable"));
 
       await expect(generateSessionToken(payloadMock)).rejects.toThrow(
-        "KMS service unavailable"
+        "KMS service unavailable",
       );
     });
 
@@ -312,7 +330,7 @@ describe("TokenGenerator", () => {
       kmsClientMock.on(SignCommand).rejects(new Error("Signing failed"));
 
       await expect(generateSessionToken(payloadMock)).rejects.toThrow(
-        "Signing failed"
+        "Signing failed",
       );
     });
   });
@@ -324,7 +342,7 @@ describe("TokenGenerator", () => {
 
     it("should return valid object when source is TPP", async () => {
       (getRetrievalPayload as jest.Mock).mockResolvedValue(
-        checkTppResponseMock
+        checkTppResponseMock,
       );
 
       const source = { type: SourceEventType.TPP, id: retrievalIdMock };
@@ -360,10 +378,10 @@ describe("TokenGenerator", () => {
       const source = { type: "INVALID", id: "invalid-123" } as any;
 
       await expect(generateSourceObject(source)).rejects.toThrow(
-        ValidationException
+        ValidationException,
       );
       await expect(generateSourceObject(source)).rejects.toThrow(
-        "Invalid source type"
+        "Invalid source type",
       );
       expect(getRetrievalPayload).not.toHaveBeenCalled();
     });
