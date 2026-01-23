@@ -92,7 +92,8 @@ describe('EventHandler - Test Suite', () => {
 
         const mockEvent = { headers: { 'x-pagopa-cx-taxid': 'UNKNOWN_TAX' } };
         stubs.validateLollipopAuthorizer.resolves({ statusCode: 200 });
-        stubs.getCxId.resolves(null); // Utente non trovato
+        const error = new Error('User not found in DataVault');
+        stubs.getCxId.rejects(error);
 
         const result = await handleEventModule.handleEvent(mockEvent);
 
@@ -102,12 +103,14 @@ describe('EventHandler - Test Suite', () => {
 
     // TEST 5: ERRORE IMPREVISTO (CATCH) ---
     it('TEST 5: dovrebbe restituire DENY in caso di eccezione imprevista', async () => {
+        process.env.LOLLIPOP_BLOCK = "true";
         const mockEvent = { headers: { 'x-pagopa-cx-taxid': 'TAX' } };
         //stubs.validateLollipopAuthorizer.rejects(new Error('Database Error'));
         stubs.validateLollipopAuthorizer.resolves({ statusCode: 500 });
         const result = await handleEventModule.handleEvent(mockEvent);
 
         expect(result).to.deep.equal(defaultDenyAllPolicy);
+        delete process.env.LOLLIPOP_BLOCK;
     });
 
 });
