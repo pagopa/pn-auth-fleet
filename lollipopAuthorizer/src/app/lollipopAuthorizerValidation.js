@@ -3,7 +3,7 @@ const { validateLollipopHttpSignature } = require("../app/lollipopHttpSignatureV
 const { validateLollipopAssertion } = require('../app/lollipopAssertionValidation');
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
 const LollipopHttpSignatureValidationException = require('../app/exception/lollipopHttpSignatureValidationException');
-const LollipopAssertionException = require('../app/exception/LollipopAssertionException');
+const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
 
 
     async function validateLollipopAuthorizer(request){

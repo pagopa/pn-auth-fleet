@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const sinon = require("sinon");
 const proxyquire = require("proxyquire");
 
-const LollipopAssertionException = require("../app/exception/LollipopAssertionException");
+const LollipopAssertionException = require("../app/exception/lollipopAssertionException");
 const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
 const LollipopHttpSignatureValidationException = require('../app/exception/lollipopHttpSignatureValidationException');
 

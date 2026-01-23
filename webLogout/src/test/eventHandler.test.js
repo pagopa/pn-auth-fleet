@@ -20,6 +20,7 @@ jest.mock("../app/utils", () => ({
   getCxType: jest.fn(() => "type1"),
   getCxId: jest.fn(() => "id1"),
   getCxRole: jest.fn(() => "role1"),
+  getParameterFromStore: jest.fn(() => "\"_2fe3c8749b01acdef001,_7a11be09cf34ab982d3e'"),
 }));
 
 describe("handleEvent", () => {
@@ -102,5 +103,34 @@ describe("handleEvent", () => {
       message: "Internal Server Error",
       error: "Redis failure",
     });
+  });
+
+  it("should skip inserting JTI if it is whitelisted", async () => {
+    process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER = "parameter-name";
+
+    jest.spyOn(jsonwebtoken, "decode").mockReturnValue({ ...decodedToken, jti: "_7a11be09cf34ab982d3e" });
+    insertJti.mockResolvedValue();
+
+    const response = await handleEvent(mockEvent);
+
+    expect(insertJti).not.toHaveBeenCalled();
+    expect(auditLog.mock.calls.length).toBe(1); // only info log
+
+    expect(response.statusCode).toBe(200);
+  });
+  
+  it("should always insert JTI if parameter name is empty", async () => {
+    process.env.REDIS_JTIS_EXCLUDED_INVALIDATION_PARAMETER = "";
+
+    jest.spyOn(jsonwebtoken, "decode").mockReturnValue({ ...decodedToken, jti: "_7a11be09cf34ab982d3e" });
+    insertJti.mockResolvedValue();
+
+    const response = await handleEvent(mockEvent);
+
+    expect(insertJti).toHaveBeenCalled();
+    expect(auditLog.mock.calls[1][0]).toBe('Jti _7a11be09cf34ab982d3e was successfully inserted in Redis');
+
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ message: "Logout successful" });
   });
 });

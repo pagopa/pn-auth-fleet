@@ -32,6 +32,7 @@ async function handleEvent(event) {
     console.log("decodedToken", decodedToken);
 
     if (await Redis.isJtiRevoked(decodedToken.jti)) {
+      console.log(`Jti ${decodedToken.jti} is revoked`);
       return defaultDenyAllPolicy;
     }
 
