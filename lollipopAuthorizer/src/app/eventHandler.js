@@ -4,20 +4,31 @@ import { getCxId  } from "./dataVaultClient.js";
 import { lollipopConfig } from './config/lollipopConsumerRequestConfig.js';
 
 const defaultDenyAllPolicy = {
-    principalId: "user",
-    policyDocument: {
-        Version: "2012-10-17",
-        Statement: [
-            {
-                Action: "execute-api:Invoke",
-                Effect: "Deny",
-                Resource: "*",
-            },
-        ],
-    },
+  principalId: "user",
+  policyDocument: {
+    Version: "2012-10-17",
+    Statement: [
+      {
+        Action: "execute-api:Invoke",
+        Effect: "Deny",
+        Resource: "*",
+      },
+    ],
+  },
 };
 
+const ACCEPTED_SOURCE_DETAILS = ["QR_CODE", ""]
+
+function validateSourceDetails(sourceDetails) {
+  if(sourceDetails) {
+    return ACCEPTED_SOURCE_DETAILS.includes(sourceDetails);
+  }
+  return true; // If no source details are provided, we assume it's valid
+}
+
 async function handleEvent(event) {
+    // Declare Policy
+    let iamPolicy = null;
 
     let lollipopBlock;
     if( process.env.LOLLIPOP_BLOCK === undefined || process.env.LOLLIPOP_BLOCK === '')
@@ -32,61 +43,70 @@ async function handleEvent(event) {
     let commandResultFamilyName='';
     try {
         const request = {
-            // Mapping degli header ricevuti dall'evento
-            headerParams: {
-                headers: event.headers || {}
-            },
+          // Mapping degli header ricevuti dall'evento
+          headerParams: {
+              headers: event.headers || {}
+          },
         };
 
         commandResult = await validateLollipopAuthorizer(request);
         // ATTENZIONE: IN FASE DI Enforcement, la variabile lollipopBlock deve essere valorizzato a true
         if (String(lollipopBlock).toLowerCase() === "true") {
-            if(commandResult.statusCode !== 200){
-                console.error(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
-                return defaultDenyAllPolicy;
-            }
+          if(commandResult.statusCode !== 200){
+            console.error(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
+            return defaultDenyAllPolicy;
+          }
         }else{
-            if(commandResult.statusCode !== 200){
-                console.warn(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
-            }
+          if(commandResult.statusCode !== 200){
+              console.warn(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
+          }
         }
     } catch (error) {
         if (String(lollipopBlock).toLowerCase() === "true") {
-            console.error(`[handleEvent] - Lollipop Authorizer Validation fallita: ${commandResult.resultCode}. Denying access.`);
-            return defaultDenyAllPolicy;
+              console.error(`[handleEvent] - Lollipop Authorizer Validation fallita: ${commandResult.resultCode}. Denying access.`);
+              return defaultDenyAllPolicy;
         }else{
-            console.warn("Lollipop Authorizer Validation - ErrorCode: ", error.errorCode, " - Message: ", error.message);
+              console.warn("Lollipop Authorizer Validation - ErrorCode: ", error.errorCode, " - Message: ", error.message);
         }
     }
 
     try{
-
-        // Capture taxId from event
         const taxId = event?.headers?.["x-pagopa-cx-taxid"];
+        const userId = event?.headers?.["x-pagopa-lollipop-user-id"];
+        const sourceDetails = event?.headers?.["x-pagopa-pn-io-src"];
+
+        if (!validateSourceDetails(sourceDetails)) {
+            console.error("Invalid source details header", sourceDetails);
+            return defaultDenyAllPolicy;
+        }
+
         if (!taxId) {
             console.error("Header 'x-pagopa-cx-taxid' is missing. Denying access.");
             return defaultDenyAllPolicy;
-        }
-        const cxId = await getCxId(taxId);
-        if (!cxId) {
-            // Caso "User Not Found": Il taxId non è censito nel DataVault/DB
-            let statusCode = 404;
-            let resultCode = "USER_NOT_FOUND";
-            console.error(`[handleEvent] - ending statusCode: ${statusCode} - resultCode: ${resultCode} - User not found for taxId. Denying access.`);
+        } else if (userId && taxId.toUpperCase() !== userId.toUpperCase()) {
+            console.error("Mismatch between taxId and userId.");
             return defaultDenyAllPolicy;
+        } else {
+            console.info("Match found between taxId and userId");
+            try {
+              const cxId = await getCxId(taxId);
+              console.info("cxId", cxId);
+              // Generate IAM Policy
+              const contextMap = {
+                    resultCode: commandResult.resultCode || '',
+                    name: commandResult.name || '',
+                    familyName: commandResult.familyName || '',
+                    cxId: cxId,
+                    sourceChannelDetails: sourceDetails,
+              };
+              iamPolicy = await generateIAMPolicy(event.methodArn, contextMap );
+              console.log("IAM Policy", JSON.stringify(iamPolicy));
+              return iamPolicy;
+            } catch (err) {
+              console.error("Error generating IAM policy with error ", err);
+              return defaultDenyAllPolicy;
+            }
         }
-        console.log(`[handleEvent] User found: ${cxId}`);
-
-          const contextMap = {
-              resultCode: commandResult.resultCode || '',
-              name: commandResult.name || '',
-              familyName: commandResult.familyName || '',
-              cxId: cxId,
-          };
-          // Generate IAM Policy
-          const iamPolicy = await generateIAMPolicy(event.methodArn, contextMap);
-          console.debug("IAM Policy ", JSON.stringify(iamPolicy));
-          return iamPolicy;
 
     } catch (error) {
         console.error("Lollipop Authorizer Validation - Error during authorization flow (get/generate policy): ", error.errorCode, " - Message: ", error.message);

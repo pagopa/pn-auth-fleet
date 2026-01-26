@@ -38,6 +38,7 @@ function generatePolicy(principalId, policyStatement, contextMap) {
   let nome = '';
   let cognome = '';
   let cxId = '';
+  let sourceDetails = '';
   if (contextMap && Object.keys(contextMap).length > 0) {
         if('resultCode' in contextMap) {
             resultCode = contextMap.resultCode;
@@ -50,6 +51,9 @@ function generatePolicy(principalId, policyStatement, contextMap) {
         }
         if ('cxId' in contextMap) {
             cxId = contextMap.cxId;
+        }
+        if ('sourceChannelDetails' in contextMap) {
+            sourceDetails = contextMap.sourceChannelDetails;
         }
   }
   // Generate a fully formed IAM policy
@@ -66,6 +70,7 @@ function generatePolicy(principalId, policyStatement, contextMap) {
       name: nome,
       familyName: cognome,
       resultCode: resultCode,
+      sourceChannelDetails: sourceDetails,
     },
   };
 }

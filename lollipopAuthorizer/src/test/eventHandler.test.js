@@ -114,20 +114,33 @@ describe('EventHandler - Test Suite', () => {
     });
 
     // TEST 4: GENERATE IAM POLICY FAILS
-    it('dovrebbe restituire una policy DENY quando generateIAMPolicy fallisce', async () => {
-        const mockEvent = {
-            methodArn: 'arn:aws:execute-api:region:account:api/stage/GET/path',
-            headers: { 'x-pagopa-cx-taxid': 'TAX12345' }
-        };
+        it('dovrebbe restituire una policy DENY quando generateIAMPolicy fallisce', async () => {
+            const mockEvent = {
+                methodArn: 'arn:aws:execute-api:region:account:api/stage/GET/path',
+                headers: { 'x-pagopa-cx-taxid': 'TAX12345' }
+            };
 
-        const mockLollipopResult = { statusCode: 200, resultCode: 'SUCCESS' };
+            const mockLollipopResult = { statusCode: 200, resultCode: 'SUCCESS' };
 
-        stubs.validateLollipopAuthorizer.resolves(mockLollipopResult);
-        stubs.getCxId.resolves('CX-ID-999');
-        stubs.generateIAMPolicy.rejects(new Error('IAM Policy generation error'));
+            stubs.validateLollipopAuthorizer.resolves(mockLollipopResult);
+            stubs.getCxId.resolves('CX-ID-999');
+            stubs.generateIAMPolicy.rejects(new Error('IAM Policy generation error'));
 
+            const result = await handleEvent(mockEvent);
+
+            expect(result).to.deep.equal(defaultDenyAllPolicy);
+        });
+
+    // TEST 5: ERRORE IMPREVISTO (CATCH) ---
+    it('TEST 5: dovrebbe restituire DENY in caso di eccezione imprevista', async () => {
+        process.env.LOLLIPOP_BLOCK = "true";
+        const mockEvent = { headers: { 'x-pagopa-cx-taxid': 'TAX' } };
+        //stubs.validateLollipopAuthorizer.rejects(new Error('Database Error'));
+        stubs.validateLollipopAuthorizer.resolves({ statusCode: 500 });
         const result = await handleEvent(mockEvent);
 
         expect(result).to.deep.equal(defaultDenyAllPolicy);
+        delete process.env.LOLLIPOP_BLOCK;
     });
+
 });

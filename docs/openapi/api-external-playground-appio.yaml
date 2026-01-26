@@ -1,0 +1,438 @@
+openapi: 3.0.1
+info:
+  title: Lollipop Backend Logger API
+  version: 1.0.0
+  description: |
+    Test Lambda service for validating Lollipop Authorizer integration.
+    
+    This is a backend endpoint protected by the Lollipop Custom Authorizer that:
+    - Accepts authorized requests from clients with valid Lollipop authentication
+    - Logs all request details including headers, body, and authorizer context
+    - Returns comprehensive debug information about the received request
+    
+    **Purpose**: Testing and debugging Lollipop authentication flow
+
+  x-api-id: lollipop-backend-logger
+
+servers:
+  - url: https://api-io.pn.pagopa.it
+    description: Ambiente di produzione
+  - url: https://api-io.uat.pn.pagopa.it
+    description: Ambiente di test
+  - url: https://api-io.dev.pn.pagopa.it
+    description: Ambiente di sviluppo
+
+paths:
+  /io-playground/lollipop-test:
+    get:
+      summary: Test GET request with Lollipop authentication
+      description: |
+        Accepts a GET request authenticated via Lollipop headers.
+        Returns comprehensive information about the request.
+      operationId: testLollipopGet
+      x-pagopa-lambda-name: pn-lollipopAuthorizerTestLambda
+      x-pagopa-lambda-account: core
+      tags:
+        - Test Endpoints
+
+      parameters:
+        - $ref: '#/components/parameters/cxTaxIdAuthFleet'
+        - $ref: '#/components/parameters/lollipopOriginalUrl'
+        - $ref: '#/components/parameters/lollipopOriginalMethod'
+        - $ref: '#/components/parameters/lollipopPublicKey'
+        - $ref: '#/components/parameters/lollipopAssertionRef'
+        - $ref: '#/components/parameters/lollipopAssertionType'
+        - $ref: '#/components/parameters/lollipopAuthJwt'
+        - $ref: '#/components/parameters/lollipopUserId'
+        - $ref: '#/components/parameters/lollipopSignatureInput'
+        - $ref: '#/components/parameters/lollipopSignature'
+
+        - name: query
+          in: query
+          description: Generic query parameters (all optional)
+          required: false
+          schema:
+            type: object
+            additionalProperties: true
+          style: form
+          explode: true
+
+      responses:
+        '200':
+          description: Request processed successfully
+          headers:
+            X-Lambda-Name:
+              schema:
+                type: string
+                example: lollipop-dummy-service
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Unauthorized - Lollipop authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Forbidden - Authorization denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Test POST request with Lollipop authentication
+      description: |
+        Accepts a POST request with JSON body authenticated via Lollipop headers.
+        Returns comprehensive information about the request.
+      operationId: testLollipopPost
+      x-pagopa-lambda-name: pn-lollipopAuthorizerTestLambda
+      x-pagopa-lambda-account: core
+      tags:
+        - Test Endpoints
+
+      parameters:
+        - $ref: '#/components/parameters/cxTaxIdAuthFleet'
+        - $ref: '#/components/parameters/lollipopOriginalUrl'
+        - $ref: '#/components/parameters/lollipopOriginalMethod'
+        - $ref: '#/components/parameters/lollipopPublicKey'
+        - $ref: '#/components/parameters/lollipopAssertionRef'
+        - $ref: '#/components/parameters/lollipopAssertionType'
+        - $ref: '#/components/parameters/lollipopAuthJwt'
+        - $ref: '#/components/parameters/lollipopUserId'
+        - $ref: '#/components/parameters/lollipopSignatureInput'
+        - $ref: '#/components/parameters/lollipopSignature'
+
+        - name: content-digest
+          in: header
+          description: SHA-256 digest of the request body (required for POST with body)
+          required: false
+          schema:
+            type: string
+            pattern: '^sha-256=:[A-Za-z0-9+/=]+:$'
+            example: "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:"
+
+        - name: query
+          in: query
+          description: Generic query parameters (all optional)
+          required: false
+          schema:
+            type: object
+            additionalProperties: true
+          style: form
+          explode: true
+
+      requestBody:
+        description: Free-form JSON body (any valid JSON structure accepted)
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: Any valid JSON object
+            examples:
+              testData:
+                summary: Example test data
+                value:
+                  testField: "test value"
+                  nestedObject:
+                    key: "value"
+                  arrayField: [1, 2, 3]
+
+      responses:
+        '200':
+          description: Request processed successfully
+          headers:
+            X-Lambda-Name:
+              schema:
+                type: string
+                example: lollipop-dummy-service
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '401':
+          description: Unauthorized - Lollipop authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '403':
+          description: Forbidden - Authorization denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  parameters:
+    cxTaxIdAuthFleet:
+      name: x-pagopa-cx-taxid
+      in: header
+      description: Customer taxId (Italian Codice Fiscale - 16 uppercase characters)
+      required: true
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 16
+        pattern: '^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{3}[A-Z]{1}$'
+      example: "RSSMRA80A01H501U"
+
+    lollipopOriginalUrl:
+      name: x-pagopa-lollipop-original-url
+      in: header
+      description: The original URL of the protected resource being accessed
+      required: true
+      schema:
+        type: string
+        pattern: '^https://api-app\.io\.pagopa\.it/.*$'
+      example: "https://api-app.io.pagopa.it/api/v1/third-party-messages/01K97R65XAV2VYBVCESA0329CJ"
+
+    lollipopOriginalMethod:
+      name: x-pagopa-lollipop-original-method
+      in: header
+      description: The original HTTP method of the protected request
+      required: true
+      schema:
+        type: string
+        enum: [GET, POST, PUT, DELETE, PATCH]
+      example: "POST"
+
+    lollipopPublicKey:
+      name: x-pagopa-lollipop-public-key
+      in: header
+      description: JWK public key encoded in base64
+      required: true
+      schema:
+        type: string
+        format: base64
+      example: "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IldLbi1aSUdldmN3R0l5eXJ6Rm9aTkJkYXE5X1RzcXpHbDk2b2MwQ1d1aXMiLCJ5IjoieTc3dC1SdkFIUktUc1NHZElZVWZ3ZXVPdndydkRELVEzSHY1SjBmU0tiRSJ9"
+
+    lollipopAssertionRef:
+      name: x-pagopa-lollipop-assertion-ref
+      in: header
+      description: SHA-256/384/512 hash reference of the SAML assertion
+      required: true
+      schema:
+        type: string
+        pattern: '^(sha256-[A-Za-z0-9\-_=]{1,44}|sha384-[A-Za-z0-9\-_=]{1,66}|sha512-[A-Za-z0-9\-_=]{1,88})$'
+      example: "sha256-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789"
+
+    lollipopAssertionType:
+      name: x-pagopa-lollipop-assertion-type
+      in: header
+      description: Type of assertion (SAML or OIDC)
+      required: true
+      schema:
+        type: string
+        enum: [SAML, OIDC]
+      example: "SAML"
+
+    lollipopAuthJwt:
+      name: x-pagopa-lollipop-auth-jwt
+      in: header
+      description: JWT containing the SAML assertion
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$'
+      example: "eyJhbGciOiJub25lIn0.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+    lollipopUserId:
+      name: x-pagopa-lollipop-user-id
+      in: header
+      description: User ID (Italian Codice Fiscale)
+      required: true
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 16
+        pattern: '^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{2}[A-Z]{1}[0-9LMNPQRSTUV]{3}[A-Z]{1}$'
+      example: "RSSMRA80A01H501U"
+
+    lollipopSignatureInput:
+      name: signature-input
+      in: header
+      description: HTTP Message Signature Input (RFC 9421)
+      required: true
+      schema:
+        type: string
+        pattern: '^sig[0-9]+=\([^)]*\);.*alg="[^"]+".*$'
+      example: 'sig1=("@method" "@path" "content-digest");created=1234567890;alg="ecdsa-p256-sha256"'
+
+    lollipopSignature:
+      name: signature
+      in: header
+      description: HTTP Message Signature (RFC 9421)
+      required: true
+      schema:
+        type: string
+        pattern: '^sig[0-9]+=:[A-Za-z0-9+/=]+:$'
+      example: 'sig1=:SGVsbG8gV29ybGQhIFRoaXMgaXMgYSBkdW1teSBzaWduYXR1cmU=:'
+
+  schemas:
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - timestamp
+        - data
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          required:
+            - message
+            - timestamp
+            - request
+          properties:
+            message:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+            request:
+              $ref: '#/components/schemas/RequestInfo'
+            requestBody:
+              oneOf:
+                - type: object
+                  additionalProperties: true
+                - type: 'null'
+            lollipopHeaders:
+              type: object
+              additionalProperties:
+                type: string
+            authorizerContext:
+              $ref: '#/components/schemas/AuthorizerContext'
+            summary:
+              $ref: '#/components/schemas/RequestSummary'
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - timestamp
+        - error
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        timestamp:
+          type: string
+          format: date-time
+        error:
+          type: object
+          required:
+            - message
+            - statusCode
+          properties:
+            message:
+              type: string
+            statusCode:
+              type: integer
+
+    RequestInfo:
+      type: object
+      required:
+        - method
+        - path
+        - hasBody
+        - bodyLength
+      properties:
+        method:
+          type: string
+          enum: [GET, POST, PUT, DELETE, PATCH, OPTIONS]
+        path:
+          type: string
+        requestTime:
+          type: string
+        queryParameters:
+          type: object
+          additionalProperties:
+            type: string
+        hasBody:
+          type: boolean
+        bodyLength:
+          type: integer
+
+    AuthorizerContext:
+      type: object
+      description: Context data passed from the Lollipop Custom Authorizer
+      properties:
+        userId:
+          type: string
+        name:
+          type: string
+        familyName:
+          type: string
+      additionalProperties: true
+
+    RequestSummary:
+      type: object
+      properties:
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          oneOf:
+            - type: string
+            - type: 'null'
+        hasAuthorizerContext:
+          type: boolean
+        authorizerContextKeys:
+          type: array
+          items:
+            type: string
+
+tags:
+  - name: Test Endpoints
+    description: Testing and debugging endpoints for Lollipop authentication

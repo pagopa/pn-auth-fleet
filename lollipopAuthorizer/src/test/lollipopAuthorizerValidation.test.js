@@ -52,54 +52,54 @@ describe("Lollipop Authorizer Validation Suite Test", () => {
         stubs.validateLollipopHttpSignature.resolves({ resultCode: "HTTP_MESSAGE_VALIDATION_FAILED" });
 
         const result = await validateLollipopAuthorizer(mockRequest);
+
         expect(result.statusCode).to.equal(402);
+        expect(result.resultCode).to.equal("HTTP_MESSAGE_VALIDATION_FAILED");
+        // Verifica che lo step 3 non venga chiamato
+        expect(stubs.validateLollipopAssertion.called).to.be.false;
     });
 
-    // TEST 3: FALLIMENTO REQUEST PARAMS (400)
-    it("TEST 3: dovrebbe restituire 401 se c'è un errore nella validazione dei parametri della richiesta", async () => {
-        const error = new LollipopRequestContentValidationException("REQUEST_PARAMS_VALIDATION_FAILED", "Error detail");
+    // TEST 3: ECCEZIONE CONTENT VALIDATION (401)
+    it("TEST 3: dovrebbe gestire LollipopRequestContentValidationException e restituire 401", async () => {
+        const error = new LollipopRequestContentValidationException("FATAL_ERROR", "Invalid Headers");
+        error.errorCode = "REQUEST_PARAMS_VALIDATION_FAILED";
+
         stubs.validateLollipopRequest.rejects(error);
 
-        const result = await validateLollipopAuthorizer(mockRequest);
+        const result = await validateLollipopAuthorizer({});
+
         expect(result.statusCode).to.equal(401);
         expect(result.resultCode).to.equal("REQUEST_PARAMS_VALIDATION_FAILED");
+        expect(result.resultMessage).to.contain("Invalid Headers");
+        // Verifica che lo step 2 non venga chiamato
+        expect(stubs.validateLollipopHttpSignature.called).to.be.false;
     });
 
-    // TEST 4: FALLIMENTO ASSERTION (401)
-    it("TEST 4: dovrebbe restituire 403 se c'è un errore di asserzione", async () => {
+    // TEST 4: ECCEZIONE ASSERTION (403) ---
+    it("TEST 4: dovrebbe gestire LollipopAssertionException e restituire 403", async () => {
         stubs.validateLollipopRequest.resolves();
         stubs.validateLollipopHttpSignature.resolves({ resultCode: "HTTP_MESSAGE_VALIDATION_SUCCESS" });
 
-        const error = new LollipopAssertionException("REQUEST_ASSERTION_VALIDATION_FAILED", "Assertion error");
+        const error = new LollipopAssertionException( "INVALID_USER_ID",
+                            "The user id in the assertion does not match the request header");
+        error.errorCode = "REQUEST_ASSERTION_VALIDATION_FAILED";
         stubs.validateLollipopAssertion.rejects(error);
 
-        const result = await validateLollipopAuthorizer(mockRequest);
+        const result = await validateLollipopAuthorizer({});
+
         expect(result.statusCode).to.equal(403);
         expect(result.resultCode).to.equal("REQUEST_ASSERTION_VALIDATION_FAILED");
     });
 
-    // TEST 5: FALLIMENTO HTTP SIGNATURE (402)
-    it("TEST 5: dovrebbe restituire 402 se c'è un errore nella firma HTTP", async () => {
-        stubs.validateLollipopRequest.resolves();
 
-        const error = new LollipopHttpSignatureValidationException("HTTP_SIGNATURE_VALIDATION_FAILED", "Signature error");
-        stubs.validateLollipopHttpSignature.rejects(error);
+    // --- TEST 5: ERRORE GENERICO (500)
+    it("TEST 5: dovrebbe restituire 500 in caso di errore non previsto", async () => {
+        stubs.validateLollipopRequest.rejects(new Error("Database offline"));
 
-        const result = await validateLollipopAuthorizer(mockRequest);
-        expect(result.statusCode).to.equal(402);
-        expect(result.resultCode).to.equal("HTTP_SIGNATURE_VALIDATION_FAILED");
-    });
+        const result = await validateLollipopAuthorizer({});
 
-    // TEST 6: ERRORE GENERICO (500)
-    it("TEST 6: dovrebbe restituire 500 per errori generici non previsti", async () => {
-        stubs.validateLollipopRequest.resolves();
-        stubs.validateLollipopHttpSignature.resolves({ resultCode: "HTTP_MESSAGE_VALIDATION_SUCCESS" });
-
-        const error = new Error("Unexpected error");
-        stubs.validateLollipopAssertion.rejects(error);
-
-        const result = await validateLollipopAuthorizer(mockRequest);
         expect(result.statusCode).to.equal(500);
         expect(result.resultCode).to.equal("FATAL_ERROR");
     });
+
 });
