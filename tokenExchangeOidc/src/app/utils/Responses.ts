@@ -24,6 +24,7 @@ export const generateTokenExchangeResponse = async ({
   const tokenPayload = generateJwtPayload({
     pairwise: decodedIdToken.pairwise,
     state,
+    source,
   });
   const sessionToken = await generateSessionToken(tokenPayload);
 
@@ -59,7 +60,7 @@ export function generateOkResponse<T>(response: T, allowedOrigin: string) {
 
 export function generateKoResponse(
   err: ValidationException | string | Error,
-  allowedOrigin: string
+  allowedOrigin: string,
 ) {
   console.debug("GenerateKoResponse this err", err);
 
