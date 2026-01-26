@@ -39,6 +39,7 @@ export interface JwtPayload {
   iss: string;
   aud: string;
   jti: string;
+  source?: Source;
 }
 
 export interface TokenExchangeResponse extends JwtPayload {

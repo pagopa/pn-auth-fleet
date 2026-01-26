@@ -17,6 +17,7 @@ interface CreateJwtPartsProps {
 interface GenerateJwtPayloadProps {
   pairwise: string;
   state: string;
+  source?: Source;
 }
 
 /**
@@ -25,7 +26,7 @@ interface GenerateJwtPayloadProps {
  * @param payload - The Session Token JWT Payload
  */
 export const generateSessionToken = async (
-  payload: JwtPayload
+  payload: JwtPayload,
 ): Promise<string> => {
   const keyAlias = retrieveEnvVariable("KEY_ALIAS");
   const keyId = await getKeyIdFromAlias(keyAlias);
@@ -40,10 +41,12 @@ export const generateSessionToken = async (
  *
  * @param pairwise - The pairwise from OI decoded token
  * @param state - The state from request body
+ * @param source - The source event from request body
  */
 export const generateJwtPayload = ({
   pairwise,
   state,
+  source,
 }: GenerateJwtPayloadProps): JwtPayload => {
   const issuer = retrieveEnvVariable("ISSUER");
   const audience = retrieveEnvVariable("AUDIENCE");
@@ -56,6 +59,7 @@ export const generateJwtPayload = ({
     iss: issuer,
     aud: audience,
     jti: state,
+    ...(source && { source }),
   };
 };
 
@@ -65,7 +69,7 @@ export const generateJwtPayload = ({
  * @param source - The source event containing type and id information
  */
 export const generateSourceObject = async (
-  source?: SourceEvent
+  source?: SourceEvent,
 ): Promise<Source | undefined> => {
   if (!source) {
     return undefined;
@@ -144,7 +148,7 @@ const getExpDate = () => {
  */
 const signWithKms = async (
   message: Buffer,
-  keyId: string
+  keyId: string,
 ): Promise<Uint8Array> => {
   const command = new SignCommand({
     Message: message,
