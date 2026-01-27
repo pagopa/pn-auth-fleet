@@ -7,4 +7,4 @@ class ApiException extends Error {
   }
 }
 
-module.exports = ApiException;
+export default ApiException;

@@ -7,4 +7,4 @@ class InvalidInstantFormatException extends Error {
   }
 }
 
-module.exports = InvalidInstantFormatException;
+export default InvalidInstantFormatException;

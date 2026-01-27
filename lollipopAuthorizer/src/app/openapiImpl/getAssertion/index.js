@@ -12,23 +12,13 @@
  */
 
 
-const ApiClient = require('./ApiClient')
-const AssertionRef =require( './model/AssertionRef');
-const AssertionType =require( './model/AssertionType');
-const LCUserInfo = require( './model/LCUserInfo');
-const OidcUserInfo = require( './model/OidcUserInfo');
-const ProblemJson= require ('./model/ProblemJson');
-const SamlUserInfo = require( './model/SamlUserInfo');
-const DefaultApi = require( './api/DefaultApi');
-
-
 /**
 * Client used to get the assertion from the identity provider.<br>
 * The <code>index</code> module provides access to constructors for all the classes which comprise the public API.
 * <p>
 * An AMD (recommended!) or CommonJS application will generally do something equivalent to the following:
 * <pre>
-* var AssertionClient = require('index'); // See note below*.
+* var AssertionClient = import "index"; // See note below*.
 * var xxxSvc = new AssertionClient.XxxApi(); // Allocate the API class we're going to use.
 * var yyyModel = new AssertionClient.Yyy(); // Construct a model instance.
 * yyyModel.someProperty = 'someValue';
@@ -54,13 +44,11 @@ const DefaultApi = require( './api/DefaultApi');
 * @version $npm_package_version
 */
 
-module.exports = {
-    ApiClient,
-    AssertionRef,
-    AssertionType,
-    LCUserInfo,
-    OidcUserInfo,
-    ProblemJson,
-    SamlUserInfo,
-    DefaultApi
-}
+export { default as ApiClient } from "./ApiClient.js";
+export { default as AssertionRef } from './model/AssertionRef.js';
+export { default as AssertionType } from './model/AssertionType.js';
+export { default as LCUserInfo } from './model/LCUserInfo.js';
+export { default as OidcUserInfo } from './model/OidcUserInfo.js';
+export { default as ProblemJson } from './model/ProblemJson.js';
+export { default as SamlUserInfo } from './model/SamlUserInfo.js';
+export { default as DefaultApi } from './api/DefaultApi.js';

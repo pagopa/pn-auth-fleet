@@ -1,15 +1,15 @@
-const { expect } = require('chai');
-const sinon = require('sinon');
-const { getAssertionDoc, buildDocumentFromAssertion } = require('../app/assertionValidation');
-const { getAssertion } = require('../app/service/assertionService.js');
-const client = require('../app/client/assertionClient.js');
-const { ASSERTION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
-const { VALID_ASSERTION_XML, VALIDATION_PARAMS, VALID_JWT } = require('../test/constants/lollipopConstantsTest');
-const OidcAssertionNotSupported = require('../app/exception/oidcAssertionNotSupported');
-const ErrorRetrievingAssertionException = require('../app/exception/errorRetrievingAssertionException');
-const LollipopAssertionNotFoundException = require('../app/exception/lollipopAssertionNotFoundException');
-const nock = require('nock');
-const DefaultApi = require('../app/openapiImpl/getAssertion/api/DefaultApi');
+import { expect  } from "chai";
+import sinon from "sinon";
+import { getAssertionDoc, buildDocumentFromAssertion  } from "../app/assertionValidation.js";
+import { getAssertion  } from "../app/service/assertionService.js";
+import client from "../app/client/assertionClient.js";
+import { ASSERTION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
+import { VALID_ASSERTION_XML, VALIDATION_PARAMS, VALID_JWT  } from "../test/constants/lollipopConstantsTest.js";
+import OidcAssertionNotSupported from "../app/exception/oidcAssertionNotSupported.js";
+import ErrorRetrievingAssertionException from "../app/exception/errorRetrievingAssertionException.js";
+import LollipopAssertionNotFoundException from "../app/exception/lollipopAssertionNotFoundException.js";
+import nock from "nock";
+import DefaultApi from "../app/openapiImpl/getAssertion/api/DefaultApi.js";
 
 describe("buildDocumentFromAssertion", () => {
     it("should parse valid XML", () => {

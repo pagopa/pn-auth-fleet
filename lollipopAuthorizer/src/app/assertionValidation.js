@@ -1,15 +1,15 @@
-const crypto = require('crypto');
-const { MILLISECONDS_PER_DAY, AssertionRefAlgorithms } = require('../app/constants/lollipopConstants');
-const {lollipopConfig} = require('../app/config/lollipopConsumerRequestConfig');
-const LollipopAssertionException = require('./exception/lollipopAssertionException');
-const { validateSignature } = require('./signatureValidation');
-const { DOMParser } = require('xmldom');
-const ErrorRetrievingAssertionException = require('./exception/errorRetrievingAssertionException');
-const OidcAssertionNotSupported = require('./exception/oidcAssertionNotSupported');
-const LollipopAssertionNotFoundException = require('./exception/lollipopAssertionNotFoundException');
-const { getAssertion } = require('./service/assertionService');
-const { getIdpCertData } = require('./service/assertionVerifierService');
-const { VALIDATION_ERROR_CODES, ASSERTION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
+import crypto from "crypto";
+import { MILLISECONDS_PER_DAY, AssertionRefAlgorithms  } from "../app/constants/lollipopConstants.js";
+import { lollipopConfig } from "../app/config/lollipopConsumerRequestConfig.js"
+import LollipopAssertionException from "./exception/lollipopAssertionException.js";
+import { validateSignature  } from "./signatureValidation.js";
+import { DOMParser  } from "xmldom";
+import ErrorRetrievingAssertionException from "./exception/errorRetrievingAssertionException.js";
+import OidcAssertionNotSupported from "./exception/oidcAssertionNotSupported.js";
+import LollipopAssertionNotFoundException from "./exception/lollipopAssertionNotFoundException.js";
+import { getAssertion  } from "./service/assertionService.js";
+import { getIdpCertData  } from "./service/assertionVerifierService.js";
+import { VALIDATION_ERROR_CODES, ASSERTION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
 
 /**
  * Recupera e costruisce il documento dell'asserzione SAML
@@ -459,8 +459,7 @@ function buildDocumentFromAssertion(assertion) {
   }
 }
 
- module.exports = {
-  validateAssertionPeriod,
+ export { validateAssertionPeriod,
   validateUserId,
   validateInResponseTo,
   validateFullNameHeader,
@@ -471,6 +470,4 @@ function buildDocumentFromAssertion(assertion) {
   LollipopAssertionException,
   LollipopAssertionNotFoundException,
   OidcAssertionNotSupported,
-  ErrorRetrievingAssertionException
-
-};
+  ErrorRetrievingAssertionException };

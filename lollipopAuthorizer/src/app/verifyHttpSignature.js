@@ -1,9 +1,9 @@
-const { webcrypto } = require('crypto');
+import { webcrypto  } from "crypto";
 const { subtle } = webcrypto;
-const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { JWS_ALG_MAP, ALG_TO_KTY, WEBCRYPTO_ALG } = require('./constants/lollipopConstants');
-const { lollipopConfig } = require("./config/lollipopConsumerRequestConfig")
-const { VERIFY_HTTP_ERROR_CODES, VALIDATION_ERROR_CODES } = require('./constants/lollipopErrorsConstants');
+import LollipopRequestContentValidationException from "../app/exception/lollipopRequestContentValidationException.js";
+import { JWS_ALG_MAP, ALG_TO_KTY, WEBCRYPTO_ALG  } from "./constants/lollipopConstants.js";
+import { lollipopConfig  } from "./config/lollipopConsumerRequestConfig.js"
+import { VERIFY_HTTP_ERROR_CODES, VALIDATION_ERROR_CODES  } from "./constants/lollipopErrorsConstants.js";
 
 
 /**
@@ -299,4 +299,4 @@ function base64UrlToBuffer(b64url) {
 
 
 
-module.exports = { verifyHttpSignature };
+export { verifyHttpSignature };

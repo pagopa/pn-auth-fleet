@@ -1,10 +1,10 @@
-const { expect } = require("chai");
-const base64url = require('base64url');
-const { validateLollipopRequest } = require("../app/lollipopRequestValidation");
-const { lollipopConfig } = require("../app/config/lollipopConsumerRequestConfig");
-const { LollipopRequestContentValidationException } = require("../app/requestValidation");
-const { EC_JWK, RSA_JWK, VALIDATION_PARAMS } = require("./constants/lollipopConstantsTest");
-const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
+import { expect  } from "chai";
+import base64url from "base64url";
+import { validateLollipopRequest  } from "../app/lollipopRequestValidation.js";
+import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js";
+import LollipopRequestContentValidationException from "../app/exception/lollipopRequestContentValidationException.js";
+import { EC_JWK, RSA_JWK, VALIDATION_PARAMS  } from "./constants/lollipopConstantsTest.js";
+import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
 
 
 const TEST_CASES = [

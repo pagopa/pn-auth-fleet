@@ -1,7 +1,7 @@
-const { validateLollipopAuthorizer } = require('./lollipopAuthorizerValidation');
-const { generateIAMPolicy } = require("./iamPolicyGen");
-const { getCxId } = require("./dataVaultClient");
-const {lollipopConfig} = require('./config/lollipopConsumerRequestConfig');
+import { validateLollipopAuthorizer  } from "./lollipopAuthorizerValidation.js";
+import { generateIAMPolicy  } from "./iamPolicyGen.js";
+import { getCxId  } from "./dataVaultClient.js";
+import { lollipopConfig } from './config/lollipopConsumerRequestConfig.js';
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -115,4 +115,4 @@ async function handleEvent(event) {
 }
 
 
-module.exports = { handleEvent };
+export { handleEvent };

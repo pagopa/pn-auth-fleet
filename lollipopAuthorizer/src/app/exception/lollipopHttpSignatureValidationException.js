@@ -7,4 +7,4 @@ class LollipopHttpSignatureValidationException extends Error {
   }
 }
 
-module.exports = LollipopHttpSignatureValidationException;
+export default LollipopHttpSignatureValidationException;

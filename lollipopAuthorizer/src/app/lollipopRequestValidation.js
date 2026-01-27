@@ -1,5 +1,4 @@
-const {
-    validatePublicKey,
+import { validatePublicKey,
     validateAssertionRefHeader,
     validateAssertionTypeHeader,
     validateUserIdHeader,
@@ -8,9 +7,9 @@ const {
     validateSignatureInputHeader,
     validateSignatureHeader,
     validateAuthJWTHeader
-} = require("./requestValidation");
+ } from "./requestValidation.js";
 
-const { lollipopConfig } = require("../app/config/lollipopConsumerRequestConfig");
+import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js";
 
 /**
  * Valida tutti gli header necessari per una richiesta Lollipop.
@@ -39,6 +38,4 @@ async function validateLollipopRequest(request) {
     console.log("Ending validateLollipopRequest")
 }
 
-module.exports = {
-    validateLollipopRequest,
-};
+export { validateLollipopRequest, };

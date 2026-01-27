@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const SamlUserInfo = require('../../app/openapiImpl/getAssertion/model/SamlUserInfo');
+import { expect  } from "chai";
+import SamlUserInfo from "../../app/openapiImpl/getAssertion/model/SamlUserInfo.js";
 
 describe('SamlUserInfo', () => {
 

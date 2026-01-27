@@ -11,8 +11,8 @@
  *
  */
 
-const ApiClient = require("../ApiClient");
-const CertData = require("../model/CertData");  //.default;
+import ApiClient from "../ApiClient.js";
+import CertData from "../model/CertData.js";  //.default;
 
 /**
 * Default service.
@@ -193,4 +193,4 @@ class DefaultApi {
 
 
 }
-module.exports = DefaultApi;
+export default DefaultApi;

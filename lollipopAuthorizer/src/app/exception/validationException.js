@@ -5,4 +5,4 @@ class ValidationException extends Error {
   }
 }
 
-module.exports = ValidationException;
+export default ValidationException;

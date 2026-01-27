@@ -7,4 +7,4 @@ class IllegalArgumentException extends Error {
   }
 }
 
-module.exports = IllegalArgumentException;
+export default IllegalArgumentException;

@@ -7,4 +7,4 @@ class TagListSearchOutOfBoundException extends Error {
   }
 }
 
-module.exports = TagListSearchOutOfBoundException;
+export default TagListSearchOutOfBoundException;

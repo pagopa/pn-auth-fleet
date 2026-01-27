@@ -1,8 +1,8 @@
-const LollipopAssertionNotFoundException = require('../exception/lollipopAssertionNotFoundException');
-const ErrorRetrievingAssertionException = require('../exception/errorRetrievingAssertionException');
-const OidcAssertionNotSupported = require('../exception/oidcAssertionNotSupported');
-const client = require('../client/assertionClient.js');
-const { ASSERTION_ERROR_CODES } = require('../constants/lollipopErrorsConstants');
+import LollipopAssertionNotFoundException from "../exception/lollipopAssertionNotFoundException.js";
+import ErrorRetrievingAssertionException from "../exception/errorRetrievingAssertionException.js";
+import OidcAssertionNotSupported from "../exception/oidcAssertionNotSupported.js";
+import client from "../client/assertionClient.js";
+import { ASSERTION_ERROR_CODES  } from "../constants/lollipopErrorsConstants.js";
 
 
 /**
@@ -29,10 +29,4 @@ async function getAssertion(jwt, assertionRef) {
 }
 
 
-module.exports = {
-    getAssertion,
-    client,
-    ErrorRetrievingAssertionException,
-    LollipopAssertionNotFoundException,
-    OidcAssertionNotSupported
-};
+export { getAssertion };

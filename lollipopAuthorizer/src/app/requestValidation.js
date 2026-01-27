@@ -1,10 +1,10 @@
-const { importJWK } = require('jose');
+import { importJWK  } from "jose";
 
-const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const { DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms, USER_ID_REGEX, ORIGINAL_URL_REGEX, SIGNATURE_INPUT_REGEXP, SIGNATURE_REGEXP } = require('../app/constants/lollipopConstants');
-const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
-const { COMPATIBLE_ASSERTION_TYPES } = require("./constants/lollipopConstants");
-const { lollipopConfig } = require('./config/lollipopConsumerRequestConfig');
+import LollipopRequestContentValidationException from "../app/exception/lollipopRequestContentValidationException.js";
+import { DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms, USER_ID_REGEX, ORIGINAL_URL_REGEX, SIGNATURE_INPUT_REGEXP, SIGNATURE_REGEXP  } from "../app/constants/lollipopConstants.js";
+import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
+import { COMPATIBLE_ASSERTION_TYPES  } from "./constants/lollipopConstants.js";
+import { lollipopConfig  } from "./config/lollipopConsumerRequestConfig.js";
 
 
 
@@ -36,7 +36,7 @@ async function validatePublicKey(publicKeyBase64Url) {
       ? publicKeyBase64Url
       : JSON.stringify(publicKeyBase64Url);
   try {
-    publicKeyString = Buffer.from(publicKeyBase64Url, 'base64').toString('utf-8');
+    publicKeyString = Buffer.from(publicKeyBase64Url, 'base64url').toString('utf-8');
   } catch (err) {
     console.log('Key not in Base64, uso stringa originale');
   }
@@ -361,8 +361,7 @@ async function validateSignatureHeader(signature) {
   console.log("Ending validateSignatureHeader without error");
 }
 
-module.exports = {
-  validatePublicKey,
+export { validatePublicKey,
   validateOriginalMethodHeader,
   validateAssertionRefHeader,
   validateAssertionTypeHeader,
@@ -371,5 +370,4 @@ module.exports = {
   validateSignatureInputHeader,
   validateSignatureHeader,
   validateAuthJWTHeader,
-  LollipopRequestContentValidationException
-};
+  LollipopRequestContentValidationException };

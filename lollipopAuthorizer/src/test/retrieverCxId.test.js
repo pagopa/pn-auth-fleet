@@ -1,9 +1,9 @@
-const chaiAsPromised = require("chai-as-promised");
-const chai = require("chai");
-const axios = require("axios");
-const MockAdapter = require("axios-mock-adapter");
+import chaiAsPromised from "chai-as-promised";
+import chai from "chai";
+import axios from "axios";
+import MockAdapter from "axios-mock-adapter";
 
-const { getCxId } = require("../app/dataVaultClient.js");
+import { getCxId  } from "../app/dataVaultClient.js";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -19,7 +19,7 @@ describe("retrieverCxId", () => {
   });
 
   after(() => {
-    mock.restore();
+    if (mock) mock.restore();
     delete process.env.PN_DATA_VAULT_BASEURL;
   });
 
