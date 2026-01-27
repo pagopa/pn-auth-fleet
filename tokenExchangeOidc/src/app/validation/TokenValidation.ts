@@ -43,7 +43,7 @@ export async function validateOneIdentityIdToken({
 
   const decodedTokenMaskedPayload = copyAndMaskObject(
     decodedToken.payload,
-    sensitiveFields
+    sensitiveFields,
   );
 
   console.debug("decoded_token", {
@@ -129,7 +129,7 @@ export function isIssuerValid(iss: string): boolean {
   const allowedIssuersEnv = process.env.ALLOWED_ISSUER;
 
   if (!allowedIssuersEnv) {
-    console.error("Invalid env vars ALLOWED_ISSUER", allowedIssuersEnv);
+    console.error("ALLOWED_ISSUER env var is not set");
     return false;
   }
 
@@ -152,7 +152,7 @@ export async function isTaxIdValid(taxIdCode?: string): Promise<boolean> {
 
   try {
     const allowedTaxIdsFromStore = await getAWSParameterStore(
-      allowedTaxIdsParameter
+      allowedTaxIdsParameter,
     );
 
     if (allowedTaxIdsFromStore.length === 0) {

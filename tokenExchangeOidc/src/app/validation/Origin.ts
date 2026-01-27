@@ -8,10 +8,7 @@ export function isOriginAllowed(origin: string) {
   const isOriginIncluded = allowedOrigins.includes(origin);
 
   if (!isOriginIncluded) {
-    console.error(
-      "Invalid env vars ALLOWED_ORIGIN ",
-      process.env.ALLOWED_ORIGIN
-    );
+    console.error(`Origin: ${origin} is not allowed`);
   }
 
   return isOriginIncluded;
