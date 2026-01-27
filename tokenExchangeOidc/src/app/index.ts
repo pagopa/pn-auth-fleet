@@ -39,7 +39,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   if (!isOriginAllowed(eventOrigin)) {
     auditLog({
-      message: "Origin not allowed",
+      message: `Origin: ${eventOrigin} is not allowed`,
       aud_orig: eventOrigin,
       status: "KO",
     }).warn("error");
@@ -60,12 +60,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!oidcCode || !redirectUri || !nonce || !state) {
       return generateKoResponse(
         "Missing required parameters in body",
-        eventOrigin
+        eventOrigin,
       );
     }
   } catch (err: any) {
     auditLog({
-      message: `Error generating token ${err.message}`,
+      message: `Error during body parsing: ${err.message}`,
       aud_orig: eventOrigin,
       status: "KO",
     }).warn("error");
@@ -74,7 +74,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   try {
     const oneIdentitySecretName = retrieveEnvVariable(
-      "ONE_IDENTITY_SECRET_NAME"
+      "ONE_IDENTITY_SECRET_NAME",
     );
 
     const oneIdentityCredentials =
@@ -113,7 +113,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return generateOkResponse<TokenExchangeResponse>(response, eventOrigin);
   } catch (err: any) {
     const log = auditLog({
-      message: `Error generating token ${err.message}`,
+      message: `Error generating token: ${err.message}`,
       aud_orig: eventOrigin,
       status: "KO",
     });
