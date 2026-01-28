@@ -1,7 +1,7 @@
 import { decode, verify } from "jsonwebtoken";
 import { ValidationException } from "../../app/exception/validationException";
 import { getAWSParameterStore } from "../../app/utils/AwsParameters";
-import { getPublicKeys } from "../../app/utils/PublicKey";
+import { getPublicKey } from "../../app/utils/PublicKey";
 import {
   isIssuerValid,
   isTaxIdValid,
@@ -21,8 +21,8 @@ const mockVerify = verify as jest.MockedFunction<typeof verify>;
 const mockGetAWSParameterStore = getAWSParameterStore as jest.MockedFunction<
   typeof getAWSParameterStore
 >;
-const mockGetPublicKeys = getPublicKeys as jest.MockedFunction<
-  typeof getPublicKeys
+const mockGetPublicKey = getPublicKey as jest.MockedFunction<
+  typeof getPublicKey
 >;
 
 describe("validateOneIdentityIdToken", () => {
@@ -32,7 +32,7 @@ describe("validateOneIdentityIdToken", () => {
     jest.clearAllMocks();
     setupEnv();
 
-    mockGetPublicKeys.mockResolvedValue(["mock-public-key"]);
+    mockGetPublicKey.mockResolvedValue("mock-public-key");
     mockVerify.mockReturnValue({} as any);
   });
 
@@ -44,7 +44,7 @@ describe("validateOneIdentityIdToken", () => {
         oneIdentityIdToken: validToken,
         nonce: tokenNonce,
         oneIdentityClientId: oneIdentityClientIdMock,
-      })
+      }),
     ).rejects.toThrow(new ValidationException("Token is not valid"));
   });
 
@@ -59,7 +59,7 @@ describe("validateOneIdentityIdToken", () => {
         oneIdentityIdToken: validToken,
         nonce: tokenNonce,
         oneIdentityClientId: oneIdentityClientIdMock,
-      })
+      }),
     ).rejects.toThrow(new ValidationException("Invalid algorithm"));
   });
 
@@ -77,7 +77,7 @@ describe("validateOneIdentityIdToken", () => {
         oneIdentityIdToken: validToken,
         nonce: tokenNonce,
         oneIdentityClientId: oneIdentityClientIdMock,
-      })
+      }),
     ).rejects.toThrow(new ValidationException("Invalid Audience"));
   });
 
@@ -95,7 +95,7 @@ describe("validateOneIdentityIdToken", () => {
         oneIdentityIdToken: validToken,
         nonce: tokenNonce,
         oneIdentityClientId: oneIdentityClientIdMock,
-      })
+      }),
     ).rejects.toThrow(new ValidationException("Issuer not known"));
   });
 
@@ -109,7 +109,7 @@ describe("validateOneIdentityIdToken", () => {
         oneIdentityIdToken: validToken,
         nonce: tokenNonce,
         oneIdentityClientId: oneIdentityClientIdMock,
-      })
+      }),
     ).rejects.toThrow(new ValidationException("TaxId not allowed"));
   });
 
@@ -127,7 +127,7 @@ describe("validateOneIdentityIdToken", () => {
         oneIdentityIdToken: validToken,
         nonce: tokenNonce,
         oneIdentityClientId: oneIdentityClientIdMock,
-      })
+      }),
     ).rejects.toThrow(new ValidationException("Invalid nonce"));
   });
 
@@ -159,46 +159,9 @@ describe("validateOneIdentityIdToken", () => {
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
   });
 
-  it("should successfully verify token with second key when first key fails", async () => {
+  it("should throw ValidationException verification fails", async () => {
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
-    mockGetPublicKeys.mockResolvedValue([
-      "mock-public-key-1",
-      "mock-public-key-2",
-    ]);
-
-    // First key fails, second key succeeds
-    mockVerify
-      .mockImplementationOnce(() => {
-        throw new Error("Invalid signature");
-      })
-      .mockReturnValueOnce({} as any);
-
-    const result = await validateOneIdentityIdToken({
-      oneIdentityIdToken: validToken,
-      nonce: tokenNonce,
-      oneIdentityClientId: oneIdentityClientIdMock,
-    });
-
-    expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
-    expect(mockVerify).toHaveBeenCalledTimes(2);
-    expect(mockVerify).toHaveBeenNthCalledWith(
-      1,
-      validToken,
-      "mock-public-key-1"
-    );
-    expect(mockVerify).toHaveBeenNthCalledWith(
-      2,
-      validToken,
-      "mock-public-key-2"
-    );
-  });
-
-  it("should throw ValidationException when all keys fail verification", async () => {
-    mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
-    mockGetPublicKeys.mockResolvedValue([
-      "mock-public-key-1",
-      "mock-public-key-2",
-    ]);
+    mockGetPublicKey.mockResolvedValue("mock-public-key-1");
 
     // All keys fail
     mockVerify.mockImplementation(() => {
@@ -210,15 +173,15 @@ describe("validateOneIdentityIdToken", () => {
         oneIdentityIdToken: validToken,
         nonce: tokenNonce,
         oneIdentityClientId: oneIdentityClientIdMock,
-      })
+      }),
     ).rejects.toThrow(new ValidationException("Invalid signature"));
 
-    expect(mockVerify).toHaveBeenCalledTimes(2);
+    expect(mockVerify).toHaveBeenCalledTimes(1);
   });
 
   it("should handle non Error exceptions during JWT verification", async () => {
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
-    mockGetPublicKeys.mockResolvedValue(["mock-public-key"]);
+    mockGetPublicKey.mockResolvedValue("mock-public-key");
     mockVerify.mockImplementation(() => {
       throw "String error";
     });
@@ -228,8 +191,8 @@ describe("validateOneIdentityIdToken", () => {
         oneIdentityIdToken: validToken,
         nonce: tokenNonce,
         oneIdentityClientId: oneIdentityClientIdMock,
-      })
-    ).rejects.toThrow(new ValidationException("Unknown error"));
+      }),
+    ).rejects.toThrow(new ValidationException("JWT verification failed"));
   });
 });
 
@@ -299,7 +262,7 @@ describe("isTaxIdValid", () => {
   it("should return false for explicitly blocked tax ID", async () => {
     process.env.ALLOWED_TAXIDS_PARAMETER = "allowed-taxids";
     mockGetAWSParameterStore.mockResolvedValue(
-      "tax-id-1,tax-id-2,!blocked-tax-id"
+      "tax-id-1,tax-id-2,!blocked-tax-id",
     );
 
     const result = await isTaxIdValid("blocked-tax-id");
