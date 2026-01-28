@@ -3,7 +3,7 @@ import { ValidationException } from "../../app/exception/validationException";
 import * as JwksCache from "../../app/utils/Jwks/JwksCache";
 import { get } from "../../app/utils/Jwks/JwksCache";
 import { getJwks } from "../../app/utils/Jwks/JwksRetriever";
-import { getPublicKey } from "../../app/utils/PublicKey";
+import { getPublicKeys } from "../../app/utils/PublicKey";
 import {
   jwksKid,
   mockCacheJwksResponse,
@@ -18,13 +18,29 @@ const mockGet = get as jest.MockedFunction<typeof get>;
 const mockGetJwks = getJwks as jest.MockedFunction<typeof getJwks>;
 const mockJwkToPem = jwkToPem as jest.MockedFunction<typeof jwkToPem>;
 
-describe("getPublicKey", () => {
+const multiKeyJwks = {
+  ...mockCacheJwksResponse,
+  keys: [
+    mockCacheJwksResponse.keys[0],
+    {
+      kty: "RSA" as const,
+      kid: "key2",
+      use: "sig",
+      alg: "RS256",
+      n: "modulus2",
+      e: "AQAB",
+    },
+  ],
+};
+
+describe("getPublicKeys", () => {
   const testIssuer = "https://test-issuer.com";
   const mockPemKey = "mocked-pem-key";
+  const mockPemKey2 = "mocked-pem-key-2";
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockJwkToPem.mockReturnValue(mockPemKey);
+    jest.resetAllMocks();
   });
 
   describe("with cache active", () => {
@@ -34,21 +50,38 @@ describe("getPublicKey", () => {
       });
     });
 
-    it("should retrieve public key from cache successfully", async () => {
+    it("should retrieve specific public key from cache when kid is provided", async () => {
       mockGet.mockResolvedValue(mockCacheJwksResponse);
+      mockJwkToPem.mockReturnValue(mockPemKey);
 
-      const result = await getPublicKey(testIssuer, jwksKid);
+      const result = await getPublicKeys(testIssuer, jwksKid);
 
-      expect(result).toEqual(mockPemKey);
+      expect(result).toEqual([mockPemKey]);
+      expect(result).toHaveLength(1);
       expect(mockGet).toHaveBeenCalledWith(testIssuer);
       expect(mockJwkToPem).toHaveBeenCalledWith(mockJwksResponse.keys[0]);
+      expect(mockGetJwks).not.toHaveBeenCalled();
+    });
+
+    it("should retrieve all public keys from cache when kid is undefined", async () => {
+      mockGet.mockResolvedValue(multiKeyJwks);
+      mockJwkToPem
+        .mockReturnValueOnce(mockPemKey)
+        .mockReturnValueOnce(mockPemKey2);
+
+      const result = await getPublicKeys(testIssuer);
+
+      expect(result).toEqual([mockPemKey, mockPemKey2]);
+      expect(result).toHaveLength(multiKeyJwks.keys.length);
+      expect(mockGet).toHaveBeenCalledWith(testIssuer);
+      expect(mockJwkToPem).toHaveBeenCalledTimes(multiKeyJwks.keys.length);
       expect(mockGetJwks).not.toHaveBeenCalled();
     });
 
     it("should throw ValidationException when key not found in cache", async () => {
       mockGet.mockResolvedValue(undefined);
 
-      await expect(getPublicKey(testIssuer, jwksKid)).rejects.toThrow(
+      await expect(getPublicKeys(testIssuer, jwksKid)).rejects.toThrow(
         new ValidationException("Public key not found in cache"),
       );
     });
@@ -57,10 +90,10 @@ describe("getPublicKey", () => {
       mockGet.mockResolvedValue(mockCacheJwksResponse);
 
       await expect(
-        getPublicKey(testIssuer, "non-existent-kid"),
+        getPublicKeys(testIssuer, "non-existent-kid"),
       ).rejects.toThrow(
         new ValidationException(
-          "Public key with kid non-existent-kid not found in JWKS",
+          "Key with kid 'non-existent-kid' not found in JWKS",
         ),
       );
     });
@@ -73,21 +106,38 @@ describe("getPublicKey", () => {
       });
     });
 
-    it("should retrieve public key without cache successfully", async () => {
+    it("should retrieve specific public key without cache when kid is provided", async () => {
       mockGetJwks.mockResolvedValue(mockJwksResponse);
+      mockJwkToPem.mockReturnValue(mockPemKey);
 
-      const result = await getPublicKey(testIssuer, jwksKid);
+      const result = await getPublicKeys(testIssuer, jwksKid);
 
-      expect(result).toEqual(mockPemKey);
+      expect(result).toEqual([mockPemKey]);
+      expect(result).toHaveLength(1);
       expect(mockGetJwks).toHaveBeenCalled();
       expect(mockJwkToPem).toHaveBeenCalledWith(mockJwksResponse.keys[0]);
+      expect(mockGet).not.toHaveBeenCalled();
+    });
+
+    it("should retrieve all public keys without cache when kid is undefined", async () => {
+      mockGetJwks.mockResolvedValue(multiKeyJwks);
+      mockJwkToPem
+        .mockReturnValueOnce(mockPemKey)
+        .mockReturnValueOnce(mockPemKey2);
+
+      const result = await getPublicKeys(testIssuer);
+
+      expect(result).toEqual([mockPemKey, mockPemKey2]);
+      expect(result).toHaveLength(multiKeyJwks.keys.length);
+      expect(mockGetJwks).toHaveBeenCalled();
+      expect(mockJwkToPem).toHaveBeenCalledTimes(multiKeyJwks.keys.length);
       expect(mockGet).not.toHaveBeenCalled();
     });
 
     it("should throw ValidationException when JWKS has no keys", async () => {
       mockGetJwks.mockResolvedValue({ keys: [] });
 
-      await expect(getPublicKey(testIssuer, jwksKid)).rejects.toThrow(
+      await expect(getPublicKeys(testIssuer, jwksKid)).rejects.toThrow(
         new ValidationException("No keys found in JWKS"),
       );
     });
@@ -96,10 +146,10 @@ describe("getPublicKey", () => {
       mockGetJwks.mockResolvedValue(mockJwksResponse);
 
       await expect(
-        getPublicKey(testIssuer, "non-existent-kid"),
+        getPublicKeys(testIssuer, "non-existent-kid"),
       ).rejects.toThrow(
         new ValidationException(
-          "Public key with kid non-existent-kid not found in JWKS",
+          "Key with kid 'non-existent-kid' not found in JWKS",
         ),
       );
     });

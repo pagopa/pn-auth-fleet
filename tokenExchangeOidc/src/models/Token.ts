@@ -3,7 +3,7 @@ import { Source } from "./Source";
 export interface OIDecodedToken {
   header: {
     alg: string;
-    kid: string;
+    kid?: string;
   };
   payload: OIDecodedIdToken;
   signature: string;

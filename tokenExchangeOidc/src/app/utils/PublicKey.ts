@@ -4,45 +4,47 @@ import { ValidationException } from "../exception/validationException";
 import { get, isCacheActive } from "./Jwks/JwksCache";
 import { getJwks } from "./Jwks/JwksRetriever";
 
-export async function getPublicKey(issuer: string, kid: string) {
-  let publicKey: string;
+export async function getPublicKeys(issuer: string, kid?: string) {
+  let publicKeys: Array<string>;
 
   if (isCacheActive) {
-    publicKey = await findPublicKeyUsingCache(issuer, kid);
+    publicKeys = await findPublicKeysUsingCache(issuer, kid);
   } else {
-    publicKey = await findPublicKeyWithoutCache(kid);
+    publicKeys = await findPublicKeysWithoutCache(kid);
   }
 
-  return publicKey;
+  return publicKeys;
 }
 
-async function findPublicKeyUsingCache(issuer: string, kid: string) {
+async function findPublicKeysUsingCache(issuer: string, kid?: string) {
   console.log("Using cache");
   const cachedJwks = await get(issuer);
   if (!cachedJwks) {
     throw new ValidationException("Public key not found in cache");
   }
-  return getKeyFromJwks(cachedJwks, kid);
+  return getKeysFromJwks(cachedJwks, kid);
 }
 
-async function findPublicKeyWithoutCache(kid: string) {
+async function findPublicKeysWithoutCache(kid?: string) {
   console.debug("Retrieving public key without cache");
   const jwks = await getJwks();
-  return getKeyFromJwks(jwks, kid);
+  return getKeysFromJwks(jwks, kid);
 }
 
-function getKeyFromJwks(jwks: JWKS, kid: string) {
+function getKeysFromJwks(jwks: JWKS, kid?: string) {
   if (!jwks.keys || jwks.keys.length === 0) {
     throw new ValidationException("No keys found in JWKS");
   }
 
-  const jwk = jwks.keys.find((key) => key.kid === kid);
-
-  if (!jwk) {
-    throw new ValidationException(
-      `Public key with kid ${kid} not found in JWKS`,
-    );
+  // If kid is provided, find the public key with that kid
+  if (kid) {
+    const key = jwks.keys.find((key) => key.kid === kid);
+    if (!key) {
+      throw new ValidationException(`Key with kid '${kid}' not found in JWKS`);
+    }
+    return [jwkToPem(key)];
   }
 
-  return jwkToPem(jwk);
+  // If kid is undefined, return all keys
+  return jwks.keys.map((key) => jwkToPem(key));
 }

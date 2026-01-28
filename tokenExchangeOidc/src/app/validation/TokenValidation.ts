@@ -3,7 +3,7 @@ import { OIDecodedIdToken, OIDecodedToken } from "../../models/Token";
 import { ValidationException } from "../exception/validationException";
 import { getAWSParameterStore } from "../utils/AwsParameters";
 import { copyAndMaskObject } from "../utils/Object";
-import { getPublicKey } from "../utils/PublicKey";
+import { getPublicKeys } from "../utils/PublicKey";
 
 type ValidateOneIdentityIdTokenProps = {
   oneIdentityIdToken: string;
@@ -88,14 +88,31 @@ export async function validateOneIdentityIdToken({
     throw new ValidationException("TaxId not allowed");
   }
 
-  // Verify JWT signature
   try {
-    const keyInPemFormat = await getPublicKey(issuer, kid);
-    verify(oneIdentityIdToken, keyInPemFormat);
+    const keysInPemFormat = await getPublicKeys(issuer, kid);
+
+    let lastError: Error | unknown;
+
+    for (const keyInPemFormat of keysInPemFormat) {
+      try {
+        verify(oneIdentityIdToken, keyInPemFormat);
+        lastError = undefined;
+        break;
+      } catch (err) {
+        lastError = err;
+        // Continue to next key
+      }
+    }
+
+    if (lastError) {
+      console.warn("JWT Validation error - all keys failed", lastError);
+      const errorMessage =
+        lastError instanceof Error ? lastError.message : "Unknown error";
+      throw new ValidationException(errorMessage);
+    }
   } catch (err) {
     console.warn("JWT Validation error ", err);
-    const errorMessage =
-      err instanceof Error ? err.message : "JWT verification failed";
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
     throw new ValidationException(errorMessage);
   }
 
