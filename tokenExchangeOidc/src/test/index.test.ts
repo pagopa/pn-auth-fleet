@@ -127,7 +127,7 @@ describe("Event Handler tests", () => {
         aud_orig: "invalid-origin",
       });
       expect(auditLogSpy).toHaveBeenNthCalledWith(2, {
-        message: "Origin not allowed",
+        message: "Origin: invalid-origin is not allowed",
         aud_orig: "invalid-origin",
         status: "KO",
       });
@@ -151,7 +151,7 @@ describe("Event Handler tests", () => {
       expect(body.traceId).toEqual(process.env._X_AMZN_TRACE_ID);
 
       expect(auditLogSpy).toHaveBeenNthCalledWith(2, {
-        message: "Error generating token Missing request body",
+        message: "Error during body parsing: Missing request body",
         aud_orig: mockAllowedOrigin,
         status: "KO",
       });
@@ -165,6 +165,7 @@ describe("Event Handler tests", () => {
       };
 
       const result = await handler(eventWithInvalidBody, {} as any, () => {});
+      console.log("----- RESULT ----", result);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -174,7 +175,7 @@ describe("Event Handler tests", () => {
       const errorCalls = auditLogSpy.mock.calls.filter(
         (call) =>
           call[0].status === "KO" &&
-          call[0].message?.includes("Error generating token")
+          call[0].message?.includes("Error during body parsing:"),
       );
       expect(errorCalls.length).toBeGreaterThan(0);
       expect(mockAuditLog.warn).toHaveBeenCalled();
@@ -210,7 +211,7 @@ describe("Event Handler tests", () => {
       const result = await handler(
         eventWithoutRedirectUri,
         {} as any,
-        () => {}
+        () => {},
       );
       const { statusCode, body } = parseResponse(result);
 
@@ -301,7 +302,7 @@ describe("Event Handler tests", () => {
 
       // Verify error audit log
       expect(auditLogSpy).toHaveBeenCalledWith({
-        message: "Error generating token Secret not found",
+        message: "Error generating token: Secret not found",
         status: "KO",
         aud_orig: mockAllowedOrigin,
       });
@@ -313,7 +314,7 @@ describe("Event Handler tests", () => {
 
     it("should handle exchange code failure", async () => {
       exchangeOneIdentityCodeSpy.mockRejectedValue(
-        new Error("One Identity code exchange failed")
+        new Error("One Identity code exchange failed"),
       );
 
       const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
@@ -327,7 +328,7 @@ describe("Event Handler tests", () => {
 
       // Verify error audit log
       expect(auditLogSpy).toHaveBeenCalledWith({
-        message: "Error generating token One Identity code exchange failed",
+        message: "Error generating token: One Identity code exchange failed",
         status: "KO",
         aud_orig: mockAllowedOrigin,
       });
@@ -336,7 +337,7 @@ describe("Event Handler tests", () => {
 
     it("should handle token validation failure with ValidationException", async () => {
       validateOneIdentityIdTokenSpy.mockRejectedValue(
-        new ValidationException("Error during ID Token validation")
+        new ValidationException("Error during ID Token validation"),
       );
 
       const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
@@ -354,7 +355,7 @@ describe("Event Handler tests", () => {
       expect(mockAuditLog.error).not.toHaveBeenCalled();
 
       expect(auditLogSpy).toHaveBeenCalledWith({
-        message: "Error generating token Error during ID Token validation",
+        message: "Error generating token: Error during ID Token validation",
         status: "KO",
         aud_orig: mockAllowedOrigin,
       });
@@ -362,7 +363,7 @@ describe("Event Handler tests", () => {
 
     it("should handle generic error during token validation", async () => {
       validateOneIdentityIdTokenSpy.mockRejectedValue(
-        new Error("Unexpected validation error")
+        new Error("Unexpected validation error"),
       );
 
       const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
