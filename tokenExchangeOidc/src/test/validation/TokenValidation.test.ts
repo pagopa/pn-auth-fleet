@@ -1,7 +1,7 @@
 import { decode, verify } from "jsonwebtoken";
 import { ValidationException } from "../../app/exception/validationException";
 import { getAWSParameterStore } from "../../app/utils/AwsParameters";
-import { getPublicKeys } from "../../app/utils/PublicKey";
+import { getPublicKey } from "../../app/utils/PublicKey";
 import {
   isIssuerValid,
   isTaxIdValid,
@@ -21,8 +21,8 @@ const mockVerify = verify as jest.MockedFunction<typeof verify>;
 const mockGetAWSParameterStore = getAWSParameterStore as jest.MockedFunction<
   typeof getAWSParameterStore
 >;
-const mockGetPublicKeys = getPublicKeys as jest.MockedFunction<
-  typeof getPublicKeys
+const mockGetPublicKey = getPublicKey as jest.MockedFunction<
+  typeof getPublicKey
 >;
 
 describe("validateOneIdentityIdToken", () => {
@@ -32,7 +32,7 @@ describe("validateOneIdentityIdToken", () => {
     jest.clearAllMocks();
     setupEnv();
 
-    mockGetPublicKeys.mockResolvedValue(["mock-public-key"]);
+    mockGetPublicKey.mockResolvedValue("mock-public-key");
     mockVerify.mockReturnValue({} as any);
   });
 
@@ -159,26 +159,11 @@ describe("validateOneIdentityIdToken", () => {
     expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
   });
 
-  it("should successfully validate token and return payload", async () => {
+  it("should throw ValidationException verification fails", async () => {
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
-    mockGetPublicKeys.mockResolvedValue(["mock-public-key"]);
-    mockVerify.mockReturnValue({} as any);
+    mockGetPublicKey.mockResolvedValue("mock-public-key-1");
 
-    const result = await validateOneIdentityIdToken({
-      oneIdentityIdToken: validToken,
-      nonce: tokenNonce,
-      oneIdentityClientId: oneIdentityClientIdMock,
-    });
-
-    expect(result).toEqual(oneIdentityDecodedTokenMock.payload);
-    expect(mockVerify).toHaveBeenCalledWith(validToken, "mock-public-key");
-    expect(mockVerify).toHaveBeenCalledTimes(1);
-  });
-
-  it("should throw ValidationException when verification fails with single key", async () => {
-    mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
-    mockGetPublicKeys.mockResolvedValue(["mock-public-key-1"]);
-
+    // All keys fail
     mockVerify.mockImplementation(() => {
       throw new Error("Invalid signature");
     });
@@ -192,34 +177,11 @@ describe("validateOneIdentityIdToken", () => {
     ).rejects.toThrow(new ValidationException("Invalid signature"));
 
     expect(mockVerify).toHaveBeenCalledTimes(1);
-  });
-
-  it("should throw ValidationException when all keys fail verification", async () => {
-    mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
-    mockGetPublicKeys.mockResolvedValue([
-      "mock-public-key-1",
-      "mock-public-key-2",
-      "mock-public-key-3",
-    ]);
-
-    mockVerify.mockImplementation(() => {
-      throw new Error("Invalid signature");
-    });
-
-    await expect(
-      validateOneIdentityIdToken({
-        oneIdentityIdToken: validToken,
-        nonce: tokenNonce,
-        oneIdentityClientId: oneIdentityClientIdMock,
-      }),
-    ).rejects.toThrow(new ValidationException("Invalid signature"));
-
-    expect(mockVerify).toHaveBeenCalledTimes(3);
   });
 
   it("should handle non Error exceptions during JWT verification", async () => {
     mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
-    mockGetPublicKeys.mockResolvedValue(["mock-public-key"]);
+    mockGetPublicKey.mockResolvedValue("mock-public-key");
     mockVerify.mockImplementation(() => {
       throw "String error";
     });
@@ -230,23 +192,7 @@ describe("validateOneIdentityIdToken", () => {
         nonce: tokenNonce,
         oneIdentityClientId: oneIdentityClientIdMock,
       }),
-    ).rejects.toThrow(new ValidationException("Unknown error"));
-  });
-
-  it("should call getPublicKeys with correct issuer and kid", async () => {
-    mockDecode.mockReturnValue(oneIdentityDecodedTokenMock as any);
-    mockGetPublicKeys.mockResolvedValue(["mock-public-key"]);
-
-    await validateOneIdentityIdToken({
-      oneIdentityIdToken: validToken,
-      nonce: tokenNonce,
-      oneIdentityClientId: oneIdentityClientIdMock,
-    });
-
-    expect(mockGetPublicKeys).toHaveBeenCalledWith(
-      oneIdentityDecodedTokenMock.payload.iss,
-      oneIdentityDecodedTokenMock.header.kid,
-    );
+    ).rejects.toThrow(new ValidationException("JWT verification failed"));
   });
 });
 
