@@ -7,4 +7,4 @@ class LollipopRequestContentValidationException extends Error {
   }
 }
 
-module.exports = LollipopRequestContentValidationException;
+export default LollipopRequestContentValidationException;

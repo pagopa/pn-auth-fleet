@@ -232,7 +232,6 @@ Parameters:
 
   PnRaddBaseliningLambdaName:
     Type: String
-
   # - Token Exchange Lambda OIDC Parameters
   TokenExchangeOidcLambdaName:
     Type: String
@@ -614,7 +613,7 @@ Parameters:
   IoApiDnsName:
     Type: String
     Description: "The DNS name used for IO rest API."
-    
+
   RedisJtisExcludedInvalidationParameter:
     Type: String
     Default: ''
@@ -2797,6 +2796,7 @@ Resources:
         LambdaArns: !Join
           - ","
           - - !GetAtt IoAuthorizerLambda.Arn
+            - !GetAtt LollipopAuthorizerLambda.Arn
             - !GetAtt ApiKeyAuthorizerV2Lambda.Arn
             - !GetAtt JwtAuthorizerLambda.Arn
             - !GetAtt B2BAuthorizerLambda.Arn
@@ -2815,6 +2815,7 @@ Resources:
           - ","
           - - !GetAtt ApiKeyAuthorizerV2LambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt IoAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !GetAtt LollipopAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwtAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt BackofficeAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt B2BAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
@@ -2829,6 +2830,7 @@ Resources:
         LogGroupsNames: !Join
           - ","
           - - !Sub "/aws/lambda/${ApiKeyAuthorizerV2LambdaName}"
+            - !Sub "/aws/lambda/${LollipopAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${IoAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${JwtAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${BackofficeAuthorizerLambdaName}"
@@ -2975,7 +2977,7 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: "ecs-tasks.amazonaws.com"
       SourceArn: !Sub arn:aws:iam::${AWS::AccountId}:role/pn-apikey-manager-TaskRole/*
-      
+
   # lambda per lollipop playground
   IoPlaygroundAPI:
     Condition: RequiresIoPlayground
@@ -3022,7 +3024,7 @@ Resources:
       Timeout: 10
       TracingConfig:
         Mode: Active
-    
+
   LollipopAuthorizerTestLambdaRole:
     Condition: RequiresIoPlayground
     Type: AWS::IAM::Role
@@ -3039,7 +3041,7 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        
+
   # Lambda access right
   LollipopAuthorizerTestLambdaPermission:
     Condition: RequiresIoPlayground
@@ -3049,4 +3051,3 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*"
-      

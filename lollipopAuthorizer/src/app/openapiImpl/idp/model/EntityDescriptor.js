@@ -11,7 +11,7 @@
  *
  */
 
-const ApiClient = require('../ApiClient');
+import ApiClient from "../ApiClient.js";
 
 /**
  * The EntityDescriptor model module.
@@ -87,5 +87,5 @@ EntityDescriptor.RequiredProperties = ["entityID"];
 EntityDescriptor.prototype['entityID'] = undefined;
 
 
-module.exports = EntityDescriptor;
+export default EntityDescriptor;
 

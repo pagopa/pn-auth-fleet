@@ -12,8 +12,8 @@
  */
 
 
-const CIECertData = require('./CIECertData');
-const SPIDCertData = require('./SPIDCertData');
+import CIECertData from "./CIECertData.js";
+import SPIDCertData from "./SPIDCertData.js";
 
 /**
  * The CertData model module.
@@ -84,4 +84,4 @@ class CertData {
 CertData.OneOf = ["CIECertData", "SPIDCertData"];
 
 
-module.exports = CertData;
+export default CertData;

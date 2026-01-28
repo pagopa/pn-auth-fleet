@@ -14,4 +14,4 @@ class CommandResult{
     }
 
 }
-module.exports = CommandResult;
+export default CommandResult;

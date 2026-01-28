@@ -46,6 +46,4 @@ const IDP_PROVIDER_CONFIG = {
     CONNECTION_TIMEOUT_API: 60000, //CONNECTION_TIMEOUT_MS,
 }
 
-module.exports = {
-  lollipopConfig, IDP_PROVIDER_CONFIG
-};
+export { lollipopConfig, IDP_PROVIDER_CONFIG };

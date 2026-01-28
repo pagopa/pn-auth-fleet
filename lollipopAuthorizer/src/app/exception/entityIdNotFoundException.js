@@ -7,4 +7,4 @@ class EntityIdNotFoundException extends Error {
   }
 }
 
-module.exports = EntityIdNotFoundException;
+export default EntityIdNotFoundException;

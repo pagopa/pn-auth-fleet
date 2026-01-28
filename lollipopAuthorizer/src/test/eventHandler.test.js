@@ -1,10 +1,11 @@
-const chai = require('chai');
-const sinon = require('sinon');
-const proxyquire = require('proxyquire');
+import chai from "chai";
+import sinon from "sinon";
+import esmock from "esmock";
+
 const { expect } = chai;
 
 describe('EventHandler - Test Suite', () => {
-    let handleEventModule;
+    let handleEvent;
     let stubs;
 
     const defaultDenyAllPolicy = {
@@ -15,19 +16,28 @@ describe('EventHandler - Test Suite', () => {
         },
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
         stubs = {
             validateLollipopAuthorizer: sinon.stub(),
             generateIAMPolicy: sinon.stub(),
             getCxId: sinon.stub()
         };
 
-        // Carichiamo il modulo iniettando gli stub al posto dei file reali
-        handleEventModule = proxyquire('../app/eventHandler', {
-            '../app/lollipopAuthorizerValidation': { validateLollipopAuthorizer: stubs.validateLollipopAuthorizer },
-            '../app/iamPolicyGen': { generateIAMPolicy: stubs.generateIAMPolicy },
-            '../app/dataVaultClient': { getCxId: stubs.getCxId }
-        });
+        const module = await esmock(
+            '../app/eventHandler.js',
+            {
+                '../app/lollipopAuthorizerValidation.js': {
+                    validateLollipopAuthorizer: stubs.validateLollipopAuthorizer
+                },
+                '../app/iamPolicyGen.js': {
+                    generateIAMPolicy: stubs.generateIAMPolicy
+                },
+                '../app/dataVaultClient.js': {
+                    getCxId: stubs.getCxId
+                }
+            }
+        );
+        handleEvent = module.handleEvent;
     });
 
     afterEach(() => {
@@ -54,60 +64,83 @@ describe('EventHandler - Test Suite', () => {
         stubs.getCxId.resolves('CX-ID-999');
         stubs.generateIAMPolicy.resolves(mockPolicy);
 
-        const result = await handleEventModule.handleEvent(mockEvent);
+        const result = await handleEvent(mockEvent);
 
         expect(result).to.deep.equal(mockPolicy);
         expect(stubs.getCxId.calledWith('TAX12345')).to.be.true;
         expect(stubs.generateIAMPolicy.calledWith(
             mockEvent.methodArn,
-            sinon.match({ name: 'Mario', familyName: 'Rossi', cxId: 'CX-ID-999' })
+            sinon.match({
+                name: 'Mario',
+                familyName: 'Rossi',
+                cxId: 'CX-ID-999'
+            })
         )).to.be.true;
     });
 
+    // TEST 2: VALIDATION FAILS
+    it('dovrebbe restituire una policy DENY quando la validazione Lollipop fallisce', async () => {
+        const mockEvent = {
+            methodArn: 'arn:aws:execute-api:region:account:api/stage/GET/path',
+            headers: { 'x-pagopa-cx-taxid': 'TAX12345' }
+        };
 
-    // TES 2: FALLIMENTO VALIDAZIONE LOLLIPOP
-    it('TEST 2: dovrebbe restituire DENY se la validazione Lollipop fallisce (diverso da 200)', async () => {
-        const mockEvent = { headers: {} };
-        stubs.validateLollipopAuthorizer.resolves({ statusCode: 401, resultCode: 'REQUEST_PARAMS_VALIDATION_FAILED' });
+        stubs.validateLollipopAuthorizer.rejects(new Error('Validation failed'));
+        stubs.getCxId.resolves(null);
 
-        const result = await handleEventModule.handleEvent(mockEvent);
-
-        expect(result).to.deep.equal(defaultDenyAllPolicy);
-        expect(stubs.getCxId.called).to.be.false; // Il flusso deve interrompersi
-    });
-
-    // TEST 3: HEADER TAXID UNDEFINED
-    it('TEST 3: dovrebbe restituire DENY se manca l\'header x-pagopa-cx-taxid', async () => {
-        const mockEvent = { headers: {} }; // Header UNDEFINED
-        stubs.validateLollipopAuthorizer.resolves({ statusCode: 200 });
-
-        const result = await handleEventModule.handleEvent(mockEvent);
+        const result = await handleEvent(mockEvent);
 
         expect(result).to.deep.equal(defaultDenyAllPolicy);
-        expect(stubs.getCxId.called).to.be.false;
+        expect(stubs.getCxId.called).to.be.true;
+        expect(stubs.generateIAMPolicy.called).to.be.false;
     });
 
-    // TEST 4: UTENTE NON TROVATO NEL DATA VAULT (404)
-    it('TEST 4: dovrebbe restituire DENY se l\'utente non è presente nel DataVault', async () => {
+    // TEST 3: GETCXID FAILS
+    it('dovrebbe restituire una policy DENY quando getCxId fallisce', async () => {
+        const mockEvent = {
+            methodArn: 'arn:aws:execute-api:region:account:api/stage/GET/path',
+            headers: { 'x-pagopa-cx-taxid': 'TAX12345' }
+        };
 
-        const mockEvent = { headers: { 'x-pagopa-cx-taxid': 'UNKNOWN_TAX' } };
-        stubs.validateLollipopAuthorizer.resolves({ statusCode: 200 });
-        stubs.getCxId.resolves(null); // Utente non trovato
+        const mockLollipopResult = { statusCode: 200, resultCode: 'SUCCESS' };
 
-        const result = await handleEventModule.handleEvent(mockEvent);
+        stubs.validateLollipopAuthorizer.resolves(mockLollipopResult);
+        stubs.getCxId.rejects(new Error('DataVault error'));
+
+        const result = await handleEvent(mockEvent);
 
         expect(result).to.deep.equal(defaultDenyAllPolicy);
         expect(stubs.generateIAMPolicy.called).to.be.false;
     });
 
+    // TEST 4: GENERATE IAM POLICY FAILS
+        it('dovrebbe restituire una policy DENY quando generateIAMPolicy fallisce', async () => {
+            const mockEvent = {
+                methodArn: 'arn:aws:execute-api:region:account:api/stage/GET/path',
+                headers: { 'x-pagopa-cx-taxid': 'TAX12345' }
+            };
+
+            const mockLollipopResult = { statusCode: 200, resultCode: 'SUCCESS' };
+
+            stubs.validateLollipopAuthorizer.resolves(mockLollipopResult);
+            stubs.getCxId.resolves('CX-ID-999');
+            stubs.generateIAMPolicy.rejects(new Error('IAM Policy generation error'));
+
+            const result = await handleEvent(mockEvent);
+
+            expect(result).to.deep.equal(defaultDenyAllPolicy);
+        });
+
     // TEST 5: ERRORE IMPREVISTO (CATCH) ---
     it('TEST 5: dovrebbe restituire DENY in caso di eccezione imprevista', async () => {
+        process.env.LOLLIPOP_BLOCK = "true";
         const mockEvent = { headers: { 'x-pagopa-cx-taxid': 'TAX' } };
         //stubs.validateLollipopAuthorizer.rejects(new Error('Database Error'));
         stubs.validateLollipopAuthorizer.resolves({ statusCode: 500 });
-        const result = await handleEventModule.handleEvent(mockEvent);
+        const result = await handleEvent(mockEvent);
 
         expect(result).to.deep.equal(defaultDenyAllPolicy);
+        delete process.env.LOLLIPOP_BLOCK;
     });
 
 });

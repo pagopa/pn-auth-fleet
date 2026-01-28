@@ -1,9 +1,9 @@
-const DefaultApi = require('../openapiImpl/getAssertion/api/DefaultApi');
-const AssertionRef = require('../openapiImpl/getAssertion/model/AssertionRef');
-const LollipopAssertionNotFoundException  = require('../exception/lollipopAssertionNotFoundException');
-const ErrorRetrievingAssertionException  = require('../exception/errorRetrievingAssertionException');
-const OidcAssertionNotSupported  = require('../exception/oidcAssertionNotSupported');
-const { ASSERTION_ERROR_CODES } = require('../constants/lollipopErrorsConstants');
+import DefaultApi from '../openapiImpl/getAssertion/api/DefaultApi.js';
+import AssertionRef from '../openapiImpl/getAssertion/model/AssertionRef.js';
+import LollipopAssertionNotFoundException from '../exception/lollipopAssertionNotFoundException.js';
+import ErrorRetrievingAssertionException from '../exception/errorRetrievingAssertionException.js';
+import OidcAssertionNotSupported from '../exception/oidcAssertionNotSupported.js';
+import { ASSERTION_ERROR_CODES } from '../constants/lollipopErrorsConstants.js';
 
 
 /**
@@ -43,9 +43,4 @@ async function getAssertionFromClient(jwt, assertionRef) {
     return null;
 }
 
-module.exports = {
-    getAssertionFromClient,
-    ErrorRetrievingAssertionException,
-    LollipopAssertionNotFoundException,
-    OidcAssertionNotSupported
-};
+export default { getAssertionFromClient };

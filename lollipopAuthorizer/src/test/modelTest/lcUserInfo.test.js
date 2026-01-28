@@ -1,7 +1,7 @@
-const { expect } = require('chai');
-const LCUserInfo = require('../../app/openapiImpl/getAssertion/model/LCUserInfo');
-const SamlUserInfo = require('../../app/openapiImpl/getAssertion/model/SamlUserInfo');
-const OidcUserInfo = require('../../app/openapiImpl/getAssertion/model/OidcUserInfo');
+import { expect  } from "chai";
+import LCUserInfo from "../../app/openapiImpl/getAssertion/model/LCUserInfo.js";
+import SamlUserInfo from "../../app/openapiImpl/getAssertion/model/SamlUserInfo.js";
+import OidcUserInfo from "../../app/openapiImpl/getAssertion/model/OidcUserInfo.js";
 
 describe('LCUserInfo', () => {
 

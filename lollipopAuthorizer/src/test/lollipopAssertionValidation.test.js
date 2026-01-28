@@ -1,16 +1,16 @@
-///npm install --save-dev mocha chai@4 sinon sinon-chai@3.7.0 proxyquire
-const chai = require('chai');
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-const proxyquire = require('proxyquire');
+///npm install --save-dev mocha chai@4 sinon sinon-chai@3.7.0 esmock
+import chai from "chai";
+import sinon from "sinon";
+import sinonChai from "sinon-chai";
+import esmock from "esmock";
 const { expect } = chai;
 chai.use(sinonChai);
 
-const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
-const { VALID_ASSERTION_XML, VALIDATION_PARAMS, VALID_JWT, VALID_IDP_CERTIFICATE } = require('../test/constants/lollipopConstantsTest');
-const CommandResult = require('../app/model/CommandResult');
-const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
-const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
+import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
+import { VALID_ASSERTION_XML, VALIDATION_PARAMS, VALID_JWT, VALID_IDP_CERTIFICATE  } from "../test/constants/lollipopConstantsTest.js";
+import CommandResult from "../app/model/CommandResult.js";
+import LollipopAssertionException from "../app/exception/lollipopAssertionException.js";
+import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js";
 
 const mockCommandResult = function() {
         this.resultCode = null;
@@ -32,24 +32,15 @@ const mockRequestValidation = {
 // Funzione helper per simulare il successo di tutte le validazioni critiche
 const setupSuccessfulMocks = (stubs) => {
     stubs.getAssertionDoc.resolves({ assertionData: VALID_ASSERTION_XML });
-    stubs.getIdpCertDataAssertion.resolves([ { cert: VALID_IDP_CERTIFICATE } ]);   //idpCertDataList: VALID_IDP_CERTIFICATE);
+    stubs.getIdpCertDataAssertion.resolves([ { cert: VALID_IDP_CERTIFICATE } ]);
     stubs.validateAssertionPeriod.resolves(true);
     stubs.validateUserId.resolves(true);
     stubs.validateInResponseTo.resolves(true);
-    stubs.validateSignatureAssertion.resolves(true); //: assertionData, idpCertDataList);
+    stubs.validateSignatureAssertion.resolves(true);
     stubs.validateFullNameHeader.resolves({ name: 'Mario', familyName: 'Rossi' });
 };
 
-// Carica la funzione da testare sostituendo le sue dipendenze con i nostri stub di sinon
-const { validateLollipopAssertion } = proxyquire('../app/lollipopAssertionValidation', {
-    '../app/assertionValidation': mockRequestValidation,
-    '../app/model/CommandResult': mockCommandResult,
-    '../app/config/lollipopConsumerRequestConfig': { lollipopConfig },
-    '../app/constants/lollipopErrorsConstants': { VALIDATION_ERROR_CODES },
-    '../app/exception/lollipopAssertionException': LollipopAssertionException,
-});
-
-mockRequest = {
+let mockRequest = {
     headerParams: {
         headers: {
             'x-pagopa-lollipop-auth-jwt': VALID_JWT,
@@ -58,10 +49,21 @@ mockRequest = {
     }
 };
 
-
 describe('TEST lollipopValidateLollipopAssertion', () => {
 
-    let requestValidationStubs;
+    let validateLollipopAssertion;
+
+    // Carica il modulo con esmock prima di tutti i test
+    before(async () => {
+        const module = await esmock('../app/lollipopAssertionValidation.js', {
+            '../app/assertionValidation.js': mockRequestValidation,
+            '../app/model/CommandResult.js': { default: mockCommandResult },
+            '../app/config/lollipopConsumerRequestConfig.js': { lollipopConfig },
+            '../app/constants/lollipopErrorsConstants.js': { VALIDATION_ERROR_CODES },
+            '../app/exception/lollipopAssertionException.js': { default: LollipopAssertionException },
+        });
+        validateLollipopAssertion = module.validateLollipopAssertion;
+    });
 
     // Prima di ogni test, resettiamo il comportamento dei mock (stub)
     beforeEach(() => {
@@ -96,21 +98,15 @@ describe('TEST lollipopValidateLollipopAssertion', () => {
 
         try {
             await validateLollipopAssertion(mockRequest);
-            // Se arriviamo qui, il test fallisce perché l'errore non è stato lanciato
             expect.fail('L\'asserzione avrebbe dovuto lanciare un errore.'); 
         } catch (error) {
-            //console.log("ERROR: ", error);
-            // Verifica che l'eccezione sia stata lanciata
             expect(error).to.be.an.instanceOf(LollipopAssertionException);
-            // Verifica che il codice di errore sia corretto
             expect(error.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ASSERTION_PERIOD);
         }
     });	
 	
-	
 // TEST 3: VALIDAZIONE FIRMA FALLITA
     it('TEST 3: dovrebbe lanciare LollipopAssertionException per INVALID_SIGNATURE', async () => {
-        // Simula il fallimento della firma
         mockRequestValidation.validateSignatureAssertion.resolves(false);
 
         try {
@@ -119,14 +115,12 @@ describe('TEST lollipopValidateLollipopAssertion', () => {
         } catch (error) {
             expect(error).to.be.an.instanceOf(LollipopAssertionException);
             expect(error.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_SIGNATURE);
-            // Verifica che validateFullNameHeader non sia stata chiamata
-            expect(mockRequestValidation.validateFullNameHeader.notCalled);//.to.be.true;
+            expect(mockRequestValidation.validateFullNameHeader.notCalled);
         }
     });
 
 // TEST 4: ERRORE NELL'ESTRAZIONE INIZIALE (getAssertionDoc)
     it('TEST 4: dovrebbe lanciare immediatamente l\'errore se getAssertionDoc fallisce', async () => {
-        // Simula un errore nella prima fase asincrona
         mockRequestValidation.getAssertionDoc.rejects(
             new LollipopAssertionException('MOCK_JWT_ERR', "JWT non valido")
         );
@@ -135,11 +129,9 @@ describe('TEST lollipopValidateLollipopAssertion', () => {
             await validateLollipopAssertion(mockRequest);
             expect.fail('L\'estrazione dell\'asserzione avrebbe dovuto fallire.'); 
         } catch (error) {
-            //console.log("ERROR getAssertionDoc: ", error.errorCode);
             expect(error).to.be.an.instanceOf(LollipopAssertionException);
             expect(error.errorCode).to.equal('MOCK_JWT_ERR');
-            // Nessuna delle funzioni di validazione dovrebbe essere stata chiamata
-            expect(mockRequestValidation.validateAssertionPeriod.notCalled); //.to.be.true;
+            expect(mockRequestValidation.validateAssertionPeriod.notCalled);
         }
     });
-});	
+});

@@ -356,6 +356,9 @@ Outputs:
   IoAuthorizerLambdaName:
     Value: !Sub '${ProjectName}-ioAuthorizerLambda'
 
+  LollipopAuthorizerLambdaName:
+    Value: !Sub '${ProjectName}-lollipopAuthorizerLambda'
+
   JwtAuthorizerLambdaName:
     Value: !Sub '${ProjectName}-jwtAuthorizerLambda'
 
@@ -439,7 +442,3 @@ Outputs:
   JWKSCacheForceRefreshAlarmARN:
     Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.SqsAgeAlarmArn  
     Description: JWKSCacheForceRefresh-DLQ age alarm ARN
-    
-  LollipopAuthorizerLambdaName:
-    Value: !Sub '${ProjectName}-lollipopAuthorizerLambda'
-    Description: Name of Lollipop Authorizer Lambda

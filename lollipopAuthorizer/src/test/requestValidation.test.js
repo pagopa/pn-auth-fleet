@@ -1,10 +1,9 @@
-const {expect} = require('chai');
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { expect } from "chai";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
-const base64url = require('base64url');
-const {
-  validatePublicKey,
+import base64url from "base64url";
+import { validatePublicKey,
   validateUserIdHeader,
   validateAssertionRefHeader,
   validateAssertionTypeHeader,
@@ -14,10 +13,10 @@ const {
   LollipopRequestContentValidationException,
   validateAuthJWTHeader,
   validateSignatureInputHeader
-} = require('../app/requestValidation');
+ } from "../app/requestValidation.js";
 
-const {EC_JWK, RSA_JWK, VALIDATION_PARAMS, VALIDATION_AUTH_JWT} = require("./constants/lollipopConstantsTest");
-const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
+import { EC_JWK, RSA_JWK, VALIDATION_PARAMS, VALIDATION_AUTH_JWT } from "./constants/lollipopConstantsTest.js";
+import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
 
 describe('validatePublicKey (async)', () => {
     // precodifica delle due chiavi in base64url

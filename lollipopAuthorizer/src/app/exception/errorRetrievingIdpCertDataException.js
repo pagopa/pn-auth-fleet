@@ -13,4 +13,7 @@ const ErrorCode = {
     IDP_CERT_DATA_NOT_FOUND: 'IDP_CERT_DATA_NOT_FOUND',
 };
 
-module.exports = { ErrorRetrievingIdpCertDataException, ErrorCode };
+// Assegna ErrorCode come proprietà statica della classe
+ErrorRetrievingIdpCertDataException.ErrorCode = ErrorCode;
+
+export { ErrorRetrievingIdpCertDataException, ErrorCode };

@@ -1,12 +1,13 @@
-const { verifyHttpSignature, LollipopRequestContentValidationException } = require("../app/verifyHttpSignature");
-const chai = require("chai");
-const chaiAsPromised = require("chai-as-promised");
+import { verifyHttpSignature } from "../app/verifyHttpSignature.js";
+import LollipopRequestContentValidationException from "../app/exception/lollipopRequestContentValidationException.js";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-const base64url = require("base64url");
+import base64url from "base64url";
 
-const {EC_JWK, RSA_JWK, PUBLIC_KEY_HEADER, VALIDATION_PARAMS } = require("./constants/lollipopConstantsTest");
-const { VERIFY_HTTP_ERROR_CODES, VALIDATION_ERROR_CODES } = require("../app/constants/lollipopErrorsConstants");
+import { EC_JWK, RSA_JWK, PUBLIC_KEY_HEADER, VALIDATION_PARAMS  } from "./constants/lollipopConstantsTest.js";
+import { VERIFY_HTTP_ERROR_CODES, VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
 
 
 const KEY_TYPES = [

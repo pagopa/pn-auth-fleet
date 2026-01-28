@@ -1,4 +1,4 @@
-const LollipopAssertionException = require('./lollipopAssertionException');
+import LollipopAssertionException from "./lollipopAssertionException.js";
 
 class LollipopAssertionNotFoundException extends LollipopAssertionException {
   constructor(errorCode, message) {
@@ -6,4 +6,4 @@ class LollipopAssertionNotFoundException extends LollipopAssertionException {
   }
 }
 
-module.exports = LollipopAssertionNotFoundException;
+export default LollipopAssertionNotFoundException;

@@ -1,4 +1,4 @@
-const LollipopAssertionException = require('./lollipopAssertionException');
+import LollipopAssertionException from "./lollipopAssertionException.js";
 
 class ErrorRetrievingAssertionException extends LollipopAssertionException {
 
@@ -8,4 +8,4 @@ class ErrorRetrievingAssertionException extends LollipopAssertionException {
 
 }
 
-module.exports = ErrorRetrievingAssertionException;
+export default ErrorRetrievingAssertionException;

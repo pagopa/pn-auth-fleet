@@ -19,4 +19,4 @@ class IdpCertData {
     }
 
 }
-module.exports = IdpCertData;
+export default IdpCertData;

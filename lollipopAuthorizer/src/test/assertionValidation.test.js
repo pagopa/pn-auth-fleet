@@ -1,16 +1,16 @@
-const {expect} = require('chai');
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import { expect } from "chai";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
-const xmldom = require('xmldom');
-const base64url = require('base64url');
-const { validateAssertionPeriod, validateUserId, validateInResponseTo, validateFullNameHeader } = require('../app/assertionValidation');
-const { VALIDATION_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
-const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
-const { VALID_ASSERTION_XML, VALIDATION_PARAMS, EC_JWK, VALID_JWK, RSA_JWK, NOT_VALID_JWK,
+import xmldom from "xmldom";
+import base64url from "base64url";
+import { validateAssertionPeriod, validateUserId, validateInResponseTo, validateFullNameHeader  } from "../app/assertionValidation.js";
+import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
+import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js";
+import { VALID_ASSERTION_XML, VALIDATION_PARAMS, EC_JWK, VALID_JWK, RSA_JWK, NOT_VALID_JWK,
 		ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG, ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM,
-		ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA512_ALGORITHM } = require('../test/constants/lollipopConstantsTest');
-const LollipopAssertionException = require('../app/exception/lollipopAssertionException');
+		ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA512_ALGORITHM  } from "../test/constants/lollipopConstantsTest.js";
+import LollipopAssertionException from "../app/exception/lollipopAssertionException.js";
 
 
 describe('validateAssertionPeriodTest ', () => {

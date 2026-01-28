@@ -1,7 +1,7 @@
-const {lollipopConfig} = require('../../app/config/lollipopConsumerRequestConfig');
-const ErrorRetrievingIdpCertDataException = require('../../app/exception/errorRetrievingIdpCertDataException');
-const CertDataNotFoundException = require('../../app/exception/certDataNotFoundException');
-const idpCertProvider = require('../openapiImpl/idp/idpCertProvider');
+import { lollipopConfig } from "../../app/config/lollipopConsumerRequestConfig.js";
+import { ErrorRetrievingIdpCertDataException } from "../../app/exception/errorRetrievingIdpCertDataException.js";
+import CertDataNotFoundException from "../../app/exception/certDataNotFoundException.js";
+import idpCertProvider from "../openapiImpl/idp/idpCertProvider.js";
 
 /**
  * Recupera i dati del certificato dell'Identity Provider (IDP)
@@ -146,7 +146,5 @@ const idpCertProvider = require('../openapiImpl/idp/idpCertProvider');
     }
 
 
-module.exports = {
-    getIdpCertData,
-    parseInstantToUnixTimestamp,
-}
+export { getIdpCertData,
+    parseInstantToUnixTimestamp, }

@@ -1,28 +1,28 @@
-const { expect } = require("chai");
-const sinon = require("sinon");
-const proxyquire = require("proxyquire");
+import { expect  } from "chai";
+import sinon from "sinon";
+import esmock from "esmock";
 
-const LollipopAssertionException = require("../app/exception/lollipopAssertionException");
-const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const LollipopHttpSignatureValidationException = require('../app/exception/lollipopHttpSignatureValidationException');
+import LollipopAssertionException from "../app/exception/lollipopAssertionException.js";
+import LollipopRequestContentValidationException from "../app/exception/lollipopRequestContentValidationException.js";
+import LollipopHttpSignatureValidationException from "../app/exception/lollipopHttpSignatureValidationException.js";
 
 
 describe("Lollipop Authorizer Validation Suite Test", () => {
   let validateLollipopAuthorizer;
   let stubs;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     stubs = {
       validateLollipopRequest: sinon.stub(),
       validateLollipopHttpSignature: sinon.stub(),
       validateLollipopAssertion: sinon.stub(),
     };
 
-    // Iniettiamo i mock
-    const module = proxyquire("../app/lollipopAuthorizerValidation", {
-      "../app/lollipopRequestValidation": { validateLollipopRequest: stubs.validateLollipopRequest },
-      "../app/lollipopHttpSignatureValidation": { validateLollipopHttpSignature: stubs.validateLollipopHttpSignature },
-      "../app/lollipopAssertionValidation": { validateLollipopAssertion: stubs.validateLollipopAssertion },
+    // Iniettiamo i mock con esmock
+    const module = await esmock("../app/lollipopAuthorizerValidation.js", {
+      "../app/lollipopRequestValidation.js": { validateLollipopRequest: stubs.validateLollipopRequest },
+      "../app/lollipopHttpSignatureValidation.js": { validateLollipopHttpSignature: stubs.validateLollipopHttpSignature },
+      "../app/lollipopAssertionValidation.js": { validateLollipopAssertion: stubs.validateLollipopAssertion },
     });
     validateLollipopAuthorizer = module.validateLollipopAuthorizer;
   });
@@ -49,10 +49,7 @@ describe("Lollipop Authorizer Validation Suite Test", () => {
     // TEST 2: FALLIMENTO SIGNATURE (402)
     it("TEST 2: dovrebbe restituire 402 se la firma HTTP non è valida (tramite resultCode)", async () => {
         stubs.validateLollipopRequest.resolves();
-        stubs.validateLollipopHttpSignature.resolves({
-            resultCode: "HTTP_MESSAGE_VALIDATION_FAILED", // Diverso da SUCCESS
-            resultMessage: "Validation of HTTP message failed, authentication failed"  //Invalid Signature"
-        });
+        stubs.validateLollipopHttpSignature.resolves({ resultCode: "HTTP_MESSAGE_VALIDATION_FAILED" });
 
         const result = await validateLollipopAuthorizer(mockRequest);
 

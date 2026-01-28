@@ -12,7 +12,9 @@
  */
 
 
-const superagent = require('superagent');
+import superagent from "superagent";
+import fs from "fs";
+
 
 /**
 * @module ApiClient
@@ -205,10 +207,6 @@ class ApiClient {
     isFileParam(param) {
         // fs.ReadStream in Node.js and Electron (but not in runtime like browserify)
         if (typeof require === 'function') {
-            let fs;
-            try {
-                fs = require('fs');
-            } catch (err) {}
             if (fs && fs.ReadStream && param instanceof fs.ReadStream) {
                 return true;
             }
@@ -691,4 +689,4 @@ ApiClient.CollectionFormatEnum = {
 */
 ApiClient.instance = new ApiClient();
 
-module.exports = ApiClient;
+export default ApiClient;

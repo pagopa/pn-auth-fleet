@@ -1,17 +1,16 @@
-const chai = require('chai');
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-const proxyquire = require('proxyquire');
+import chai from "chai";
+import sinon from "sinon";
+import sinonChai from "sinon-chai";
+import esmock from "esmock";
 const { expect } = chai;
 chai.use(sinonChai);
 
-const { VALIDATION_ERROR_CODES, VERIFY_HTTP_ERROR_CODES } = require('../app/constants/lollipopErrorsConstants');
-const { EC_JWK, RSA_JWK, PUBLIC_KEY_HEADER, VALIDATION_PARAMS } = require('../test/constants/lollipopConstantsTest');
-const CommandResult = require('../app/model/CommandResult');
-const LollipopRequestContentValidationException = require('../app/exception/lollipopRequestContentValidationException');
-const LollipopHttpSignatureValidationException = require('../app/exception/lollipopHttpSignatureValidationException');
-const { lollipopConfig } = require('../app/config/lollipopConsumerRequestConfig');
-const { validateLollipopHttpSignature } = require("../app/lollipopHttpSignatureValidation");
+import { VALIDATION_ERROR_CODES, VERIFY_HTTP_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
+import { EC_JWK, RSA_JWK, PUBLIC_KEY_HEADER, VALIDATION_PARAMS  } from "../test/constants/lollipopConstantsTest.js";
+import CommandResult from "../app/model/CommandResult.js";
+import LollipopRequestContentValidationException from "../app/exception/lollipopRequestContentValidationException.js";
+import LollipopHttpSignatureValidationException from "../app/exception/lollipopHttpSignatureValidationException.js";
+import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js";
 
 describe('validateLollipopHttpSignature - Test Suite', () => {
 
@@ -19,7 +18,7 @@ describe('validateLollipopHttpSignature - Test Suite', () => {
     let verifyHttpSignatureStub;
     let mockRequest;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         // Stub per la funzione di verifica della firma HTTP
         verifyHttpSignatureStub = sinon.stub();
 
@@ -31,15 +30,16 @@ describe('validateLollipopHttpSignature - Test Suite', () => {
             }
         };
 
-        // 3. Carichiamo il modulo iniettando i mock tramite proxyquire
-        validateLollipopHttpSignature = proxyquire('../app/lollipopHttpSignatureValidation', {
-            './verifyHttpSignature': { verifyHttpSignature: verifyHttpSignatureStub },
-            '../app/model/CommandResult': CommandResult,
-            '../app/config/lollipopConsumerRequestConfig': mockConfig,
-            '../app/constants/lollipopErrorsConstants': { VERIFY_HTTP_ERROR_CODES },
-            '../app/exception/lollipopRequestContentValidationException': LollipopRequestContentValidationException,
-            '../app/exception/lollipopHttpSignatureValidationException': LollipopHttpSignatureValidationException,
-        }).validateLollipopHttpSignature;
+        // Carichiamo il modulo iniettando i mock tramite esmock
+        const module = await esmock('../app/lollipopHttpSignatureValidation.js', {
+            '../app/verifyHttpSignature.js': { verifyHttpSignature: verifyHttpSignatureStub },
+            '../app/model/CommandResult.js': { default: CommandResult },
+            '../app/config/lollipopConsumerRequestConfig.js': mockConfig,
+            '../app/constants/lollipopErrorsConstants.js': { VERIFY_HTTP_ERROR_CODES },
+            '../app/exception/lollipopRequestContentValidationException.js': { default: LollipopRequestContentValidationException },
+            '../app/exception/lollipopHttpSignatureValidationException.js': { default: LollipopHttpSignatureValidationException },
+        });
+        validateLollipopHttpSignature = module.validateLollipopHttpSignature;
 
         // richiesta fittizia
         mockRequest = {

@@ -11,7 +11,7 @@
  *
  */
 
-const ApiClient = require('../ApiClient');
+import ApiClient from "../ApiClient.js";
 /**
  * The SamlUserInfo model module.
  * @module model/SamlUserInfo
@@ -88,5 +88,5 @@ SamlUserInfo.prototype['response_xml'] = undefined;
 
 
 
-module.exports=SamlUserInfo;
+export default SamlUserInfo;
 

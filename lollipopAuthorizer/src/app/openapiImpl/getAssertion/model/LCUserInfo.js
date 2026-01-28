@@ -11,9 +11,9 @@
  *
  */
 
-const ApiClient = require('../ApiClient')
-const OidcUserInfo = require('./OidcUserInfo');
-const SamlUserInfo = require('./SamlUserInfo');
+import ApiClient from "../ApiClient.js"
+import OidcUserInfo from "./OidcUserInfo.js";
+import SamlUserInfo from "./SamlUserInfo.js";
 
 /**
  * The LCUserInfo model module.
@@ -144,5 +144,5 @@ LCUserInfo.OneOf = ["OidcUserInfo", "SamlUserInfo"];
 
 LCUserInfo.instance = new LCUserInfo();
 
-module.exports = LCUserInfo;
+export default LCUserInfo;
 

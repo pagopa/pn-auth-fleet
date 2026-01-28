@@ -11,8 +11,8 @@
  *
  */
 
-const ApiClient = require('../ApiClient');
-const LCUserInfo = require('./LCUserInfo');
+import ApiClient from "../ApiClient.js";
+import LCUserInfo from "./LCUserInfo.js";
 /**
  * The OidcUserInfo model module.
  * @module model/OidcUserInfo
@@ -57,8 +57,9 @@ class OidcUserInfo {
             if (data.hasOwnProperty('claims_token')) {
                 obj['claims_token'] = ApiClient.convertToType(data['claims_token'], 'String');
             }
+            return obj;
         }
-        return obj;
+        return null;
     }
 
     /**
@@ -107,4 +108,4 @@ OidcUserInfo.prototype['claims_token'] = undefined;
 
 
 
-module.exports=OidcUserInfo;
+export default OidcUserInfo;

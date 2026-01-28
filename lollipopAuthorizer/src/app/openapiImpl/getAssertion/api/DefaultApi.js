@@ -12,10 +12,10 @@
  */
 
 
-const ApiClient = require('../ApiClient').default || require('../ApiClient');
-const AssertionRef = require('../model/AssertionRef').default || require('../model/AssertionRef');
-const LCUserInfo = require('../model/LCUserInfo').default || require('../model/LCUserInfo');
-const ProblemJson = require('../model/ProblemJson').default || require('../model/ProblemJson');
+import ApiClient from "../ApiClient.js";
+import AssertionRef from "../model/AssertionRef.js";
+import LCUserInfo from "../model/LCUserInfo.js";
+import ProblemJson from "../model/ProblemJson.js";
 
 /**
 * Default service.
@@ -86,4 +86,4 @@ class DefaultApi {
 
 
 }
-module.exports = DefaultApi;
+export default DefaultApi;

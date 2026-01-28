@@ -1,6 +1,7 @@
 {
   "name": "lollipop-authorizer",
   "version": "1.0.0",
+  "type": "module",
   "description": "lambda per verificare pseudo anomizzare il codice fiscale passato dal backend di IO",
   "main": "index.js",
   "scripts": {
@@ -18,6 +19,7 @@
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
     "cross-env": "^10.1.0",
+    "esmock": "^2.7.3",
     "dotenv-expand": "^12.0.3",
     "lambda-tester": "^4.0.1",
     "mocha": "^9.2.2",
