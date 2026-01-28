@@ -247,14 +247,26 @@ function parseSignatureInput(sigInput) {
  * @param {string} sigInput - Contenuto di signature-input
  * @returns {string[]} Array di nomi dei componenti coperti
  */
-function parseCoveredComponents(sigInput) {
-  console.log("[parseCoveredComponents] Proceeding parsing covered components from signature-input");
-  //const match = sigInput.match(/\(([^)]+)\)/);
-  const match = sigInput.match(/\((.*?)\)/);
-  const components = match ? match[1].split(/\s+/).map(s => s.replace(/"/g, '').trim()).filter(Boolean) : [];
-  console.log("[parseCoveredComponents] Covered components detached");
-  return components;
-}
+ function parseCoveredComponents(sigInput) {
+   if (!sigInput || typeof sigInput !== 'string') return [];
+
+   console.log("[parseCoveredComponents] Proceeding parsing without regex");
+
+   // Trova le posizioni delle parentesi
+   const start = sigInput.indexOf('(');
+   const end = sigInput.indexOf(')', start);
+
+   if (start === -1 || end === -1) {
+     return [];
+   }
+   const content = sigInput.substring(start + 1, end);
+   return content
+     .split(/\s+/)
+     .map(s => s.replace(/"/g, '').trim())
+     .filter(Boolean);
+ }
+
+
 
 /**
  * Genera il canonical signature base da usare per la verifica
