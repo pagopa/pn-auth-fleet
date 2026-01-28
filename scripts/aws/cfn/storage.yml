@@ -62,18 +62,6 @@ Resources:
         LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
 
-  lollipopAuthorizerLambdaLogGroup:
-    Type: AWS::CloudFormation::Stack
-    UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain
-    Properties:
-      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
-      Parameters:
-        LogGroupName: !Sub '${ProjectName}-lollipopAuthorizerLambda'
-        LogGroupPrefix: '/aws/lambda'
-        LogGroupRetention: !Ref LogRetention
-        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
-
   JwtAuthorizerLambdaLogGroup:
     Type: AWS::CloudFormation::Stack
     UpdateReplacePolicy: Retain
@@ -454,7 +442,3 @@ Outputs:
   JWKSCacheForceRefreshAlarmARN:
     Value: !GetAtt JWKSCacheForceRefreshQueue.Outputs.SqsAgeAlarmArn  
     Description: JWKSCacheForceRefresh-DLQ age alarm ARN
-    
-  LollipopAuthorizerLambdaName:
-    Value: !Sub '${ProjectName}-lollipopAuthorizerLambda'
-    Description: Name of Lollipop Authorizer Lambda
