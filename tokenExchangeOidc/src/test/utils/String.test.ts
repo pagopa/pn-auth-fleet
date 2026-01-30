@@ -2,6 +2,7 @@ import {
   makeLower,
   maskString,
   retrieveEnvVariable,
+  removeFiscalNumberPrefix,
 } from "../../app/utils/String";
 import { setupEnv } from "../test.utils";
 
@@ -59,8 +60,22 @@ describe("String utils Tests", () => {
       delete process.env.TEST_VAR;
 
       expect(() => retrieveEnvVariable("TEST_VAR")).toThrow(
-        new Error("TEST_VAR is not set")
+        new Error("TEST_VAR is not set"),
       );
+    });
+  });
+
+  describe("removeFiscalNumberPrefix", () => {
+    it("should remove the fiscal number international prefix if present", () => {
+      const fiscalNumberWithPrefix = "TINIT-12345678901";
+      const sanitized = removeFiscalNumberPrefix(fiscalNumberWithPrefix);
+      expect(sanitized).toBe("12345678901");
+    });
+
+    it("should return the fiscal number unchanged if no prefix is present", () => {
+      const fiscalNumberWithoutPrefix = "12345678901";
+      const sanitized = removeFiscalNumberPrefix(fiscalNumberWithoutPrefix);
+      expect(sanitized).toBe("12345678901");
     });
   });
 });

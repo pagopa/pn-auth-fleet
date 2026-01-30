@@ -2,6 +2,7 @@ import { ErrorResponseBody } from "../../models/Responses";
 import { Source } from "../../models/Source";
 import { OIDecodedIdToken, TokenExchangeResponse } from "../../models/Token";
 import { ValidationException } from "../exception/validationException";
+import { removeFiscalNumberPrefix } from "./String";
 import { generateJwtPayload, generateSessionToken } from "./TokenGenerator";
 
 interface GenerateTokenResponseProps {
@@ -33,7 +34,7 @@ export const generateTokenExchangeResponse = async ({
     name: decodedIdToken.name,
     family_name: decodedIdToken.familyName,
     uid: decodedIdToken.pairwise,
-    fiscal_number: decodedIdToken.fiscalNumber,
+    fiscal_number: removeFiscalNumberPrefix(decodedIdToken.fiscalNumber),
     from_aa: false,
     level: "L2",
     aud: tokenPayload.aud,

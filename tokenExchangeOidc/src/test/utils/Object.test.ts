@@ -11,7 +11,7 @@ describe("Object utils Tests", () => {
       ];
       const result = copyAndMaskObject(oneIdentityIdTokenMock, sensitiveFields);
 
-      expect(result.fiscalNumber).toEqual("RR************2Y");
+      expect(result.fiscalNumber).toEqual("TI******************2Y");
       expect(result.familyName).toEqual("*****");
       expect(result.name).toEqual("*****");
       expect(result.iss).toEqual("https://uat.oneid.pagopa.it");
