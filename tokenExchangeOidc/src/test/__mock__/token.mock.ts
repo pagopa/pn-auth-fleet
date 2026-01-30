@@ -11,7 +11,7 @@ export const userIdMock = "ed84b8c9-444e-410d-80d7-cfad6aa12070";
 export const oneIdentityIdTokenMock: OIDecodedIdToken = {
   iss: "https://uat.oneid.pagopa.it",
   aud: oneIdentityClientIdMock,
-  fiscalNumber: "RRRPRR50L17C282Y",
+  fiscalNumber: "TINIT-RRRPRR50L17C282Y",
   nonce: tokenNonce,
   name: "Mario",
   familyName: "Rossi",

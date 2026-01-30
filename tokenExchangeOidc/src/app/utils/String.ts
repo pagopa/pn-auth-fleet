@@ -1,4 +1,5 @@
 import { APIGatewayProxyEventHeaders } from "aws-lambda";
+import { SPID_FISCAL_NUMBER_PREFIX } from "../../models/Token";
 
 /**
  * Converts all header keys to lowercase.
@@ -6,7 +7,7 @@ import { APIGatewayProxyEventHeaders } from "aws-lambda";
  * @param headers - The headers object to convert
  */
 export function makeLower(
-  headers: APIGatewayProxyEventHeaders
+  headers: APIGatewayProxyEventHeaders,
 ): APIGatewayProxyEventHeaders {
   const head: APIGatewayProxyEventHeaders = {};
   for (const key in headers) {
@@ -49,4 +50,13 @@ export function retrieveEnvVariable(name: string) {
     throw new Error(`${name} is not set`);
   }
   return value;
+}
+
+/**
+ * Sanitizes a fiscal number by removing the SPID prefix if present.
+ *
+ * @param fiscalNumber - The fiscal number to sanitize
+ */
+export function removeFiscalNumberPrefix(fiscalNumber: string): string {
+  return fiscalNumber.replace(SPID_FISCAL_NUMBER_PREFIX, "");
 }
