@@ -2809,15 +2809,15 @@ Resources:
             - !GetAtt B2BAuthorizerLambda.Arn
             - !GetAtt TokenExchangeLambda.Arn
             - !GetAtt JwksCacheForceRefreshLambda.Arn
-            - !GetAtt TokenExchangeOidcLambda.Arn
+            - !If [EnableOidcApi, !GetAtt TokenExchangeOidcLambda.Arn, !Ref AWS::NoValue]
         RestApiStageArns: !Join
           - ","
           - - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
-            - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeOidcRestApi}/stages/${TokenExchangeOidcRestApiStage}"
+            - !If [EnableOidcApi, !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeOidcRestApi}/stages/${TokenExchangeOidcRestApiStage}", !Ref AWS::NoValue]
         RestApiNames: !Join
           - ","
           - - !Ref TokenExchangeRestApiStage
-            - !Ref TokenExchangeOidcRestApiStage
+            - !If [EnableOidcApi, !Ref TokenExchangeOidcRestApiStage, !Ref AWS::NoValue]
         AlarmArns: !Join
           - ","
           - - !GetAtt ApiKeyAuthorizerV2LambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
@@ -2829,9 +2829,9 @@ Resources:
             - !GetAtt JWKSCacheRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwksCacheForceRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
-            - !GetAtt TokenExchangeOidcLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !If [EnableOidcApi, !GetAtt TokenExchangeOidcLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm, !Ref AWS::NoValue]
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
-            - !GetAtt TokenExchangeOidcAPIGatewayApiErrorAlarm.Arn
+            - !If [EnableOidcApi, !GetAtt TokenExchangeOidcAPIGatewayApiErrorAlarm.Arn, !Ref AWS::NoValue]
             - !Ref JWKSCacheForceRefreshDLQAlarmARN
             - !Ref JWKSCacheForceRefreshAlarmARN
         LogGroupsNames: !Join
@@ -2845,7 +2845,7 @@ Resources:
             - !Sub "/aws/lambda/${B2BAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${TokenExchangeLambdaName}"
             - !Sub "/aws/lambda/${JwksCacheForceRefreshLambdaName}"
-            - !Sub "/aws/lambda/${TokenExchangeOidcLambdaName}"
+            - !If [EnableOidcApi, !Sub "/aws/lambda/${TokenExchangeOidcLambdaName}", !Ref AWS::NoValue]
 
   # Event Bridge rule to trigger JWKSCacheRefreshLambda every JWKSCacheRefreshIntervalInMinutes minutes
   JWKSCacheRefreshEventRule:
