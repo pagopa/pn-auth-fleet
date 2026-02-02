@@ -627,6 +627,9 @@ Conditions:
     - !Equals [!Ref EnvironmentType, "dev"]
     - !Equals [!Ref EnvironmentType, "uat"]
   EnableOidcApi: !Equals ["true", !Ref EnableTokenExchangeOidcApi]
+  EnableOidcApiAndSendLogToKinesis: !And
+    - !Condition EnableOidcApi
+    - !Condition SendLogToKinesis
 
 Resources:
   ###             API KEY AUTHORIZERV2 LAMBDA             ###
@@ -1753,7 +1756,7 @@ Resources:
               "application/json": ""
 
   TokenExchangeOidcApiSubscriptionFilter:
-    Condition: SendLogToKinesis
+    Condition: EnableOidcApiAndSendLogToKinesis
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
@@ -1762,6 +1765,7 @@ Resources:
       DestinationArn: !Ref LogsKinesisSourceStreamArn
 
   TokenExchangeOidcApiWaf:
+    Condition: EnableOidcApi
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
@@ -1773,6 +1777,7 @@ Resources:
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
 
   TokenExchangeOidcAPIGatewayApiLatencyAlarm:
+    Condition: EnableOidcApi
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-LatencyAlarm"
@@ -1797,6 +1802,7 @@ Resources:
       ExtendedStatistic: "p90"
 
   TokenExchangeOidcAPIGatewayApiErrorAlarm:
+    Condition: EnableOidcApi
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
@@ -1844,6 +1850,7 @@ Resources:
           Label: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorMetric"
 
   TokenExchangeOidcAPIGatewayApiErrorAlarmWakeup:
+    Condition: EnableOidcApi
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
