@@ -627,6 +627,9 @@ Conditions:
     - !Equals [!Ref EnvironmentType, "dev"]
     - !Equals [!Ref EnvironmentType, "uat"]
   EnableOidcApi: !Equals ["true", !Ref EnableTokenExchangeOidcApi]
+  EnableOidcApiAndSendLogToKinesis: !And
+    - !Condition EnableOidcApi
+    - !Condition SendLogToKinesis
 
 Resources:
   ###             API KEY AUTHORIZERV2 LAMBDA             ###
@@ -1753,7 +1756,7 @@ Resources:
               "application/json": ""
 
   TokenExchangeOidcApiSubscriptionFilter:
-    Condition: SendLogToKinesis
+    Condition: EnableOidcApiAndSendLogToKinesis
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
@@ -1762,6 +1765,7 @@ Resources:
       DestinationArn: !Ref LogsKinesisSourceStreamArn
 
   TokenExchangeOidcApiWaf:
+    Condition: EnableOidcApi
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
@@ -1773,6 +1777,7 @@ Resources:
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
 
   TokenExchangeOidcAPIGatewayApiLatencyAlarm:
+    Condition: EnableOidcApi
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-LatencyAlarm"
@@ -1797,6 +1802,7 @@ Resources:
       ExtendedStatistic: "p90"
 
   TokenExchangeOidcAPIGatewayApiErrorAlarm:
+    Condition: EnableOidcApi
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
@@ -1844,6 +1850,7 @@ Resources:
           Label: !Sub "${ProjectName}-token-exchange-oidc-api-ErrorMetric"
 
   TokenExchangeOidcAPIGatewayApiErrorAlarmWakeup:
+    Condition: EnableOidcApi
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "oncall-${ProjectName}-token-exchange-oidc-api-ErrorAlarm"
@@ -2802,15 +2809,15 @@ Resources:
             - !GetAtt B2BAuthorizerLambda.Arn
             - !GetAtt TokenExchangeLambda.Arn
             - !GetAtt JwksCacheForceRefreshLambda.Arn
-            - !GetAtt TokenExchangeOidcLambda.Arn
+            - !If [EnableOidcApi, !GetAtt TokenExchangeOidcLambda.Arn, !Ref AWS::NoValue]
         RestApiStageArns: !Join
           - ","
           - - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
-            - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeOidcRestApi}/stages/${TokenExchangeOidcRestApiStage}"
+            - !If [EnableOidcApi, !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeOidcRestApi}/stages/${TokenExchangeOidcRestApiStage}", !Ref AWS::NoValue]
         RestApiNames: !Join
           - ","
           - - !Ref TokenExchangeRestApiStage
-            - !Ref TokenExchangeOidcRestApiStage
+            - !If [EnableOidcApi, !Ref TokenExchangeOidcRestApiStage, !Ref AWS::NoValue]
         AlarmArns: !Join
           - ","
           - - !GetAtt ApiKeyAuthorizerV2LambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
@@ -2822,9 +2829,9 @@ Resources:
             - !GetAtt JWKSCacheRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwksCacheForceRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
-            - !GetAtt TokenExchangeOidcLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+            - !If [EnableOidcApi, !GetAtt TokenExchangeOidcLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm, !Ref AWS::NoValue]
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
-            - !GetAtt TokenExchangeOidcAPIGatewayApiErrorAlarm.Arn
+            - !If [EnableOidcApi, !GetAtt TokenExchangeOidcAPIGatewayApiErrorAlarm.Arn, !Ref AWS::NoValue]
             - !Ref JWKSCacheForceRefreshDLQAlarmARN
             - !Ref JWKSCacheForceRefreshAlarmARN
         LogGroupsNames: !Join
@@ -2838,7 +2845,7 @@ Resources:
             - !Sub "/aws/lambda/${B2BAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${TokenExchangeLambdaName}"
             - !Sub "/aws/lambda/${JwksCacheForceRefreshLambdaName}"
-            - !Sub "/aws/lambda/${TokenExchangeOidcLambdaName}"
+            - !If [EnableOidcApi, !Sub "/aws/lambda/${TokenExchangeOidcLambdaName}", !Ref AWS::NoValue]
 
   # Event Bridge rule to trigger JWKSCacheRefreshLambda every JWKSCacheRefreshIntervalInMinutes minutes
   JWKSCacheRefreshEventRule:
