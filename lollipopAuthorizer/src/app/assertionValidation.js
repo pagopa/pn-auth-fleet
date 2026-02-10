@@ -51,7 +51,7 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
         isValid = await validateSignature(assertionDoc, idpCertDataList);
     } catch (e) {
         console.error('[validateSignatureAssertion] Error: ', e.errorCode, ' - Message: ', e.message);
-        throw new LollipopAssertionException(e);
+        throw new LollipopAssertionException(e.errorCode);
     }
 }
 
@@ -355,7 +355,7 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
             idpCertDataList = await getIdpCertData(assertionDoc);
         } catch (e) {
             console.error('[assertionValidation] Error: ', e.errorCode, ' - Message: ', e.message);
-            throw new LollipopAssertionException(e);
+            throw new LollipopAssertionException(e.errorCode);
         }
     }
 
