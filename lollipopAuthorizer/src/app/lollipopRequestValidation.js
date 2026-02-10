@@ -23,17 +23,22 @@ import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js"
 async function validateLollipopRequest(request) {
     console.log("Starting validateLollipopRequest...")
     const headers = request.headerParams.headers || request.headerParams;
-    await Promise.all([
+    const results = await Promise.allSettled([
         validatePublicKey(headers[lollipopConfig.publicKeyHeader]),
         validateAssertionRefHeader(headers[lollipopConfig.assertionRefHeader]),
-        Promise.resolve(validateAssertionTypeHeader(headers[lollipopConfig.assertionTypeHeader])),
+        validateAssertionTypeHeader(headers[lollipopConfig.assertionTypeHeader]),
         validateUserIdHeader(headers[lollipopConfig.userIdHeader]),
-        Promise.resolve(validateAuthJWTHeader(headers[lollipopConfig.authJWTHeader])),
+        validateAuthJWTHeader(headers[lollipopConfig.authJWTHeader]),
         validateOriginalMethodHeader(headers[lollipopConfig.originalMethodHeader]),
         validateOriginalURLHeader(headers[lollipopConfig.originalURLHeader]),
         validateSignatureInputHeader(headers[lollipopConfig.signatureInputHeader]),
         validateSignatureHeader(headers[lollipopConfig.signatureHeader]),
     ]);
+
+    const firstError = results.find(result => result.status === 'rejected');
+    if (firstError){
+        throw firstError.reason;
+    }
 
     console.log("Ending validateLollipopRequest")
 }
