@@ -149,8 +149,8 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
   if (!userIdFromAssertion) {
     console.error('[validateUserId] Missing or invalid Fiscal Code in the retrieved saml assertion');
     throw new LollipopAssertionException(
-      VALIDATION_ERROR_CODES.FISCAL_CODE_FIELD_NOT_FOUND,
-      "Missing or invalid Fiscal Code in the retrieved saml assertion."
+      VALIDATION_ERROR_CODES.MISSING_USER_ID,
+      "Missing or invalid Fiscal Code in the retrieved saml assertion"
     );
   }
 
@@ -224,19 +224,7 @@ function getUserIdFromAssertion(assertionDoc) {
     const headers = request.headerParams.headers || request.headerParams;
     const publicKeyBase64Url = headers[lollipopConfig.publicKeyHeader];
     const assertionRefHeader = headers[lollipopConfig.assertionRefHeader];
-    
-    let calculatedThumbprint;
-    try {
-        calculatedThumbprint = await computeThumbprintWithCrypto(hashAlgorithm, publicKeyBase64Url);
-    } catch (error) {
-        if (error.errorCode) {
-            throw error;
-        }
-        throw new LollipopAssertionException(
-            VALIDATION_ERROR_CODES.ERROR_CALCULATING_ASSERTION_THUMBPRINT,
-            `Cannot calculate JwkThumbprint: ${error.message}`
-        );
-    }
+    const calculatedThumbprint = await computeThumbprintWithCrypto(hashAlgorithm, publicKeyBase64Url);
 
     return (inResponseTo === calculatedThumbprint && inResponseTo === assertionRefHeader);
 }
