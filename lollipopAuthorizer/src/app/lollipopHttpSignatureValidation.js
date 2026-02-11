@@ -38,7 +38,7 @@ async function validateLollipopHttpSignature(request) {
     }catch(error){
         console.error("Lollipop Request Http Signature Validation failed: ", error.name, " - Message: ", error.message);
         if (error instanceof LollipopRequestContentValidationException) {
-            throw new LollipopHttpSignatureValidationException(error.errorCode);
+            throw new LollipopHttpSignatureValidationException(error.errorCode, error.message);
         }
 
         // Mapping dell'errore generico

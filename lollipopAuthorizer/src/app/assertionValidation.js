@@ -51,7 +51,7 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
         isValid = await validateSignature(assertionDoc, idpCertDataList);
     } catch (e) {
         console.error('[validateSignatureAssertion] Error: ', e.errorCode, ' - Message: ', e.message);
-        throw new LollipopAssertionException(e.errorCode);
+        throw new LollipopAssertionException(e.errorCode, e.message);
     }
 }
 
@@ -149,8 +149,8 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
   if (!userIdFromAssertion) {
     console.error('[validateUserId] Missing or invalid Fiscal Code in the retrieved saml assertion');
     throw new LollipopAssertionException(
-      VALIDATION_ERROR_CODES.MISSING_USER_ID,
-      "Missing or invalid Fiscal Code in the retrieved saml assertion"
+      VALIDATION_ERROR_CODES.FISCAL_CODE_FIELD_NOT_FOUND,
+      "Missing or invalid Fiscal Code in the retrieved saml assertion."
     );
   }
 
@@ -224,7 +224,19 @@ function getUserIdFromAssertion(assertionDoc) {
     const headers = request.headerParams.headers || request.headerParams;
     const publicKeyBase64Url = headers[lollipopConfig.publicKeyHeader];
     const assertionRefHeader = headers[lollipopConfig.assertionRefHeader];
-    const calculatedThumbprint = await computeThumbprintWithCrypto(hashAlgorithm, publicKeyBase64Url);
+    
+    let calculatedThumbprint;
+    try {
+        calculatedThumbprint = await computeThumbprintWithCrypto(hashAlgorithm, publicKeyBase64Url);
+    } catch (error) {
+        if (error.errorCode) {
+            throw error;
+        }
+        throw new LollipopAssertionException(
+            VALIDATION_ERROR_CODES.ERROR_CALCULATING_ASSERTION_THUMBPRINT,
+            `Cannot calculate JwkThumbprint: ${error.message}`
+        );
+    }
 
     return (inResponseTo === calculatedThumbprint && inResponseTo === assertionRefHeader);
 }
@@ -355,7 +367,7 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
             idpCertDataList = await getIdpCertData(assertionDoc);
         } catch (e) {
             console.error('[assertionValidation] Error: ', e.errorCode, ' - Message: ', e.message);
-            throw new LollipopAssertionException(e.errorCode);
+            throw new LollipopAssertionException(e.errorCode, e.message);
         }
     }
 
