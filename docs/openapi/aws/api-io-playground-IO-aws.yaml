@@ -370,9 +370,9 @@ components:
               $ref: '#/components/schemas/RequestInfo'
             requestBody:
               oneOf:
-                - type: object
-                  additionalProperties: true
-                - type: 'null'
+                type: object
+                additionalProperties: true
+                type: 'null'
             lollipopHeaders:
               type: object
               additionalProperties:
@@ -454,8 +454,8 @@ components:
             type: string
         body:
           oneOf:
-            - type: string
-            - type: 'null'
+            type: string
+            type: 'null'
         hasAuthorizerContext:
           type: boolean
         authorizerContextKeys:
