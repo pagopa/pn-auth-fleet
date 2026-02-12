@@ -24,15 +24,15 @@ async function validateLollipopRequest(request) {
     console.log("Starting validateLollipopRequest...")
     const headers = request.headerParams.headers || request.headerParams;
     const results = await Promise.allSettled([
-        validatePublicKey(headers[lollipopConfig.publicKeyHeader]),
-        validateAssertionRefHeader(headers[lollipopConfig.assertionRefHeader]),
-        validateAssertionTypeHeader(headers[lollipopConfig.assertionTypeHeader]),
-        validateUserIdHeader(headers[lollipopConfig.userIdHeader]),
-        validateAuthJWTHeader(headers[lollipopConfig.authJWTHeader]),
-        validateOriginalMethodHeader(headers[lollipopConfig.originalMethodHeader]),
-        validateOriginalURLHeader(headers[lollipopConfig.originalURLHeader]),
-        validateSignatureInputHeader(headers[lollipopConfig.signatureInputHeader]),
-        validateSignatureHeader(headers[lollipopConfig.signatureHeader]),
+        (async () => validatePublicKey(headers[lollipopConfig.publicKeyHeader]))(),
+        (async () => validateAssertionRefHeader(headers[lollipopConfig.assertionRefHeader]))(),
+        (async () => validateAssertionTypeHeader(headers[lollipopConfig.assertionTypeHeader]))(),
+        (async () => validateUserIdHeader(headers[lollipopConfig.userIdHeader]))(),
+        (async () => validateAuthJWTHeader(headers[lollipopConfig.authJWTHeader]))(),
+        (async () => validateOriginalMethodHeader(headers[lollipopConfig.originalMethodHeader]))(),
+        (async () => validateOriginalURLHeader(headers[lollipopConfig.originalURLHeader]))(),
+        (async () => validateSignatureInputHeader(headers[lollipopConfig.signatureInputHeader]))(),
+        (async () => validateSignatureHeader(headers[lollipopConfig.signatureHeader]))(),
     ]);
 
     const firstError = results.find(result => result.status === 'rejected');
