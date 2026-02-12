@@ -60,7 +60,7 @@ async function validateLollipopAssertion(request) {
 
             () => validateSignatureAssertion(assertionDoc, idpCertDataList)
                 .then(isValid => {
-                    if (!isValid) throw new LollipopAssertionException(VALIDATION_ERROR_CODES.INVALID_SIGNATURE, "SAML signature verification failed");
+                    if (!isValid) throw new LollipopAssertionException(VALIDATION_ERROR_CODES.MISSING_ASSERTION_SIGNATURE, "The assetion signature is not valid");
                 })
         ];
 

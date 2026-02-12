@@ -106,7 +106,7 @@ describe('TEST lollipopValidateLollipopAssertion', () => {
     });	
 	
 // TEST 3: VALIDAZIONE FIRMA FALLITA
-    it('TEST 3: dovrebbe lanciare LollipopAssertionException per INVALID_SIGNATURE', async () => {
+    it('TEST 3: dovrebbe lanciare LollipopAssertionException per MISSING_ASSERTION_SIGNATURE', async () => {
         mockRequestValidation.validateSignatureAssertion.resolves(false);
 
         try {
@@ -114,7 +114,7 @@ describe('TEST lollipopValidateLollipopAssertion', () => {
             expect.fail('La validazione della firma avrebbe dovuto fallire.'); 
         } catch (error) {
             expect(error).to.be.an.instanceOf(LollipopAssertionException);
-            expect(error.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_SIGNATURE);
+            expect(error.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ASSERTION_SIGNATURE);
             expect(mockRequestValidation.validateFullNameHeader.notCalled);
         }
     });

@@ -27,7 +27,7 @@ async function validatePublicKey(publicKeyBase64Url) {
     console.error('[validatePublicKey] Chiave pubblica mancante nell’header');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY_ERROR,
-      'Missing request PublicKey header'
+      'Missing Public Key Header'
     );
   }
 
@@ -47,7 +47,7 @@ async function validatePublicKey(publicKeyBase64Url) {
   } catch (err) {
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
-      'PublicKey JSON malformed'
+      'Invalid Public Key Header value'
     );
   }
 
@@ -57,7 +57,7 @@ async function validatePublicKey(publicKeyBase64Url) {
     console.error('[validatePublicKey] Algoritmo mancante o non supportato per il tipo di chiave:', jwkObject.kty);
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
-      `Algorithm is invalid or not supported for key ${jwkObject.kty}`
+      'Invalid Public Key Header value'
     );
   }
 
@@ -69,7 +69,7 @@ async function validatePublicKey(publicKeyBase64Url) {
     console.error('[validatePublicKey] Importazione della chiave JWK fallita:', err);
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
-      'PublicKey not valid or usupported'
+      'Invalid Public Key Header value'
     );
   }
 }
@@ -88,13 +88,13 @@ async function validateAssertionRefHeader(assertionRef) {
   console.log("Starting validateAssertionRefHeader...");
   if (!assertionRef) {
     console.error("[validateAssertionRefHeader] Assertion header mancante");
-    throw new LollipopRequestContentValidationException(VALIDATION_ERROR_CODES.MISSING_ASSERTION_REF_ERROR, "Request header AssertionRef is missing");
+    throw new LollipopRequestContentValidationException(VALIDATION_ERROR_CODES.MISSING_ASSERTION_REF_ERROR, "Missing AssertionRef Header");
   }
   if (isNotValidAssertionRef(assertionRef)) {
     console.error("[validateAssertionRefHeader] Valore AssertionRef non valido");
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR,
-      "AssertionRef is not valid"
+      "Invalid AssertionRef Header value"
     );
   }
   console.log("Ending validateAssertionRefHeader without error");
@@ -128,7 +128,7 @@ function validateAssertionTypeHeader(assertionType) {
     console.error("[validateAssertionTypeHeader] Assertion type mancante");
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.MISSING_ASSERTION_TYPE_ERROR,
-      "Request header AssertionType is missing"
+      "Missing Assertion Type Header"
     );
   }
   if (!isAssertionTypeSupported(assertionType)) {
@@ -168,7 +168,7 @@ async function validateUserIdHeader(userId) {
     console.error('[validateUserIdHeader] UserId mancante nell’header');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.MISSING_USER_ID,
-      'Request header UserId is missing'
+      'Missing User Id Header'
     );
   }
   const userIdUpper = userId.toUpperCase();
@@ -227,7 +227,7 @@ async function validateOriginalMethodHeader(originalMethod) {
     console.error('[validateOriginalMethodHeader] ERROR: originalMethod mancante nell’header');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.MISSING_ORIGINAL_METHOD,
-      'Request header OriginalMethod is missing'
+      'Missing Original Method Header'
     );
   }
 
@@ -276,7 +276,7 @@ async function validateOriginalURLHeader(originalURL) {
     console.error('[validateOriginalURLHeader] ERROR: Invalid originalURL Header value, type not supported');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.INVALID_ORIGINAL_URL,
-      'Invalid originalURL Header value, type not supported'
+      'Invalid Original URL Header value'
     );
   }
 
@@ -324,7 +324,7 @@ async function validateSignatureInputHeader(signatureInput) {
     console.error('[validateSignatureInputHeader] ERROR: Invalid signatureInput Header value, type not supported');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.INVALID_SIGNATURE_INPUT,
-      'Invalid signatureInput Header value, type not supported'
+      'Invalid Signature Input Header value'
     );
   }
   console.log("Ending validateSignatureInputHeader without error");
@@ -355,7 +355,7 @@ async function validateSignatureHeader(signature) {
     console.error('[validateSignatureHeader] ERROR: Invalid signature Header value, type not supported');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.INVALID_SIGNATURE,
-      'Invalid signature Header value, type not supported'
+      'Invalid Signature Header value'
     );
   }
   console.log("Ending validateSignatureHeader without error");
