@@ -63,6 +63,7 @@ async function handleEvent(event) {
                 hasBody: !!body,
                 bodyLength: body ? body.length : 0
             },
+            //PN-18386: omit requestBody field when null
             ...(body ? {
                 requestBody: (function () {
                     try {
@@ -75,8 +76,9 @@ async function handleEvent(event) {
             lollipopHeaders: lollipopHeaders,
             authorizerContext: authorizerContext,
             summary: {
-                headers: maskedHeaders,
-                body: body,
+                headers:maskedHeaders,
+                //PN-18386: omit body field when null
+                ...(body ? { body:body } : {}),
                 hasAuthorizerContext: !!authorizerContext,
                 authorizerContextKeys: authorizerContext ? Object.keys(authorizerContext) : []
             }

@@ -98,6 +98,8 @@ describe('EventHandler Tests', () => {
 
             expect(body.data).to.have.property('requestBody');
             expect(body.data.requestBody).to.deep.equal(requestBody);
+            expect(body.data.summary).to.have.property('body');
+            expect(body.data.summary.body).to.equal(JSON.stringify(requestBody));
             expect(body.data.request).to.have.property('hasBody', true);
             expect(body.data.request).to.have.property('bodyLength', JSON.stringify(requestBody).length);
         });
@@ -116,6 +118,7 @@ describe('EventHandler Tests', () => {
             const body = JSON.parse(response.body);
 
             expect(body.data).to.not.have.property('requestBody');
+            expect(body.data.summary).to.not.have.property('body');
             expect(body.data.request).to.have.property('hasBody', false);
             expect(body.data.request).to.have.property('bodyLength', 0);
         });
@@ -135,6 +138,7 @@ describe('EventHandler Tests', () => {
             const body = JSON.parse(response.body);
 
             expect(body.data).to.have.property('requestBody', 'plain text body');
+            expect(body.data.summary).to.have.property('body', 'plain text body');
             expect(body.data.request).to.have.property('bodyLength', 15);
         });
     });
