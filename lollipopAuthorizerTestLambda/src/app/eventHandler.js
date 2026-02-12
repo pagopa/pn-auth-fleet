@@ -63,18 +63,20 @@ async function handleEvent(event) {
                 hasBody: !!body,
                 bodyLength: body ? body.length : 0
             },
-            requestBody: body ? (function () {
-                try {
-                    return JSON.parse(body);
-                } catch (error) {
-                    return body;
-                }
-            })() : null,
+            ...(body ? {
+                requestBody: (function () {
+                    try {
+                        return JSON.parse(body);
+                    } catch (error) {
+                        return body;
+                    }
+                })()
+            } : {}),
             lollipopHeaders: lollipopHeaders,
-            authorizerContext, authorizerContext,
+            authorizerContext: authorizerContext,
             summary: {
-                headers:maskedHeaders,
-                body:body,
+                headers: maskedHeaders,
+                body: body,
                 hasAuthorizerContext: !!authorizerContext,
                 authorizerContextKeys: authorizerContext ? Object.keys(authorizerContext) : []
             }

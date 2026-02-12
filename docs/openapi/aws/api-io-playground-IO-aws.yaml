@@ -483,6 +483,14 @@ tags:
   - name: Test Endpoints
     description: Testing and debugging endpoints for Lollipop authentication
 x-amazon-apigateway-gateway-responses:
+  ACCESS_DENIED:
+    statusCode: 403
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: '''*'''
+      gatewayresponse.header.Content-Type: '''application/json'''
+    responseTemplates:
+      application/json: >-
+        {"success": false, "timestamp": "$context.requestTime", "error": {"message": "Forbidden - Authorization denied", "statusCode": 403}}
   DEFAULT_5XX:
     responseParameters:
       gatewayresponse.header.Access-Control-Allow-Origin: '''*'''
