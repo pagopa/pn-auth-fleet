@@ -115,7 +115,7 @@ describe('EventHandler Tests', () => {
             const response = await handleEvent(mockEvent);
             const body = JSON.parse(response.body);
 
-            expect(body.data).to.have.property('requestBody', null);
+            expect(body.data).to.not.have.property('requestBody');
             expect(body.data.request).to.have.property('hasBody', false);
             expect(body.data.request).to.have.property('bodyLength', 0);
         });
