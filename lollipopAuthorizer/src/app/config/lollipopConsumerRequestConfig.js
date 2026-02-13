@@ -46,4 +46,59 @@ const IDP_PROVIDER_CONFIG = {
     CONNECTION_TIMEOUT_API: 60000, //CONNECTION_TIMEOUT_MS,
 }
 
-export { lollipopConfig, IDP_PROVIDER_CONFIG };
+
+function loadAuthorizerConfigMap() {
+    const configEnv = process.env.LOLLIPOP_AUTHORIZER_CONFIG;
+
+    if (!configEnv || configEnv.trim() === '') {
+        console.warn('[loadAuthorizerConfigMap] LOLLIPOP_AUTHORIZER_CONFIG non definita, uso configurazione globale');
+        return null;
+    }
+
+    try {
+        const configArray = JSON.parse(configEnv);
+
+        if (!Array.isArray(configArray)) {
+            console.error('[loadAuthorizerConfigMap] LOLLIPOP_AUTHORIZER_CONFIG non è un array valido');
+            return null;
+        }
+
+        for (let i = 0; i < configArray.length; i++) {
+            const entry = configArray[i];
+
+            if (!entry.substringURL || typeof entry.substringURL !== 'string') {
+                console.error(`[loadAuthorizerConfigMap] Entry ${i}: substringURL mancante o non valida`);
+                return null;
+            }
+
+            if (!Array.isArray(entry.methods) || entry.methods.length === 0) {
+                console.error(`[loadAuthorizerConfigMap] Entry ${i}: methods deve essere un array non vuoto`);
+                return null;
+            }
+
+            if (!entry.URLpattern || typeof entry.URLpattern !== 'string') {
+                console.error(`[loadAuthorizerConfigMap] Entry ${i}: URLpattern mancante o non valida`);
+                return null;
+            }
+
+            try {
+                new RegExp(entry.URLpattern);
+            } catch (e) {
+                console.error(`[loadAuthorizerConfigMap] Entry ${i}: URLpattern non è un regex valido - ${e.message}`);
+                return null;
+            }
+        }
+
+        console.log('[loadAuthorizerConfigMap] Configurazione caricata con successo:',
+            `${configArray.length} microservizi configurati`);
+        return configArray;
+
+    } catch (error) {
+        console.error('[loadAuthorizerConfigMap] Errore nel parsing di LOLLIPOP_AUTHORIZER_CONFIG:', error.message);
+        return null;
+    }
+}
+
+const authorizerConfigMap = loadAuthorizerConfigMap();
+
+export { lollipopConfig, IDP_PROVIDER_CONFIG, authorizerConfigMap };

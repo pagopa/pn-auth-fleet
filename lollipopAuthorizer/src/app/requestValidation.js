@@ -4,9 +4,25 @@ import LollipopRequestContentValidationException from "../app/exception/lollipop
 import { DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms, USER_ID_REGEX, ORIGINAL_URL_REGEX, SIGNATURE_INPUT_REGEXP, SIGNATURE_REGEXP  } from "../app/constants/lollipopConstants.js";
 import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
 import { COMPATIBLE_ASSERTION_TYPES  } from "./constants/lollipopConstants.js";
-import { lollipopConfig  } from "./config/lollipopConsumerRequestConfig.js";
+import { lollipopConfig, authorizerConfigMap  } from "./config/lollipopConsumerRequestConfig.js";
 
-
+function findMicroserviceConfig(originalURL) {
+    if (!authorizerConfigMap || !Array.isArray(authorizerConfigMap)) {
+        return null;
+    }
+    
+    const config = authorizerConfigMap.find(entry =>
+        originalURL.includes(entry.substringURL)
+    );
+    
+    if (config) {
+        console.log(`[findMicroserviceConfig] Match trovato per substringURL: "${config.substringURL}"`);
+    } else {
+        console.log('[findMicroserviceConfig] Nessun match trovato, uso configurazione globale');
+    }
+    
+    return config || null;
+}
 
 /**
  * Valida l'header contenente la chiave pubblica codificata in Base64Url
@@ -24,7 +40,7 @@ async function validatePublicKey(publicKeyBase64Url) {
   console.log("Starting validatePublicKey...");
   // se la chiave pubblica non è presente, lanciamo un errore
   if (!publicKeyBase64Url) {
-    console.error('[validatePublicKey] Chiave pubblica mancante nell’header');
+    console.error('[validatePublicKey] Chiave pubblica mancante nell\'header');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY_ERROR,
       'Missing Public Key Header'
@@ -165,7 +181,7 @@ function isAssertionTypeSupported(assertionType) {
 async function validateUserIdHeader(userId) {
   console.log("Starting validateUserIdHeader...");
   if (!userId) {
-    console.error('[validateUserIdHeader] UserId mancante nell’header');
+    console.error('[validateUserIdHeader] UserId mancante nell\'header');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.MISSING_USER_ID,
       'Missing User Id Header'
@@ -213,39 +229,53 @@ function validateAuthJWTHeader(authJWT) {
 /**
  * Valida l'header original-method
  *
- * -Verifica che il valore sia presente
- * -Controlla che rientri tra i metodi ammessi
+ * - Verifica che il valore sia presente
+ * - Cerca configurazione specifica per il microservizio tramite originalURL
+ * - Controlla che rientri tra i metodi ammessi (specifici o globali)
  *
  * @async
  * @param {string} originalMethod - Metodo HTTP originale (es. GET, POST)
+ * @param {string} originalURL - URL originale per identificare il microservizio
  * @throws {LollipopRequestContentValidationException} Se mancante o non incluso nella lista dei metodi validi
  */
-async function validateOriginalMethodHeader(originalMethod) {
+async function validateOriginalMethodHeader(originalMethod, originalURL) {
   console.log("Starting validateOriginalMethodHeader...");
 
   if (!originalMethod) {
-    console.error('[validateOriginalMethodHeader] ERROR: originalMethod mancante nell’header');
+    console.error('[validateOriginalMethodHeader] ERROR: originalMethod mancante nell\'header');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.MISSING_ORIGINAL_METHOD,
       'Missing Original Method Header'
     );
   }
 
-
+  const microserviceConfig = findMicroserviceConfig(originalURL);
+  
+  let validMethods;
+  
+  if (microserviceConfig) {
+    validMethods = microserviceConfig.methods;
+    console.log(`[validateOriginalMethodHeader] Uso configurazione specifica per "${microserviceConfig.substringURL}": ${validMethods.join(', ')}`);
+  } else {
     let expectedFirstLcOriginalMethod;
-    if( process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === undefined || process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === '')
-        expectedFirstLcOriginalMethod = lollipopConfig.expectedFirstLcOriginalMethod;
-    else
-        expectedFirstLcOriginalMethod = process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD;
+    if (process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === undefined || 
+        process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === '') {
+      expectedFirstLcOriginalMethod = lollipopConfig.expectedFirstLcOriginalMethod;
+    } else {
+      expectedFirstLcOriginalMethod = process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD;
+    }
+    validMethods = expectedFirstLcOriginalMethod.split(';');
+    console.log(`[validateOriginalMethodHeader] Uso configurazione globale: ${validMethods.join(', ')}`);
+  }
 
-  const validMethods = expectedFirstLcOriginalMethod.split(';');
-  if (!Object.values(validMethods).includes(originalMethod)) {
-    console.error('[validateOriginalMethodHeader] ERROR: Unexpected originalMethod: "' + originalMethod + '"');
+  if (!validMethods.includes(originalMethod)) {
+    console.error(`[validateOriginalMethodHeader] ERROR: Unexpected originalMethod: "${originalMethod}" (validi: ${validMethods.join(', ')})`);
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_METHOD,
-      "Unexpected original method: ", originalMethod
+      `Unexpected original method: ${originalMethod}. Valid methods: ${validMethods.join(', ')}`
     );
   }
+  
   console.log("Ending validateOriginalMethodHeader without error");
 }
 
@@ -254,15 +284,17 @@ async function validateOriginalMethodHeader(originalMethod) {
  * Valida l'header original-url
  *
  * - Verifica che sia presente
- * - Controlla che rispetti il pattern generale dell'URL
- * - Verifica che inizi con il prefisso consentito
+ * - Controlla che rispetti il pattern generale dell'URL (formato base)
+ * - Cerca configurazione specifica per il microservizio
+ * - Verifica che rispetti il pattern specifico o globale
  *
  * @async
  * @param {string} originalURL - L'URL originale
- * @throws {LollipopRequestContentValidationException} Se è mancante, non rispetta il formato previsto o non ha il prefisso corretto
+ * @throws {LollipopRequestContentValidationException} Se è mancante, non rispetta il formato previsto o non ha il pattern corretto
  */
 async function validateOriginalURLHeader(originalURL) {
   console.log("Starting validateOriginalURLHeader...");
+  
   if (!originalURL) {
     console.error('[validateOriginalURLHeader] ERROR: Missing Original URL Header');
     throw new LollipopRequestContentValidationException(
@@ -272,7 +304,7 @@ async function validateOriginalURLHeader(originalURL) {
   }
 
   const regexOrig = new RegExp(ORIGINAL_URL_REGEX);
-  if (!(regexOrig.test(originalURL))) {
+  if (!regexOrig.test(originalURL)) {
     console.error('[validateOriginalURLHeader] ERROR: Invalid originalURL Header value, type not supported');
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.INVALID_ORIGINAL_URL,
@@ -280,19 +312,32 @@ async function validateOriginalURLHeader(originalURL) {
     );
   }
 
-    let expectedFirstLcOriginalUrl;
-    if( process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === undefined || process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === '')
-        expectedFirstLcOriginalUrl = lollipopConfig.expectedFirstLcOriginalUrl;
-    else
-        expectedFirstLcOriginalUrl = process.env.EXPECTED_FIRST_LC_ORIGINAL_URL;
+  const microserviceConfig = findMicroserviceConfig(originalURL);
+  
+  let urlPattern;
+  
+  if (microserviceConfig) {
+    urlPattern = microserviceConfig.URLpattern;
+    console.log(`[validateOriginalURLHeader] Uso URLpattern specifico per "${microserviceConfig.substringURL}": ${urlPattern}`);
+  } else {
+    if (process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === undefined ||
+        process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === '') {
+      urlPattern = lollipopConfig.expectedFirstLcOriginalUrl;
+    } else {
+      urlPattern = process.env.EXPECTED_FIRST_LC_ORIGINAL_URL;
+    }
+    console.log(`[validateOriginalURLHeader] Uso URLpattern globale: ${urlPattern}`);
+  }
 
-  const regex = new RegExp(expectedFirstLcOriginalUrl);
-  if (!(regex.test(originalURL))) {
-    console.error('[validateOriginalURLHeader] ERROR: Unexpected original url ' + originalURL);
+  const regex = new RegExp(urlPattern);
+  if (!regex.test(originalURL)) {
+    console.error(`[validateOriginalURLHeader] ERROR: Unexpected original url "${originalURL}" non match pattern "${urlPattern}"`);
     throw new LollipopRequestContentValidationException(
       VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_URL,
-      'Unexpected original url: ' + originalURL);
+      `Unexpected original url: ${originalURL}. Expected pattern: ${urlPattern}`
+    );
   }
+  
   console.log("Ending validateOriginalURLHeader without error");
 }
 
@@ -370,4 +415,6 @@ export { validatePublicKey,
   validateSignatureInputHeader,
   validateSignatureHeader,
   validateAuthJWTHeader,
-  LollipopRequestContentValidationException };
+  findMicroserviceConfig,
+  LollipopRequestContentValidationException 
+};
