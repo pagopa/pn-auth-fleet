@@ -125,11 +125,24 @@ Resources:
   TokenExchangeLambdaLogGroup:
     Type: AWS::CloudFormation::Stack
     UpdateReplacePolicy: Retain
-    DeletionPolicy: Retain    
+    DeletionPolicy: Retain
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
       Parameters:
         LogGroupName: !Sub '${ProjectName}-tokenExchangeLambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+        LogEnableMasking: true
+
+  TokenExchangeOidcLambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-tokenExchangeOidcLambda'
         LogGroupPrefix: '/aws/lambda'
         LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
@@ -158,7 +171,19 @@ Resources:
         LogGroupPrefix: '/aws/lambda'
         LogGroupRetention: !Ref LogRetention
         LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn        
-        
+
+  LollipopAuthorizerLambdaLogGroup:
+    Type: AWS::CloudFormation::Stack
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain    
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/log-group.yaml"
+      Parameters:
+        LogGroupName: !Sub '${ProjectName}-lollipopAuthorizerLambda'
+        LogGroupPrefix: '/aws/lambda'
+        LogGroupRetention: !Ref LogRetention
+        LogsKinesisSourceStreamArn: !Ref LogsKinesisSourceStreamArn
+
   # ###      SESSION TOKEN SIGNING/VALIDATION KEY PAIR      ###
   # ###########################################################
   PnAuthFleetJwtSignKey:
@@ -331,6 +356,9 @@ Outputs:
   IoAuthorizerLambdaName:
     Value: !Sub '${ProjectName}-ioAuthorizerLambda'
 
+  LollipopAuthorizerLambdaName:
+    Value: !Sub '${ProjectName}-lollipopAuthorizerLambda'
+
   JwtAuthorizerLambdaName:
     Value: !Sub '${ProjectName}-jwtAuthorizerLambda'
 
@@ -348,6 +376,9 @@ Outputs:
 
   TokenExchangeLambdaName:
     Value: !Sub '${ProjectName}-tokenExchangeLambda'
+
+  TokenExchangeOidcLambdaName:
+    Value: !GetAtt TokenExchangeOidcLambdaLogGroup.Outputs.LogGroupNameNoPrefix
 
   JwksCacheForceRefreshLambdaName:
     Value: !Sub '${ProjectName}-jwksCacheForceRefreshLambda'

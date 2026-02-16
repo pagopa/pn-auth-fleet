@@ -1,0 +1,250 @@
+openapi: "3.0.1"
+info:
+  title: "identity-services"
+  version: "2022-09-06T20:08:39Z"
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: |-
+    Client used to retrieve the public keys from the identity provider
+servers:
+  - url: "https://api.is.eng.pagopa.it"
+    x-amazon-apigateway-endpoint-configuration:
+      disableExecuteApiEndpoint: true
+paths:
+  /idp-keys/spid:
+    get:
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagList'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '410':
+          description: Assertion gone
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+  /idp-keys/cie:
+    get:
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagList'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '410':
+          description: Assertion gone
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+  /idp-keys/spid/{tag}:
+    get:
+      parameters:
+        - name: "tag"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/CertData'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '410':
+          description: Assertion gone
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+  /idp-keys/cie/{tag}:
+    get:
+      parameters:
+        - name: "tag"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/CertData'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+        '410':
+          description: Assertion gone
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemJson'
+components:
+  schemas:
+    ProblemJson:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |-
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type
+            (e.g., using HTML).
+          default: about:blank
+          example: https://example.com/problem/constraint-violation
+        title:
+          type: string
+          description: >-
+            A short, summary of the problem type. Written in english and
+            readable
+
+            for engineers (usually not suited for non technical stakeholders and
+
+            not localized); example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: >-
+            The HTTP status code generated by the origin server for this
+            occurrence
+
+            of the problem.
+          minimum: 100
+          maximum: 600
+          exclusiveMaximum: true
+          example: 200
+        detail:
+          type: string
+          description: |-
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: There was an error processing the request
+        instance:
+          type: string
+          format: uri
+          description: >-
+            An absolute URI that identifies the specific occurrence of the
+            problem.
+
+            It may or may not yield further information if dereferenced.
+    TagList:
+      type: array
+      items:
+        type: string
+    EntityDescriptor:
+      type: object
+      properties:
+        entityID:
+          type: string
+          xml:
+            attribute: true
+      required:
+        - entityID
+    SPIDCertData:
+      type: object
+      properties:
+        entitiesDescriptor:
+          type: object
+          properties:
+            entityDescriptor:
+              type: array
+              items:
+                $ref: '#/components/schemas/EntityDescriptor'
+              xml:
+                name: "EntityDescriptor"
+                prefix: "md"
+                namespace: "urn:oasis:names:tc:SAML:2.0:metadata"
+          xml:
+            name: "EntitiesDescriptor"
+            prefix: "md"
+            namespace: "urn:oasis:names:tc:SAML:2.0:metadata"
+    CIECertData:
+      type: object
+      properties:
+        entityDescriptor:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityDescriptor'
+          xml:
+            name: "EntityDescriptor"
+    CertData:
+      oneOf:
+        - $ref: '#/components/schemas/CIECertData'
+        - $ref: '#/components/schemas/SPIDCertData'

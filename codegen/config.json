@@ -1,0 +1,11 @@
+{
+    "openapi": [
+        {
+            "intendedUsage": "IO",
+            "openapiFiles": [
+                "api-internal-playground-appio.yaml"
+            ],
+            "servicePath": "io-playground"
+        }
+    ]
+}
