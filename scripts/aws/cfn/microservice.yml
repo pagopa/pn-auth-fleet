@@ -830,7 +830,7 @@ Resources:
           - HaveToDefineVpcs
           - SecurityGroupIds:
               - !GetAtt DataVaultServiceSecurityGroup.GroupId
-            SubnetIds: !Ref SubnetsIds
+            SubnetIds: !Ref VpcEgressSubnetsIds
           - !Ref AWS::NoValue
       TracingConfig:
         Mode: Active
