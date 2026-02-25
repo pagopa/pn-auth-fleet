@@ -172,6 +172,7 @@ async function verifyHttpSignature(signature, signatureInput, headers) {
 
   } catch (err) {
     console.error("[verifyHttpSignature] Verification ERROR:", err.errorCode, " - Message:", err.message);
+    console.error("[verifyHttpSignature-TESTUAT] Full error: " + (err.constructor ? err.constructor.name + ": " : "") + err.message);
     if (err instanceof LollipopRequestContentValidationException) throw err;
 
     throw new LollipopRequestContentValidationException(
@@ -197,6 +198,9 @@ async function verifyHttpSignature(signature, signatureInput, headers) {
  */
 function derToRaw(derSig, coordLen) {
   console.log("[derToRaw] Converting DER signature to raw format");
+  console.log("[derToRaw-TESTUAT] derSig (hex): " + Buffer.from(derSig).toString('hex'));
+  console.log("[derToRaw-TESTUAT] derSig (length): " + derSig.length + " bytes");
+  console.log("[derToRaw-TESTUAT] coordLen: " + coordLen);
 
   if (!(derSig instanceof Uint8Array)) {
     derSig = new Uint8Array(derSig);
@@ -214,11 +218,16 @@ function derToRaw(derSig, coordLen) {
   const sLen = derSig[offset + 2 + rLen + 1];
   const s = derSig.subarray(offset + 2 + rLen + 2, offset + 2 + rLen + 2 + sLen);
 
-  // padding a sinistra se necessario (se r.length < coorLen,vanno aggiunginti zeri all’inizio (padding a sinistra) fino a raggiungere la lunghezza conforme)
-  const rPadded = r.length < coordLen ? new Uint8Array([...Array(coordLen - r.length).fill(0), ...r]) : r;
-  const sPadded = s.length < coordLen ? new Uint8Array([...Array(coordLen - s.length).fill(0), ...s]) : s;
+  // padding a sinistra se r < coordLen, trim del byte 0x00 di padding DER se r > coordLen
+  const rPadded = r.length > coordLen ? r.subarray(r.length - coordLen) :
+                  r.length < coordLen ? new Uint8Array([...Array(coordLen - r.length).fill(0), ...r]) : r;
+  const sPadded = s.length > coordLen ? s.subarray(s.length - coordLen) :
+                  s.length < coordLen ? new Uint8Array([...Array(coordLen - s.length).fill(0), ...s]) : s;
 
-  return new Uint8Array([...rPadded, ...sPadded]);
+  const result = new Uint8Array([...rPadded, ...sPadded]);
+  console.log("[derToRaw-TESTUAT] result (hex): " + Buffer.from(result).toString('hex'));
+  console.log("[derToRaw-TESTUAT] result (length): " + result.length + " bytes");
+  return result;
 }
 
 
