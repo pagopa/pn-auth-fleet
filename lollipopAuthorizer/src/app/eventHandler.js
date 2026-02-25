@@ -27,6 +27,8 @@ function validateSourceDetails(sourceDetails) {
 }
 
 async function handleEvent(event) {
+
+    console.log("event: %o", event);
     // Declare Policy
     let iamPolicy = null;
 

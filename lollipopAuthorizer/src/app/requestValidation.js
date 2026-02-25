@@ -28,12 +28,15 @@ async function validatePublicKey(publicKeyBase64Url) {
         'Missing Public Key Header'
     );
   }
+  console.log("[validatePublicKey-TESTUAT] Raw publicKey value: " + publicKeyBase64Url);
+  console.log("[validatePublicKey-TESTUAT] Raw publicKey length: " + publicKeyBase64Url.length);
 
   let publicKeyString =
       typeof publicKeyBase64Url === 'string'
           ? publicKeyBase64Url
           : JSON.stringify(publicKeyBase64Url);
   try {
+    console.log("[validatePublicKey-TESTUAT] Raw publicKey encoding detection: BASE64_STANDARD, BASE64URL");
     publicKeyString = Buffer.from(publicKeyBase64Url, 'base64url').toString('utf-8');
   } catch (err) {
     console.log('Key not in Base64, uso stringa originale');
@@ -42,6 +45,8 @@ async function validatePublicKey(publicKeyBase64Url) {
   let jwkObject;
   try {
     jwkObject = JSON.parse(publicKeyString);
+    console.log("[validatePublicKey-TESTUAT] Decoded publicKey (base64url->utf8): " + publicKeyString);
+    console.log("[validatePublicKey-TESTUAT] JWK parsed successfully: kty=" + jwkObject.kty + ", crv=" + (jwkObject.crv || "N/A") + ", kid=" + (jwkObject.kid || "N/A"));
   } catch (err) {
     throw new LollipopRequestContentValidationException(
         VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
@@ -51,6 +56,7 @@ async function validatePublicKey(publicKeyBase64Url) {
 
   // si decide l'algoritmo da usare: se non è specificato, usiamo quello predefinito per il tipo di chiave
   const algorithmToUse = jwkObject.alg || DEAFULT_ALG_BY_KTY[jwkObject.kty];
+  console.log("[validatePublicKey-TESTUAT] Algorithm to use: " + algorithmToUse);
   if (!algorithmToUse) {
     console.error('[validatePublicKey] Algoritmo mancante o non supportato per il tipo di chiave:', jwkObject.kty);
     throw new LollipopRequestContentValidationException(
@@ -84,6 +90,8 @@ async function validatePublicKey(publicKeyBase64Url) {
  */
 async function validateAssertionRefHeader(assertionRef) {
   console.log("Starting validateAssertionRefHeader...");
+  console.log("[validateAssertionRefHeader-TESTUAT] Raw assertionRef: " + assertionRef);
+  console.log("[validateAssertionRefHeader-TESTUAT] assertionRef length: " + (assertionRef ? assertionRef.length : 0));
   if (!assertionRef) {
     console.error("[validateAssertionRefHeader] Assertion header mancante");
     throw new LollipopRequestContentValidationException(VALIDATION_ERROR_CODES.MISSING_ASSERTION_REF_ERROR, "Missing AssertionRef Header");
@@ -308,6 +316,7 @@ async function validateOriginalURLHeader(originalURL) {
  */
 async function validateSignatureInputHeader(signatureInput) {
   console.log("Starting validateSignatureInputHeader...");
+  console.log("[validateSignatureInputHeader-TESTUAT] Raw signatureInput: " + signatureInput);
 
 
   if (!signatureInput) {
@@ -341,6 +350,8 @@ async function validateSignatureInputHeader(signatureInput) {
  */
 async function validateSignatureHeader(signature) {
   console.log("Starting validateSignatureHeader...");
+  console.log("[validateSignatureHeader-TESTUAT] Raw signature header: " + signature);
+  console.log("[validateSignatureHeader-TESTUAT] Signature header length: " + (signature ? signature.length : 0));
   if (!signature) {
     console.error('[validateSignatureHeader] ERROR: Missing signature Header');
     throw new LollipopRequestContentValidationException(
@@ -350,6 +361,16 @@ async function validateSignatureHeader(signature) {
   }
 
   const regexOrig = new RegExp(SIGNATURE_REGEXP);
+  console.log("[validateSignatureHeader-TESTUAT] Regex test result: " + regexOrig.test(signature) + ", regex used: " + SIGNATURE_REGEXP);
+  const sigParts = signature.match(/^(sig\d+)=:([A-Za-z0-9+/=_-]*):$/);
+  if (sigParts) {
+    const rawVal = sigParts[2];
+    const hasUrlChars = /[-_]/.test(rawVal) && !/[+/]/.test(rawVal);
+    const hasStdChars = /[+/]/.test(rawVal);
+    const encoding = hasStdChars ? (hasUrlChars ? "BASE64_STANDARD, BASE64URL" : "DEFINITELY_BASE64_STANDARD") : "BASE64URL";
+    console.log('[validateSignatureHeader-TESTUAT] label="' + sigParts[1] + '" rawValue="' + rawVal + '"');
+    console.log('[validateSignatureHeader-TESTUAT] label="' + sigParts[1] + '" encoding_detection=BASE64_STANDARD, ' + encoding);
+  }
   if (!(regexOrig.test(signature))) {
     console.error('[validateSignatureHeader] ERROR: Invalid signature Header value, type not supported');
     throw new LollipopRequestContentValidationException(

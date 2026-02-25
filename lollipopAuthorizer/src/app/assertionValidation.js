@@ -22,8 +22,12 @@ import { VALIDATION_ERROR_CODES, ASSERTION_ERROR_CODES  } from "../app/constants
  */
 async function getAssertionDoc(jwt, assertionRef) {
     let assertion;
+    console.log("[TESTUAT] jwt: ",jwt)
+    console.log("[TESTUAT] assertionRef: ",assertionRef)
+
     try {
         assertion = await getAssertion(jwt, assertionRef);
+        console.log("[TESTUAT] assertion: ",assertion)
     } catch (e) {
         if (e instanceof OidcAssertionNotSupported) {
             throw new ErrorRetrievingAssertionException(ASSERTION_ERROR_CODES.OIDC_ASSERTION_TYPE_NOT_SUPPORTED, e.message);
