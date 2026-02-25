@@ -4,23 +4,24 @@ import LollipopRequestContentValidationException from "../app/exception/lollipop
 import { DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms, USER_ID_REGEX, ORIGINAL_URL_REGEX, SIGNATURE_INPUT_REGEXP, SIGNATURE_REGEXP  } from "../app/constants/lollipopConstants.js";
 import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
 import { COMPATIBLE_ASSERTION_TYPES  } from "./constants/lollipopConstants.js";
-import { lollipopConfig, authorizerConfigMap  } from "./config/lollipopConsumerRequestConfig.js";
+import { lollipopConfig, authorizerConfigMap, loadAuthorizerConfigMap  } from "./config/lollipopConsumerRequestConfig.js";
 
 function findMicroserviceConfig(originalURL) {
-    if (!authorizerConfigMap || !Array.isArray(authorizerConfigMap)) {
+  const configMap = authorizerConfigMap || loadAuthorizerConfigMap();
+    if (!configMap || !Array.isArray(configMap)) {
         return null;
     }
-    
-    const config = authorizerConfigMap.find(entry =>
+
+    const config = configMap.find(entry =>
         originalURL.includes(entry.substringURL)
     );
-    
+
     if (config) {
         console.log(`[findMicroserviceConfig] Match trovato per substringURL: "${config.substringURL}"`);
     } else {
         console.log('[findMicroserviceConfig] Nessun match trovato, uso configurazione globale');
     }
-    
+
     return config || null;
 }
 

@@ -46,6 +46,12 @@ const IDP_PROVIDER_CONFIG = {
     CONNECTION_TIMEOUT_API: 60000, //CONNECTION_TIMEOUT_MS,
 }
 
+const ASSERTION_PROVIDER_CONFIG = {
+    BASE_URI: "https://api.is.eng.pagopa.it",
+    ASSERTION_REQUEST_ENDPOINT: "/assertions",
+    SUBSCRIPTION_KEY: "",
+}
+
 
 function loadAuthorizerConfigMap() {
     const configEnv = process.env.LOLLIPOP_AUTHORIZER_CONFIG;
@@ -101,4 +107,4 @@ function loadAuthorizerConfigMap() {
 
 const authorizerConfigMap = loadAuthorizerConfigMap();
 
-export { lollipopConfig, IDP_PROVIDER_CONFIG, authorizerConfigMap };
+export { lollipopConfig, IDP_PROVIDER_CONFIG, ASSERTION_PROVIDER_CONFIG, authorizerConfigMap, loadAuthorizerConfigMap };
