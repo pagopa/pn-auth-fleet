@@ -4,26 +4,7 @@ import LollipopRequestContentValidationException from "../app/exception/lollipop
 import { DEAFULT_ALG_BY_KTY, AssertionRefAlgorithms, USER_ID_REGEX, ORIGINAL_URL_REGEX, SIGNATURE_INPUT_REGEXP, SIGNATURE_REGEXP  } from "../app/constants/lollipopConstants.js";
 import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
 import { COMPATIBLE_ASSERTION_TYPES  } from "./constants/lollipopConstants.js";
-import { lollipopConfig, authorizerConfigMap, loadAuthorizerConfigMap  } from "./config/lollipopConsumerRequestConfig.js";
-
-function findMicroserviceConfig(originalURL) {
-  const configMap = authorizerConfigMap || loadAuthorizerConfigMap();
-    if (!configMap || !Array.isArray(configMap)) {
-        return null;
-    }
-
-    const config = configMap.find(entry =>
-        originalURL.includes(entry.substringURL)
-    );
-
-    if (config) {
-        console.log(`[findMicroserviceConfig] Match trovato per substringURL: "${config.substringURL}"`);
-    } else {
-        console.log('[findMicroserviceConfig] Nessun match trovato, uso configurazione globale');
-    }
-
-    return config || null;
-}
+import { lollipopConfig  } from "./config/lollipopConsumerRequestConfig.js";
 
 /**
  * Valida l'header contenente la chiave pubblica codificata in Base64Url
@@ -43,15 +24,15 @@ async function validatePublicKey(publicKeyBase64Url) {
   if (!publicKeyBase64Url) {
     console.error('[validatePublicKey] Chiave pubblica mancante nell\'header');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY_ERROR,
-      'Missing Public Key Header'
+        VALIDATION_ERROR_CODES.MISSING_PUBLIC_KEY_ERROR,
+        'Missing Public Key Header'
     );
   }
 
   let publicKeyString =
-    typeof publicKeyBase64Url === 'string'
-      ? publicKeyBase64Url
-      : JSON.stringify(publicKeyBase64Url);
+      typeof publicKeyBase64Url === 'string'
+          ? publicKeyBase64Url
+          : JSON.stringify(publicKeyBase64Url);
   try {
     publicKeyString = Buffer.from(publicKeyBase64Url, 'base64url').toString('utf-8');
   } catch (err) {
@@ -63,8 +44,8 @@ async function validatePublicKey(publicKeyBase64Url) {
     jwkObject = JSON.parse(publicKeyString);
   } catch (err) {
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
-      'Invalid Public Key Header value'
+        VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
+        'Invalid Public Key Header value'
     );
   }
 
@@ -73,8 +54,8 @@ async function validatePublicKey(publicKeyBase64Url) {
   if (!algorithmToUse) {
     console.error('[validatePublicKey] Algoritmo mancante o non supportato per il tipo di chiave:', jwkObject.kty);
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
-      'Invalid Public Key Header value'
+        VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
+        'Invalid Public Key Header value'
     );
   }
 
@@ -85,8 +66,8 @@ async function validatePublicKey(publicKeyBase64Url) {
   } catch (err) {
     console.error('[validatePublicKey] Importazione della chiave JWK fallita:', err);
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
-      'Invalid Public Key Header value'
+        VALIDATION_ERROR_CODES.INVALID_PUBLIC_KEY_ERROR,
+        'Invalid Public Key Header value'
     );
   }
 }
@@ -110,8 +91,8 @@ async function validateAssertionRefHeader(assertionRef) {
   if (isNotValidAssertionRef(assertionRef)) {
     console.error("[validateAssertionRefHeader] Valore AssertionRef non valido");
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR,
-      "Invalid AssertionRef Header value"
+        VALIDATION_ERROR_CODES.INVALID_ASSERTION_REF_ERROR,
+        "Invalid AssertionRef Header value"
     );
   }
   console.log("Ending validateAssertionRefHeader without error");
@@ -144,15 +125,15 @@ function validateAssertionTypeHeader(assertionType) {
   if (assertionType === null) {
     console.error("[validateAssertionTypeHeader] Assertion type mancante");
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_ASSERTION_TYPE_ERROR,
-      "Missing Assertion Type Header"
+        VALIDATION_ERROR_CODES.MISSING_ASSERTION_TYPE_ERROR,
+        "Missing Assertion Type Header"
     );
   }
   if (!isAssertionTypeSupported(assertionType)) {
     console.error("[validateAssertionTypeHeader] Invalid Assertion Type Header value, type not supported");
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_ASSERTION_TYPE_ERROR,
-      "Invalid AssertionType header value, type not supported"
+        VALIDATION_ERROR_CODES.INVALID_ASSERTION_TYPE_ERROR,
+        "Invalid AssertionType header value, type not supported"
     );
   }
   console.log("Ending validateAssertionTypeHeader without error");
@@ -184,8 +165,8 @@ async function validateUserIdHeader(userId) {
   if (!userId) {
     console.error('[validateUserIdHeader] UserId mancante nell\'header');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_USER_ID,
-      'Missing User Id Header'
+        VALIDATION_ERROR_CODES.MISSING_USER_ID,
+        'Missing User Id Header'
     );
   }
   const userIdUpper = userId.toUpperCase();
@@ -193,8 +174,8 @@ async function validateUserIdHeader(userId) {
   if (!USER_ID_REGEX.test(userIdUpper)) {
     console.error('[validateUserIdHeader] Invalid User Id Header value, type not supported');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_USER_ID,
-      'Invalid User Id Header value, type not supported'
+        VALIDATION_ERROR_CODES.INVALID_USER_ID,
+        'Invalid User Id Header value, type not supported'
     );
   }
   console.log("Ending validateUserIdHeader without error");
@@ -214,14 +195,14 @@ function validateAuthJWTHeader(authJWT) {
 
   if (authJWT === null) {
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_AUTH_JWT,
-      "Missing AuthJWT Header"
+        VALIDATION_ERROR_CODES.MISSING_AUTH_JWT,
+        "Missing AuthJWT Header"
     );
   }
   if (authJWT === "") {
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_AUTH_JWT,
-      "Invalid AuthJWT Header value, cannot be empty"
+        VALIDATION_ERROR_CODES.INVALID_AUTH_JWT,
+        "Invalid AuthJWT Header value, cannot be empty"
     );
   }
   console.log("Ending validateAuthJWTHeader without error");
@@ -230,53 +211,40 @@ function validateAuthJWTHeader(authJWT) {
 /**
  * Valida l'header original-method
  *
- * - Verifica che il valore sia presente
- * - Cerca configurazione specifica per il microservizio tramite originalURL
- * - Controlla che rientri tra i metodi ammessi (specifici o globali)
+ * -Verifica che il valore sia presente
+ * -Controlla che rientri tra i metodi ammessi
  *
  * @async
  * @param {string} originalMethod - Metodo HTTP originale (es. GET, POST)
- * @param {string} originalURL - URL originale per identificare il microservizio
  * @throws {LollipopRequestContentValidationException} Se mancante o non incluso nella lista dei metodi validi
  */
-async function validateOriginalMethodHeader(originalMethod, originalURL) {
+async function validateOriginalMethodHeader(originalMethod) {
   console.log("Starting validateOriginalMethodHeader...");
 
   if (!originalMethod) {
     console.error('[validateOriginalMethodHeader] ERROR: originalMethod mancante nell\'header');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_ORIGINAL_METHOD,
-      'Missing Original Method Header'
+        VALIDATION_ERROR_CODES.MISSING_ORIGINAL_METHOD,
+        'Missing Original Method Header'
     );
   }
 
-  const microserviceConfig = findMicroserviceConfig(originalURL);
-  
-  let validMethods;
-  
-  if (microserviceConfig) {
-    validMethods = microserviceConfig.methods;
-    console.log(`[validateOriginalMethodHeader] Uso configurazione specifica per "${microserviceConfig.substringURL}": ${validMethods.join(', ')}`);
-  } else {
-    let expectedFirstLcOriginalMethod;
-    if (process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === undefined || 
-        process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === '') {
-      expectedFirstLcOriginalMethod = lollipopConfig.expectedFirstLcOriginalMethod;
-    } else {
-      expectedFirstLcOriginalMethod = process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD;
-    }
-    validMethods = expectedFirstLcOriginalMethod.split(';');
-    console.log(`[validateOriginalMethodHeader] Uso configurazione globale: ${validMethods.join(', ')}`);
-  }
+  let expectedFirstLcOriginalMethod;
+  if( process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === undefined || process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD === '')
+    expectedFirstLcOriginalMethod = lollipopConfig.expectedFirstLcOriginalMethod;
+  else
+    expectedFirstLcOriginalMethod = process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD;
+
+  const validMethods = expectedFirstLcOriginalMethod.split(';');
 
   if (!validMethods.includes(originalMethod)) {
     console.error(`[validateOriginalMethodHeader] ERROR: Unexpected originalMethod: "${originalMethod}" (validi: ${validMethods.join(', ')})`);
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_METHOD,
-      `Unexpected original method: ${originalMethod}. Valid methods: ${validMethods.join(', ')}`
+        VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_METHOD,
+        `Unexpected original method: ${originalMethod}. Valid methods: ${validMethods.join(', ')}`
     );
   }
-  
+
   console.log("Ending validateOriginalMethodHeader without error");
 }
 
@@ -285,60 +253,45 @@ async function validateOriginalMethodHeader(originalMethod, originalURL) {
  * Valida l'header original-url
  *
  * - Verifica che sia presente
- * - Controlla che rispetti il pattern generale dell'URL (formato base)
- * - Cerca configurazione specifica per il microservizio
- * - Verifica che rispetti il pattern specifico o globale
+ * - Controlla che rispetti il pattern generale dell'URL
+ * - Verifica che inizi con il prefisso consentito
  *
  * @async
  * @param {string} originalURL - L'URL originale
- * @throws {LollipopRequestContentValidationException} Se è mancante, non rispetta il formato previsto o non ha il pattern corretto
+ * @throws {LollipopRequestContentValidationException} Se è mancante, non rispetta il formato previsto o non ha il prefisso corretto
  */
 async function validateOriginalURLHeader(originalURL) {
   console.log("Starting validateOriginalURLHeader...");
-  
   if (!originalURL) {
     console.error('[validateOriginalURLHeader] ERROR: Missing Original URL Header');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_ORIGINAL_URL,
-      'Missing Original URL Header'
+        VALIDATION_ERROR_CODES.MISSING_ORIGINAL_URL,
+        'Missing Original URL Header'
     );
   }
 
   const regexOrig = new RegExp(ORIGINAL_URL_REGEX);
-  if (!regexOrig.test(originalURL)) {
+  if (!(regexOrig.test(originalURL))) {
     console.error('[validateOriginalURLHeader] ERROR: Invalid originalURL Header value, type not supported');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_ORIGINAL_URL,
-      'Invalid Original URL Header value'
+        VALIDATION_ERROR_CODES.INVALID_ORIGINAL_URL,
+        'Invalid Original URL Header value'
     );
   }
 
-  const microserviceConfig = findMicroserviceConfig(originalURL);
-  
-  let urlPattern;
-  
-  if (microserviceConfig) {
-    urlPattern = microserviceConfig.URLpattern;
-    console.log(`[validateOriginalURLHeader] Uso URLpattern specifico per "${microserviceConfig.substringURL}": ${urlPattern}`);
-  } else {
-    if (process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === undefined ||
-        process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === '') {
-      urlPattern = lollipopConfig.expectedFirstLcOriginalUrl;
-    } else {
-      urlPattern = process.env.EXPECTED_FIRST_LC_ORIGINAL_URL;
-    }
-    console.log(`[validateOriginalURLHeader] Uso URLpattern globale: ${urlPattern}`);
-  }
+  let expectedFirstLcOriginalUrl;
+  if( process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === undefined || process.env.EXPECTED_FIRST_LC_ORIGINAL_URL === '')
+    expectedFirstLcOriginalUrl = lollipopConfig.expectedFirstLcOriginalUrl;
+  else
+    expectedFirstLcOriginalUrl = process.env.EXPECTED_FIRST_LC_ORIGINAL_URL;
 
-  const regex = new RegExp(urlPattern);
-  if (!regex.test(originalURL)) {
-    console.error(`[validateOriginalURLHeader] ERROR: Unexpected original url "${originalURL}" non match pattern "${urlPattern}"`);
+  const regex = new RegExp(expectedFirstLcOriginalUrl);
+  if (!(regex.test(originalURL))) {
+    console.error('[validateOriginalURLHeader] ERROR: Unexpected original url ' + originalURL);
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_URL,
-      `Unexpected original url: ${originalURL}. Expected pattern: ${urlPattern}`
-    );
+        VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_URL,
+        'Unexpected original url: ' + originalURL);
   }
-  
   console.log("Ending validateOriginalURLHeader without error");
 }
 
@@ -360,8 +313,8 @@ async function validateSignatureInputHeader(signatureInput) {
   if (!signatureInput) {
     console.error('[validateSignatureInputHeader] ERROR: Missing Signature Input Header');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_SIGNATURE_INPUT,
-      'Missing Signature Input Header'
+        VALIDATION_ERROR_CODES.MISSING_SIGNATURE_INPUT,
+        'Missing Signature Input Header'
     );
   }
 
@@ -369,8 +322,8 @@ async function validateSignatureInputHeader(signatureInput) {
   if (!(regexOrig.test(signatureInput))) {
     console.error('[validateSignatureInputHeader] ERROR: Invalid signatureInput Header value, type not supported');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_SIGNATURE_INPUT,
-      'Invalid Signature Input Header value'
+        VALIDATION_ERROR_CODES.INVALID_SIGNATURE_INPUT,
+        'Invalid Signature Input Header value'
     );
   }
   console.log("Ending validateSignatureInputHeader without error");
@@ -391,8 +344,8 @@ async function validateSignatureHeader(signature) {
   if (!signature) {
     console.error('[validateSignatureHeader] ERROR: Missing signature Header');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.MISSING_SIGNATURE,
-      'Missing Signature Header'
+        VALIDATION_ERROR_CODES.MISSING_SIGNATURE,
+        'Missing Signature Header'
     );
   }
 
@@ -400,8 +353,8 @@ async function validateSignatureHeader(signature) {
   if (!(regexOrig.test(signature))) {
     console.error('[validateSignatureHeader] ERROR: Invalid signature Header value, type not supported');
     throw new LollipopRequestContentValidationException(
-      VALIDATION_ERROR_CODES.INVALID_SIGNATURE,
-      'Invalid Signature Header value'
+        VALIDATION_ERROR_CODES.INVALID_SIGNATURE,
+        'Invalid Signature Header value'
     );
   }
   console.log("Ending validateSignatureHeader without error");
@@ -416,6 +369,5 @@ export { validatePublicKey,
   validateSignatureInputHeader,
   validateSignatureHeader,
   validateAuthJWTHeader,
-  findMicroserviceConfig,
-  LollipopRequestContentValidationException 
+  LollipopRequestContentValidationException
 };
