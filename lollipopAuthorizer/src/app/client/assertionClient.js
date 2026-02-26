@@ -70,6 +70,9 @@ function provideApi() {
 
     const apiClientInstance = new ApiClient(assertionBaseUri);
 
+    const assertionHttpTimeout = parseInt(process.env.ASSERTION_HTTP_TIMEOUT_MS || '10000');
+    apiClientInstance.timeout = assertionHttpTimeout;
+
     if (subscriptionKey) {
         apiClientInstance.authentications['ApiKeyAuth'].apiKey = subscriptionKey;
     }

@@ -361,6 +361,7 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
             console.error('[assertionValidation] Error: ', e.errorCode, ' - Message: ', e.message);
             throw new LollipopAssertionException(e.errorCode);
         }
+        return idpCertDataList;
     }
 
 /**
