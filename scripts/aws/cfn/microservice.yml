@@ -132,6 +132,11 @@ Parameters:
     Type: Number
     Default: 365
 
+  AssertionHttpTimeoutMs:
+    Type: String
+    Default: "10000"
+    Description: "Timeout in ms per le chiamate HTTP al servizio Assertion. Deve essere inferiore al timeout della Lambda."
+
   ExpectedFirstLcOriginalMethod:
     Type: String
     Default: "POST;GET"
@@ -143,6 +148,15 @@ Parameters:
   IdpProviderConfigBaseUri:
     Type: String
     Default: "https://api.is.eng.pagopa.it"
+
+  IdpHttpTimeoutMs:
+    Type: String
+    Default: "10000"
+    Description: "Timeout in ms per le chiamate HTTP al servizio IDP. Deve essere inferiore al timeout della Lambda."
+
+  LollipopAuthorizerConfig:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: "Path SSM del parametro contenente la configurazione per-microservizio del LollipopAuthorizer."
 
   # Unused but required by CD pipeline
   MicroserviceNumber:
@@ -819,11 +833,14 @@ Resources:
           CX_TAXID_HEADER: "x-pagopa-cx-taxid"
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
           PN_ASSERTION_EXPIRE_IN_DAYS: !Ref AssertionExpireInDays
+          ASSERTION_HTTP_TIMEOUT_MS: !Ref AssertionHttpTimeoutMs
           LOLLIPOP_BLOCK: !Ref LollipopBlock
+          LOLLIPOP_AUTHORIZER_CONFIG: !Ref LollipopAuthorizerConfig
           EXPECTED_FIRST_LC_ORIGINAL_URL: !Ref ExpectedFirstLcOriginalUrl
           EXPECTED_FIRST_LC_ORIGINAL_METHOD: !Ref ExpectedFirstLcOriginalMethod
           IDP_CONFIG_BASE_URI: !Ref IdpProviderConfigBaseUri
           IDP_CLIENT_CIEIDD: !Ref IdpCieEntityId
+          IDP_HTTP_TIMEOUT_MS: !Ref IdpHttpTimeoutMs
       Role: !GetAtt LollipopAuthorizerLambdaRole.Arn
       VpcConfig:
         Fn::If:

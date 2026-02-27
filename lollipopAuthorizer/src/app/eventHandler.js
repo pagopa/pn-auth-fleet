@@ -27,6 +27,8 @@ function validateSourceDetails(sourceDetails) {
 }
 
 async function handleEvent(event) {
+
+    console.log("event: %o", event);
     // Declare Policy
     let iamPolicy = null;
 
@@ -63,7 +65,8 @@ async function handleEvent(event) {
         }
     } catch (error) {
         if (String(lollipopBlock).toLowerCase() === "true") {
-              console.error(`[handleEvent] - Lollipop Authorizer Validation fallita: ${commandResult.resultCode}. Denying access.`);
+              const resultCode = commandResult?.resultCode ?? 'UNKNOWN';
+              console.error(`[handleEvent] - Lollipop Authorizer Validation fallita: ${resultCode}. Denying access.`);
               return defaultDenyAllPolicy;
         }else{
               console.warn("Lollipop Authorizer Validation - ErrorCode: ", error.errorCode, " - Message: ", error.message);
