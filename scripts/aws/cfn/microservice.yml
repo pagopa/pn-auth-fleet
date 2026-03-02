@@ -155,7 +155,8 @@ Parameters:
     Description: "Timeout in ms per le chiamate HTTP al servizio IDP. Deve essere inferiore al timeout della Lambda."
 
   LollipopAuthorizerConfig:
-    Type: AWS::SSM::Parameter::Value<String>
+    Type: String
+    Default: "/pn-auth-fleet/lollipopAuthorizerConfig"
     Description: "Path SSM del parametro contenente la configurazione per-microservizio del LollipopAuthorizer."
 
   # Unused but required by CD pipeline
