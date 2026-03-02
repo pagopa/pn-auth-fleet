@@ -832,6 +832,7 @@ Resources:
           ASSERTION_HTTP_TIMEOUT_MS: !Ref AssertionHttpTimeoutMs
           LOLLIPOP_BLOCK: !Ref LollipopBlock
           LOLLIPOP_AUTHORIZER_CONFIG: !Sub '{{resolve:ssm:/pn-auth-fleet/lollipopAuthorizerConfig}}'
+          LOLLIPOP_SECRETS_KEY: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:pn-Lollipop-Secrets-Key:AssertionRestSubscriptionKey:AWSCURRENT:"
           EXPECTED_FIRST_LC_ORIGINAL_URL: !Ref ExpectedFirstLcOriginalUrl
           EXPECTED_FIRST_LC_ORIGINAL_METHOD: !Ref ExpectedFirstLcOriginalMethod
           IDP_CONFIG_BASE_URI: !Ref IdpProviderConfigBaseUri

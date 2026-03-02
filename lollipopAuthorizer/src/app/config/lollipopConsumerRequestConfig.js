@@ -49,7 +49,43 @@ const IDP_PROVIDER_CONFIG = {
 const ASSERTION_PROVIDER_CONFIG = {
     BASE_URI: "https://api.is.eng.pagopa.it",
     ASSERTION_REQUEST_ENDPOINT: "/assertions",
-    SUBSCRIPTION_KEY: "",
+    SUBSCRIPTION_KEY: subscriptionKey,
+}
+
+
+async function getSubscriptionKey(){
+    log.info("[TESTUAT] Starting getSubscriptionKey")
+    import {
+        SecretsManagerClient,
+        GetSecretValueCommand,
+    } from "@aws-sdk/client-secrets-manager";
+
+    const secret_name =  process.env.SECRETS_KEY;
+    log.info("[TESTUAT] Secret_name: ",secret_name)
+
+    const client = new SecretsManagerClient();
+
+    let response;
+
+    try {
+        response = await client.send(
+            new GetSecretValueCommand({
+                SecretId: secret_name,
+                VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
+            })
+        );
+    } catch (error) {
+        // For a list of exceptions thrown, see
+        // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        throw error;
+    }
+
+    const secret = response.SecretString;
+    log.info("[TESTUAT] secret: ", secret)
+    if (secret === null || secret === undefined){
+        log.info("[TESTUAT] returning empty secret")
+        return ""
+    }
 }
 
 
@@ -106,5 +142,6 @@ function loadAuthorizerConfigMap() {
 }
 
 const authorizerConfigMap = loadAuthorizerConfigMap();
+const subscriptionKey = getSubscriptionKey()
 
 export { lollipopConfig, IDP_PROVIDER_CONFIG, ASSERTION_PROVIDER_CONFIG, authorizerConfigMap, loadAuthorizerConfigMap };
