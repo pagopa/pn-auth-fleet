@@ -154,11 +154,6 @@ Parameters:
     Default: "10000"
     Description: "Timeout in ms per le chiamate HTTP al servizio IDP. Deve essere inferiore al timeout della Lambda."
 
-  LollipopAuthorizerConfig:
-    Type: String
-    Default: "/pn-auth-fleet/lollipopAuthorizerConfig"
-    Description: "Path SSM del parametro contenente la configurazione per-microservizio del LollipopAuthorizer."
-
   # Unused but required by CD pipeline
   MicroserviceNumber:
     Type: Number
@@ -836,7 +831,7 @@ Resources:
           PN_ASSERTION_EXPIRE_IN_DAYS: !Ref AssertionExpireInDays
           ASSERTION_HTTP_TIMEOUT_MS: !Ref AssertionHttpTimeoutMs
           LOLLIPOP_BLOCK: !Ref LollipopBlock
-          LOLLIPOP_AUTHORIZER_CONFIG: !Ref LollipopAuthorizerConfig
+          LOLLIPOP_AUTHORIZER_CONFIG: !Sub '{{resolve:ssm:/pn-auth-fleet/lollipopAuthorizerConfig}}'
           EXPECTED_FIRST_LC_ORIGINAL_URL: !Ref ExpectedFirstLcOriginalUrl
           EXPECTED_FIRST_LC_ORIGINAL_METHOD: !Ref ExpectedFirstLcOriginalMethod
           IDP_CONFIG_BASE_URI: !Ref IdpProviderConfigBaseUri
