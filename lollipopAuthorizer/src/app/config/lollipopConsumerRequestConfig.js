@@ -1,4 +1,10 @@
 // config come LollipopConsumerRequestConfig sdk
+import {
+    SecretsManagerClient,
+    GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
+
+
 const lollipopConfig = {
   signatureHeader: "signature",
   signatureInputHeader: "signature-input",
@@ -49,19 +55,15 @@ const IDP_PROVIDER_CONFIG = {
 const ASSERTION_PROVIDER_CONFIG = {
     BASE_URI: "https://api.is.eng.pagopa.it",
     ASSERTION_REQUEST_ENDPOINT: "/assertions",
-    SUBSCRIPTION_KEY: subscriptionKey,
+    SUBSCRIPTION_KEY: "",
 }
 
 
 async function getSubscriptionKey(){
-    log.info("[TESTUAT] Starting getSubscriptionKey")
-    import {
-        SecretsManagerClient,
-        GetSecretValueCommand,
-    } from "@aws-sdk/client-secrets-manager";
+    console.info("[TESTUAT] Starting getSubscriptionKey")
 
     const secret_name =  process.env.SECRETS_KEY;
-    log.info("[TESTUAT] Secret_name: ",secret_name)
+    console.info("[TESTUAT] Secret_name: ",secret_name)
 
     const client = new SecretsManagerClient();
 
@@ -81,9 +83,9 @@ async function getSubscriptionKey(){
     }
 
     const secret = response.SecretString;
-    log.info("[TESTUAT] secret: ", secret)
+    console.info("[TESTUAT] secret: ", secret)
     if (secret === null || secret === undefined){
-        log.info("[TESTUAT] returning empty secret")
+        console.info("[TESTUAT] returning empty secret")
         return ""
     }
 }
@@ -142,6 +144,9 @@ function loadAuthorizerConfigMap() {
 }
 
 const authorizerConfigMap = loadAuthorizerConfigMap();
-const subscriptionKey = getSubscriptionKey()
+if (process.env.NODE_ENV !== "test") {
+    ASSERTION_PROVIDER_CONFIG.SUBSCRIPTION_KEY =
+        (await getSubscriptionKey().catch(() => "")) || "";
+}
 
 export { lollipopConfig, IDP_PROVIDER_CONFIG, ASSERTION_PROVIDER_CONFIG, authorizerConfigMap, loadAuthorizerConfigMap };
