@@ -23,6 +23,7 @@
     "RedisJwtExpHours": "24",
     "PgEnableAccess": "true",
     "LollipopBlock": "false",
+    "LollipopAuthorizerConfig": "/pn-auth-fleet/lollipopAuthorizerConfig",
     "ExpectedFirstLcOriginalUrl": "^https://api-app.io.pagopa.it/\\S+$",
     "AssertionExpireInDays": "365",
     "AssertionHttpTimeoutMs": "1000",
@@ -36,6 +37,7 @@
     "EnableTokenExchangeOidcApi": "true",
     "OneIdentitySecretName": "pn-auth-fleet/one-identity-credentials",
     "OneIdentityBaseURL": "https://uat.oneid.pagopa.it",
-    "LollipopSecretsKey":  "arn:aws:secretsmanager:eu-south-1:830192246553:secret:pn-Lollipop-Secrets-Key-wIA5vA"
+    "LollipopSecretsKey":  "arn:aws:secretsmanager:eu-south-1:830192246553:secret:pn-Lollipop-Secrets-Key-wIA5vA",
+
   }
 }
