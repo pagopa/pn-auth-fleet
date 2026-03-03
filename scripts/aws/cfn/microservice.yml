@@ -154,6 +154,10 @@ Parameters:
     Default: "10000"
     Description: "Timeout in ms per le chiamate HTTP al servizio IDP. Deve essere inferiore al timeout della Lambda."
 
+  LollipopAuthorizerConfig:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: "Path SSM del parametro contenente la configurazione per-microservizio del LollipopAuthorizer."
+
   # Unused but required by CD pipeline
   MicroserviceNumber:
     Type: Number
@@ -446,6 +450,11 @@ Parameters:
     Type: Number
     Description: "Maximum Clock drift in seconds"
     Default: '2'
+
+  LollipopSecretsKey:
+    Type: String
+    Description: "Lollipop secret key ARN"
+    Default: ''
 
   #Can't be higher than 30. Remember to modify B2BAuthorizerLambdaTimeout also
   JwksCacheForceRefreshLambdaTimeout: 
@@ -832,6 +841,7 @@ Resources:
           ASSERTION_HTTP_TIMEOUT_MS: !Ref AssertionHttpTimeoutMs
           LOLLIPOP_BLOCK: !Ref LollipopBlock
           LOLLIPOP_AUTHORIZER_CONFIG: !Sub '{{resolve:ssm:/pn-auth-fleet/lollipopAuthorizerConfig}}'
+          LOLLIPOP_SECRETS_KEY: !Ref LollipopSecretsKey
           EXPECTED_FIRST_LC_ORIGINAL_URL: !Ref ExpectedFirstLcOriginalUrl
           EXPECTED_FIRST_LC_ORIGINAL_METHOD: !Ref ExpectedFirstLcOriginalMethod
           IDP_CONFIG_BASE_URI: !Ref IdpProviderConfigBaseUri
@@ -873,6 +883,11 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
+              - Sid: AllowLambdatoRetrieveSecret
+                Action:
+                  - secretsmanager:GetSecretValue
+                Effect: Allow
+                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream

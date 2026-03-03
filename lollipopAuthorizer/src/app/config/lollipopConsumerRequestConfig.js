@@ -1,40 +1,46 @@
 // config come LollipopConsumerRequestConfig sdk
+import {
+    SecretsManagerClient,
+    GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
+
+
 const lollipopConfig = {
-  signatureHeader: "signature",
-  signatureInputHeader: "signature-input",
-  publicKeyHeader: "x-pagopa-lollipop-public-key",
-  assertionRefHeader: "x-pagopa-lollipop-assertion-ref",
-  assertionTypeHeader: "x-pagopa-lollipop-assertion-type",
-  originalMethodHeader: "x-pagopa-lollipop-original-method",
-  originalURLHeader: "x-pagopa-lollipop-original-url",
-  authJWTHeader: "x-pagopa-lollipop-auth-jwt",
-  userGivenNameHeader: "x-pagopa-lollipop-user-name",
-  userFamilyNameHeader: "x-pagopa-lollipop-user-family-name",
-  userIdHeader: "x-pagopa-lollipop-user-id",
-  expectedFirstLcOriginalUrl: "^https://api-app.io.pagopa.it/\\S+$",
-  expectedFirstLcOriginalMethod: "POST;GET",
-  samlNamespaceAssertion: "urn:oasis:names:tc:SAML:2.0:assertion",
-  assertionTag: "Assertion",
-  assertionNotBeforeTag: "Conditions",
-  notBeforeAttribute: "NotBefore",
-  assertionAttributeTag: "Attribute",
-  assertionExpireInDays: 365,
-  ISSUE_INSTANT: "IssueInstant",
-  ISSUER_ENTITY_ID_TAG: "Issuer",
-  ENTITIES_DESCRIPTOR_TAG: "EntitiesDescriptor",
-  NAMESPACE_TAG: "md:",
-  ENTITY_DESCRIPTOR_TAG: "EntityDescriptor",
-  IDPSSO_DESCRIPTOR_TAG: "IDPSSODescriptor",
-  KEY_DESCRIPTOR_TAG: "KeyDescriptor",
-  DS_KEYINFO_TAG: "ds:KeyInfo",
-  DS_X509DATA_TAG: "ds:X509Data",
-  DS_X509CERTIFICATE_TAG: "ds:X509Certificate",
-  assertionInResponseToTag: "SubjectConfirmationData",
-  inResponseToAttribute: "InResponseTo",
-  assertionInstantTag: "Assertion",
-  samlNamespaceSignature:'http://www.w3.org/2000/09/xmldsig#',
-  signatureTag:"Signature",
-  lollipopBlock:"false"
+    signatureHeader: "signature",
+    signatureInputHeader: "signature-input",
+    publicKeyHeader: "x-pagopa-lollipop-public-key",
+    assertionRefHeader: "x-pagopa-lollipop-assertion-ref",
+    assertionTypeHeader: "x-pagopa-lollipop-assertion-type",
+    originalMethodHeader: "x-pagopa-lollipop-original-method",
+    originalURLHeader: "x-pagopa-lollipop-original-url",
+    authJWTHeader: "x-pagopa-lollipop-auth-jwt",
+    userGivenNameHeader: "x-pagopa-lollipop-user-name",
+    userFamilyNameHeader: "x-pagopa-lollipop-user-family-name",
+    userIdHeader: "x-pagopa-lollipop-user-id",
+    expectedFirstLcOriginalUrl: "^https://api-app.io.pagopa.it/\\S+$",
+    expectedFirstLcOriginalMethod: "POST;GET",
+    samlNamespaceAssertion: "urn:oasis:names:tc:SAML:2.0:assertion",
+    assertionTag: "Assertion",
+    assertionNotBeforeTag: "Conditions",
+    notBeforeAttribute: "NotBefore",
+    assertionAttributeTag: "Attribute",
+    assertionExpireInDays: 365,
+    ISSUE_INSTANT: "IssueInstant",
+    ISSUER_ENTITY_ID_TAG: "Issuer",
+    ENTITIES_DESCRIPTOR_TAG: "EntitiesDescriptor",
+    NAMESPACE_TAG: "md:",
+    ENTITY_DESCRIPTOR_TAG: "EntityDescriptor",
+    IDPSSO_DESCRIPTOR_TAG: "IDPSSODescriptor",
+    KEY_DESCRIPTOR_TAG: "KeyDescriptor",
+    DS_KEYINFO_TAG: "ds:KeyInfo",
+    DS_X509DATA_TAG: "ds:X509Data",
+    DS_X509CERTIFICATE_TAG: "ds:X509Certificate",
+    assertionInResponseToTag: "SubjectConfirmationData",
+    inResponseToAttribute: "InResponseTo",
+    assertionInstantTag: "Assertion",
+    samlNamespaceSignature:'http://www.w3.org/2000/09/xmldsig#',
+    signatureTag:"Signature",
+    lollipopBlock:"false"
 };
 
 const IDP_PROVIDER_CONFIG = {
@@ -50,6 +56,41 @@ const ASSERTION_PROVIDER_CONFIG = {
     BASE_URI: "https://api.is.eng.pagopa.it",
     ASSERTION_REQUEST_ENDPOINT: "/assertions",
     SUBSCRIPTION_KEY: "",
+}
+
+
+async function getSubscriptionKey(){
+    console.info("[TESTUAT] Starting getSubscriptionKey")
+
+    const secret_name =  process.env.LOLLIPOP_SECRETS_KEY;
+    console.info("[TESTUAT] Secret_name: ",secret_name)
+
+    const client = new SecretsManagerClient();
+
+    let response;
+
+    try {
+        response = await client.send(
+            new GetSecretValueCommand({
+                SecretId: secret_name,
+                VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
+            })
+        );
+    } catch (error) {
+        // For a list of exceptions thrown, see
+        // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        console.error("[TESTUAT] error retrieving secret: ",error);throw error;
+    }
+
+    const secretString = response.SecretString;
+    console.info("[TESTUAT] raw secret: ", secretString)
+    if (secretString === null || secretString === undefined){
+        console.info("[TESTUAT] returning empty secret")
+        return ""
+    }
+
+    const secretObj = JSON.parse(secretString);
+    return secretObj.AssertionRestSubscriptionKey ?? "";
 }
 
 
@@ -106,5 +147,9 @@ function loadAuthorizerConfigMap() {
 }
 
 const authorizerConfigMap = loadAuthorizerConfigMap();
+if (process.env.NODE_ENV !== "test") {
+    ASSERTION_PROVIDER_CONFIG.SUBSCRIPTION_KEY =
+        (await getSubscriptionKey().catch(() => "")) || "";
+}
 
 export { lollipopConfig, IDP_PROVIDER_CONFIG, ASSERTION_PROVIDER_CONFIG, authorizerConfigMap, loadAuthorizerConfigMap };
