@@ -874,6 +874,11 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
+              - Sid: AllowLambdatoRetrieveSecret
+                Action:
+                  - secretsmanager:GetSecretValue
+                Effect: Allow
+                Resource: "*"
               - Sid: AllowLambdaToCreateLogs
                 Action:
                   - logs:CreateLogStream
