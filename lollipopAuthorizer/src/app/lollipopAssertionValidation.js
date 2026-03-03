@@ -26,11 +26,17 @@ async function validateLollipopAssertion(request) {
 	try{
 		console.log("Starting validateLollipopAssertion...");
 		const headers = request.headerParams.headers || request.headerParams;
+		console.log("[TESTUAT] - JWTHeader: ",headers[lollipopConfig.authJWTHeader])
+		console.log("[TESTUAT] - AssertionRefHeader: ",headers[lollipopConfig.assertionRefHeader])
+
 		//Recupero assertionDoc
 		const assertionDoc = await getAssertionDoc(
 		    headers[lollipopConfig.authJWTHeader],
 		    headers[lollipopConfig.assertionRefHeader]
 		);
+
+		console.log("[TESTUAT] - assertionDoc: ",assertionDoc)
+
 
 		const result = new CommandResult();
 		

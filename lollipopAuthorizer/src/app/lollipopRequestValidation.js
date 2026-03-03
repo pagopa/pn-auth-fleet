@@ -1,4 +1,5 @@
-import { validatePublicKey,
+import {
+    validatePublicKey,
     validateAssertionRefHeader,
     validateAssertionTypeHeader,
     validateUserIdHeader,
@@ -23,14 +24,20 @@ import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js"
 async function validateLollipopRequest(request) {
     console.log("Starting validateLollipopRequest...")
     const headers = request.headerParams.headers || request.headerParams;
+
+    const originalURL = headers[lollipopConfig.originalURLHeader];
+
     const results = await Promise.allSettled([
         (async () => validatePublicKey(headers[lollipopConfig.publicKeyHeader]))(),
         (async () => validateAssertionRefHeader(headers[lollipopConfig.assertionRefHeader]))(),
         (async () => validateAssertionTypeHeader(headers[lollipopConfig.assertionTypeHeader]))(),
         (async () => validateUserIdHeader(headers[lollipopConfig.userIdHeader]))(),
         (async () => validateAuthJWTHeader(headers[lollipopConfig.authJWTHeader]))(),
-        (async () => validateOriginalMethodHeader(headers[lollipopConfig.originalMethodHeader]))(),
-        (async () => validateOriginalURLHeader(headers[lollipopConfig.originalURLHeader]))(),
+        (async () => validateOriginalMethodHeader(
+            headers[lollipopConfig.originalMethodHeader],
+            originalURL
+        ))(),
+        (async () => validateOriginalURLHeader(originalURL))(),
         (async () => validateSignatureInputHeader(headers[lollipopConfig.signatureInputHeader]))(),
         (async () => validateSignatureHeader(headers[lollipopConfig.signatureHeader]))(),
     ]);
