@@ -96,7 +96,6 @@ function provideApi() {
     console.info("[TESTUAT] subscriptionKey: ",subscriptionKey)
     if (subscriptionKey) {
         apiClientInstance.authentications['ApiKeyAuth'].apiKey = subscriptionKey;
-        apiClientInstance.defaultHeaders['Ocp-Apim-Subscription-Key'] = subscriptionKey;
 
     }
     console.log('[TESTUAT][assertionClient.provideApi] === API CLIENT CONFIG ===');
