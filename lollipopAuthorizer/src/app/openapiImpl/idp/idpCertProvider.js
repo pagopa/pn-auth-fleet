@@ -37,6 +37,9 @@ import ApiClientClass from "./ApiClient.js";
 
         const apiClientInstance = new ApiClientClass(idpProviderConfigBaseUri);
 
+        console.log(`[TESTUAT] IDP env IDP_CONFIG_BASE_URI: ${process.env.IDP_CONFIG_BASE_URI || '(not set)'}`);
+        console.log(`[TESTUAT] IDP base URI (effective): ${idpProviderConfigBaseUri}`);
+
         const idpHttpTimeout = parseInt(process.env.IDP_HTTP_TIMEOUT_MS || '10000');
         apiClientInstance.timeout = idpHttpTimeout;
         console.log(`[provideClient] IDP HTTP timeout set to ${idpHttpTimeout}ms`);

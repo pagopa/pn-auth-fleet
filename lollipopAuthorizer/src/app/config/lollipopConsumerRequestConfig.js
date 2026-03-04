@@ -53,7 +53,7 @@ const IDP_PROVIDER_CONFIG = {
 }
 
 const ASSERTION_PROVIDER_CONFIG = {
-    BASE_URI: "https://api.is.eng.pagopa.it",
+    BASE_URI: "https://api.io.pagopa.it/lollipop/api/v1",
     ASSERTION_REQUEST_ENDPOINT: "/assertions",
     SUBSCRIPTION_KEY: "",
 }

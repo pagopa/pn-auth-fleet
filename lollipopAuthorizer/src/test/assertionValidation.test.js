@@ -104,7 +104,7 @@ describe('validateAssertionPeriodTest ', () => {
 
 describe("validateUserId tests", () => {
 
-  it("should return TRUE if fiscalNumber and userId header match", () => {
+  it("should return TRUE if fiscalNumber and userId header match", async () => {
     const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
 
     const request = {
@@ -113,12 +113,12 @@ describe("validateUserId tests", () => {
       }
     };
 
-    const result = validateUserId(request, assertionDoc);
+    const result = await validateUserId(request, assertionDoc);
 
     expect(result).to.equal(true);
   });
 
-  it("should return FALSE if fiscalNumber and userId header don't match", () => {
+  it("should return FALSE if fiscalNumber and userId header don't match", async () => {
     const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
 
     const request = {
@@ -127,24 +127,24 @@ describe("validateUserId tests", () => {
       }
     };
 
-    const result = validateUserId(request, assertionDoc);
+    const result = await validateUserId(request, assertionDoc);
 
     expect(result).to.equal(false);
   });
 
-  it("should return FALSE when userId header is null", () => {
+  it("should return FALSE when userId header is null", async () => {
     const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
 
     const request = {
       headerParams: {}
     };
 
-    const result = validateUserId(request, assertionDoc);
+    const result = await validateUserId(request, assertionDoc);
 
     expect(result).to.equal(false);
   });
 
-  it("should throw error when fiscalNumber is not in assertionDoc", () => {
+  it("should throw error when fiscalNumber is not in assertionDoc", async () => {
     const invalidAssertion = VALID_ASSERTION_XML.replace(
       "<saml:Attribute Name=\"fiscalNumber\">",
       "<saml:Attribute Name=\"wrongTag\">"
@@ -156,10 +156,10 @@ describe("validateUserId tests", () => {
     };
     const assertionDoc = new xmldom.DOMParser().parseFromString(invalidAssertion, "text/xml");
 
-    expect(() => validateUserId(request, assertionDoc)).to.throw(LollipopAssertionException);
+    await expect(validateUserId(request, assertionDoc)).to.be.rejectedWith(LollipopAssertionException);
   });
 
-  it("should pass with prefix TINIT-", () => {
+  it("should pass with prefix TINIT-", async () => {
     const assertionWithTinit = VALID_ASSERTION_XML.replace(
       "GDNNWA12H81Y874F",
       "TINIT-GDNNWA12H81Y874F"
@@ -173,12 +173,12 @@ describe("validateUserId tests", () => {
       }
     };
 
-    const result = validateUserId(request, assertionDoc);
+    const result = await validateUserId(request, assertionDoc);
 
     expect(result).to.equal(true);
   });
 
-  it("should throws error when assertionDoc is empty", () => {
+  it("should throws error when assertionDoc is empty", async () => {
     const emptyAssertion = new xmldom.DOMParser().parseFromString("<root/>", "text/xml");
 
     const request = {
@@ -187,7 +187,7 @@ describe("validateUserId tests", () => {
       }
     };
 
-    expect(() => validateUserId(request, emptyAssertion)).to.throw(LollipopAssertionException); 
+    await expect(validateUserId(request, emptyAssertion)).to.be.rejectedWith(LollipopAssertionException);
   });
 
 });
