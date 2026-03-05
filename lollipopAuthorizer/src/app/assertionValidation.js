@@ -67,7 +67,7 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
  * @returns {boolean} true se l’asserzione è valida temporalmente
  * @throws {LollipopAssertionException} In caso di errore di parsing o date non valide
  */
- function validateAssertionPeriod(assertionDoc){
+ async function validateAssertionPeriod(assertionDoc){
 
     const rootElementName = assertionDoc.documentElement.localName;
     const listElements = assertionDoc.getElementsByTagNameNS(lollipopConfig.samlNamespaceAssertion, lollipopConfig.assertionNotBeforeTag);

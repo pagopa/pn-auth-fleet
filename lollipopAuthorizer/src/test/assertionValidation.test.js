@@ -34,7 +34,7 @@ describe('validateAssertionPeriodTest ', () => {
         const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithDynamicNotBefore, "text/xml");
 
         console.log("validateAssertionPeriod ...");
-        const result = validateAssertionPeriod(assertionDoc);
+        const result = await validateAssertionPeriod(assertionDoc);
         expect(result).to.be.true;
     });
 
@@ -48,9 +48,9 @@ describe('validateAssertionPeriodTest ', () => {
         
         const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithInvalidNotBefore, "text/xml");
 
-        expect(() => validateAssertionPeriod(assertionDoc))
-        .to.throw(LollipopAssertionException)
-        .with.property('errorCode', VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE);
+        await expect(validateAssertionPeriod(assertionDoc))
+            .to.be.rejectedWith(LollipopAssertionException)
+            .and.eventually.have.property('errorCode', VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE);
 
     });
 
@@ -61,12 +61,12 @@ describe('validateAssertionPeriodTest ', () => {
             /NotBefore="[^"]*"/,
             `NotBefore=""`
         );
-        
+
         const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithNullNotBefore, "text/xml");
 
-        expect(() => validateAssertionPeriod(assertionDoc))
-        .to.throw(LollipopAssertionException)
-        .with.property('errorCode', VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE);
+        await expect(validateAssertionPeriod(assertionDoc))
+            .to.be.rejectedWith(LollipopAssertionException)
+            .and.eventually.have.property('errorCode', VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE);
 
     });
 
@@ -78,9 +78,9 @@ describe('validateAssertionPeriodTest ', () => {
                             </Assertion>`;
         const assertionDoc = new xmldom.DOMParser().parseFromString(invalidXml, "text/xml");
 
-        expect(() => validateAssertionPeriod(assertionDoc))
-        .to.throw(LollipopAssertionException)
-        .with.property('errorCode', VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE);
+        await expect(validateAssertionPeriod(assertionDoc))
+            .to.be.rejectedWith(LollipopAssertionException)
+            .and.eventually.have.property('errorCode', VALIDATION_ERROR_CODES.ERROR_PARSING_ASSERTION_NOT_BEFORE_DATE);
 
     });
 
@@ -95,7 +95,7 @@ describe('validateAssertionPeriodTest ', () => {
         const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithExpiredDate, "text/xml");
 
         console.log("validateAssertionPeriod ...");
-        const result = validateAssertionPeriod(assertionDoc);
+        const result = await validateAssertionPeriod(assertionDoc);
         expect(result).to.be.false;
     });
 
