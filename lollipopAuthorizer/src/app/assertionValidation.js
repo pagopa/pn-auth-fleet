@@ -57,6 +57,7 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
         console.error('[validateSignatureAssertion] Error: ', e.errorCode, ' - Message: ', e.message);
         throw new LollipopAssertionException(e.errorCode);
     }
+    return isValid;
 }
 
 /**
@@ -143,10 +144,10 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
  * @returns {boolean} true se il codice fiscale coincide
  * @throws {LollipopAssertionException} se il codice fiscale non è presente
  */
- function validateUserId(request, assertionDoc) {
+ async function validateUserId(request, assertionDoc) {
     console.log("Starting validating userId fiscal number...")
-  const userIdHeader =
-    request.headerParams[lollipopConfig.userIdHeader];
+  const headers = request.headerParams.headers || request.headerParams;
+  const userIdHeader = headers[lollipopConfig.userIdHeader];
 
   const userIdFromAssertion = getUserIdFromAssertion(assertionDoc);
 
@@ -158,6 +159,9 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
     );
   }
 
+  console.log("[TESTUAT][validateUserId] userIdFromAssertion:", userIdFromAssertion);
+  console.log("[TESTUAT][validateUserId] userIdHeader:", userIdHeader);
+  console.log("[TESTUAT][validateUserId] match:", userIdFromAssertion === userIdHeader);
   console.log("Ending validation userId fiscal number");
   return userIdFromAssertion === userIdHeader;
 }
@@ -359,7 +363,7 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
             idpCertDataList = await getIdpCertData(assertionDoc);
         } catch (e) {
             console.error('[assertionValidation] Error: ', e.errorCode, ' - Message: ', e.message);
-            throw new LollipopAssertionException(e.errorCode);
+            throw new LollipopAssertionException(e.errorCode || VALIDATION_ERROR_CODES.IDP_CERT_DATA_NOT_FOUND);
         }
         return idpCertDataList;
     }

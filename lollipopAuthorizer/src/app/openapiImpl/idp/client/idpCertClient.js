@@ -4,7 +4,7 @@ import InvalidInstantFormatException from "../../../exception/invalidInstantForm
 import TagListSearchOutOfBoundException from "../../../exception/tagListSearchOutOfBoundException.js";
 import EntityIdNotFoundException from '../../../exception/entityIdNotFoundException.js';
 import { ErrorRetrievingIdpCertDataException, ErrorCode } from "../../../exception/errorRetrievingIdpCertDataException.js";
-import { lollipopConfig } from "../../../config/lollipopConsumerRequestConfig.js";
+import { lollipopConfig,IDP_PROVIDER_CONFIG } from "../../../config/lollipopConsumerRequestConfig.js";
 import ApiException from '../../../exception/apiException.js';
 import CIECertData from '../model/CIECertData.js';
 import SPIDCertData from '../model/SPIDCertData.js';
@@ -50,10 +50,10 @@ class IdpCertClient {
         try {
             //this.idpClientConfig è settato IDP_PROVIDER_CONFIG nel costruttore - this.idpClientConfig.CIE_ENTITY_ID[0];
             let idpCieEntityId;
-            if( process.env.IDP_CLIENT_CIEID === undefined || process.env.IDP_CLIENT_CIEID === '')
-                idpCieEntityId = lollipopConfig.idpCieEntityId;
+            if( process.env.IDP_CLIENT_CIEIDD === undefined || process.env.IDP_CLIENT_CIEIDD === '')
+                idpCieEntityId = IDP_PROVIDER_CONFIG.CIE_ENTITY_ID;
             else
-                idpCieEntityId = process.env.IDP_CLIENT_CIEID;
+                idpCieEntityId = process.env.IDP_CLIENT_CIEIDD;
 
             if (idpCieEntityId.includes(entityId)) {
                 listCertData = await this.getCieCerts(entityId, instant, listCertData, "CIECertData");

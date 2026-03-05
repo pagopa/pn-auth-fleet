@@ -37,6 +37,6 @@
     "EnableTokenExchangeOidcApi": "true",
     "OneIdentitySecretName": "pn-auth-fleet/one-identity-credentials",
     "OneIdentityBaseURL": "https://uat.oneid.pagopa.it",
-    "LollipopSecretsKey":  "arn:aws:secretsmanager:eu-south-1:830192246553:secret:pn-Lollipop-Secrets-Key-wIA5vA"
+    "LollipopSecretsKey": "pn-Lollipop-Secrets-Key"
   }
 }
