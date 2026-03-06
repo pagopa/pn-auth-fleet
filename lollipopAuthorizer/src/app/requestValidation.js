@@ -18,11 +18,14 @@ function findMicroserviceConfig(originalURL) {
 
     if (config) {
         console.log(`[findMicroserviceConfig] Match trovato per substringURL: "${config.substringURL}"`);
-    } else {
-        console.log('[findMicroserviceConfig] Nessun match trovato, uso configurazione globale');
+        return config;
     }
 
-    return config || null;
+    console.error(`[findMicroserviceConfig] Nessun match trovato per URL: "${originalURL}" (${configMap.length} entry configurate)`);
+    throw new LollipopRequestContentValidationException(
+        VALIDATION_ERROR_CODES.MICROSERVICE_CONFIG_NOT_FOUND,
+        `No microservice configuration found for URL: ${originalURL}`
+    );
 }
 
 /**
@@ -149,7 +152,7 @@ function isNotValidAssertionRef(signature) {
  */
 function validateAssertionTypeHeader(assertionType) {
   console.log("Starting validateAssertionTypeHeader...")
-  if (assertionType === null) {
+  if (assertionType == null) {
     console.error("[validateAssertionTypeHeader] Assertion type mancante");
     throw new LollipopRequestContentValidationException(
         VALIDATION_ERROR_CODES.MISSING_ASSERTION_TYPE_ERROR,
@@ -220,13 +223,13 @@ async function validateUserIdHeader(userId) {
 function validateAuthJWTHeader(authJWT) {
   console.log("Starting validateAuthJWTHeader...");
 
-  if (authJWT === null) {
+  if (authJWT == null) {
     throw new LollipopRequestContentValidationException(
         VALIDATION_ERROR_CODES.MISSING_AUTH_JWT,
         "Missing AuthJWT Header"
     );
   }
-  if (authJWT === "") {
+  if (authJWT.trim() === '') {
     throw new LollipopRequestContentValidationException(
         VALIDATION_ERROR_CODES.INVALID_AUTH_JWT,
         "Invalid AuthJWT Header value, cannot be empty"
