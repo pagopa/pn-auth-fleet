@@ -51,11 +51,16 @@ describe('Microservice Config Mapping Tests', () => {
             expect(config.methods).to.deep.equal(["GET"]);
         });
         
-        it('should return null when no match found', () => {
+        it('should throw MICROSERVICE_CONFIG_NOT_FOUND when no match found', () => {
             const url = "https://api-app.io.pagopa.it/api/v1/unknown/endpoint";
-            const config = findMicroserviceConfig(url);
-            
-            expect(config).to.be.null;
+            let thrownError;
+            try {
+                findMicroserviceConfig(url);
+            } catch (e) {
+                thrownError = e;
+            }
+            expect(thrownError).to.exist;
+            expect(thrownError.errorCode).to.equal('MICROSERVICE_CONFIG_NOT_FOUND');
         });
         
         it('should return null when config is not set', () => {
@@ -186,13 +191,18 @@ describe('Microservice Config Mapping Tests', () => {
             expect(config).to.be.null;
         });
         
-        it('should handle empty config array', () => {
+        it('should throw MICROSERVICE_CONFIG_NOT_FOUND for empty config array', () => {
             process.env.LOLLIPOP_AUTHORIZER_CONFIG = "[]";
-            
+
             const url = "https://api-app.io.pagopa.it/api/v1/mandate/create";
-            const config = findMicroserviceConfig(url);
-            
-            expect(config).to.be.null;
+            let thrownError;
+            try {
+                findMicroserviceConfig(url);
+            } catch (e) {
+                thrownError = e;
+            }
+            expect(thrownError).to.exist;
+            expect(thrownError.errorCode).to.equal('MICROSERVICE_CONFIG_NOT_FOUND');
         });
         
         it('should handle config without required fields', () => {
@@ -232,6 +242,117 @@ describe('Microservice Config Mapping Tests', () => {
             
             expect(config).to.not.be.null;
             expect(config.substringURL).to.equal("/api/");
+        });
+    });
+
+    describe('Methods format normalization (string vs array)', () => {
+        it('should normalize methods string "GET;POST" to array and find config', () => {
+            process.env.LOLLIPOP_AUTHORIZER_CONFIG = JSON.stringify([
+                {
+                    "substringURL": "/test-service/",
+                    "methods": "GET;POST",
+                    "URLpattern": "^https://example\\.test/test-service/.*$"
+                }
+            ]);
+            const url = "https://example.test/test-service/action";
+            const config = findMicroserviceConfig(url);
+            expect(config).to.not.be.null;
+            expect(config.methods).to.deep.equal(["GET", "POST"]);
+        });
+
+        it('should normalize methods string "GET;POST;PATCH" with three methods', () => {
+            process.env.LOLLIPOP_AUTHORIZER_CONFIG = JSON.stringify([
+                {
+                    "substringURL": "/test-service/",
+                    "methods": "GET;POST;PATCH",
+                    "URLpattern": "^https://example\\.test/.*$"
+                }
+            ]);
+            const url = "https://example.test/test-service/item";
+            const config = findMicroserviceConfig(url);
+            expect(config).to.not.be.null;
+            expect(config.methods).to.deep.equal(["GET", "POST", "PATCH"]);
+        });
+
+        it('should accept valid request when methods is string and method matches', async () => {
+            process.env.LOLLIPOP_AUTHORIZER_CONFIG = JSON.stringify([
+                {
+                    "substringURL": "/test-service/",
+                    "methods": "GET;POST",
+                    "URLpattern": "^https://example\\.test/test-service/.*$"
+                }
+            ]);
+            const url = "https://example.test/test-service/action";
+            await expect(validateOriginalMethodHeader("GET", url)).to.not.be.rejected;
+            await expect(validateOriginalMethodHeader("POST", url)).to.not.be.rejected;
+        });
+
+        it('should reject request when methods is string and method does not match', async () => {
+            process.env.LOLLIPOP_AUTHORIZER_CONFIG = JSON.stringify([
+                {
+                    "substringURL": "/test-service/",
+                    "methods": "GET",
+                    "URLpattern": "^https://example\\.test/.*$"
+                }
+            ]);
+            const url = "https://example.test/test-service/action";
+            try {
+                await validateOriginalMethodHeader("POST", url);
+                expect.fail('Should have thrown error');
+            } catch (error) {
+                expect(error.errorCode).to.equal('UNEXPECTED_ORIGINAL_METHOD');
+            }
+        });
+
+        it('should load all entries when some use string and some use array for methods', () => {
+            process.env.LOLLIPOP_AUTHORIZER_CONFIG = JSON.stringify([
+                {
+                    "substringURL": "/svc-a/",
+                    "methods": "GET;POST",
+                    "URLpattern": "^https://example\\.test/svc-a/.*$"
+                },
+                {
+                    "substringURL": "/svc-b/",
+                    "methods": ["GET"],
+                    "URLpattern": "^https://example\\.test/svc-b/.*$"
+                }
+            ]);
+            const configA = findMicroserviceConfig("https://example.test/svc-a/item");
+            expect(configA).to.not.be.null;
+            expect(configA.substringURL).to.equal("/svc-a/");
+            expect(configA.methods).to.deep.equal(["GET", "POST"]);
+
+            const configB = findMicroserviceConfig("https://example.test/svc-b/item");
+            expect(configB).to.not.be.null;
+            expect(configB.substringURL).to.equal("/svc-b/");
+            expect(configB.methods).to.deep.equal(["GET"]);
+        });
+
+        it('should return null (fallback) for empty string methods', () => {
+            process.env.LOLLIPOP_AUTHORIZER_CONFIG = JSON.stringify([
+                {
+                    "substringURL": "/test-service/",
+                    "methods": "",
+                    "URLpattern": "^https://example\\.test/.*$"
+                }
+            ]);
+            const url = "https://example.test/test-service/action";
+            const config = findMicroserviceConfig(url);
+            expect(config).to.be.null;
+        });
+
+        it('should trim spaces in method names when normalizing string', () => {
+            process.env.LOLLIPOP_AUTHORIZER_CONFIG = JSON.stringify([
+                {
+                    "substringURL": "/test-service/",
+                    "methods": "GET; POST; PATCH",
+                    "URLpattern": "^https://example\\.test/.*$"
+                }
+            ]);
+            const url = "https://example.test/test-service/action";
+            const config = findMicroserviceConfig(url);
+            expect(config).to.not.be.null;
+            expect(config.methods).to.deep.equal(["GET", "POST", "PATCH"]);
         });
     });
 });

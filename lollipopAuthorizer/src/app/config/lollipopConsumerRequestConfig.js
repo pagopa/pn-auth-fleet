@@ -118,8 +118,14 @@ function loadAuthorizerConfigMap() {
                 return null;
             }
 
-            if (!Array.isArray(entry.methods) || entry.methods.length === 0) {
-                console.error(`[loadAuthorizerConfigMap] Entry ${i}: methods deve essere un array non vuoto`);
+            if (typeof entry.methods === 'string') {
+                if (entry.methods.trim() === '') {
+                    console.error(`[loadAuthorizerConfigMap] Entry ${i}: methods stringa vuota`);
+                    return null;
+                }
+                entry.methods = entry.methods.split(';').map(m => m.trim()).filter(m => m.length > 0);
+            } else if (!Array.isArray(entry.methods) || entry.methods.length === 0) {
+                console.error(`[loadAuthorizerConfigMap] Entry ${i}: methods deve essere un array non vuoto o una stringa separata da ";"`);
                 return null;
             }
 
