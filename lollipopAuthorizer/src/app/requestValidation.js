@@ -6,14 +6,14 @@ import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstant
 import { COMPATIBLE_ASSERTION_TYPES  } from "./constants/lollipopConstants.js";
 import { lollipopConfig, authorizerConfigMap, loadAuthorizerConfigMap  } from "./config/lollipopConsumerRequestConfig.js";
 
-function findMicroserviceConfig(originalURL) {
+function findMicroserviceConfig(thisURL) {
   const configMap = authorizerConfigMap || loadAuthorizerConfigMap();
     if (!configMap || !Array.isArray(configMap)) {
         return null;
     }
 
     const config = configMap.find(entry =>
-        originalURL.includes(entry.substringURL)
+        thisURL.includes(entry.substringURL)
     );
 
     if (config) {
@@ -21,10 +21,10 @@ function findMicroserviceConfig(originalURL) {
         return config;
     }
 
-    console.error(`[findMicroserviceConfig] Nessun match trovato per URL: "${originalURL}" (${configMap.length} entry configurate)`);
+    console.error(`[findMicroserviceConfig] Nessun match trovato per URL: "${thisURL}" (${configMap.length} entry configurate)`);
     throw new LollipopRequestContentValidationException(
         VALIDATION_ERROR_CODES.MICROSERVICE_CONFIG_NOT_FOUND,
-        `No microservice configuration found for URL: ${originalURL}`
+        `No microservice configuration found for URL: ${thisURL}`
     );
 }
 
@@ -250,7 +250,7 @@ function validateAuthJWTHeader(authJWT) {
  * @param {string} originalURL - URL originale per identificare il microservizio
  * @throws {LollipopRequestContentValidationException} Se mancante o non incluso nella lista dei metodi validi
  */
-async function validateOriginalMethodHeader(originalMethod, originalURL) {
+async function validateOriginalMethodHeader(currentURL, originalMethod, originalURL) {
   console.log("Starting validateOriginalMethodHeader...");
 
   if (!originalMethod) {
@@ -261,7 +261,7 @@ async function validateOriginalMethodHeader(originalMethod, originalURL) {
     );
   }
 
-  const microserviceConfig = findMicroserviceConfig(originalURL);
+  const microserviceConfig = findMicroserviceConfig(currentURL);
   
   let validMethods;
   
@@ -304,7 +304,7 @@ async function validateOriginalMethodHeader(originalMethod, originalURL) {
  * @param {string} originalURL - L'URL originale
  * @throws {LollipopRequestContentValidationException} Se è mancante, non rispetta il formato previsto o non ha il pattern corretto
  */
-async function validateOriginalURLHeader(originalURL) {
+async function validateOriginalURLHeader(currentURL, originalURL) {
   console.log("Starting validateOriginalURLHeader...");
   if (!originalURL) {
     console.error('[validateOriginalURLHeader] ERROR: Missing Original URL Header');
@@ -323,7 +323,7 @@ async function validateOriginalURLHeader(originalURL) {
     );
   }
 
-  const microserviceConfig = findMicroserviceConfig(originalURL);
+  const microserviceConfig = findMicroserviceConfig(currentURL);
   
   let urlPattern;
   
