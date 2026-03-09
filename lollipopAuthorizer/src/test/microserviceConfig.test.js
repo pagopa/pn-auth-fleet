@@ -75,40 +75,44 @@ describe('Microservice Config Mapping Tests', () => {
     describe('validateOriginalMethodHeader with specific config', () => {
         it('should accept POST for /mandate/ endpoint', async () => {
             const method = "POST";
+            const path = "/api/v1/mandate/create";
             const url = "https://api-app.io.pagopa.it/api/v1/mandate/create";
-            
+
             await expect(
-                validateOriginalMethodHeader(method, url)
+                validateOriginalMethodHeader(path, method, url)
             ).to.not.be.rejected;
         });
-        
+
         it('should reject GET for /mandate/ endpoint', async () => {
             const method = "GET";
+            const path = "/api/v1/mandate/create";
             const url = "https://api-app.io.pagopa.it/api/v1/mandate/create";
-            
+
             try {
-                await validateOriginalMethodHeader(method, url);
+                await validateOriginalMethodHeader(path, method, url);
                 expect.fail('Should have thrown error');
             } catch (error) {
                 expect(error.errorCode).to.equal('UNEXPECTED_ORIGINAL_METHOD');
             }
         });
-        
+
         it('should accept GET for /delivery/ endpoint', async () => {
             const method = "GET";
+            const path = "/api/v1/delivery/status";
             const url = "https://api-app.io.pagopa.it/api/v1/delivery/status";
-            
+
             await expect(
-                validateOriginalMethodHeader(method, url)
+                validateOriginalMethodHeader(path, method, url)
             ).to.not.be.rejected;
         });
-        
+
         it('should reject POST for /delivery/ endpoint', async () => {
             const method = "POST";
+            const path = "/api/v1/delivery/status";
             const url = "https://api-app.io.pagopa.it/api/v1/delivery/status";
-            
+
             try {
-                await validateOriginalMethodHeader(method, url);
+                await validateOriginalMethodHeader(path, method, url);
                 expect.fail('Should have thrown error');
             } catch (error) {
                 expect(error.errorCode).to.equal('UNEXPECTED_ORIGINAL_METHOD');
@@ -118,29 +122,32 @@ describe('Microservice Config Mapping Tests', () => {
     
     describe('validateOriginalURLHeader with specific config', () => {
         it('should accept valid URL for /delivery/ endpoint', async () => {
+            const path = "/api/v1/delivery/status";
             const url = "https://api-app.io.pagopa.it/api/v1/delivery/status";
-            
+
             await expect(
-                validateOriginalURLHeader(url)
+                validateOriginalURLHeader(path, url)
             ).to.not.be.rejected;
         });
-        
+
         it('should reject invalid URL for /delivery/ endpoint (contains numbers)', async () => {
+            const path = "/api/v1/delivery/status123";
             const url = "https://api-app.io.pagopa.it/api/v1/delivery/status123";
-            
+
             try {
-                await validateOriginalURLHeader(url);
+                await validateOriginalURLHeader(path, url);
                 expect.fail('Should have thrown error');
             } catch (error) {
                 expect(error.errorCode).to.equal('UNEXPECTED_ORIGINAL_URL');
             }
         });
-        
+
         it('should accept valid URL for /mandate/ endpoint', async () => {
+            const path = "/api/v1/mandate/create";
             const url = "https://api-app.io.pagopa.it/api/v1/mandate/create";
-            
+
             await expect(
-                validateOriginalURLHeader(url)
+                validateOriginalURLHeader(path, url)
             ).to.not.be.rejected;
         });
     });
@@ -153,27 +160,29 @@ describe('Microservice Config Mapping Tests', () => {
         it('should use global config when no specific config found', async () => {
             process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD = "GET;POST";
             process.env.EXPECTED_FIRST_LC_ORIGINAL_URL = "^https://api-app\\.io\\.pagopa\\.it/.*$";
-            
+
+            const path = "/api/v1/unknown/endpoint";
             const method = "GET";
             const url = "https://api-app.io.pagopa.it/api/v1/unknown/endpoint";
-            
+
             await expect(
-                validateOriginalMethodHeader(method, url)
+                validateOriginalMethodHeader(path, method, url)
             ).to.not.be.rejected;
-            
+
             await expect(
-                validateOriginalURLHeader(url)
+                validateOriginalURLHeader(path, url)
             ).to.not.be.rejected;
         });
-        
+
         it('should reject method not in global config', async () => {
             process.env.EXPECTED_FIRST_LC_ORIGINAL_METHOD = "POST";
-            
+
+            const path = "/api/v1/unknown/endpoint";
             const method = "GET";
             const url = "https://api-app.io.pagopa.it/api/v1/unknown/endpoint";
-            
+
             try {
-                await validateOriginalMethodHeader(method, url);
+                await validateOriginalMethodHeader(path, method, url);
                 expect.fail('Should have thrown error');
             } catch (error) {
                 expect(error.errorCode).to.equal('UNEXPECTED_ORIGINAL_METHOD');
@@ -282,9 +291,10 @@ describe('Microservice Config Mapping Tests', () => {
                     "URLpattern": "^https://example\\.test/test-service/.*$"
                 }
             ]);
+            const path = "/test-service/action";
             const url = "https://example.test/test-service/action";
-            await expect(validateOriginalMethodHeader("GET", url)).to.not.be.rejected;
-            await expect(validateOriginalMethodHeader("POST", url)).to.not.be.rejected;
+            await expect(validateOriginalMethodHeader(path, "GET", url)).to.not.be.rejected;
+            await expect(validateOriginalMethodHeader(path, "POST", url)).to.not.be.rejected;
         });
 
         it('should reject request when methods is string and method does not match', async () => {
@@ -295,9 +305,10 @@ describe('Microservice Config Mapping Tests', () => {
                     "URLpattern": "^https://example\\.test/.*$"
                 }
             ]);
+            const path = "/test-service/action";
             const url = "https://example.test/test-service/action";
             try {
-                await validateOriginalMethodHeader("POST", url);
+                await validateOriginalMethodHeader(path, "POST", url);
                 expect.fail('Should have thrown error');
             } catch (error) {
                 expect(error.errorCode).to.equal('UNEXPECTED_ORIGINAL_METHOD');

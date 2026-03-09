@@ -34,10 +34,11 @@ async function validateLollipopRequest(request) {
         (async () => validateUserIdHeader(headers[lollipopConfig.userIdHeader]))(),
         (async () => validateAuthJWTHeader(headers[lollipopConfig.authJWTHeader]))(),
         (async () => validateOriginalMethodHeader(
+            request.path,
             headers[lollipopConfig.originalMethodHeader],
             originalURL
         ))(),
-        (async () => validateOriginalURLHeader(originalURL))(),
+        (async () => validateOriginalURLHeader(request.path, originalURL))(),
         (async () => validateSignatureInputHeader(headers[lollipopConfig.signatureInputHeader]))(),
         (async () => validateSignatureHeader(headers[lollipopConfig.signatureHeader]))(),
     ]);

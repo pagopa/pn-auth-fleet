@@ -45,6 +45,7 @@ async function handleEvent(event) {
     let commandResultFamilyName='';
     try {
         const request = {
+          path: event.path,
           // Mapping degli header ricevuti dall'evento
           headerParams: {
               headers: event.headers || {}
