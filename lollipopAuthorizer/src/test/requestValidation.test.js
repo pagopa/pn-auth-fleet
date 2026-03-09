@@ -236,14 +236,14 @@ describe('validateOriginalMethodHeader (async)', () => {
   const originalMethod = 'POST';
   // test con OriginalMethod valida -> no exception
   it('Valid POST OriginalMethod', async () => {
-    await expect(validateOriginalMethodHeader(originalMethod)).to.be.fulfilled;
+    await expect(validateOriginalMethodHeader('/test', originalMethod, 'https://example.test/test')).to.be.fulfilled;
   });
 
     const blankOriginalMethod = null;
     // test con OriginalMethod NON valorizzato -> exception
     it('should throw MISSING_ORIGINAL_METHOD', async () => {
         try {
-          await validateOriginalMethodHeader(blankOriginalMethod);
+          await validateOriginalMethodHeader('/test', blankOriginalMethod, 'https://example.test/test');
         } catch (err) {
           expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
           expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ORIGINAL_METHOD);
@@ -255,7 +255,7 @@ describe('validateOriginalMethodHeader (async)', () => {
     // test con OriginalMethod NON atteso -> exception
     it('should throw UNEXPECTED_ORIGINAL_METHOD', async () => {
         try {
-          await validateOriginalMethodHeader(unExpectedOriginalMethod);
+          await validateOriginalMethodHeader('/test', unExpectedOriginalMethod, 'https://example.test/test');
         } catch (err) {
           expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
           expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.UNEXPECTED_ORIGINAL_METHOD);
@@ -270,7 +270,7 @@ describe('validateOriginalURLHeader (async) ', () => {
     it('should throw MISSING_ORIGINAL_URL for blankOriginalURL', () => {
         const blankOriginalURL = null;
         try{
-            validateOriginalURLHeader(blankOriginalURL);
+            validateOriginalURLHeader('/test', blankOriginalURL);
         } catch (err) {
           expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
           expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.MISSING_ORIGINAL_URL);
@@ -281,7 +281,7 @@ describe('validateOriginalURLHeader (async) ', () => {
     it('should throw INVALID_ORIGINAL_URL for noValidOriginalURL', () => {
         const noValidOriginalURL = 'http://pippo/paperino$';
         try {
-            validateOriginalURLHeader(noValidOriginalURL);
+            validateOriginalURLHeader('/test', noValidOriginalURL);
         } catch (err) {
           expect(err).to.be.instanceOf(LollipopRequestContentValidationException);
           expect(err.errorCode).to.equal(VALIDATION_ERROR_CODES.INVALID_ORIGINAL_URL);
@@ -291,7 +291,7 @@ describe('validateOriginalURLHeader (async) ', () => {
     //test con valore OriginalURL valido -> no exception
     it('Valid ORIGINAL_URL for validOriginalURL', () => {
         const validOriginalURL = 'https://pippo/pluto/paperino$';
-        validateOriginalURLHeader(validOriginalURL);
+        validateOriginalURLHeader('/test', validOriginalURL);
     });
 
 });
