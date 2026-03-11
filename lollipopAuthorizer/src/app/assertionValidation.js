@@ -3,7 +3,7 @@ import { MILLISECONDS_PER_DAY, AssertionRefAlgorithms  } from "../app/constants/
 import { lollipopConfig } from "../app/config/lollipopConsumerRequestConfig.js"
 import LollipopAssertionException from "./exception/lollipopAssertionException.js";
 import { validateSignature  } from "./signatureValidation.js";
-import { DOMParser  } from "xmldom";
+import { DOMParser  } from "@xmldom/xmldom";
 import ErrorRetrievingAssertionException from "./exception/errorRetrievingAssertionException.js";
 import OidcAssertionNotSupported from "./exception/oidcAssertionNotSupported.js";
 import LollipopAssertionNotFoundException from "./exception/lollipopAssertionNotFoundException.js";

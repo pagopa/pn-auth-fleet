@@ -2,7 +2,7 @@ import { expect } from "chai";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
-import xmldom from "xmldom";
+import { DOMParser } from "@xmldom/xmldom";
 import path from "path";
 import fs from "fs";
 import sinon from "sinon";
@@ -44,7 +44,7 @@ describe('getIdpCertData ', async () => {
         try {
 
             const getAssertionXmlString = ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITH_CERT;
-            const parserXML = new xmldom.DOMParser();
+            const parserXML = new DOMParser();
             assertionDoc = parserXML.parseFromString(getAssertionXmlString, "application/xml");
             if (assertionDoc.documentElement.nodeName === 'parsererror') {
                 throw new Error("Errore di sintassi nel file XML. Parsing fallito.");
@@ -100,7 +100,7 @@ describe('getIdpCertData ', async () => {
         try {
             const getAssertionXmlString = ASSERTION_CIE_XML_WITH_VALID_ENTITY_ID_WITH_CERT;
 
-            const parserXML = new xmldom.DOMParser();
+            const parserXML = new DOMParser();
             assertionDoc = parserXML.parseFromString(getAssertionXmlString, "application/xml");
             if (assertionDoc.documentElement.nodeName === 'parsererror') {
                 throw new Error("Errore di sintassi nel file XML. Parsing fallito.");
@@ -150,7 +150,7 @@ describe('getIdpCertData ', async () => {
         try {
             const getAssertionXmlString = ASSERTION_SPID_XML_WITH_VALID_ENTITY_ID_WITHOUT_CERT;
 
-            const parserXML = new xmldom.DOMParser();
+            const parserXML = new DOMParser();
             assertionDoc = parserXML.parseFromString(getAssertionXmlString, "application/xml");
             if (assertionDoc.documentElement.nodeName === 'parsererror') {
                 throw new Error("Errore di sintassi nel file XML. Parsing fallito.");
