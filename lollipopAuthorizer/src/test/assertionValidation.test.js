@@ -2,7 +2,7 @@ import { expect } from "chai";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
-import xmldom from "xmldom";
+import { DOMParser } from "@xmldom/xmldom";
 import base64url from "base64url";
 import { validateAssertionPeriod, validateUserId, validateInResponseTo, validateFullNameHeader  } from "../app/assertionValidation.js";
 import { VALIDATION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
@@ -31,7 +31,7 @@ describe('validateAssertionPeriodTest ', () => {
             `NotBefore="${notBeforeIso}"`
         );
         
-        const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithDynamicNotBefore, "text/xml");
+        const assertionDoc = new DOMParser().parseFromString(xmlWithDynamicNotBefore, "text/xml");
 
         console.log("validateAssertionPeriod ...");
         const result = await validateAssertionPeriod(assertionDoc);
@@ -46,7 +46,7 @@ describe('validateAssertionPeriodTest ', () => {
             `NotBefore="invalidFormat"`
         );
         
-        const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithInvalidNotBefore, "text/xml");
+        const assertionDoc = new DOMParser().parseFromString(xmlWithInvalidNotBefore, "text/xml");
 
         await expect(validateAssertionPeriod(assertionDoc))
             .to.be.rejectedWith(LollipopAssertionException)
@@ -62,7 +62,7 @@ describe('validateAssertionPeriodTest ', () => {
             `NotBefore=""`
         );
 
-        const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithNullNotBefore, "text/xml");
+        const assertionDoc = new DOMParser().parseFromString(xmlWithNullNotBefore, "text/xml");
 
         await expect(validateAssertionPeriod(assertionDoc))
             .to.be.rejectedWith(LollipopAssertionException)
@@ -76,7 +76,7 @@ describe('validateAssertionPeriodTest ', () => {
         const invalidXml = `<Assertion xmlns="urn:oasis:names:tc:SAML:2.0:assertion">
                             <Conditions></Conditions>
                             </Assertion>`;
-        const assertionDoc = new xmldom.DOMParser().parseFromString(invalidXml, "text/xml");
+        const assertionDoc = new DOMParser().parseFromString(invalidXml, "text/xml");
 
         await expect(validateAssertionPeriod(assertionDoc))
             .to.be.rejectedWith(LollipopAssertionException)
@@ -92,7 +92,7 @@ describe('validateAssertionPeriodTest ', () => {
             `NotBefore="2010-11-04T11:50:33.570Z"`
         );
         
-        const assertionDoc = new xmldom.DOMParser().parseFromString(xmlWithExpiredDate, "text/xml");
+        const assertionDoc = new DOMParser().parseFromString(xmlWithExpiredDate, "text/xml");
 
         console.log("validateAssertionPeriod ...");
         const result = await validateAssertionPeriod(assertionDoc);
@@ -105,7 +105,7 @@ describe('validateAssertionPeriodTest ', () => {
 describe("validateUserId tests", () => {
 
   it("should return TRUE if fiscalNumber and userId header match", async () => {
-    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+    const assertionDoc = new DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
 
     const request = {
       headerParams: {
@@ -119,7 +119,7 @@ describe("validateUserId tests", () => {
   });
 
   it("should return FALSE if fiscalNumber and userId header don't match", async () => {
-    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+    const assertionDoc = new DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
 
     const request = {
       headerParams: {
@@ -133,7 +133,7 @@ describe("validateUserId tests", () => {
   });
 
   it("should return FALSE when userId header is null", async () => {
-    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+    const assertionDoc = new DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
 
     const request = {
       headerParams: {}
@@ -154,7 +154,7 @@ describe("validateUserId tests", () => {
         [lollipopConfig.userIdHeader]: "AAAAAA00A00A000A"
       }
     };
-    const assertionDoc = new xmldom.DOMParser().parseFromString(invalidAssertion, "text/xml");
+    const assertionDoc = new DOMParser().parseFromString(invalidAssertion, "text/xml");
 
     await expect(validateUserId(request, assertionDoc)).to.be.rejectedWith(LollipopAssertionException);
   });
@@ -165,7 +165,7 @@ describe("validateUserId tests", () => {
       "TINIT-GDNNWA12H81Y874F"
     );
 
-    const assertionDoc = new xmldom.DOMParser().parseFromString(assertionWithTinit, "text/xml");
+    const assertionDoc = new DOMParser().parseFromString(assertionWithTinit, "text/xml");
 
     const request = {
       headerParams: {
@@ -179,7 +179,7 @@ describe("validateUserId tests", () => {
   });
 
   it("should throws error when assertionDoc is empty", async () => {
-    const emptyAssertion = new xmldom.DOMParser().parseFromString("<root/>", "text/xml");
+    const emptyAssertion = new DOMParser().parseFromString("<root/>", "text/xml");
 
     const request = {
       headerParams: {
@@ -195,7 +195,7 @@ describe("validateUserId tests", () => {
 
 describe("validateInResponseTo tests", () => {
 
-    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+    const assertionDoc = new DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
     const ecKeyBase64 = base64url.encode(JSON.stringify( VALID_JWK));
     const ecKeyNotValid = base64url.encode(JSON.stringify( NOT_VALID_JWK));
     const rsaKeyBase64 = base64url.encode(JSON.stringify(RSA_JWK));
@@ -213,7 +213,7 @@ describe("validateInResponseTo tests", () => {
                 "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
                 "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
             );
-            const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+            const assertionDocNew = new DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
 
         const resultPromise = validateInResponseTo(request, assertionDocNew);
         await expect(resultPromise).to.eventually.be.true;
@@ -221,7 +221,7 @@ describe("validateInResponseTo tests", () => {
 
     it('TEST_2: should accept valid SHA384 inResponseTo', async () => {
 
-        const assertionDocSHA384 = new xmldom.DOMParser().parseFromString(ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM, "text/xml");
+        const assertionDocSHA384 = new DOMParser().parseFromString(ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA384_ALGORITHM, "text/xml");
         const request = {
               headerParams: {
                 [lollipopConfig.assertionRefHeader]:  "sha384-lqxC_2kqMdwiBWoD-Us63Fha6e3bE1Y3yUz8G6IJTldohJCIBVDfvS8acB3GJBhw",
@@ -235,7 +235,7 @@ describe("validateInResponseTo tests", () => {
 
       it('TEST_3: should accept valid SHA512 inResponseTo', async () => {
 
-        const assertionDocSHA512 = new xmldom.DOMParser().parseFromString(ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA512_ALGORITHM, "text/xml");
+        const assertionDocSHA512 = new DOMParser().parseFromString(ASSERTION_XML_WITH_VALID_INRESPONSETO_SHA512_ALGORITHM, "text/xml");
         const request = {
               headerParams: {
                 [lollipopConfig.assertionRefHeader]:  "sha512-nX5CfUc5R-FoYKYZwvQMuc4Tt-heb7vHi_O-AMUSqHNVCw9kNaN2SVuN-DXtGXyUhrcVcQdCyY6FVzl_vyWXNA",
@@ -253,7 +253,7 @@ describe("validateInResponseTo tests", () => {
             "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
             "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
         );
-        const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+        const assertionDocNew = new DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
 
         // Header con un valore diverso
         const mismatchRequest = {
@@ -276,7 +276,7 @@ describe("validateInResponseTo tests", () => {
             "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
             "sha256-short!!!"
         );
-        const invalidDoc = new xmldom.DOMParser().parseFromString(invalidXml, "text/xml");
+        const invalidDoc = new DOMParser().parseFromString(invalidXml, "text/xml");
         try {
             await validateInResponseTo(request, invalidDoc);
         } catch (err) {
@@ -291,7 +291,7 @@ describe("validateInResponseTo tests", () => {
             "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
             ""
         );
-        const invalidDoc = new xmldom.DOMParser().parseFromString(invalidXml, "text/xml");
+        const invalidDoc = new DOMParser().parseFromString(invalidXml, "text/xml");
         try {
             await validateInResponseTo(request, invalidDoc);
         } catch (err) {
@@ -307,7 +307,7 @@ describe("validateInResponseTo tests", () => {
             "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
             "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
         );
-        const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+        const assertionDocNew = new DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
 
             const request = {
               headerParams: {
@@ -331,7 +331,7 @@ describe("validateInResponseTo tests", () => {
             "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
             "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
         );
-        const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+        const assertionDocNew = new DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
 
         const request = {
           headerParams: {
@@ -352,7 +352,7 @@ describe("validateInResponseTo tests", () => {
             "sha256-chG21HBOK-wJp2hHuYPrx7tAII2UGWVF-IFo0crUOtw",
             "sha256-a7qE0Y0DyqeOFFREIQSLKfu5WlbckdxVXKFasfcI-Dg"
         );
-        const assertionDocNew = new xmldom.DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
+        const assertionDocNew = new DOMParser().parseFromString(validAssertionDocSHANew, "text/xml");
 
         const request = {
           headerParams: {
@@ -372,7 +372,7 @@ describe("validateInResponseTo tests", () => {
 
 describe("validateFullNameHeader tests", () => {
 
-    const assertionDoc = new xmldom.DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
+    const assertionDoc = new DOMParser().parseFromString(VALID_ASSERTION_XML, "text/xml");
 
     it("TEST_1: should accept valid FullName in Header", async () => {
 
@@ -387,7 +387,7 @@ describe("validateFullNameHeader tests", () => {
     it("TEST_2: should not accept FullName in Header for name null", async () => {
 
         const invalidName = VALID_ASSERTION_XML.replaceAll( "Mario", "");
-        const invalidNameAssertionDoc = new xmldom.DOMParser().parseFromString(invalidName, "text/xml");
+        const invalidNameAssertionDoc = new DOMParser().parseFromString(invalidName, "text/xml");
 
         try {
             const mappaOggetto = await validateFullNameHeader( invalidNameAssertionDoc);
@@ -402,7 +402,7 @@ describe("validateFullNameHeader tests", () => {
     it("TEST_3: should not accept FullName in Header for familyName null", async () => {
 
         const invalidName = VALID_ASSERTION_XML.replaceAll( "Bianchi", "");
-        const invalidNameAssertionDoc = new xmldom.DOMParser().parseFromString(invalidName, "text/xml");
+        const invalidNameAssertionDoc = new DOMParser().parseFromString(invalidName, "text/xml");
 
         try {
             const mappaOggetto = await validateFullNameHeader( invalidNameAssertionDoc);
@@ -416,7 +416,7 @@ describe("validateFullNameHeader tests", () => {
 
     it("TEST_4: should not accept FullName in Header for Attribute is null", async () => {
 
-            const invalidNameAssertionDoc = new xmldom.DOMParser().parseFromString(ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG, "text/xml");
+            const invalidNameAssertionDoc = new DOMParser().parseFromString(ASSERTION_XML_WITHOUT_ATTRIBUTE_TAG, "text/xml");
 
             try {
                 const mappaOggetto = await validateFullNameHeader( invalidNameAssertionDoc);
