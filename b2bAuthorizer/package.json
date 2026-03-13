@@ -41,6 +41,6 @@
     "@aws-sdk/client-s3": "^3.252.0",
     "@aws-sdk/client-api-gateway": "^3.252.0",
     "pn-auth-common": "file:../authCommon",
-    "axios": "^0.30.0"
+    "axios": "^1.0.0"
   }
 }
