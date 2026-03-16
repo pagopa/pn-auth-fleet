@@ -14,6 +14,7 @@ const hasSupportPermission = async (event, role) => {
     bucketKey,
     [role],
     "x-support-roles-permissions",
+    true,
   );
   if (resources.length === 0) {
     throw new Error("No resource permitted");

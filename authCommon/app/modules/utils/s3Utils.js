@@ -10,7 +10,7 @@ function transformPathPattern(path, servicePath) {
   return path.replaceAll(/({.*?})/g, "*").replace(regex, "");
 }
 
-async function getAllowedResourcesFromS3(event, bucket, key, userTags, tagName) {
+async function getAllowedResourcesFromS3(event, bucket, key, userTags, tagName, requireTags = false) {
   // Function that collects the S3 object containing the openAPI document and extract
   // the tags of the method invoked
   const s3Object = await getS3Object(bucket, key);
@@ -21,7 +21,7 @@ async function getAllowedResourcesFromS3(event, bucket, key, userTags, tagName) 
   for (const [path, yamlMethodElement] of Object.entries(yamlPaths)) {
     for (const [method, yamlElement] of Object.entries(yamlMethodElement)) {
       const tags = yamlElement[tagName];
-      if (!tags || arraysOverlap(tags, userTags)) {
+      if ((!requireTags && !tags) || arraysOverlap(tags, userTags)) {
         resources.push({
           method: method.toUpperCase(),
           path: transformPathPattern(path, event.servicePath),
