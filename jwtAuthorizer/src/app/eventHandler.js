@@ -75,12 +75,13 @@ function getUserType(token) {
   if (!token.organization) {
     return "PF";
   }
-  if (token.organization && token.organization.role?.startsWith("pg-")) {
+  if (token.organization.role?.startsWith("pg-")) {
     return "PG";
   }
-  if (token.organization) {
-    return "PA";
+  if (token.organization.role?.startsWith("support")) {
+    return "BACKSTAGE";
   }
+  return "PA";
 }
 
 module.exports = { handleEvent, defaultDenyAllPolicy };
