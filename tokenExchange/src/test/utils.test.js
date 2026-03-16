@@ -11,6 +11,7 @@ const {
   addSourceChannelInfo,
   getUserType,
 } = require("../app/utils.js");
+const { supportToken } = require("./__mocks__/token.mock.js");
 
 const pgToken = {
   organization: {
@@ -82,7 +83,7 @@ describe("utils tests", () => {
 
   it("checks allowed origin", () => {
     const result = checkOrigin(
-      "https://portale-pa-develop.fe.dev.pn.pagopa.it"
+      "https://portale-pa-develop.fe.dev.pn.pagopa.it",
     );
 
     expect(result).to.eq(0);
@@ -129,6 +130,12 @@ describe("utils tests", () => {
     expect(result).to.eq("PA");
   });
 
+  it("checks that user is BACKSTAGE type", () => {
+    const result = getUserType(supportToken);
+
+    expect(result).to.eq("BACKSTAGE");
+  });
+
   it("enrichDecodedToken", () => {
     const result = enrichDecodedToken(paToken);
 
@@ -140,8 +147,8 @@ describe("utils tests", () => {
     mock
       .onGet(
         `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
-          parameterName
-        )}`
+          parameterName,
+        )}`,
       )
       .reply(200, JSON.stringify({ Parameter: { Value: "fake" } }));
     const result = await getParameterFromStore("/fake-path/fake-param");
@@ -153,12 +160,12 @@ describe("utils tests", () => {
     mock
       .onGet(
         `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
-          parameterName
-        )}`
+          parameterName,
+        )}`,
       )
       .reply(500);
     await expect(
-      getParameterFromStore("/fake-path/fake-param")
+      getParameterFromStore("/fake-path/fake-param"),
     ).to.be.rejectedWith(Error, "Error in get parameter");
   });
 
@@ -187,7 +194,7 @@ describe("utils tests", () => {
         ],
         groups: ["62e941d313b0fc6edad4535a"],
         fiscal_code: "01199250158",
-      }
+      },
     };
 
     const expectedToken = {
@@ -219,13 +226,13 @@ describe("utils tests", () => {
         channel: "TPP",
         details: "tppIdTest",
         retrievalId: "retrievalId",
-      }
+      },
     };
     const source = {
       type: "TPP",
-      id: "retrievalId"
-    }
-    let tppId = "tppIdTest"
+      id: "retrievalId",
+    };
+    let tppId = "tppIdTest";
     const tokenResult = addSourceChannelInfo(token, source, tppId);
     expect(tokenResult).to.deep.eq(expectedToken);
   });
@@ -255,7 +262,7 @@ describe("utils tests", () => {
         ],
         groups: ["62e941d313b0fc6edad4535a"],
         fiscal_code: "01199250158",
-      }
+      },
     };
 
     const expectedToken = {
@@ -285,26 +292,29 @@ describe("utils tests", () => {
       },
       source: {
         channel: "WEB",
-        details: "QR_CODE"
-      }
+        details: "QR_CODE",
+      },
     };
 
     const source = {
       type: "QR",
-      id: "aarQrCodeValue"
-    }
+      id: "aarQrCodeValue",
+    };
     let tppId;
     const tokenResult = addSourceChannelInfo(token, source, tppId);
     expect(tokenResult).to.deep.eq(expectedToken);
   });
 
   it("add source channel info invalid - KO", async () => {
-    const token = {}
+    const token = {};
     const source = {
-      type: "INVALID"
-    }
+      type: "INVALID",
+    };
     let tppId;
 
-    expect(() => addSourceChannelInfo(token, source, tppId)).to.throw(Error, "Invalid source type");
+    expect(() => addSourceChannelInfo(token, source, tppId)).to.throw(
+      Error,
+      "Invalid source type",
+    );
   });
 });
