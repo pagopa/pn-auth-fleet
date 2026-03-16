@@ -10,9 +10,22 @@ function transformPathPattern(path, servicePath) {
   return path.replaceAll(/({.*?})/g, "*").replace(regex, "");
 }
 
+/**
+ * Retrieves the allowed API resources for a user based on an OpenAPI document stored in S3.
+ *
+ * Fetches the OpenAPI YAML document from S3, iterates over all paths and methods,
+ * and returns only the resources the user is authorized to access based on tag matching.
+ *
+ * @param {Object} event - The request event object containing `servicePath` used to normalize paths.
+ * @param {string} bucket - The S3 bucket name where the OpenAPI document is stored.
+ * @param {string} key - The S3 object key of the OpenAPI YAML document.
+ * @param {string[]} userTags - The tags associated with the current user, used for authorization matching.
+ * @param {string} tagName - The property name in the OpenAPI operation object that contains the authorization tags.
+ * @param {boolean} [requireTags=false] - If `false`, endpoints without tags are considered public and always allowed.
+ *   If `true`, only endpoints with at least one tag matching `userTags` are allowed.
+ * @returns {Promise<Array<{method: string, path: string}>>} A list of allowed resources with their HTTP method and path.
+ */
 async function getAllowedResourcesFromS3(event, bucket, key, userTags, tagName, requireTags = false) {
-  // Function that collects the S3 object containing the openAPI document and extract
-  // the tags of the method invoked
   const s3Object = await getS3Object(bucket, key);
   const yamlDocument = yaml.load(s3Object);
   const yamlPaths = yamlDocument["paths"];
