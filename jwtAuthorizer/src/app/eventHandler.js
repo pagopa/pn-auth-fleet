@@ -1,6 +1,7 @@
 const { generateIAMPolicy } = require("./iamPolicyGen.js");
 const { validation } = require("./validation.js");
 const Redis = require("./redis.js");
+const { hasSupportPermission } = require("./backstageAuthorizer.js");
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -56,6 +57,10 @@ async function handleEvent(event) {
       contextAttrs.sourceChannelDetails = decodedToken.source.details;
     }
     console.log("contextAttrs ", contextAttrs);
+
+    if (contextAttrs.cx_type === 'BACKSTAGE') {
+      await hasSupportPermission(event, contextAttrs.cx_role)
+    }
 
     // Generate IAM Policy
     iamPolicy = await generateIAMPolicy(event.methodArn, contextAttrs);
