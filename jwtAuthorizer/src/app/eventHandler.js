@@ -58,7 +58,7 @@ async function handleEvent(event) {
     }
     console.log("contextAttrs ", contextAttrs);
 
-    if (contextAttrs.cx_type === 'BACKSTAGE') {
+    if (contextAttrs.cx_type === 'BS') {
       await hasSupportPermission(event, contextAttrs.cx_role)
     }
 
@@ -84,7 +84,7 @@ function getUserType(token) {
     return "PG";
   }
   if (token.organization.role?.startsWith("support")) {
-    return "BACKSTAGE";
+    return "BS";
   }
   return "PA";
 }
