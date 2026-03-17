@@ -19,7 +19,7 @@ async function jwtValidator(jwtToken) {
     const sensitiveFields = ["email", "family_name", "fiscal_number", "name"];
     const decodedTokenMaskedPayload = utils.copyAndMaskObject(
       decodedToken.payload,
-      sensitiveFields,
+      sensitiveFields
     );
     const decodedTokenMasked = {
       header: decodedToken.header,
@@ -86,7 +86,7 @@ function checkIssuer(iss) {
   } else {
     console.error(
       "Invalid env vars ALLOWED_ISSUER ",
-      process.env.ALLOWED_ISSUER,
+      process.env.ALLOWED_ISSUER
     );
     return -1;
   }
@@ -100,7 +100,7 @@ function checkAudience(aud) {
   } else {
     console.error(
       "Invalid env vars ACCEPTED_AUDIENCE",
-      process.env.ACCEPTED_AUDIENCE,
+      process.env.ACCEPTED_AUDIENCE
     );
     return -1;
   }
@@ -111,7 +111,7 @@ async function checkTaxIdCode(taxIdCode) {
   if (process.env.ALLOWED_TAXIDS_PARAMETER) {
     try {
       const allowedTaxIdsFromStore = await utils.getParameterFromStore(
-        process.env.ALLOWED_TAXIDS_PARAMETER,
+        process.env.ALLOWED_TAXIDS_PARAMETER
       );
       if (allowedTaxIdsFromStore.length === 0) {
         return 0;

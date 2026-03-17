@@ -21,7 +21,7 @@ function maskString(stringToMask) {
   const firstTwoChars = stringToMask.substring(0, 2);
   const lastTwoChars = stringToMask.substring(
     stringToMask.length - 2,
-    stringToMask.length,
+    stringToMask.length
   );
 
   const hiddenStringLength = stringToMask.length - 4;
@@ -37,7 +37,7 @@ function checkOrigin(origin) {
   } else {
     console.error(
       "Invalid env vars ALLOWED_ORIGIN ",
-      process.env.ALLOWED_ORIGIN,
+      process.env.ALLOWED_ORIGIN
     );
     return -1;
   }
@@ -68,7 +68,7 @@ function enrichDecodedToken(decodedToken) {
   // enrichedToken adds additional information
   if (enrichedToken.organization) {
     enrichedToken.organization.hasGroups = Boolean(
-      enrichedToken.organization.groups?.length,
+      enrichedToken.organization.groups?.length
     );
   }
 
@@ -79,17 +79,17 @@ function addSourceChannelInfo(decodedToken, source, tppId) {
   const tokenWithSourceInfo = { ...decodedToken };
 
   switch (source.type) {
-    case "TPP":
+    case 'TPP':
       tokenWithSourceInfo.source = {
         channel: "TPP",
         details: tppId,
-        retrievalId: source.id,
+        retrievalId: source.id
       };
       break;
-    case "QR":
+    case 'QR':
       tokenWithSourceInfo.source = {
         channel: "WEB",
-        details: "QR_CODE",
+        details: "QR_CODE"
       };
       break;
     default:
@@ -118,13 +118,13 @@ async function innerGetParameterFromStore(parameterName) {
   try {
     const response = await axios.get(
       `http://localhost:2773/systemsmanager/parameters/get?name=${encodeURIComponent(
-        parameterName,
+        parameterName
       )}`,
       {
         headers: {
           "X-Aws-Parameters-Secrets-Token": process.env.AWS_SESSION_TOKEN,
         },
-      },
+      }
     );
     return response.data.Parameter.Value;
   } catch (err) {
@@ -137,7 +137,7 @@ async function getParameterFromStore(parameterName) {
   return await retryWithDelay(
     () => innerGetParameterFromStore(parameterName),
     1000,
-    3,
+    3
   );
 }
 
