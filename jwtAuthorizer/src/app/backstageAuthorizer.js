@@ -8,14 +8,14 @@ const hasSupportPermission = async (event, role) => {
   const [bucketName, bucketKey, servicePath] = await apiGatewayUtils.getOpenAPIS3Location({ region, restApiId });
   event.servicePath = servicePath;
 
-  const resources = await s3Utils.getAllowedResourcesFromS3(
+  const resources = await s3Utils.getAllowedResourcesFromS3({
     event,
     bucketName,
     bucketKey,
-    [role],
-    "x-support-roles-permissions",
-    true,
-  );
+    userTags: [role],
+    tagName: "x-support-roles-permissions",
+    requireTags: true,
+  });
   if (resources.length === 0) {
     throw new Error("No resource permitted");
   }

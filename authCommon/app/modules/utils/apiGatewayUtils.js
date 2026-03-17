@@ -1,7 +1,4 @@
-const {
-  APIGatewayClient,
-  GetTagsCommand,
-} = require("@aws-sdk/client-api-gateway");
+const { APIGatewayClient, GetTagsCommand } = require("@aws-sdk/client-api-gateway");
 
 const apigwClient = new APIGatewayClient();
 
@@ -12,15 +9,15 @@ const apigwClient = new APIGatewayClient();
  * from the specified REST API in API Gateway and returns them as the S3 coordinates
  * of the OpenAPI YAML document.
  *
- * @param {Object} apiOptions - The API Gateway identifiers.
- * @param {string} apiOptions.region - The AWS region of the REST API.
- * @param {string} apiOptions.restApiId - The REST API ID.
+ * @param {Object} params - The API Gateway identifiers.
+ * @param {string} params.region - The AWS region of the REST API.
+ * @param {string} params.restApiId - The REST API ID.
  * @returns {Promise<[string, string, string]>} A tuple of `[bucketName, bucketKey, servicePath]`.
  * @throws {Error} If `PN_OPENAPI_BUCKET_NAME` or `PN_OPENAPI_BUCKET_KEY` tags are not defined.
  */
-async function getOpenAPIS3Location(apiOptions) {
+async function getOpenAPIS3Location({ region, restApiId }) {
   const input = {
-    resourceArn: `arn:aws:apigateway:${apiOptions.region}::/restapis/${apiOptions.restApiId}`,
+    resourceArn: `arn:aws:apigateway:${region}::/restapis/${restApiId}`,
   };
   const command = new GetTagsCommand(input);
   const response = apigwClient.send(command).then((data) => {

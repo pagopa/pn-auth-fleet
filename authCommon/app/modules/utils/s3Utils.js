@@ -16,16 +16,17 @@ function transformPathPattern(path, servicePath) {
  * Fetches the OpenAPI YAML document from S3, iterates over all paths and methods,
  * and returns only the resources the user is authorized to access based on tag matching.
  *
- * @param {Object} event - The request event object containing `servicePath` used to normalize paths.
- * @param {string} bucket - The S3 bucket name where the OpenAPI document is stored.
- * @param {string} key - The S3 object key of the OpenAPI YAML document.
- * @param {string[]} userTags - The tags associated with the current user, used for authorization matching.
- * @param {string} tagName - The property name in the OpenAPI operation object that contains the authorization tags.
- * @param {boolean} [requireTags=false] - If `false`, endpoints without tags are considered public and always allowed.
+ * @param {Object} params
+ * @param {Object} params.event - The request event object containing `servicePath` used to normalize paths.
+ * @param {string} params.bucket - The S3 bucket name where the OpenAPI document is stored.
+ * @param {string} params.key - The S3 object key of the OpenAPI YAML document.
+ * @param {string[]} params.userTags - The tags associated with the current user, used for authorization matching.
+ * @param {string} params.tagName - The property name in the OpenAPI operation object that contains the authorization tags.
+ * @param {boolean} [params.requireTags=false] - If `false`, endpoints without tags are considered public and always allowed.
  *   If `true`, only endpoints with at least one tag matching `userTags` are allowed.
  * @returns {Promise<Array<{method: string, path: string}>>} A list of allowed resources with their HTTP method and path.
  */
-async function getAllowedResourcesFromS3(event, bucket, key, userTags, tagName, requireTags = false) {
+async function getAllowedResourcesFromS3({ event, bucket, key, userTags, tagName, requireTags = false }) {
   const s3Object = await getS3Object(bucket, key);
   const yamlDocument = yaml.load(s3Object);
   const yamlPaths = yamlDocument["paths"];
@@ -34,7 +35,11 @@ async function getAllowedResourcesFromS3(event, bucket, key, userTags, tagName, 
   for (const [path, yamlMethodElement] of Object.entries(yamlPaths)) {
     for (const [method, yamlElement] of Object.entries(yamlMethodElement)) {
       const tags = yamlElement[tagName];
-      if ((!requireTags && !tags) || arraysOverlap(tags, userTags)) {
+      const isAllowed = tags
+        ? arraysOverlap(tags, userTags)
+        : !requireTags;
+
+      if (isAllowed) {
         resources.push({
           method: method.toUpperCase(),
           path: transformPathPattern(path, event.servicePath),

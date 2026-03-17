@@ -34,9 +34,14 @@ describe("s3 tests", function () {
     };
     const bucket = "buck";
     const key = "key";
-    const resources = await getAllowedResourcesFromS3(event, bucket, key, ["Aggregate"], TAG_NAME);
+    const resources = await getAllowedResourcesFromS3({
+      event,
+      bucket,
+      key,
+      userTags: ["Aggregate"],
+      tagName: TAG_NAME,
+    });
 
-    console.log("resources", resources);
     expect(resources.length).eq(9);
   });
 
@@ -57,9 +62,14 @@ describe("s3 tests", function () {
     };
     const bucket = "buck";
     const key = "key";
-    const resources = await getAllowedResourcesFromS3(event, bucket, key, ["Aggregate"], TAG_NAME);
+    const resources = await getAllowedResourcesFromS3({
+      event,
+      bucket,
+      key,
+      userTags: ["Aggregate"],
+      tagName: TAG_NAME,
+    });
 
-    console.log("resources", resources);
     expect(resources.length).eq(1);
     expect(resources[0].path).equals("/aggregate/*/aadadas/*");
   });
@@ -75,11 +85,61 @@ describe("s3 tests", function () {
     const bucket = "buck";
     const key = "key";
     try {
-      const tags = await getAllowedResourcesFromS3(event, bucket, key, [], TAG_NAME);
+      const tags = await getAllowedResourcesFromS3({ event, bucket, key, userTags: [], tagName: TAG_NAME });
     } catch (error) {
       expect(error).to.not.be.null;
       expect(error).to.not.be.undefined;
       expect(error.message).to.equal("TEST ERROR");
     }
+  });
+
+  it("test requireTags=false includes endpoints without tags", async () => {
+    const yamlDocument = fs.readFileSync("./test/resources/mock-require-tags.yaml");
+    ddbMock.on(GetObjectCommand).resolves({
+      Body: {
+        transformToString: function () {
+          return yamlDocument;
+        },
+      },
+    });
+
+    const event = { path: "/items", servicePath: "notifications", httpMethod: "GET" };
+    const SUPPORT_TAG_NAME = "x-support-role-permissions";
+    const resources = await getAllowedResourcesFromS3({
+      event,
+      bucket: "buck",
+      key: "key",
+      userTags: ["Aggregate"],
+      tagName: SUPPORT_TAG_NAME,
+      requireTags: false,
+    });
+
+    expect(resources.length).eq(2);
+  });
+
+  it("test requireTags=true excludes endpoints without tags", async () => {
+    const yamlDocument = fs.readFileSync("./test/resources/mock-require-tags.yaml");
+    ddbMock.on(GetObjectCommand).resolves({
+      Body: {
+        transformToString: function () {
+          return yamlDocument;
+        },
+      },
+    });
+
+    const event = { path: "/items", servicePath: "notifications", httpMethod: "GET" };
+    const SUPPORT_TAG_NAME = "x-support-role-permissions";
+    const resources = await getAllowedResourcesFromS3({
+      event,
+      bucket: "buck",
+      key: "key",
+      userTags: ["Aggregate"],
+      tagName: SUPPORT_TAG_NAME,
+      requireTags: true,
+    });
+
+    expect(resources.length).eq(1);
+    expect(resources[0].method).eq("GET");
+    expect(resources[0].path).eq("/items");
   });
 });
