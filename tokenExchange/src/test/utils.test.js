@@ -83,7 +83,7 @@ describe("utils tests", () => {
 
   it("checks allowed origin", () => {
     const result = checkOrigin(
-      "https://portale-pa-develop.fe.dev.pn.pagopa.it",
+      "https://portale-pa-develop.fe.dev.pn.pagopa.it"
     );
 
     expect(result).to.eq(0);
@@ -130,10 +130,10 @@ describe("utils tests", () => {
     expect(result).to.eq("PA");
   });
 
-  it("checks that user is BACKSTAGE type", () => {
+  it("checks that user is BS type", () => {
     const result = getUserType(supportToken);
 
-    expect(result).to.eq("BACKSTAGE");
+    expect(result).to.eq("BS");
   });
 
   it("enrichDecodedToken", () => {
