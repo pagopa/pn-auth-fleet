@@ -18,7 +18,7 @@ describe("s3 tests", function () {
   });
 
   it("test tags extraction", async () => {
-    const yamlDocument = fs.readFileSync("./test/resources/mock.yaml");
+    const yamlDocument = fs.readFileSync("./test/resources/s3-openapi.yaml");
     ddbMock.on(GetObjectCommand).resolves({
       Body: {
         transformToString: function () {
@@ -46,7 +46,7 @@ describe("s3 tests", function () {
   });
 
   it("test pattern", async () => {
-    const yamlDocument = fs.readFileSync("./test/resources/mock-patterns.yaml");
+    const yamlDocument = fs.readFileSync("./test/resources/s3-openapi-patterns.yaml");
     ddbMock.on(GetObjectCommand).resolves({
       Body: {
         transformToString: function () {
@@ -94,7 +94,7 @@ describe("s3 tests", function () {
   });
 
   it("test requireTags=false includes endpoints without tags", async () => {
-    const yamlDocument = fs.readFileSync("./test/resources/mock-require-tags.yaml");
+    const yamlDocument = fs.readFileSync("./test/resources/s3-openapi-require-tags.yaml");
     ddbMock.on(GetObjectCommand).resolves({
       Body: {
         transformToString: function () {
@@ -118,7 +118,7 @@ describe("s3 tests", function () {
   });
 
   it("test requireTags=true excludes endpoints without tags", async () => {
-    const yamlDocument = fs.readFileSync("./test/resources/mock-require-tags.yaml");
+    const yamlDocument = fs.readFileSync("./test/resources/s3-openapi-require-tags.yaml");
     ddbMock.on(GetObjectCommand).resolves({
       Body: {
         transformToString: function () {
