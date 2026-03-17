@@ -55,15 +55,12 @@ function makeLower(headers) {
 }
 
 function getUserType(token) {
-  if (!token.organization) {
-    return "PF";
-  }
-  if (token.organization?.roles[0]?.role.startsWith("pg-")) {
-    return "PG";
-  }
-  if (token.organization) {
-    return "PA";
-  }
+  const role = token.organization?.roles[0]?.role;
+
+  if (!token.organization) return "PF";
+  if (role?.startsWith("pg-")) return "PG";
+  if (role === "support") return "BS";
+  if (token.organization) return "PA";
 }
 
 function enrichDecodedToken(decodedToken) {
