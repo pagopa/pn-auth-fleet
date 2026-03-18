@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+  title: 'Test RequireTags'
+  version: '1.0.0'
+paths:
+  "/notifications/items":
+    get:
+      summary: Endpoint con tag matching
+      'x-support-role-permissions':
+        - Aggregate
+      operationId: withTagMatching
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Endpoint senza tag
+      operationId: noTag
+      responses:
+        '200':
+          description: OK

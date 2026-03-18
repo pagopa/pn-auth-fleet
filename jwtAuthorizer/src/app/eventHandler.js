@@ -1,6 +1,7 @@
 const { generateIAMPolicy } = require("./iamPolicyGen.js");
 const { validation } = require("./validation.js");
 const Redis = require("./redis.js");
+const { hasSupportPermission } = require("./backstageAuthorizer.js");
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -57,6 +58,10 @@ async function handleEvent(event) {
     }
     console.log("contextAttrs ", contextAttrs);
 
+    if (contextAttrs.cx_type === 'BS') {
+      await hasSupportPermission(event, contextAttrs.cx_role)
+    }
+
     // Generate IAM Policy
     iamPolicy = await generateIAMPolicy(event.methodArn, contextAttrs);
     console.log("IAM Policy", JSON.stringify(iamPolicy));
@@ -75,12 +80,13 @@ function getUserType(token) {
   if (!token.organization) {
     return "PF";
   }
-  if (token.organization && token.organization.role?.startsWith("pg-")) {
+  if (token.organization.role?.startsWith("pg-")) {
     return "PG";
   }
-  if (token.organization) {
-    return "PA";
+  if (token.organization.role === "support") {
+    return "BS";
   }
+  return "PA";
 }
 
 module.exports = { handleEvent, defaultDenyAllPolicy };
