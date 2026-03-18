@@ -83,7 +83,7 @@ function getUserType(token) {
   if (token.organization.role?.startsWith("pg-")) {
     return "PG";
   }
-  if (token.organization.role?.startsWith("support")) {
+  if (token.organization.role === "support") {
     return "BS";
   }
   return "PA";
