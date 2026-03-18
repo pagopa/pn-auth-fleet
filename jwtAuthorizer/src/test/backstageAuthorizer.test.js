@@ -40,8 +40,8 @@ describe("test backstageAuthorizer", () => {
     });
     expect(getAllowedResourcesFromS3Stub.calledOnce).to.be.true;
     expect(getAllowedResourcesFromS3Stub.firstCall.args[0]).to.deep.include({
-      bucketName: "my-bucket",
-      bucketKey: "my-key",
+      bucket: "my-bucket",
+      key: "my-key",
       userTags: ["admin"],
       tagName: "x-support-roles-permissions",
       requireTags: true,

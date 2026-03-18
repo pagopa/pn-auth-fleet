@@ -5,13 +5,13 @@ const hasSupportPermission = async (event, role) => {
   const region = tmp[3];
   const restApiId = tmp[5].split("/")[0];
 
-  const [bucketName, bucketKey, servicePath] = await apiGatewayUtils.getOpenAPIS3Location({ region, restApiId });
+  const [bucket, key, servicePath] = await apiGatewayUtils.getOpenAPIS3Location({ region, restApiId });
   event.servicePath = servicePath;
 
   const resources = await s3Utils.getAllowedResourcesFromS3({
     event,
-    bucketName,
-    bucketKey,
+    bucket,
+    key,
     userTags: [role],
     tagName: "x-support-roles-permissions",
     requireTags: true,
