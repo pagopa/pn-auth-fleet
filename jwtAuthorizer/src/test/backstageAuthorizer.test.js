@@ -64,15 +64,4 @@ describe("test backstageAuthorizer", () => {
     }
   });
 
-  it("should skip permission check for logout api", async () => {
-    const event = {
-      methodArn: "arn:aws:execute-api:eu-south-1:123456789012:abc123def/unique/POST/",
-      stageVariables: { apiName: "logout" },
-    };
-
-    await hasSupportPermission(event, "admin");
-
-    expect(getOpenAPIS3LocationStub.called).to.be.false;
-    expect(getAllowedResourcesFromS3Stub.called).to.be.false;
-  });
 });

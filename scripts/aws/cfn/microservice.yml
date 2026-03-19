@@ -2577,8 +2577,6 @@ Resources:
       RestApiId: !Ref WebLogoutRestApi
       StageName: unique
       TracingEnabled: true
-      Variables:
-        apiName: "logout"
       DeploymentId: !Ref WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds
       AccessLogSetting:
         DestinationArn: !GetAtt "WebLogoutApiLogGroup.Arn"
