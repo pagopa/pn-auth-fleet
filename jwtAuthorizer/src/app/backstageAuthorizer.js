@@ -22,7 +22,7 @@ const hasSupportPermission = async (event, role) => {
     requireTags: true,
   });
   if (resources.length === 0) {
-    throw new Error(`No permitted resources for role: ${role}, servicePath: ${servicePath}`);
+    throw new Error(`No permitted resources for role: "${role}", servicePath: "${servicePath}"`);
   }
 };
 

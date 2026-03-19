@@ -60,7 +60,7 @@ describe("test backstageAuthorizer", () => {
       await hasSupportPermission(event, "viewer");
       expect.fail("should have thrown");
     } catch (error) {
-      expect(error.message).to.equal("No resource permitted");
+      expect(error.message).to.equal("No permitted resources for role: \"viewer\", servicePath: \"notifications\"");
     }
   });
 
