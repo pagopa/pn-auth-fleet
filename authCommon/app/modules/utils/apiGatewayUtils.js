@@ -3,35 +3,25 @@ const { APIGatewayClient, GetTagsCommand } = require("@aws-sdk/client-api-gatewa
 const apigwClient = new APIGatewayClient();
 
 /**
- * Retrieves the S3 location of the OpenAPI document from the API Gateway resource tags.
- *
- * Reads the tags `PN_OPENAPI_BUCKET_NAME`, `PN_OPENAPI_BUCKET_KEY`, and `PN_SERVICE_PATH`
- * from the specified REST API in API Gateway and returns them as the S3 coordinates
- * of the OpenAPI YAML document.
+ * Retrieves the PN tags from the specified API Gateway REST API.
  *
  * @param {Object} params - The API Gateway identifiers.
  * @param {string} params.region - The AWS region of the REST API.
  * @param {string} params.restApiId - The REST API ID.
- * @returns {Promise<[string, string, string]>} A tuple of `[bucketName, bucketKey, servicePath]`.
- * @throws {Error} If `PN_OPENAPI_BUCKET_NAME` or `PN_OPENAPI_BUCKET_KEY` tags are not defined.
+ * @returns {Promise<{bucket: string, key: string, servicePath: string, apiName: string}>}
  */
-async function getOpenAPIS3Location({ region, restApiId }) {
+async function getApiGatewayTags({ region, restApiId }) {
   const input = {
     resourceArn: `arn:aws:apigateway:${region}::/restapis/${restApiId}`,
   };
   const command = new GetTagsCommand(input);
-  const response = apigwClient.send(command).then((data) => {
-    // $metadata is also returned, we need to select tags
-    const bucketName = data.tags.PN_OPENAPI_BUCKET_NAME;
-    const bucketKey = data.tags.PN_OPENAPI_BUCKET_KEY;
-    const servicePath = data.tags.PN_SERVICE_PATH;
-    if (bucketName === undefined || bucketKey === undefined) {
-      throw new Error("OpenAPI file location is not defined");
-    } else {
-      return [bucketName, bucketKey, servicePath];
-    }
-  });
-  return response;
+  const data = await apigwClient.send(command);
+  return {
+    bucketName: data.tags.PN_OPENAPI_BUCKET_NAME,
+    bucketKey: data.tags.PN_OPENAPI_BUCKET_KEY,
+    servicePath: data.tags.PN_SERVICE_PATH,
+    apiName: data.tags.PN_API_NAME,
+  };
 }
 
-module.exports = { getOpenAPIS3Location };
+module.exports = { getApiGatewayTags };
