@@ -2561,6 +2561,14 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
+  # Logout resource
+  WebLogoutResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref WebLogoutRestApi
+      ParentId: !GetAtt WebLogoutRestApi.RootResourceId
+      PathPart: "logout"
+
   # Deployment
   WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment
@@ -2598,7 +2606,7 @@ Resources:
   WebLogoutAPIMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
-      BasePath: "logout"
+      BasePath: ""
       DomainName: !Ref WebApiDnsName
       RestApiId: !Ref WebLogoutRestApi
       Stage: !Ref WebLogoutRestApiStage
@@ -2613,7 +2621,7 @@ Resources:
       FunctionName: !Ref WebLogoutLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebLogoutRestApi}/*/POST/"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebLogoutRestApi}/*/POST/logout"
 
   # Session Token POST method
   WebLogoutPostMethod:
@@ -2622,7 +2630,7 @@ Resources:
     Properties:
       OperationName: "Proxy to Session Token Lambda"
       RestApiId: !Ref WebLogoutRestApi
-      ResourceId: !GetAtt WebLogoutRestApi.RootResourceId
+      ResourceId: !Ref WebLogoutResource
       HttpMethod: POST
       AuthorizationType: CUSTOM
       AuthorizerId: !Ref JwtAuthorizer
@@ -2644,7 +2652,7 @@ Resources:
     Properties:
       OperationName: "Options for Session Token"
       RestApiId: !Ref WebLogoutRestApi
-      ResourceId: !GetAtt WebLogoutRestApi.RootResourceId
+      ResourceId: !Ref WebLogoutResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       ApiKeyRequired: false
