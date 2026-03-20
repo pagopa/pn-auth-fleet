@@ -5,16 +5,16 @@ const { apiGatewayUtils, s3Utils } = require("pn-auth-common");
 const { hasSupportPermission } = require("../app/backstageAuthorizer");
 
 describe("test backstageAuthorizer", () => {
-  let getOpenAPIS3LocationStub;
+  let getApiGatewayTagsStub;
   let getAllowedResourcesFromS3Stub;
 
   before(() => {
-    getOpenAPIS3LocationStub = sinon.stub(apiGatewayUtils, "getOpenAPIS3Location");
+    getApiGatewayTagsStub = sinon.stub(apiGatewayUtils, "getApiGatewayTags");
     getAllowedResourcesFromS3Stub = sinon.stub(s3Utils, "getAllowedResourcesFromS3");
   });
 
   afterEach(() => {
-    getOpenAPIS3LocationStub.reset();
+    getApiGatewayTagsStub.reset();
     getAllowedResourcesFromS3Stub.reset();
   });
 
@@ -23,7 +23,12 @@ describe("test backstageAuthorizer", () => {
   });
 
   it("should allow when user has permitted resources", async () => {
-    getOpenAPIS3LocationStub.resolves(["my-bucket", "my-key", "notifications"]);
+    getApiGatewayTagsStub.resolves({
+      bucketName: "my-bucket",
+      bucketKey: "my-key",
+      servicePath: "notifications",
+      apiName: undefined,
+    });
     getAllowedResourcesFromS3Stub.resolves([{ method: "GET", path: "/items" }]);
 
     const event = {
@@ -33,15 +38,15 @@ describe("test backstageAuthorizer", () => {
     await hasSupportPermission(event, "admin");
 
     expect(event.servicePath).to.equal("notifications");
-    expect(getOpenAPIS3LocationStub.calledOnce).to.be.true;
-    expect(getOpenAPIS3LocationStub.firstCall.args[0]).to.deep.equal({
+    expect(getApiGatewayTagsStub.calledOnce).to.be.true;
+    expect(getApiGatewayTagsStub.firstCall.args[0]).to.deep.equal({
       region: "eu-south-1",
       restApiId: "abc123def",
     });
     expect(getAllowedResourcesFromS3Stub.calledOnce).to.be.true;
     expect(getAllowedResourcesFromS3Stub.firstCall.args[0]).to.deep.include({
-      bucket: "my-bucket",
-      key: "my-key",
+      bucketName: "my-bucket",
+      bucketKey: "my-key",
       userTags: ["admin"],
       tagName: "x-support-roles-permissions",
       requireTags: true,
@@ -49,7 +54,12 @@ describe("test backstageAuthorizer", () => {
   });
 
   it("should throw when no resources are permitted", async () => {
-    getOpenAPIS3LocationStub.resolves(["my-bucket", "my-key", "notifications"]);
+    getApiGatewayTagsStub.resolves({
+      bucketName: "my-bucket",
+      bucketKey: "my-key",
+      servicePath: "notifications",
+      apiName: undefined,
+    });
     getAllowedResourcesFromS3Stub.resolves([]);
 
     const event = {
@@ -62,6 +72,23 @@ describe("test backstageAuthorizer", () => {
     } catch (error) {
       expect(error.message).to.equal("No permitted resources for role: \"viewer\", servicePath: \"notifications\"");
     }
+  });
+
+  it("should skip permission check for logout api", async () => {
+    getApiGatewayTagsStub.resolves({
+      bucketName: undefined,
+      bucketKey: undefined,
+      servicePath: undefined,
+      apiName: "logout",
+    });
+
+    const event = {
+      methodArn: "arn:aws:execute-api:eu-south-1:123456789012:abc123def/unique/POST/",
+    };
+
+    await hasSupportPermission(event, "admin");
+
+    expect(getAllowedResourcesFromS3Stub.called).to.be.false;
   });
 
 });

@@ -2561,6 +2561,9 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
+      Tags:
+        - Key: PN_API_NAME
+          Value: "logout"
   # Deployment
   WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment
