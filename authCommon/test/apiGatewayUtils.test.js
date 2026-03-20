@@ -24,7 +24,7 @@ describe("api gateway tests", function () {
         PN_OPENAPI_BUCKET_NAME: "1231",
         PN_OPENAPI_BUCKET_KEY: "abcd",
         PN_SERVICE_PATH: "api-key-bo",
-        PN_API_NAME: "logout",
+        ApiName: "logout",
       },
     });
 

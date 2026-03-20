@@ -2562,7 +2562,7 @@ Resources:
         Types:
           - REGIONAL
       Tags:
-        - Key: PN_API_NAME
+        - Key: ApiName
           Value: "logout"
   # Deployment
   WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:

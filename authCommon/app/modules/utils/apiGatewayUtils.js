@@ -16,11 +16,12 @@ async function getApiGatewayTags({ region, restApiId }) {
   };
   const command = new GetTagsCommand(input);
   const data = await apigwClient.send(command);
+  console.log("API Gateway tags:", data.tags);
   return {
     bucketName: data.tags.PN_OPENAPI_BUCKET_NAME,
     bucketKey: data.tags.PN_OPENAPI_BUCKET_KEY,
     servicePath: data.tags.PN_SERVICE_PATH,
-    apiName: data.tags.PN_API_NAME,
+    apiName: data.tags.ApiName,
   };
 }
 
