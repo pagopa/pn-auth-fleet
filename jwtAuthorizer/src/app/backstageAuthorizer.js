@@ -2,7 +2,8 @@ const { apiGatewayUtils, s3Utils, AuthPolicy } = require("pn-auth-common");
 
 const API_LOGOUT = "logout";
 
-const getSupportPolicy = async (event, role, contextAttrs) => {
+const getSupportPolicy = async (event, contextAttrs) => {
+  const role = contextAttrs.cx_role;
   const tmp = event.methodArn.split(":");
   const awsAccountId = tmp[4];
   const apiGatewayArnTmp = tmp[5].split("/");
