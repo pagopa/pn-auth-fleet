@@ -60,7 +60,7 @@ async function handleEvent(event) {
 
     // Generate IAM Policy
     if (contextAttrs.cx_type === 'BS') {
-      iamPolicy = await getSupportPolicy(event, contextAttrs.cx_role)
+      iamPolicy = await getSupportPolicy(event, contextAttrs)
     } else {
       iamPolicy = await generateIAMPolicy(event.methodArn, contextAttrs);
     }

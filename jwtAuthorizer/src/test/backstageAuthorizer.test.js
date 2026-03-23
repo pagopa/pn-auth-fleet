@@ -35,8 +35,10 @@ describe("test backstageAuthorizer", () => {
       methodArn: "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/notifications/items",
     };
 
-    await getSupportPolicy(event, "admin");
+    const contextAttrs = { uid: "user-1", cx_type: "BS", cx_role: "admin" };
+    const result = await getSupportPolicy(event, contextAttrs);
 
+    expect(result.context).to.deep.equal(contextAttrs);
     expect(event.servicePath).to.equal("notifications");
     expect(getApiGatewayTagsStub.calledOnce).to.be.true;
     expect(getApiGatewayTagsStub.firstCall.args[0]).to.deep.equal({
@@ -67,7 +69,7 @@ describe("test backstageAuthorizer", () => {
     };
 
     try {
-      await getSupportPolicy(event, "viewer");
+      await getSupportPolicy(event, { cx_role: "viewer" });
       expect.fail("should have thrown");
     } catch (error) {
       expect(error.message).to.equal("No statements defined for the policy");
@@ -86,8 +88,10 @@ describe("test backstageAuthorizer", () => {
       methodArn: "arn:aws:execute-api:eu-south-1:123456789012:abc123def/unique/POST/",
     };
 
-    await getSupportPolicy(event, "admin");
+    const contextAttrs = { cx_role: "admin" };
+    const result = await getSupportPolicy(event, contextAttrs);
 
+    expect(result.context).to.deep.equal(contextAttrs);
     expect(getAllowedResourcesFromS3Stub.called).to.be.false;
   });
 
