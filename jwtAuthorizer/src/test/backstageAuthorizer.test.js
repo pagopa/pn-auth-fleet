@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const sinon = require("sinon");
 const { apiGatewayUtils, s3Utils } = require("pn-auth-common");
 
-const { hasSupportPermission } = require("../app/backstageAuthorizer");
+const { getSupportPolicy } = require("../app/backstageAuthorizer");
 
 describe("test backstageAuthorizer", () => {
   let getApiGatewayTagsStub;
@@ -35,7 +35,7 @@ describe("test backstageAuthorizer", () => {
       methodArn: "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/notifications/items",
     };
 
-    await hasSupportPermission(event, "admin");
+    await getSupportPolicy(event, "admin");
 
     expect(event.servicePath).to.equal("notifications");
     expect(getApiGatewayTagsStub.calledOnce).to.be.true;
@@ -67,10 +67,10 @@ describe("test backstageAuthorizer", () => {
     };
 
     try {
-      await hasSupportPermission(event, "viewer");
+      await getSupportPolicy(event, "viewer");
       expect.fail("should have thrown");
     } catch (error) {
-      expect(error.message).to.equal("No permitted resources for role: \"viewer\", servicePath: \"notifications\"");
+      expect(error.message).to.equal("No statements defined for the policy");
     }
   });
 
@@ -86,7 +86,7 @@ describe("test backstageAuthorizer", () => {
       methodArn: "arn:aws:execute-api:eu-south-1:123456789012:abc123def/unique/POST/",
     };
 
-    await hasSupportPermission(event, "admin");
+    await getSupportPolicy(event, "admin");
 
     expect(getAllowedResourcesFromS3Stub.called).to.be.false;
   });

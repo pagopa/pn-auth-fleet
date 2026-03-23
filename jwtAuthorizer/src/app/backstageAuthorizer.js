@@ -1,19 +1,26 @@
-const { apiGatewayUtils, s3Utils } = require("pn-auth-common");
+const { apiGatewayUtils, s3Utils, AuthPolicy } = require("pn-auth-common");
 
-const WHITELISTED_API_NAMES = new Set(["logout"]);
+const API_LOGOUT = "logout";
 
-const hasSupportPermission = async (event, role) => {
+const getSupportPolicy = async (event, role, contextAttrs) => {
   const tmp = event.methodArn.split(":");
+  const awsAccountId = tmp[4];
+  const apiGatewayArnTmp = tmp[5].split("/");
+  const restApiId = apiGatewayArnTmp[0];
+  const stage = apiGatewayArnTmp[1];
   const region = tmp[3];
-  const restApiId = tmp[5].split("/")[0];
+
+  const apiOptions = { region, restApiId, stage };
+  const policy = new AuthPolicy("user", awsAccountId, apiOptions);
 
   const { bucketName, bucketKey, servicePath, apiName } = await apiGatewayUtils.getApiGatewayTags({
     region,
     restApiId,
   });
 
-  if (WHITELISTED_API_NAMES.has(apiName)) {
-    return;
+  if (apiName === API_LOGOUT) {
+    policy.allowAllMethods();
+    return policy.build(contextAttrs);
   }
 
   event.servicePath = servicePath;
@@ -30,11 +37,14 @@ const hasSupportPermission = async (event, role) => {
     tagName: "x-support-roles-permissions",
     requireTags: true,
   });
-  if (resources.length === 0) {
-    throw new Error(`No permitted resources for role: "${role}", servicePath: "${servicePath}"`);
+
+  for (const r of resources) {
+    policy.allowMethod(r.method, r.path);
   }
+
+  return policy.build(contextAttrs);
 };
 
 module.exports = {
-  hasSupportPermission,
+  getSupportPolicy,
 };
