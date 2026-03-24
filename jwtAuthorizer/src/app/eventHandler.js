@@ -41,8 +41,7 @@ async function handleEvent(event) {
     contextAttrs.sourceChannel = "WEB";
     contextAttrs.uid = decodedToken.uid;
     contextAttrs.cx_type = getUserType(decodedToken);
-    const prefix =
-      contextAttrs.cx_type == "PA" ? "" : contextAttrs.cx_type + "-";
+    const prefix = ["PA", "BS"].includes(contextAttrs.cx_type) ? "" : contextAttrs.cx_type + "-";
     contextAttrs.cx_id =
       prefix +
       (decodedToken.organization

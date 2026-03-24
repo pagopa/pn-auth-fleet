@@ -134,6 +134,34 @@ describe("test eventHandler", () => {
       expect(isJtiRevokedStub.getCall(0).args).to.be.eqls(["01G0CFW80HGTTW0RH54WQD6F6S"]);
   });
 
+  it("handle event with no errors (BS) - cx_id without prefix", async () => {
+    const { apiGatewayUtils, s3Utils } = require("pn-auth-common");
+    const getApiGatewayTagsStub = sinon.stub(apiGatewayUtils, "getApiGatewayTags").resolves({
+      bucketName: "my-bucket",
+      bucketKey: "my-key",
+      servicePath: "notifications",
+      apiName: undefined,
+    });
+    const getAllowedResourcesFromS3Stub = sinon.stub(s3Utils, "getAllowedResourcesFromS3").resolves([
+      { method: "GET", path: "/items" },
+    ]);
+
+    const bsToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJpYXQiOjE3Mzk1MzM1MzcsImV4cCI6MTczOTU0MDczNywidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwiaXNzIjoicG4tZGV2ZWxvcC5wbi5wYWdvcGEuaXQiLCJhdWQiOiJ3ZWJhcGkuZGV2LnBuLnBhZ29wYS5pdCIsImp0aSI6IjAxRzBDRlc4MEhHVFRXMFJINTRXUUQ2RjZTIiwib3JnYW5pemF0aW9uIjp7ImlkIjoiMDI2ZThjNzItNzk0NC00ZGNkLTg2NjgtZjU5NjQ0N2ZlYzZkIiwicm9sZSI6InN1cHBvcnQiLCJncm91cHMiOlsiNjJlOTQxZDMxM2IwZmM2ZWRhZDQ1MzVhIl0sImZpc2NhbF9jb2RlIjoiMDExOTkyNTAxNTgifX0.c2lnbmF0dXJl";
+    const result = await handleEvent({
+      type: "TOKEN",
+      authorizationToken: bsToken,
+      methodArn:
+        "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/received",
+    });
+
+    expect(result.context.cx_type).to.equal("BS");
+    expect(result.context.cx_id).to.equal("026e8c72-7944-4dcd-8668-f596447fec6d");
+    expect(result.context.cx_role).to.equal("support");
+
+    getApiGatewayTagsStub.restore();
+    getAllowedResourcesFromS3Stub.restore();
+  });
+
   it("handle event with jti revoked", async () => {
     isJtiRevokedStub.resolves(true);
     const result =  await handleEvent({
