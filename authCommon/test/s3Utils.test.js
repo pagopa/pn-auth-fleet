@@ -109,7 +109,7 @@ describe("s3 tests", function () {
       event,
       bucket: "buck",
       key: "key",
-      userTags: ["Aggregate"],
+      userTags: ["support-read"],
       tagName: SUPPORT_TAG_NAME,
       requireTags: false,
     });
@@ -133,7 +133,7 @@ describe("s3 tests", function () {
       event,
       bucket: "buck",
       key: "key",
-      userTags: ["Aggregate"],
+      userTags: ["support-read"],
       tagName: SUPPORT_TAG_NAME,
       requireTags: true,
     });
@@ -141,5 +141,33 @@ describe("s3 tests", function () {
     expect(resources.length).eq(1);
     expect(resources[0].method).eq("GET");
     expect(resources[0].path).eq("/items");
+  });
+
+  it("test support-update returns GET and PUT resources", async () => {
+    const yamlDocument = fs.readFileSync("./test/resources/s3-openapi-require-tags.yaml");
+    ddbMock.on(GetObjectCommand).resolves({
+      Body: {
+        transformToString: function () {
+          return yamlDocument;
+        },
+      },
+    });
+
+    const event = { path: "/items", servicePath: "notifications", httpMethod: "GET" };
+    const SUPPORT_TAG_NAME = "x-support-role-permissions";
+    const resources = await getAllowedResourcesFromS3({
+      event,
+      bucket: "buck",
+      key: "key",
+      userTags: ["support-update"],
+      tagName: SUPPORT_TAG_NAME,
+      requireTags: true,
+    });
+
+    expect(resources.length).eq(2);
+    expect(resources[0].method).eq("GET");
+    expect(resources[0].path).eq("/items");
+    expect(resources[1].method).eq("PUT");
+    expect(resources[1].path).eq("/items");
   });
 });

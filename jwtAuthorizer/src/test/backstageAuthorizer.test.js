@@ -38,6 +38,15 @@ describe("test backstageAuthorizer", () => {
     const contextAttrs = { uid: "user-1", cx_type: "BS", cx_role: "admin" };
     const result = await getSupportPolicy(event, contextAttrs);
 
+    expect(result.policyDocument.Statement).to.deep.equal([
+      {
+        Action: "execute-api:Invoke",
+        Effect: "Allow",
+        Resource: [
+          "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/items",
+        ],
+      },
+    ]);
     expect(result.context).to.deep.equal(contextAttrs);
     expect(event.servicePath).to.equal("notifications");
     expect(getApiGatewayTagsStub.calledOnce).to.be.true;

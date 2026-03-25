@@ -7,8 +7,17 @@ paths:
     get:
       summary: Endpoint con tag matching
       'x-support-role-permissions':
-        - Aggregate
+        - support-read
+        - support-update
       operationId: withTagMatching
+      responses:
+        '200':
+          description: OK
+    put:
+      summary: Endpoint con tag support-update
+      'x-support-role-permissions':
+        - support-update
+      operationId: withTagUpdate
       responses:
         '200':
           description: OK
