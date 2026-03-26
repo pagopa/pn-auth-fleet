@@ -3,7 +3,7 @@ import { MILLISECONDS_PER_DAY, AssertionRefAlgorithms  } from "../app/constants/
 import { lollipopConfig } from "../app/config/lollipopConsumerRequestConfig.js"
 import LollipopAssertionException from "./exception/lollipopAssertionException.js";
 import { validateSignature  } from "./signatureValidation.js";
-import { DOMParser  } from "xmldom";
+import { DOMParser  } from "@xmldom/xmldom";
 import ErrorRetrievingAssertionException from "./exception/errorRetrievingAssertionException.js";
 import OidcAssertionNotSupported from "./exception/oidcAssertionNotSupported.js";
 import LollipopAssertionNotFoundException from "./exception/lollipopAssertionNotFoundException.js";
@@ -22,8 +22,12 @@ import { VALIDATION_ERROR_CODES, ASSERTION_ERROR_CODES  } from "../app/constants
  */
 async function getAssertionDoc(jwt, assertionRef) {
     let assertion;
+    console.log("[TESTUAT] jwt: ",jwt)
+    console.log("[TESTUAT] assertionRef: ",assertionRef)
+
     try {
         assertion = await getAssertion(jwt, assertionRef);
+        console.log("[TESTUAT] assertion: ",assertion)
     } catch (e) {
         if (e instanceof OidcAssertionNotSupported) {
             throw new ErrorRetrievingAssertionException(ASSERTION_ERROR_CODES.OIDC_ASSERTION_TYPE_NOT_SUPPORTED, e.message);
@@ -53,6 +57,7 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
         console.error('[validateSignatureAssertion] Error: ', e.errorCode, ' - Message: ', e.message);
         throw new LollipopAssertionException(e.errorCode);
     }
+    return isValid;
 }
 
 /**
@@ -62,7 +67,7 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
  * @returns {boolean} true se l’asserzione è valida temporalmente
  * @throws {LollipopAssertionException} In caso di errore di parsing o date non valide
  */
- function validateAssertionPeriod(assertionDoc){
+ async function validateAssertionPeriod(assertionDoc){
 
     const rootElementName = assertionDoc.documentElement.localName;
     const listElements = assertionDoc.getElementsByTagNameNS(lollipopConfig.samlNamespaceAssertion, lollipopConfig.assertionNotBeforeTag);
@@ -139,10 +144,10 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
  * @returns {boolean} true se il codice fiscale coincide
  * @throws {LollipopAssertionException} se il codice fiscale non è presente
  */
- function validateUserId(request, assertionDoc) {
+ async function validateUserId(request, assertionDoc) {
     console.log("Starting validating userId fiscal number...")
-  const userIdHeader =
-    request.headerParams[lollipopConfig.userIdHeader];
+  const headers = request.headerParams.headers || request.headerParams;
+  const userIdHeader = headers[lollipopConfig.userIdHeader];
 
   const userIdFromAssertion = getUserIdFromAssertion(assertionDoc);
 
@@ -154,6 +159,9 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
     );
   }
 
+  console.log("[TESTUAT][validateUserId] userIdFromAssertion:", userIdFromAssertion);
+  console.log("[TESTUAT][validateUserId] userIdHeader:", userIdHeader);
+  console.log("[TESTUAT][validateUserId] match:", userIdFromAssertion === userIdHeader);
   console.log("Ending validation userId fiscal number");
   return userIdFromAssertion === userIdHeader;
 }
@@ -355,8 +363,9 @@ async function computeThumbprintWithCrypto(inResponseToAlgorithm, publicKeyBase6
             idpCertDataList = await getIdpCertData(assertionDoc);
         } catch (e) {
             console.error('[assertionValidation] Error: ', e.errorCode, ' - Message: ', e.message);
-            throw new LollipopAssertionException(e.errorCode);
+            throw new LollipopAssertionException(e.errorCode || VALIDATION_ERROR_CODES.IDP_CERT_DATA_NOT_FOUND);
         }
+        return idpCertDataList;
     }
 
 /**

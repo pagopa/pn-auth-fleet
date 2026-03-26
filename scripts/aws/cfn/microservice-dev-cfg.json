@@ -23,16 +23,21 @@
     "RedisJwtExpHours": "24",
     "PgEnableAccess": "true",
     "LollipopBlock": "false",
+    "LollipopAuthorizerConfig": "/pn-auth-fleet/lollipopAuthorizerConfig",
     "ExpectedFirstLcOriginalUrl": "^https://api-app.io.pagopa.it/\\S+$",
     "AssertionExpireInDays": "365",
+    "AssertionHttpTimeoutMs": "1000",
+    "LollipopAuthorizerLambdaTimeout": "15",
     "ExpectedFirstLcOriginalMethod": "POST;GET",
     "IdpCieEntityId": "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO",
     "IdpProviderConfigBaseUri": "https://api.is.eng.pagopa.it",
+    "IdpHttpTimeoutMs": "1000",
     "RedisJtisExcludedInvalidationParameter": "/pn-auth-fleet/redisJtisExcludedInvalidation",
     "TokenExchangeOidcLambdaEnvironmentAllowedIssuer": "https://uat.oneid.pagopa.it",
     "TokenExchangeOidcLambdaEnvironmentAllowedOrigin": "https://cittadini.dev.notifichedigitali.it",
     "EnableTokenExchangeOidcApi": "true",
     "OneIdentitySecretName": "pn-auth-fleet/one-identity-credentials",
-    "OneIdentityBaseURL": "https://uat.oneid.pagopa.it"
+    "OneIdentityBaseURL": "https://uat.oneid.pagopa.it",
+    "LollipopSecretsKey": "pn-Lollipop-Secrets-Key"
   }
 }

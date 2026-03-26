@@ -77,6 +77,29 @@ class DefaultApi {
       let contentTypes = [];
       let accepts = ['application/json'];
       let returnType = LCUserInfo;
+
+      const resolvedUrl = this.apiClient.buildUrl('/assertions/{assertion_ref}', pathParams, null);
+      const apiKeyAuth = this.apiClient.authentications['ApiKeyAuth'];
+      const subscriptionKey = apiKeyAuth?.apiKey;
+      console.log('[TESTUAT][DefaultApi.getAssertion] === PRE-CALL REQUEST PARAMS ===');
+      console.log('[TESTUAT][DefaultApi.getAssertion] method: GET');
+      console.log('[TESTUAT][DefaultApi.getAssertion] basePath:', this.apiClient.basePath);
+      console.log('[TESTUAT][DefaultApi.getAssertion] resolvedUrl:', resolvedUrl);
+      console.log('[TESTUAT][DefaultApi.getAssertion] timeout:', this.apiClient.timeout);
+      console.log('[TESTUAT][DefaultApi.getAssertion] pathParams:', JSON.stringify(pathParams));
+      console.log('[TESTUAT][DefaultApi.getAssertion] queryParams:', JSON.stringify(queryParams));
+      console.log('[TESTUAT][DefaultApi.getAssertion] headerParams:', JSON.stringify({
+        'x-pagopa-lollipop-auth': xPagopaLollipopAuth
+          ? `${xPagopaLollipopAuth.substring(0, 50)}... [totalLen=${xPagopaLollipopAuth.length}]`
+          : 'MISSING'
+      }));
+      console.log('[TESTUAT][DefaultApi.getAssertion] authNames:', JSON.stringify(authNames));
+      console.log('[TESTUAT][DefaultApi.getAssertion] apiKeyAuth config: in=' + apiKeyAuth?.in + ', name=' + apiKeyAuth?.name);
+      console.log('[TESTUAT][DefaultApi.getAssertion] subscriptionKey present:', !!subscriptionKey, '| length:', subscriptionKey?.length ?? 0);
+      console.log('[TESTUAT][DefaultApi.getAssertion] defaultHeaders:', JSON.stringify(this.apiClient.defaultHeaders));
+      console.log('[TESTUAT][DefaultApi.getAssertion] accepts:', JSON.stringify(accepts));
+      console.log('[TESTUAT][DefaultApi.getAssertion] contentTypes:', JSON.stringify(contentTypes));
+      console.log('[TESTUAT][DefaultApi.getAssertion] postBody:', postBody);
       return this.apiClient.callApi(
         '/assertions/{assertion_ref}', 'GET',
         pathParams, queryParams, headerParams, formParams, postBody,
