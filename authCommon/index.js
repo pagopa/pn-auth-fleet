@@ -10,8 +10,6 @@ const { RADD_RESOLVER_NAME, ATTR_PREFIX, ISS_PREFIX, REDIS_PN_SESSION_PREFIX } =
 
 const { prepareJWKSRenewTimeMetric } = require('./app/modules/utils/metricsUtils')
 const apiGatewayUtils = require('./app/modules/utils/apiGatewayUtils')
-const s3Utils = require('./app/modules/utils/s3Utils')
-const { AuthPolicy } = require('./app/modules/utils/authPolicy')
 
 module.exports = {
     AllowedIssuerDao,
@@ -25,6 +23,4 @@ module.exports = {
     COMMON_CONSTANTS: { RADD_RESOLVER_NAME, ATTR_PREFIX, ISS_PREFIX, REDIS_PN_SESSION_PREFIX },
     prepareJWKSRenewTimeMetric,
     apiGatewayUtils,
-    s3Utils,
-    AuthPolicy,
 }

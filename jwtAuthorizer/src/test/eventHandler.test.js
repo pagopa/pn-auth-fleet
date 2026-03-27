@@ -4,8 +4,9 @@ const { KMSClient, GetPublicKeyCommand } = require("@aws-sdk/client-kms");
 const redis = require("../app/redis");
 const sinon = require("sinon");
 
-const { handleEvent, defaultDenyAllPolicy } = require("../app/eventHandler");
+const { handleEvent } = require("../app/eventHandler");
 const jsonwebtoken = require("jsonwebtoken");
+const { denyAllPolicy } = require("../policies");
 
 describe("test eventHandler", () => {
   let kmsClientMock;
@@ -56,7 +57,7 @@ describe("test eventHandler", () => {
       methodArn:
         "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/sent",
     });
-    expect(result).to.be.equal(defaultDenyAllPolicy);
+    expect(result).to.be.equal(denyAllPolicy);
     expect(result.context).to.be.undefined;
   });
 
@@ -68,7 +69,7 @@ describe("test eventHandler", () => {
       methodArn:
         "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/sent",
     });
-    expect(result).to.be.equal(defaultDenyAllPolicy);
+    expect(result).to.be.equal(denyAllPolicy);
     expect(result.context).to.be.undefined;
   });
 
@@ -135,16 +136,10 @@ describe("test eventHandler", () => {
   });
 
   it("handle event with no errors (BS) - cx_id without prefix", async () => {
-    const { apiGatewayUtils, s3Utils } = require("pn-auth-common");
+    const { apiGatewayUtils } = require("pn-auth-common");
     const getApiGatewayTagsStub = sinon.stub(apiGatewayUtils, "getApiGatewayTags").resolves({
-      bucketName: "my-bucket",
-      bucketKey: "my-key",
-      servicePath: "notifications",
       apiName: undefined,
     });
-    const getAllowedResourcesFromS3Stub = sinon.stub(s3Utils, "getAllowedResourcesFromS3").resolves([
-      { method: "GET", path: "/items" },
-    ]);
 
     const bsToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJpYXQiOjE3Mzk1MzM1MzcsImV4cCI6MTczOTU0MDczNywidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwiaXNzIjoicG4tZGV2ZWxvcC5wbi5wYWdvcGEuaXQiLCJhdWQiOiJ3ZWJhcGkuZGV2LnBuLnBhZ29wYS5pdCIsImp0aSI6IjAxRzBDRlc4MEhHVFRXMFJINTRXUUQ2RjZTIiwib3JnYW5pemF0aW9uIjp7ImlkIjoiMDI2ZThjNzItNzk0NC00ZGNkLTg2NjgtZjU5NjQ0N2ZlYzZkIiwicm9sZSI6InN1cHBvcnQiLCJncm91cHMiOlsiNjJlOTQxZDMxM2IwZmM2ZWRhZDQ1MzVhIl0sImZpc2NhbF9jb2RlIjoiMDExOTkyNTAxNTgifX0.c2lnbmF0dXJl";
     const result = await handleEvent({
@@ -159,7 +154,6 @@ describe("test eventHandler", () => {
     expect(result.context.cx_role).to.equal("support");
 
     getApiGatewayTagsStub.restore();
-    getAllowedResourcesFromS3Stub.restore();
   });
 
   it("handle event with jti revoked", async () => {
@@ -172,7 +166,7 @@ describe("test eventHandler", () => {
           "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/received",
     });
     
-    expect(result).to.be.equal(defaultDenyAllPolicy);
+    expect(result).to.be.equal(denyAllPolicy);
     expect(isJtiRevokedStub.getCall(0).args).to.be.eqls(["01G2A6V0B13BHNCPEZ32S7KQ3Y"]);
   });
 });

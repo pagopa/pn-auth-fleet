@@ -1,49 +1,41 @@
-const { apiGatewayUtils, s3Utils, AuthPolicy } = require("pn-auth-common");
+const { apiGatewayUtils } = require("pn-auth-common");
+const policies = require("../policies");
 
 const API_LOGOUT = "logout";
 
 const getSupportPolicy = async (event, contextAttrs) => {
-  const role = contextAttrs.cx_role;
   const tmp = event.methodArn.split(":");
+  const region = tmp[3];
   const awsAccountId = tmp[4];
   const apiGatewayArnTmp = tmp[5].split("/");
   const restApiId = apiGatewayArnTmp[0];
   const stage = apiGatewayArnTmp[1];
-  const region = tmp[3];
+  const method = apiGatewayArnTmp[2];
 
-  const apiOptions = { region, restApiId, stage };
-  const policy = new AuthPolicy("user", awsAccountId, apiOptions);
+  if (method === "POST") {
+    const { apiName } = await apiGatewayUtils.getApiGatewayTags({
+      region,
+      restApiId,
+    });
 
-  const { bucketName, bucketKey, servicePath, apiName } = await apiGatewayUtils.getApiGatewayTags({
+    if (apiName === API_LOGOUT) {
+      return policies.buildLogoutPolicy({
+        region,
+        awsAccountId,
+        restApiId,
+        stage,
+        contextAttrs,
+      });
+    }
+  }
+
+  return policies.buildSupportPolicy({
     region,
+    awsAccountId,
     restApiId,
+    stage,
+    contextAttrs,
   });
-
-  if (apiName === API_LOGOUT) {
-    policy.allowAllMethods();
-    return policy.build(contextAttrs);
-  }
-
-  event.servicePath = servicePath;
-
-  if (bucketName === undefined || bucketKey === undefined) {
-    throw new Error("OpenAPI file location is not defined");
-  }
-
-  const resources = await s3Utils.getAllowedResourcesFromS3({
-    event,
-    bucketName,
-    bucketKey,
-    userTags: [role],
-    tagName: "x-support-roles-permissions",
-    requireTags: true,
-  });
-
-  for (const r of resources) {
-    policy.allowMethod(r.method, r.path);
-  }
-
-  return policy.build(contextAttrs);
 };
 
 module.exports = {

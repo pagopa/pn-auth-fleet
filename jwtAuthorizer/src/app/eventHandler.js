@@ -2,20 +2,7 @@ const { generateIAMPolicy } = require("./iamPolicyGen.js");
 const { validation } = require("./validation.js");
 const Redis = require("./redis.js");
 const { getSupportPolicy } = require("./backstageAuthorizer.js");
-
-const defaultDenyAllPolicy = {
-  principalId: "user",
-  policyDocument: {
-    Version: "2012-10-17",
-    Statement: [
-      {
-        Action: "execute-api:Invoke",
-        Effect: "Deny",
-        Resource: "*",
-      },
-    ],
-  },
-};
+const { denyAllPolicy } = require("../policies");
 
 async function handleEvent(event) {
   // Declare Policy
@@ -24,7 +11,7 @@ async function handleEvent(event) {
   const encodedToken = event?.authorizationToken?.replace("Bearer ", "");
   if (!encodedToken) {
     console.warn("EncodedToken is null");
-    return defaultDenyAllPolicy;
+    return denyAllPolicy;
   }
   console.log("encodedToken", encodedToken);
   
@@ -34,7 +21,7 @@ async function handleEvent(event) {
 
     if (await Redis.isJtiRevoked(decodedToken.jti)) {
       console.log(`Jti ${decodedToken.jti} is revoked`);
-      return defaultDenyAllPolicy;
+      return denyAllPolicy;
     }
 
     const contextAttrs = {};
@@ -71,7 +58,7 @@ async function handleEvent(event) {
     } else {
       console.error("Error generating IAM policy ", err);
     }
-    return defaultDenyAllPolicy;
+    return denyAllPolicy;
   }
 }
 
@@ -88,4 +75,4 @@ function getUserType(token) {
   return "PA";
 }
 
-module.exports = { handleEvent, defaultDenyAllPolicy };
+module.exports = { handleEvent };
