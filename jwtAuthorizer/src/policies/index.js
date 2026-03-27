@@ -5,15 +5,19 @@ const denyAllPolicy = require("./denyAllPolicy.json");
 const buildPolicy = (template, { region, awsAccountId, restApiId, stage, contextAttrs }) => {
   const policy = structuredClone(template);
 
+  const fillResource = (resource) =>
+    resource
+      .replace("{region}", region)
+      .replace("{awsAccountId}", awsAccountId)
+      .replace("{restApiId}", restApiId)
+      .replace("{stage}", stage);
+
   for (const statement of policy.policyDocument.Statement) {
-    const resources = [statement.Resource].flat();
-    statement.Resource = resources.map((resource) =>
-      resource
-        .replace("{region}", region)
-        .replace("{awsAccountId}", awsAccountId)
-        .replace("{restApiId}", restApiId)
-        .replace("{stage}", stage),
-    );
+    if (Array.isArray(statement.Resource)) {
+      statement.Resource = statement.Resource.map(fillResource);
+    } else {
+      statement.Resource = fillResource(statement.Resource);
+    }
   }
 
   policy.context = contextAttrs;

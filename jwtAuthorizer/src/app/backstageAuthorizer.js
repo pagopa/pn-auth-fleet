@@ -1,5 +1,5 @@
 const { apiGatewayUtils } = require("pn-auth-common");
-const { buildLogoutPolicy, buildSupportPolicy } = require("../policies");
+const policies = require("../policies");
 
 const API_LOGOUT = "logout";
 
@@ -19,7 +19,7 @@ const getSupportPolicy = async (event, contextAttrs) => {
     });
 
     if (apiName === API_LOGOUT) {
-      return buildLogoutPolicy({
+      return policies.buildLogoutPolicy({
         region,
         awsAccountId,
         restApiId,
@@ -29,7 +29,7 @@ const getSupportPolicy = async (event, contextAttrs) => {
     }
   }
 
-  return buildSupportPolicy({
+  return policies.buildSupportPolicy({
     region,
     awsAccountId,
     restApiId,

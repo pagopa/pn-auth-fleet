@@ -57,9 +57,15 @@ describe("test policies", () => {
     it("should replace all placeholders", () => {
       const result = buildLogoutPolicy(defaultParams);
 
-      expect(result.policyDocument.Statement[0].Resource).to.deep.equal([
+      expect(result.policyDocument.Statement[0].Resource).to.equal(
         "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/POST/",
-      ]);
+      );
+    });
+
+    it("should preserve Resource as string when template has string", () => {
+      const result = buildLogoutPolicy(defaultParams);
+
+      expect(result.policyDocument.Statement[0].Resource).to.be.a("string");
     });
 
     it("should set context attributes", () => {
