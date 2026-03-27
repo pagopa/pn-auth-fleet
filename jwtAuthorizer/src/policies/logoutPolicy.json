@@ -6,7 +6,7 @@
       {
         "Action": "execute-api:Invoke",
         "Effect": "Allow",
-        "Resource": "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/*"
+        "Resource": "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/POST/"
       }
     ]
   },

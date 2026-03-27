@@ -1,5 +1,5 @@
 const supportPolicy = require("./supportPolicy.json");
-const allowAllPolicy = require("./allowAllPolicy.json");
+const logoutPolicy = require("./logoutPolicy.json");
 const denyAllPolicy = require("./denyAllPolicy.json");
 
 const buildPolicy = (template, { region, awsAccountId, restApiId, stage, contextAttrs }) => {
@@ -22,10 +22,11 @@ const buildPolicy = (template, { region, awsAccountId, restApiId, stage, context
 
 const buildSupportPolicy = (params) => buildPolicy(supportPolicy, params);
 
-const buildAllowAllPolicy = (params) => buildPolicy(allowAllPolicy, params);
+/** L'api di logout è una lambda con il suo gateway, non fa parte del gateway del BFF */
+const buildLogoutPolicy = (params) => buildPolicy(logoutPolicy, params);
 
 module.exports = {
   buildSupportPolicy,
-  buildAllowAllPolicy,
+  buildLogoutPolicy,
   denyAllPolicy,
 };

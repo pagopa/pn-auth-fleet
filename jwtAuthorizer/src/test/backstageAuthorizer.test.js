@@ -59,7 +59,7 @@ describe("test backstageAuthorizer", () => {
     });
   });
 
-  it("should return allow all policy for logout api", async () => {
+  it("should return logout policy for logout api", async () => {
     getApiGatewayTagsStub.resolves({ apiName: "logout" });
 
     const event = {
@@ -72,7 +72,7 @@ describe("test backstageAuthorizer", () => {
 
     expect(result.principalId).to.equal("user");
     expect(result.policyDocument.Statement[0].Resource).to.deep.equal([
-      "arn:aws:execute-api:eu-south-1:123456789012:abc123def/unique/*",
+      "arn:aws:execute-api:eu-south-1:123456789012:abc123def/unique/POST/",
     ]);
     expect(result.context).to.deep.equal(contextAttrs);
     expect(getApiGatewayTagsStub.calledOnce).to.be.true;
