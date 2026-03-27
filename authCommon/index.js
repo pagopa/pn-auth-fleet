@@ -9,6 +9,7 @@ const S3Functions = require('./app/modules/aws/S3Functions')
 const { RADD_RESOLVER_NAME, ATTR_PREFIX, ISS_PREFIX, REDIS_PN_SESSION_PREFIX } = require('./app/modules/dao/constants')
 
 const { prepareJWKSRenewTimeMetric } = require('./app/modules/utils/metricsUtils')
+const apiGatewayUtils = require('./app/modules/utils/apiGatewayUtils')
 
 module.exports = {
     AllowedIssuerDao,
@@ -21,4 +22,5 @@ module.exports = {
     S3Functions,
     COMMON_CONSTANTS: { RADD_RESOLVER_NAME, ATTR_PREFIX, ISS_PREFIX, REDIS_PN_SESSION_PREFIX },
     prepareJWKSRenewTimeMetric,
+    apiGatewayUtils,
 }

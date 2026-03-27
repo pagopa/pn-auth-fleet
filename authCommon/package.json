@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@aws-sdk/client-api-gateway": "^3.1018.0",
     "@aws-sdk/client-dynamodb": "^3.506.0",
     "@aws-sdk/client-s3": "^3.577.0",
     "@aws-sdk/client-sqs": "^3.588.0",

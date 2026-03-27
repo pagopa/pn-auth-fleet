@@ -1000,6 +1000,12 @@ Resources:
                 Resource:
                   - !Ref RedisServerlessArn
                   - !Ref ElasticCacheAuthFleetSessionsUserArn
+              - Effect: Allow
+                Action:
+                  - "apigateway:GET"
+                Resource:
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/*"
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
@@ -2551,6 +2557,9 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
+      Tags:
+        - Key: ApiName
+          Value: "logout"
   # Deployment
   WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment
