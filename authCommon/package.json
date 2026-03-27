@@ -30,7 +30,6 @@
   "dependencies": {
     "@aws-lambda-powertools/metrics": "^2.2.0",
     "axios": "^1.6.7",
-    "js-yaml": "^4.1.1",
     "redis": "^4.6.14"
   }
 }
