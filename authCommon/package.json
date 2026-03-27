@@ -27,7 +27,6 @@
     "rewire": "^7.0.0"
   },
   "dependencies": {
-    "@aws-sdk/client-api-gateway": "^3.1009.0",
     "@aws-lambda-powertools/metrics": "^2.2.0",
     "axios": "^1.6.7",
     "js-yaml": "^4.1.1",
