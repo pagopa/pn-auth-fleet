@@ -8,13 +8,13 @@
         "Effect": "Allow",
         "Resource": [
           "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent",
-          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/{iun}",
-          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/{iun}/documents/{documentType}",
-          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/{iun}/payments/{recipientIdx}/{attachmentName}",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*/documents/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*/payments/*/*",
           "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/history",
           "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/status",
-          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/legal-facts/{legalFactId}",
-          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/sender-dashboard/dashboard-data-request/{cxType}/{cxId}",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/legal-facts/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/sender-dashboard/dashboard-data-request/*/*",
           "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/institutions",
           "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/institutions/products"
         ]
