@@ -14,6 +14,9 @@ describe("api gateway tests", function () {
     apigwMock = mockClient(APIGatewayClient);
   });
 
+  beforeEach(() => {
+    apigwMock.reset();
+  });
   after(() => {
     apigwMock.restore();
   });
