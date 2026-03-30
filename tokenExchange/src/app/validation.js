@@ -134,13 +134,14 @@ async function checkTaxIdCode(taxIdCode) {
 
 function checkRoles(role) {
   const allowedRoles = ["admin", "operator", "support"];
+  const index = allowedRoles.indexOf(role);
 
-  if (allowedRoles != 0) {
-    return allowedRoles.indexOf(role);
-  } else {
+  if (index < 0) {
     console.error(`Role: ${role} is not allowed`);
     return -1;
   }
+
+  return index;
 }
 
 module.exports = { validation };
