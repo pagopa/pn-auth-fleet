@@ -6,7 +6,7 @@ const { APIGatewayClient, GetTagsCommand } = require("@aws-sdk/client-api-gatewa
  * @param {Object} params - The API Gateway identifiers.
  * @param {string} params.region - The AWS region of the REST API.
  * @param {string} params.restApiId - The REST API ID.
- * @returns {Promise<{bucketName: string, bucketKey: string, servicePath: string, apiName: string}>}
+ * @returns {Promise<{bucketName: string | undefined, bucketKey: string | undefined, servicePath: string | undefined, apiName: string | undefined}>}
  */
 async function getApiGatewayTags({ region, restApiId }) {
   const apigwClient = new APIGatewayClient({ region });
