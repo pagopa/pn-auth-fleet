@@ -45,6 +45,11 @@ describe("test eventHandler", () => {
     isJtiRevokedStub.resetHistory();
   });
 
+  afterEach(() => {
+    sinon.restore();
+    isJtiRevokedStub = sinon.stub(redis, "isJtiRevoked").resolves(false);
+  });
+
   after(() => {
     kmsClientMock.reset();
     sinon.restore();
@@ -133,11 +138,13 @@ describe("test eventHandler", () => {
     });
 
       expect(isJtiRevokedStub.getCall(0).args).to.be.eqls(["01G0CFW80HGTTW0RH54WQD6F6S"]);
+
   });
 
   it("handle event with no errors (BS) - cx_id without prefix", async () => {
+    sinon.stub(jsonwebtoken, "verify").returns(true);
     const { apiGatewayUtils } = require("pn-auth-common");
-    const getApiGatewayTagsStub = sinon.stub(apiGatewayUtils, "getApiGatewayTags").resolves({
+    sinon.stub(apiGatewayUtils, "getApiGatewayTags").resolves({
       apiName: undefined,
     });
 
@@ -153,7 +160,6 @@ describe("test eventHandler", () => {
     expect(result.context.cx_id).to.equal("026e8c72-7944-4dcd-8668-f596447fec6d");
     expect(result.context.cx_role).to.equal("support");
 
-    getApiGatewayTagsStub.restore();
   });
 
   it("handle event with jti revoked", async () => {
