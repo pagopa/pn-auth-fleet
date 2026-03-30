@@ -1,5 +1,14 @@
 const { APIGatewayClient, GetTagsCommand } = require("@aws-sdk/client-api-gateway");
 
+const clients = new Map();
+
+function getClient(region) {
+  if (!clients.has(region)) {
+    clients.set(region, new APIGatewayClient({ region }));
+  }
+  return clients.get(region);
+}
+
 /**
  * Retrieves the PN tags from the specified API Gateway REST API.
  *
@@ -9,7 +18,7 @@ const { APIGatewayClient, GetTagsCommand } = require("@aws-sdk/client-api-gatewa
  * @returns {Promise<{bucketName: string, bucketKey: string, servicePath: string, apiName: string}>}
  */
 async function getApiGatewayTags({ region, restApiId }) {
-  const apigwClient = new APIGatewayClient({ region });
+  const apigwClient = getClient(region);
   const input = {
     resourceArn: `arn:aws:apigateway:${region}::/restapis/${restApiId}`,
   };
