@@ -8,18 +8,18 @@ const { expect } = require("chai");
 const { getApiGatewayTags } = require("../app/modules/utils/apiGatewayUtils");
 
 describe("api gateway tests", function () {
-  let ddbMock;
+  let apigwMock;
 
   before(() => {
-    ddbMock = mockClient(APIGatewayClient);
+    apigwMock = mockClient(APIGatewayClient);
   });
 
   after(() => {
-    ddbMock.restore();
+    apigwMock.restore();
   });
 
   it("test tags extraction", async () => {
-    ddbMock.on(GetTagsCommand).resolves({
+    apigwMock.on(GetTagsCommand).resolves({
       tags: {
         PN_OPENAPI_BUCKET_NAME: "1231",
         PN_OPENAPI_BUCKET_KEY: "abcd",
@@ -42,7 +42,7 @@ describe("api gateway tests", function () {
   });
 
   it("test tags extraction with missing tags", async () => {
-    ddbMock.on(GetTagsCommand).resolves({
+    apigwMock.on(GetTagsCommand).resolves({
       tags: {
         PN_OPENAPI_BUCKET_KEY: "abcd",
       },
