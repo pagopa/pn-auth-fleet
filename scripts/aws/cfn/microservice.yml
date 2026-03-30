@@ -1004,8 +1004,8 @@ Resources:
                 Action:
                   - "apigateway:GET"
                 Resource:
-                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/*"
-                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*"
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}"
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
