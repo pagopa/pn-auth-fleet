@@ -133,14 +133,15 @@ async function checkTaxIdCode(taxIdCode) {
 }
 
 function checkRoles(role) {
-  const allowedRoles = ["admin", "operator"];
+  const allowedRoles = ["admin", "operator", "support"];
+  const index = allowedRoles.indexOf(role);
 
-  if (allowedRoles != 0) {
-    return allowedRoles.indexOf(role);
-  } else {
-    console.error("Invalid env vars ALLOWED_ROLES", process.env.ALLOWED_ROLES);
+  if (index < 0) {
+    console.error(`Role: ${role} is not allowed`);
     return -1;
   }
+
+  return index;
 }
 
 module.exports = { validation };
