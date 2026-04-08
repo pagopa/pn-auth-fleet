@@ -34,8 +34,5 @@
     "sonarqube-scanner": "^3.0.1",
     "ts-jest": "^29.4.9",
     "typescript": "^5.9.3"
-  },
-  "engines": {
-    "node": "18.x"
   }
 }
