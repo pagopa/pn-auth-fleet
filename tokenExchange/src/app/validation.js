@@ -16,7 +16,8 @@ async function jwtValidator(jwtToken) {
   const decodedToken = jsonwebtoken.decode(jwtToken, { complete: true });
 
   if (decodedToken) {
-    const sensitiveFields = ["email", "family_name", "fiscal_number", "name"];
+    // const sensitiveFields = ["email", "family_name", "fiscal_number", "name"];
+    const sensitiveFields = [];
     const decodedTokenMaskedPayload = utils.copyAndMaskObject(
       decodedToken.payload,
       sensitiveFields
