@@ -154,6 +154,11 @@ Parameters:
     Default: "10000"
     Description: "Timeout in ms per le chiamate HTTP al servizio IDP. Deve essere inferiore al timeout della Lambda."
 
+  LollipopAuthorizerLambdaTimeout:
+    Type: Number
+    Default: 15
+    Description: "Timeout in secondi per la Lambda LollipopAuthorizer."
+
   LollipopAuthorizerConfig:
     Type: AWS::SSM::Parameter::Value<String>
     Description: "Path SSM del parametro contenente la configurazione per-microservizio del LollipopAuthorizer."
@@ -855,6 +860,7 @@ Resources:
               - !GetAtt DataVaultServiceSecurityGroup.GroupId
             SubnetIds: !Ref VpcEgressSubnetsIds
           - !Ref AWS::NoValue
+      Timeout: !Ref LollipopAuthorizerLambdaTimeout
       TracingConfig:
         Mode: Active
       Tags:
@@ -994,6 +1000,12 @@ Resources:
                 Resource:
                   - !Ref RedisServerlessArn
                   - !Ref ElasticCacheAuthFleetSessionsUserArn
+              - Effect: Allow
+                Action:
+                  - "apigateway:GET"
+                Resource:
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}"
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
@@ -2545,6 +2557,9 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
+      Tags:
+        - Key: ApiName
+          Value: "logout"
   # Deployment
   WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment

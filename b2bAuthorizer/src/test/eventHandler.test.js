@@ -13,7 +13,7 @@ const jwtWithoutIss = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkI
 
 // dev notes: if you need to refresh JWT token, you can use the following code with the key stored in secret of Dev Core "test/pn-auth-fleet-unit-test-radd-jwt-key":
 // https://github.com/pagopa/pn-troubleshooting/blob/main/jwt-auth/generate-jwt.js
-const jwt1yearValid = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOiJodHRwczovL2FwaS5yYWRkLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6InRlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImp0aSI6IjEyMzEyMzEyMzEyMzEyNTUiLCJpYXQiOjE3NDE5NjYzNTUsImV4cCI6MTc3MzQxNTk1NX0.SezsLnmcww6-OY2BXNOXrFDI6nyuteN_z_PJEeZX4fqVdwW4QWSelIYPta-dABtYPl-fq0feRpg5xPcVerO6sJYCNfVEW6rFpj_iL9Sv4W3flm1nTFAFI75SQRfRQ0pbZaQ0bF_TBSLD6wiqsZkSgtaQwbO3YhJqBmzo3k8KqU9B-apWXZcXSlzdGsv6pLbEOb9X8xrAZqK9GQkFzs7DDy-QRKqzttT-GIk-EgsibLJNmjGJ7uhi7HgJZ9ffdxnYt2UIRKkun3W_WgmHyhWnckcyCeWwAN9IzCDRciBk858dXni9ICJpFKfnpAXJKD00PhMymDdsVgOYyRpRyTtAwA' // expires on March 14th 2026
+const jwt1yearValid = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkIn0.eyJhdWQiOiJodHRwczovL2FwaS5yYWRkLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImlzcyI6InRlc3QtaXNzdWVyLmRldi5ub3RpZmljaGVkaWdpdGFsaS5pdCIsImp0aSI6IjEyMzEyMzEyMzEyMzEyNTUiLCJpYXQiOjE3NzM2NTgyNDksImV4cCI6MTgwNTEwNzg0OX0.PcqQrcLWiqHDpqt-3wlhvNfCtKgDJenMN7CjlIZy2L7lkw5I_e-G67EYLiNIlXAS-9L1umpnQXGAjySgFnbn9rtnz0Rl4LVCA1o12A_3cDNASEF-d4CERAnpoMeCoylF7WcxIh6pqbZv-rjpbkg45_laLs-_K4g5aixC84FiAXjy_PQTrOnDQRQwltaFjd9HNbZFvNzESGjLDCFwwgVYcNPaXlUMb9R0bnz6qBC_dZPbQdMt8WilGqK0oxx20IKxa9XxOo32FmvYt4AC_jqHJazm7r8bbDajwsScWYkmOtb6BAdrGdK3rIAxg7tI519Miij2KRZQYfMpixAFvvDCuA' // expires on March 16th 2027
 
 describe("test eventHandler", () => {
 
@@ -79,6 +79,7 @@ describe("test eventHandler", () => {
 
     // mock issuersCache
     const jwks = fs.readFileSync('./src/test/resources/jwks.json');
+
     const jwksAsBuffer = Buffer.from(jwks, 'utf8');
     const issuersCache = {
       getOrLoad: async (issuerId) => {
@@ -86,12 +87,22 @@ describe("test eventHandler", () => {
           cfg: {
             iss: issuerId,
             attributeResolversCfgs: [
-
+            ]
+          },
+          jwksCache: [ { JWKSBody: jwksAsBuffer } ]
+        }
+      },
+      getWithForceRefresh: async (issuerId) => {
+        return {
+          cfg: {
+            iss: issuerId,
+            attributeResolversCfgs: [
             ]
           },
           jwksCache: [ { JWKSBody: jwksAsBuffer } ]
         }
       }
+
     }
     EventHandler.__set__("issuersCache", issuersCache);
 
