@@ -10,7 +10,7 @@ function auditLog({
   cx_role,
   uid,
   jti,
-  requestId,
+  request_id,
 } = {}) {
   let statusMessage = `INFO - ${message}`;
   if (status === "OK") {
@@ -32,7 +32,7 @@ function auditLog({
     cx_type,
     cx_id,
     trace_id: traceId,
-    request_id: requestId,
+    request_id,
     tags: ["AUDIT10Y"],
     jti,
   });

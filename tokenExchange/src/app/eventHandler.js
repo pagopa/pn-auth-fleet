@@ -13,11 +13,12 @@ const {
 const { validation } = require("./validation.js");
 const { getRetrievalPayload } = require("./emdIntegrationClient.js");
 
-async function handleEvent(event, requestId) {
+async function handleEvent(event, context) {
+  const request_id = context?.awsRequestId;
   event.headers = makeLower(event.headers);
   const eventOrigin = event?.headers?.origin;
   if (eventOrigin) {
-    auditLog({ aud_type: "AUD_ACC_LOGIN", aud_orig: eventOrigin, requestId }).info("info");
+    auditLog({ aud_type: "AUD_ACC_LOGIN", aud_orig: eventOrigin, request_id }).info("info");
     if (checkOrigin(eventOrigin) !== -1) {
       console.info("Origin successful checked");
       let encodedToken;
@@ -32,7 +33,7 @@ async function handleEvent(event, requestId) {
           aud_type: "AUD_ACC_LOGIN",
           aud_orig: eventOrigin,
           status: "KO",
-          requestId,
+          request_id,
         }).warn("error");
         return generateKoResponse(err, eventOrigin);
       }
@@ -67,7 +68,7 @@ async function handleEvent(event, requestId) {
             cx_role,
             uid,
             jti: enrichedToken.jti,
-            requestId,
+            request_id,
           }).info("success");
           return generateOkResponse(sessionToken, enrichedToken, eventOrigin);
         } catch (err) {
@@ -76,7 +77,7 @@ async function handleEvent(event, requestId) {
             aud_type: "AUD_ACC_LOGIN",
             aud_orig: eventOrigin,
             status: "KO",
-            requestId,
+            request_id,
           });
 
           if (err instanceof ValidationException) {
@@ -93,7 +94,7 @@ async function handleEvent(event, requestId) {
           aud_type: "AUD_ACC_LOGIN",
           aud_orig: eventOrigin,
           status: "KO",
-          requestId,
+          request_id,
         }).warn("error");
         return generateKoResponse(
           "AuthorizationToken not present",
@@ -101,11 +102,11 @@ async function handleEvent(event, requestId) {
         );
       }
     } else {
-      auditLog({ message: "Origin not allowed", aud_type: "AUD_ACC_LOGIN", aud_orig: eventOrigin, status: "KO", requestId }).warn("error");
+      auditLog({ message: "Origin not allowed", aud_type: "AUD_ACC_LOGIN", aud_orig: eventOrigin, status: "KO", request_id }).warn("error");
       return generateKoResponse("Origin not allowed", eventOrigin);
     }
   } else {
-    auditLog({ message: "eventOrigin is null", aud_type: "AUD_ACC_LOGIN", aud_orig: eventOrigin, status: "KO", requestId }).warn("error");
+    auditLog({ message: "eventOrigin is null", aud_type: "AUD_ACC_LOGIN", aud_orig: eventOrigin, status: "KO", request_id }).warn("error");
     return generateKoResponse("eventOrigin is null", "*");
   }
 }
