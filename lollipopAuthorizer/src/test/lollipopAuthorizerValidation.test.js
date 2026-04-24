@@ -38,11 +38,11 @@ describe("Lollipop Authorizer Validation Suite Test", () => {
     it("TEST 1: Successo: deve restituire 200 quando l'assertion è valida", async () => {
         stubs.validateLollipopRequest.resolves();
         stubs.validateLollipopHttpSignature.resolves({ resultCode: "HTTP_MESSAGE_VALIDATION_SUCCESS" });
-        stubs.validateLollipopAssertion.resolves({ resultCode: "VERIFICATION_SUCCESS_CODE", name: "Mario" });
+        stubs.validateLollipopAssertion.resolves({ resultCode: "SUCCESS", name: "Mario" });
 
         const result = await validateLollipopAuthorizer(mockRequest);
         expect(result.statusCode).to.equal(200);
-        expect(result.resultCode).to.equal("VERIFICATION_SUCCESS_CODE");
+        expect(result.resultCode).to.equal("SUCCESS");
         expect(result.name).to.equal("Mario");
     });
 
@@ -60,16 +60,17 @@ describe("Lollipop Authorizer Validation Suite Test", () => {
     });
 
     // TEST 3: ECCEZIONE CONTENT VALIDATION (401)
-    it("TEST 3: dovrebbe gestire LollipopRequestContentValidationException e restituire 401", async () => {
+    it("TEST 3: dovrebbe gestire LollipopRequestContentValidationException e restituire 401 con codice allineato (non granulare)", async () => {
         const error = new LollipopRequestContentValidationException("FATAL_ERROR", "Invalid Headers");
-        error.errorCode = "REQUEST_PARAMS_VALIDATION_FAILED";
+        error.errorCode = "MISSING_PUBLIC_KEY";
 
         stubs.validateLollipopRequest.rejects(error);
 
         const result = await validateLollipopAuthorizer({});
 
         expect(result.statusCode).to.equal(401);
-        expect(result.resultCode).to.equal("REQUEST_PARAMS_VALIDATION_FAILED");
+        expect(result.resultCode).to.equal("REQUEST PARAMS VALIDATION FAILED");
+        expect(result.resultCode).to.not.equal("MISSING_PUBLIC_KEY");
         expect(result.resultMessage).to.contain("Invalid Headers");
         // Verifica che lo step 2 non venga chiamato
         expect(stubs.validateLollipopHttpSignature.called).to.be.false;
@@ -82,13 +83,13 @@ describe("Lollipop Authorizer Validation Suite Test", () => {
 
         const error = new LollipopAssertionException( "INVALID_USER_ID",
                             "The user id in the assertion does not match the request header");
-        error.errorCode = "REQUEST_ASSERTION_VALIDATION_FAILED";
+        error.errorCode = "USER_ID_VALIDATION_ERROR";
         stubs.validateLollipopAssertion.rejects(error);
 
         const result = await validateLollipopAuthorizer({});
 
         expect(result.statusCode).to.equal(403);
-        expect(result.resultCode).to.equal("REQUEST_ASSERTION_VALIDATION_FAILED");
+        expect(result.resultCode).to.equal("USER_ID_VALIDATION_ERROR");
     });
 
 
@@ -99,7 +100,21 @@ describe("Lollipop Authorizer Validation Suite Test", () => {
         const result = await validateLollipopAuthorizer({});
 
         expect(result.statusCode).to.equal(500);
-        expect(result.resultCode).to.equal("FATAL_ERROR");
+        expect(result.resultCode).to.equal("ASSERTION_VERIFICATION_FAILED");
+    });
+
+    // TEST 6 (M9): il codice granulare di LollipopHttpSignatureValidationException non deve finire nell'header
+    it("TEST 6: dovrebbe restituire REQUEST_VALIDATION_ERROR e non il codice granulare per LollipopHttpSignatureValidationException", async () => {
+        const error = new LollipopHttpSignatureValidationException("INVALID_JWK", "JWK malformato");
+        error.errorCode = "INVALID_JWK";
+        stubs.validateLollipopRequest.resolves();
+        stubs.validateLollipopHttpSignature.rejects(error);
+
+        const result = await validateLollipopAuthorizer(mockRequest);
+
+        expect(result.statusCode).to.equal(402);
+        expect(result.resultCode).to.equal("REQUEST_VALIDATION_ERROR");
+        expect(result.resultCode).to.not.equal("INVALID_JWK");
     });
 
 });
