@@ -46,7 +46,7 @@ export function auditLog({
     aud_orig,
     level,
     level_value: value,
-    logger_name: "tokenExchangeOidc",
+    logger_name: "oneIdentity",
     uid,
     cx_type,
     cx_id,
