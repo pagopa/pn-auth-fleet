@@ -383,13 +383,12 @@ class IdpCertClient {
             console.error('ERROR: La struttura XML parsata è inattesa o la lista EntityDescriptor è vuota.');
             throw new Error('La struttura XML parsata è inattesa o la lista EntityDescriptor è vuota.');
         }
-        for (const entityObj of entityList) {
-            if(entityObj !== undefined ){
-                newData.entityId = entityId;
-                newData.tag = tag;
-                newData.certData = entityObj;
-                return newData;
-            }
+        const allCerts = entityList.filter(e => e !== undefined);
+        if (allCerts.length > 0) {
+            newData.entityId = entityId;
+            newData.tag = tag;
+            newData.certData = allCerts;
+            return newData;
         }
         console.error(`ERROR: Cert for entityID ${entityId} not found`);
         throw new EntityIdNotFoundException(`Cert for entityID ${entityId} not found`);
