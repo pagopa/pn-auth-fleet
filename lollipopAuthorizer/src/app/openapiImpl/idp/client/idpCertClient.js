@@ -9,8 +9,6 @@ import ApiException from '../../../exception/apiException.js';
 import CIECertData from '../model/CIECertData.js';
 import SPIDCertData from '../model/SPIDCertData.js';
 import DefaultApi from '../api/DefaultApi.js';
-import EntityDescriptor from '../model/EntityDescriptor.js';
-import IdpCertData from '../../../model/IdpCertData.js';
 import xml2js from "xml2js";
 
 
@@ -438,63 +436,38 @@ class IdpCertClient {
             throw new ErrorRetrievingIdpCertDataException('La struttura XML parsata è inattesa in quanto manca il tag IDPSSODescriptor');
    }
 
-   function getKeyDescriptorsList(idpssoDescriptor, KeyDescriptor){
-        let keyDescriptorsList = [];
+   function toArray(value) {
+       if (Array.isArray(value)) return value;
+       if (value != null) return [value];
+       return [];
+   }
 
-        const keyDescriptors = idpssoDescriptor[KeyDescriptor];
-        if (Array.isArray(keyDescriptors)) {
-            keyDescriptorsList = keyDescriptors
-                .filter(el => {
-                    return el['$'] && el['$'].use === "signing";
-            });
-        } else if (keyDescriptors && typeof keyDescriptors === 'object') {
-            const keyDescriptorFound = keyDescriptors;
-            if (keyDescriptorFound.use === "signing") {
-                keyDescriptorsList.push(keyDescriptorFound);
-            }
-        }
-        return keyDescriptorsList;
+   function getKeyDescriptorsList(idpssoDescriptor, KeyDescriptor) {
+       return toArray(idpssoDescriptor[KeyDescriptor])
+           .filter(el => el['$'] && el['$'].use === "signing");
    }
 
    function getKeyInfosList(keyDescriptorsList) {
-       let keyInfosList = [];
-
+       const keyInfosList = [];
        for (const keyDescriptor of keyDescriptorsList) {
-           const keyInfoData = keyDescriptor[lollipopConfig.DS_KEYINFO_TAG];
-           if (Array.isArray(keyInfoData)) {
-               keyInfosList.push(keyInfoData);
-           } else if (keyInfoData) {
-               const keyInfo = keyInfoData;
-               keyInfosList.push(keyInfo);
-           }
+           keyInfosList.push(...toArray(keyDescriptor[lollipopConfig.DS_KEYINFO_TAG]));
        }
        return keyInfosList;
    }
 
-
    function getListX509Data(keyInfosList) {
-       let listX509Data = [];
+       const listX509Data = [];
        for (const keyInfo of keyInfosList) {
-           const x509Data = keyInfo[lollipopConfig.DS_X509DATA_TAG];
-           if (Array.isArray(x509Data)) {
-               listX509Data.push(x509Data);
-           } else if (x509Data) {
-               listX509Data.push(x509Data);
-           }
+           listX509Data.push(...toArray(keyInfo[lollipopConfig.DS_X509DATA_TAG]));
        }
        return listX509Data;
    }
 
 
   function getExtractedSignatureList(listX509Data) {
-       let extractedSignatureList = [];
+       const extractedSignatureList = [];
        for (const x509Data of listX509Data) {
-           const x509CertificateContent = x509Data[lollipopConfig.DS_X509CERTIFICATE_TAG];
-           if (Array.isArray(x509CertificateContent)) {
-               extractedSignatureList.push(x509CertificateContent);
-           } else if (x509CertificateContent) {
-               extractedSignatureList.push(x509CertificateContent);
-           }
+           extractedSignatureList.push(...toArray(x509Data[lollipopConfig.DS_X509CERTIFICATE_TAG]));
        }
        return extractedSignatureList;
    }
