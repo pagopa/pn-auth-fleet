@@ -2,7 +2,7 @@ import AWSXRay from "aws-xray-sdk-core";
 import http from "http";
 import https from "https";
 
-import { GetRetrievalPayloadResponse } from "../../models/Source";
+import { GetRetrievalPayloadResponse } from "../models/Source";
 import { retrieveEnvVariable } from "./String";
 
 AWSXRay.captureHTTPsGlobal(http);

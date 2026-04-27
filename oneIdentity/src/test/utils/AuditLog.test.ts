@@ -1,4 +1,4 @@
-import { auditLog } from "../../app/utils/AuditLog";
+import { auditLog } from "../../app/handlers/oidcAuthorize/utils/AuditLog";
 
 describe("Audit Log", () => {
   const cx_type = "AUD";

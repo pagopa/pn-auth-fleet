@@ -1,4 +1,4 @@
-import { getRetrievalPayload } from "../../app/utils/EmdIntegrationClient";
+import { getRetrievalPayload } from "../../app/handlers/oidcAuthorize/utils/EmdIntegrationClient";
 import {
   checkTppResponseMock,
   retrievalIdMock,

@@ -1,4 +1,4 @@
-import { CachedJwks, JWKS } from "../../../models/Jwks";
+import { CachedJwks, JWKS } from "../../models/Jwks";
 import { getJwks } from "./JwksRetriever";
 
 const cachedJwks = new Map<string, CachedJwks>();

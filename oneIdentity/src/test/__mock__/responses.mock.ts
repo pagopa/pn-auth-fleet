@@ -1,4 +1,4 @@
-import { TokenExchangeResponse } from "../../models/Token";
+import { TokenExchangeResponse } from "../../app/handlers/oidcAuthorize/models/Token";
 import { mockState } from "./event.mock";
 import { userIdMock } from "./token.mock";
 

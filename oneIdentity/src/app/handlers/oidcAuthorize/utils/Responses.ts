@@ -1,6 +1,6 @@
-import { ErrorResponseBody } from "../../models/Responses";
-import { Source } from "../../models/Source";
-import { OIDecodedIdToken, TokenExchangeResponse } from "../../models/Token";
+import { ErrorResponseBody } from "../models/Responses";
+import { Source } from "../models/Source";
+import { OIDecodedIdToken, TokenExchangeResponse } from "../models/Token";
 import { ValidationException } from "../exception/validationException";
 import { removeFiscalNumberPrefix } from "./String";
 import { generateJwtPayload, generateSessionToken } from "./TokenGenerator";

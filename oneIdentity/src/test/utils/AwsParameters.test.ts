@@ -1,13 +1,13 @@
 import {
   getAWSParameterStore,
   getAWSSecret,
-} from "../../app/utils/AwsParameters";
+} from "../../app/handlers/oidcAuthorize/utils/AwsParameters";
 import { setupEnv } from "../test.utils";
 
 global.fetch = jest.fn();
 
 // Mock retryWithDelay to call the function immediately without delay
-jest.mock("../../app/utils/Retry.ts", () => ({
+jest.mock("../../app/handlers/oidcAuthorize/utils/Retry.ts", () => ({
   retryWithDelay: jest.fn((fn) => fn()),
 }));
 

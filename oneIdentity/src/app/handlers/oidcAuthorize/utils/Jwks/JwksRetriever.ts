@@ -2,7 +2,7 @@ import AWSXRay from "aws-xray-sdk-core";
 import http from "http";
 import https from "https";
 
-import { JWKS } from "../../../models/Jwks";
+import { JWKS } from "../../models/Jwks";
 import { retryWithDelay } from "../Retry";
 import { retrieveEnvVariable } from "../String";
 

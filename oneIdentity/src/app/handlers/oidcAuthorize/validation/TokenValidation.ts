@@ -1,5 +1,5 @@
 import { decode, verify } from "jsonwebtoken";
-import { OIDecodedIdToken, OIDecodedToken } from "../../models/Token";
+import { OIDecodedIdToken, OIDecodedToken } from "../models/Token";
 import { ValidationException } from "../exception/validationException";
 import { getAWSParameterStore } from "../utils/AwsParameters";
 import { copyAndMaskObject } from "../utils/Object";

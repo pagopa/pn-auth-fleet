@@ -1,17 +1,17 @@
 import jwkToPem from "jwk-to-pem";
-import { ValidationException } from "../../app/exception/validationException";
-import * as JwksCache from "../../app/utils/Jwks/JwksCache";
-import { get } from "../../app/utils/Jwks/JwksCache";
-import { getJwks } from "../../app/utils/Jwks/JwksRetriever";
-import { getPublicKey } from "../../app/utils/PublicKey";
+import { ValidationException } from "../../app/handlers/oidcAuthorize/exception/validationException";
+import * as JwksCache from "../../app/handlers/oidcAuthorize/utils/Jwks/JwksCache";
+import { get } from "../../app/handlers/oidcAuthorize/utils/Jwks/JwksCache";
+import { getJwks } from "../../app/handlers/oidcAuthorize/utils/Jwks/JwksRetriever";
+import { getPublicKey } from "../../app/handlers/oidcAuthorize/utils/PublicKey";
 import {
   jwksKid,
   mockCacheJwksResponse,
   mockJwksResponse,
 } from "../__mock__/jwks.mock";
 
-jest.mock("../../app/utils/Jwks/JwksCache");
-jest.mock("../../app/utils/Jwks/JwksRetriever");
+jest.mock("../../app/handlers/oidcAuthorize/utils/Jwks/JwksCache");
+jest.mock("../../app/handlers/oidcAuthorize/utils/Jwks/JwksRetriever");
 jest.mock("jwk-to-pem");
 
 const mockGet = get as jest.MockedFunction<typeof get>;

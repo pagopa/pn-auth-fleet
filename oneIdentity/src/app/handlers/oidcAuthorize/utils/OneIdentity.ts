@@ -1,5 +1,5 @@
-import { OneIdentityAwsSecretObject } from "../../models/Aws";
-import { OIExchangeCodeResponse } from "../../models/Token";
+import { OneIdentityAwsSecretObject } from "../models/Aws";
+import { OIExchangeCodeResponse } from "../models/Token";
 import { ValidationException } from "../exception/validationException";
 import { retrieveEnvVariable } from "./String";
 

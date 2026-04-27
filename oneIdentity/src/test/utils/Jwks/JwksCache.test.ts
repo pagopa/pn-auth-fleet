@@ -2,8 +2,8 @@ import {
   clearCache,
   get,
   isCacheActive,
-} from "../../../app/utils/Jwks/JwksCache";
-import * as retrieverJwks from "../../../app/utils/Jwks/JwksRetriever";
+} from "../../../app/handlers/oidcAuthorize/utils/Jwks/JwksCache";
+import * as retrieverJwks from "../../../app/handlers/oidcAuthorize/utils/Jwks/JwksRetriever";
 import { mockJwksResponse } from "../../__mock__/jwks.mock";
 
 const SIX_MINUTES_IN_MS = process.env.CACHE_TTL

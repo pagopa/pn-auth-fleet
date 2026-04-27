@@ -1,29 +1,29 @@
-import { handler } from "../app";
-import { ValidationException } from "../app/exception/validationException";
-import * as AuditLog from "../app/utils/AuditLog";
-import * as AwsParameters from "../app/utils/AwsParameters";
-import * as OneIdentity from "../app/utils/OneIdentity";
-import * as Responses from "../app/utils/Responses";
-import * as Origin from "../app/validation/Origin";
-import * as TokenValidation from "../app/validation/TokenValidation";
-import * as EmdIntegrationClient from "../app/utils/EmdIntegrationClient";
-import * as TokenGenerator from "../app/utils/TokenGenerator";
+import { oidcTokenHandler as handler } from "../../../app/handlers/oidcToken";
+import { ValidationException } from "../../../app/handlers/oidcAuthorize/exception/validationException";
+import * as AuditLog from "../../../app/handlers/oidcAuthorize/utils/AuditLog";
+import * as AwsParameters from "../../../app/handlers/oidcAuthorize/utils/AwsParameters";
+import * as OneIdentity from "../../../app/handlers/oidcAuthorize/utils/OneIdentity";
+import * as Responses from "../../../app/handlers/oidcAuthorize/utils/Responses";
+import * as Origin from "../../../app/handlers/oidcAuthorize/validation/Origin";
+import * as TokenValidation from "../../../app/handlers/oidcAuthorize/validation/TokenValidation";
+import * as EmdIntegrationClient from "../../../app/handlers/oidcAuthorize/utils/EmdIntegrationClient";
+import * as TokenGenerator from "../../../app/handlers/oidcAuthorize/utils/TokenGenerator";
 import {
   mockAllowedOrigin,
   mockState,
   mockTokenExchangeEvent,
-} from "./__mock__/event.mock";
+} from "../../__mock__/event.mock";
 import {
   oneIdentityCredentialsMock,
   oneIdentityExchangeCodeResponseMock,
-} from "./__mock__/oneIdentity.mock";
-import { tokenExchangeResponse } from "./__mock__/responses.mock";
-import { oneIdentityIdTokenMock } from "./__mock__/token.mock";
-import { setupEnv } from "./test.utils";
+} from "../../__mock__/oneIdentity.mock";
+import { tokenExchangeResponse } from "../../__mock__/responses.mock";
+import { oneIdentityIdTokenMock } from "../../__mock__/token.mock";
+import { setupEnv } from "../../test.utils";
 import {
   checkTppResponseMock,
   retrievalIdMock,
-} from "./__mock__/emdIntegration.mock";
+} from "../../__mock__/emdIntegration.mock";
 
 const parseResponse = (result: any) => ({
   statusCode: result.statusCode,
@@ -91,7 +91,7 @@ describe("Event Handler tests", () => {
         },
       };
 
-      const result = await handler(eventWithoutOrigin, {} as any, () => {});
+      const result = await handler(eventWithoutOrigin as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toBe(500);
@@ -116,7 +116,7 @@ describe("Event Handler tests", () => {
         },
       };
 
-      const result = await handler(eventWithInvalidOrigin, {} as any, () => {});
+      const result = await handler(eventWithInvalidOrigin as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -143,7 +143,7 @@ describe("Event Handler tests", () => {
         body: undefined,
       };
 
-      const result = await handler(eventWithoutBody, {} as any, () => {});
+      const result = await handler(eventWithoutBody as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -164,7 +164,7 @@ describe("Event Handler tests", () => {
         body: "invalid-json{",
       };
 
-      const result = await handler(eventWithInvalidBody, {} as any, () => {});
+      const result = await handler(eventWithInvalidBody as any);
       console.log("----- RESULT ----", result);
       const { statusCode, body } = parseResponse(result);
 
@@ -191,7 +191,7 @@ describe("Event Handler tests", () => {
         }),
       };
 
-      const result = await handler(eventWithoutCode, {} as any, () => {});
+      const result = await handler(eventWithoutCode as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -208,11 +208,7 @@ describe("Event Handler tests", () => {
         }),
       };
 
-      const result = await handler(
-        eventWithoutRedirectUri,
-        {} as any,
-        () => {},
-      );
+      const result = await handler(eventWithoutRedirectUri as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -229,7 +225,7 @@ describe("Event Handler tests", () => {
         }),
       };
 
-      const result = await handler(eventWithoutNonce, {} as any, () => {});
+      const result = await handler(eventWithoutNonce as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -246,7 +242,7 @@ describe("Event Handler tests", () => {
         }),
       };
 
-      const result = await handler(eventWithoutState, {} as any, () => {});
+      const result = await handler(eventWithoutState as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -256,7 +252,7 @@ describe("Event Handler tests", () => {
 
   describe("Token exchange flow", () => {
     it("should successfully handle valid token exchange", async () => {
-      const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
+      const result = await handler(mockTokenExchangeEvent as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(getAWSSecretSpy).toHaveBeenCalledTimes(1);
@@ -294,7 +290,7 @@ describe("Event Handler tests", () => {
     it("should handle AWS secret retrieval failure", async () => {
       getAWSSecretSpy.mockRejectedValue(new Error("Secret not found"));
 
-      const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
+      const result = await handler(mockTokenExchangeEvent as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -317,7 +313,7 @@ describe("Event Handler tests", () => {
         new Error("One Identity code exchange failed"),
       );
 
-      const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
+      const result = await handler(mockTokenExchangeEvent as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -340,7 +336,7 @@ describe("Event Handler tests", () => {
         new ValidationException("Error during ID Token validation"),
       );
 
-      const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
+      const result = await handler(mockTokenExchangeEvent as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(400);
@@ -366,7 +362,7 @@ describe("Event Handler tests", () => {
         new Error("Unexpected validation error"),
       );
 
-      const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
+      const result = await handler(mockTokenExchangeEvent as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -410,7 +406,7 @@ describe("Event Handler tests", () => {
         }),
       };
 
-      const result = await handler(eventWithTppSource, {} as any, () => {});
+      const result = await handler(eventWithTppSource as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toBe(200);
@@ -434,7 +430,7 @@ describe("Event Handler tests", () => {
         }),
       };
 
-      const result = await handler(eventWithQrSource, {} as any, () => {});
+      const result = await handler(eventWithQrSource as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toBe(200);
@@ -445,7 +441,7 @@ describe("Event Handler tests", () => {
     });
 
     it("should successfully handle token exchange without source", async () => {
-      const result = await handler(mockTokenExchangeEvent, {} as any, () => {});
+      const result = await handler(mockTokenExchangeEvent as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toBe(200);
@@ -468,7 +464,7 @@ describe("Event Handler tests", () => {
         }),
       };
 
-      const result = await handler(eventWithTppSource, {} as any, () => {});
+      const result = await handler(eventWithTppSource as any);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toBe(500);
