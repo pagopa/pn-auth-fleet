@@ -3,7 +3,7 @@ import {
   maskString,
   retrieveEnvVariable,
   removeFiscalNumberPrefix,
-} from "../../app/handlers/oidcAuthorize/utils/String";
+} from "../../app/handlers/oidcToken/utils/String";
 import { setupEnv } from "../test.utils";
 
 describe("String utils Tests", () => {

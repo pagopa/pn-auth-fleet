@@ -7,14 +7,14 @@ import {
   SignCommand,
 } from "@aws-sdk/client-kms";
 import { AwsStub, mockClient } from "aws-sdk-client-mock";
-import { ValidationException } from "../../app/handlers/oidcAuthorize/exception/validationException";
-import { getRetrievalPayload } from "../../app/handlers/oidcAuthorize/utils/EmdIntegrationClient";
+import { ValidationException } from "../../app/handlers/oidcToken/exception/validationException";
+import { getRetrievalPayload } from "../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import {
   generateJwtPayload,
   generateSessionToken,
   generateSourceObject,
-} from "../../app/handlers/oidcAuthorize/utils/TokenGenerator";
-import { SourceChannel, SourceEventType } from "../../app/handlers/oidcAuthorize/models/Source";
+} from "../../app/handlers/oidcToken/utils/TokenGenerator";
+import { SourceChannel, SourceEventType } from "../../app/handlers/oidcToken/models/Source";
 import {
   checkTppResponseMock,
   retrievalIdMock,
@@ -22,7 +22,7 @@ import {
 import { payloadMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
 
-jest.mock("../../app/handlers/oidcAuthorize/utils/EmdIntegrationClient.ts");
+jest.mock("../../app/handlers/oidcToken/utils/EmdIntegrationClient.ts");
 
 describe("TokenGenerator", () => {
   let kmsClientMock: AwsStub<

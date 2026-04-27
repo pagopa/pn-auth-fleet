@@ -1650,6 +1650,8 @@ Resources:
       - OneIdentityTokenOptionsMethod
       - OneIdentityAuthorizeGetMethod
       - OneIdentityAuthorizeOptionsMethod
+      - OneIdentityStateGetMethod
+      - OneIdentityStateOptionsMethod
     Properties:
       RestApiId: !Ref OneIdentityRestApi
 
@@ -1714,6 +1716,20 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OneIdentityRestApi}/*/GET/oidc-authorize"
+      SourceAccount: !Ref AWS::AccountId
+
+  # Lambda access right for GET method (oidc-state)
+  OneIdentityStateLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Condition: EnableOidcApi
+    DependsOn:
+      - OneIdentityLambda
+      - OneIdentityRestApi
+    Properties:
+      FunctionName: !Ref OneIdentityLambdaName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OneIdentityRestApi}/*/GET/oidc-state"
       SourceAccount: !Ref AWS::AccountId
 
   # Token Exchange OIDC Body model
@@ -1858,6 +1874,71 @@ Resources:
       OperationName: "Options for Token Exchange OIDC - authorize"
       RestApiId: !Ref OneIdentityRestApi
       ResourceId: !Ref OneIdentityAuthorizeResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          ResponseModels:
+            "application/json": "Empty"
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          "application/json": '{"statusCode": 200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates:
+              "application/json": ""
+
+  OneIdentityStateResource:
+    Type: AWS::ApiGateway::Resource
+    Condition: EnableOidcApi
+    Properties:
+      RestApiId: !Ref OneIdentityRestApi
+      ParentId: !GetAtt OneIdentityRestApi.RootResourceId
+      PathPart: "oidc-state"
+
+  # OneIdentity GET method (oidc-state)
+  OneIdentityStateGetMethod:
+    DependsOn: OneIdentityLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableOidcApi
+    Properties:
+      OperationName: "Proxy to OneIdentity Lambda - state"
+      RestApiId: !Ref OneIdentityRestApi
+      ResourceId: !Ref OneIdentityStateResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestParameters:
+        "method.request.header.Origin": true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OneIdentityLambda.Arn}/invocations"
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  # OneIdentity OPTIONS method (oidc-state)
+  OneIdentityStateOptionsMethod:
+    DependsOn: OneIdentityLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableOidcApi
+    Properties:
+      OperationName: "Options for OneIdentity - state"
+      RestApiId: !Ref OneIdentityRestApi
+      ResourceId: !Ref OneIdentityStateResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       ApiKeyRequired: false

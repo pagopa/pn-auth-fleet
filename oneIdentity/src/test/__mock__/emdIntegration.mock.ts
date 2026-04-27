@@ -1,4 +1,4 @@
-import { GetRetrievalPayloadResponse } from "../../app/handlers/oidcAuthorize/models/Source";
+import { GetRetrievalPayloadResponse } from "../../app/handlers/oidcToken/models/Source";
 
 export const retrievalIdMock =
   "0e4c6629-8753-234s-b0da-1f796999ec2-15038637960920";

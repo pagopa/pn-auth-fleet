@@ -1,10 +1,10 @@
-import { ValidationException } from "../../app/handlers/oidcAuthorize/exception/validationException";
+import { ValidationException } from "../../app/handlers/oidcToken/exception/validationException";
 import {
   generateKoResponse,
   generateOkResponse,
   generateTokenExchangeResponse,
-} from "../../app/handlers/oidcAuthorize/utils/Responses";
-import * as TokenGenerator from "../../app/handlers/oidcAuthorize/utils/TokenGenerator";
+} from "../../app/handlers/oidcToken/utils/Responses";
+import * as TokenGenerator from "../../app/handlers/oidcToken/utils/TokenGenerator";
 import { mockState } from "../__mock__/event.mock";
 import {
   allowedOrigin,

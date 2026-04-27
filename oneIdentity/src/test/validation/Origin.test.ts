@@ -1,4 +1,4 @@
-import { isOriginAllowed } from "../../app/handlers/oidcAuthorize/validation/Origin";
+import { isOriginAllowed } from "../../app/handlers/oidcToken/validation/Origin";
 import { setupEnv } from "../test.utils";
 
 describe("Origin Validation tests", () => {

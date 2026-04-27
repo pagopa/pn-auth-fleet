@@ -1,20 +1,20 @@
 import { decode, verify } from "jsonwebtoken";
-import { ValidationException } from "../../app/handlers/oidcAuthorize/exception/validationException";
-import { getAWSParameterStore } from "../../app/handlers/oidcAuthorize/utils/AwsParameters";
-import { getPublicKey } from "../../app/handlers/oidcAuthorize/utils/PublicKey";
+import { ValidationException } from "../../app/handlers/oidcToken/exception/validationException";
+import { getAWSParameterStore } from "../../app/handlers/oidcToken/utils/AwsParameters";
+import { getPublicKey } from "../../app/handlers/oidcToken/utils/PublicKey";
 import {
   isIssuerValid,
   isTaxIdValid,
   validateOneIdentityIdToken,
-} from "../../app/handlers/oidcAuthorize/validation/TokenValidation";
+} from "../../app/handlers/oidcToken/validation/TokenValidation";
 import { oneIdentityDecodedTokenMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
 import { oneIdentityClientIdMock } from "../__mock__/oneIdentity.mock";
 import { tokenNonce } from "../__mock__/event.mock";
 
 jest.mock("jsonwebtoken");
-jest.mock("../../app/handlers/oidcAuthorize/utils/AwsParameters.ts");
-jest.mock("../../app/handlers/oidcAuthorize/utils/PublicKey.ts");
+jest.mock("../../app/handlers/oidcToken/utils/AwsParameters.ts");
+jest.mock("../../app/handlers/oidcToken/utils/PublicKey.ts");
 
 const mockDecode = decode as jest.MockedFunction<typeof decode>;
 const mockVerify = verify as jest.MockedFunction<typeof verify>;

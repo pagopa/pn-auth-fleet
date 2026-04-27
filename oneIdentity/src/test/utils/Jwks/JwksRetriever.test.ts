@@ -1,4 +1,4 @@
-import { getJwks } from "../../../app/handlers/oidcAuthorize/utils/Jwks/JwksRetriever";
+import { getJwks } from "../../../app/handlers/oidcToken/utils/Jwks/JwksRetriever";
 import { mockJwksResponse } from "../../__mock__/jwks.mock";
 import { setupEnv } from "../../test.utils";
 
@@ -6,7 +6,7 @@ jest.mock("aws-xray-sdk-core", () => ({
   captureHTTPsGlobal: jest.fn(),
 }));
 
-jest.mock("../../../app/handlers/oidcAuthorize/utils/Retry", () => ({
+jest.mock("../../../app/handlers/oidcToken/utils/Retry", () => ({
   retryWithDelay: jest.fn((fn) => fn()),
 }));
 

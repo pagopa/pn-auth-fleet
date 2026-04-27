@@ -1,20 +1,20 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { OneIdentityAwsSecretObject } from "../oidcAuthorize/models/Aws";
-import { RequestEventBody } from "../oidcAuthorize/models/Event";
-import { TokenExchangeResponse } from "../oidcAuthorize/models/Token";
-import { ValidationException } from "../oidcAuthorize/exception/validationException";
-import { auditLog } from "../oidcAuthorize/utils/AuditLog";
-import { getAWSSecret } from "../oidcAuthorize/utils/AwsParameters";
-import { exchangeOneIdentityCode } from "../oidcAuthorize/utils/OneIdentity";
+import { OneIdentityAwsSecretObject } from "./models/Aws";
+import { RequestEventBody } from "./models/Event";
+import { TokenExchangeResponse } from "./models/Token";
+import { ValidationException } from "./exception/validationException";
+import { auditLog } from "./utils/AuditLog";
+import { getAWSSecret } from "./utils/AwsParameters";
+import { exchangeOneIdentityCode } from "./utils/OneIdentity";
 import {
   generateKoResponse,
   generateOkResponse,
   generateTokenExchangeResponse,
-} from "../oidcAuthorize/utils/Responses";
-import { makeLower, retrieveEnvVariable } from "../oidcAuthorize/utils/String";
-import { generateSourceObject } from "../oidcAuthorize/utils/TokenGenerator";
-import { isOriginAllowed } from "../oidcAuthorize/validation/Origin";
-import { validateOneIdentityIdToken } from "../oidcAuthorize/validation/TokenValidation";
+} from "./utils/Responses";
+import { makeLower, retrieveEnvVariable } from "./utils/String";
+import { generateSourceObject } from "./utils/TokenGenerator";
+import { isOriginAllowed } from "./validation/Origin";
+import { validateOneIdentityIdToken } from "./validation/TokenValidation";
 
 export const oidcTokenHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   event.headers = makeLower(event.headers);

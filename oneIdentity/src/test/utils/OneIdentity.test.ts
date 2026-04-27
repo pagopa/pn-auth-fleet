@@ -1,5 +1,5 @@
-import { ValidationException } from "../../app/handlers/oidcAuthorize/exception/validationException";
-import { exchangeOneIdentityCode } from "../../app/handlers/oidcAuthorize/utils/OneIdentity";
+import { ValidationException } from "../../app/handlers/oidcToken/exception/validationException";
+import { exchangeOneIdentityCode } from "../../app/handlers/oidcToken/utils/OneIdentity";
 import {
   oneIdentityCredentialsMock,
   oneIdentityExchangeCodeResponseMock,

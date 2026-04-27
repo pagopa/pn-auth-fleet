@@ -1,4 +1,4 @@
-import { copyAndMaskObject } from "../../app/handlers/oidcAuthorize/utils/Object";
+import { copyAndMaskObject } from "../../app/handlers/oidcToken/utils/Object";
 import { oneIdentityIdTokenMock } from "../__mock__/token.mock";
 
 describe("Object utils Tests", () => {

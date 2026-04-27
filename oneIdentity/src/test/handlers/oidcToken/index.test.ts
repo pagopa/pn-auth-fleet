@@ -1,13 +1,13 @@
 import { oidcTokenHandler as handler } from "../../../app/handlers/oidcToken";
-import { ValidationException } from "../../../app/handlers/oidcAuthorize/exception/validationException";
-import * as AuditLog from "../../../app/handlers/oidcAuthorize/utils/AuditLog";
-import * as AwsParameters from "../../../app/handlers/oidcAuthorize/utils/AwsParameters";
-import * as OneIdentity from "../../../app/handlers/oidcAuthorize/utils/OneIdentity";
-import * as Responses from "../../../app/handlers/oidcAuthorize/utils/Responses";
-import * as Origin from "../../../app/handlers/oidcAuthorize/validation/Origin";
-import * as TokenValidation from "../../../app/handlers/oidcAuthorize/validation/TokenValidation";
-import * as EmdIntegrationClient from "../../../app/handlers/oidcAuthorize/utils/EmdIntegrationClient";
-import * as TokenGenerator from "../../../app/handlers/oidcAuthorize/utils/TokenGenerator";
+import { ValidationException } from "../../../app/handlers/oidcToken/exception/validationException";
+import * as AuditLog from "../../../app/handlers/oidcToken/utils/AuditLog";
+import * as AwsParameters from "../../../app/handlers/oidcToken/utils/AwsParameters";
+import * as OneIdentity from "../../../app/handlers/oidcToken/utils/OneIdentity";
+import * as Responses from "../../../app/handlers/oidcToken/utils/Responses";
+import * as Origin from "../../../app/handlers/oidcToken/validation/Origin";
+import * as TokenValidation from "../../../app/handlers/oidcToken/validation/TokenValidation";
+import * as EmdIntegrationClient from "../../../app/handlers/oidcToken/utils/EmdIntegrationClient";
+import * as TokenGenerator from "../../../app/handlers/oidcToken/utils/TokenGenerator";
 import {
   mockAllowedOrigin,
   mockState,

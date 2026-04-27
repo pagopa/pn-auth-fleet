@@ -2,7 +2,7 @@ import {
   JwtPayload,
   OIDecodedIdToken,
   OIDecodedToken,
-} from "../../app/handlers/oidcAuthorize/models/Token";
+} from "../../app/handlers/oidcToken/models/Token";
 import { mockState, tokenNonce } from "./event.mock";
 import { oneIdentityClientIdMock } from "./oneIdentity.mock";
 

@@ -1,4 +1,4 @@
-import { OIExchangeCodeResponse } from "../../app/handlers/oidcAuthorize/models/Token";
+import { OIExchangeCodeResponse } from "../../app/handlers/oidcToken/models/Token";
 
 export const oneIdentityClientIdMock = "one-identity-client-id";
 const oneIdentityClientSecretMock = "one-identity-client-secret";
