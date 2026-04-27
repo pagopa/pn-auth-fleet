@@ -129,7 +129,7 @@ describe('[PN-19317] IdpCertClient — parsing XML metadata IDP', () => {
 
             expect(result).to.not.be.null;
             expect(result.entityId).to.equal('https://posteid.poste.it');
-            expect(result.certData).to.equal('POSTE_SIGNING_CERT_CONTENT');
+            expect(result.certData).to.deep.equal(['POSTE_SIGNING_CERT_CONTENT']);
             expect(result.tag).to.equal('20230228');
         });
     });
@@ -198,7 +198,7 @@ describe('[PN-19317] IdpCertClient — parsing XML metadata IDP', () => {
 
             expect(result).to.not.be.null;
             expect(result.entityId).to.equal('https://loginspid.aruba.it');
-            expect(result.certData).to.be.a('string').and.not.empty;
+            expect(result.certData).to.be.an('array').and.not.empty;
         });
     });
 
@@ -210,7 +210,7 @@ describe('[PN-19317] IdpCertClient — parsing XML metadata IDP', () => {
 
             expect(result).to.not.be.null;
             expect(result.entityId).to.equal('https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO');
-            expect(result.certData).to.equal('CIE_SIGNING_CERT_CONTENT');
+            expect(result.certData).to.deep.equal(['CIE_SIGNING_CERT_CONTENT']);
             expect(result.tag).to.equal('20230228');
         });
     });
@@ -223,7 +223,7 @@ describe('[PN-19317] IdpCertClient — parsing XML metadata IDP', () => {
 
             expect(result).to.not.be.null;
             expect(result.entityId).to.equal('https://posteid.poste.it');
-            expect(result.certData).to.equal('POSTE_SIGNING_CERT_CONTENT');
+            expect(result.certData).to.deep.equal(['POSTE_SIGNING_CERT_CONTENT']);
             expect(result.tag).to.equal('20230228');
         });
     });
