@@ -1,9 +1,9 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyHandler } from "aws-lambda";
 import { oidcAuthorizeHandler } from "./handlers/oidcAuthorize";
 import { oidcStateHandler } from "./handlers/oidcState";
 import { oidcTokenHandler } from "./handlers/oidcToken";
 
-export const handler = async (event: APIGatewayProxyEvent) => {
+export const handler: APIGatewayProxyHandler = async (event) => {
   const resource = event.resource;
   if (resource === "/oidc-authorize") {
     return oidcAuthorizeHandler(event);
