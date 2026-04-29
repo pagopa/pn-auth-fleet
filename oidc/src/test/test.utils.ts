@@ -12,6 +12,7 @@ export function setupEnv() {
     _X_AMZN_TRACE_ID: "my_trace_id",
     ONE_IDENTITY_SECRET_NAME: "one-identity-secret-name",
     ONE_IDENTITY_BASEURL: "https://uat.oneid.pagopa.it",
+    ONE_IDENTITY_REDIRECT_URI: "https://cittadini.dev.notifichedigitali.it/auth/callback",
     AWS_SESSION_TOKEN: "fake-session-token",
     PN_EMD_INTEGRATION_BASEURL: "http://${ApplicationLoadBalancerDomain}:8080",
   };

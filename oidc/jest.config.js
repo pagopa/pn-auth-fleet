@@ -8,4 +8,7 @@ module.exports = {
   transform: {
     ...tsJestTransformCfg,
   },
+  transformIgnorePatterns: [
+    "/node_modules/(?!(uuid)/)",
+  ],
 };

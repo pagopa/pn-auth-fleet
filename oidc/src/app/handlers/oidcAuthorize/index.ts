@@ -1,12 +1,20 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { RedisHandler } from "pn-auth-common";
 import { OneIdentityAwsSecretObject } from "../oidcToken/models/Aws";
 import { getAWSSecret } from "../oidcToken/utils/AwsParameters";
 import { generateRedirectResponse } from "../../utils/Responses";
 import { generateRandomUniqueString, retrieveEnvVariable } from "../../utils/String";
 
+const REDIS_STATE_PREFIX = "oidc::";
+const REDIS_STATE_TTL_SEC = 300;
+
 export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const eventOrigin = event.headers.origin!;
-  const idp = event.queryStringParameters?.idp!; // idp is required and validated by API Gateway configuration: method.request.querystring.idp
+  const {
+    idp, // required, validated by API Gateway: method.request.querystring.idp
+    aar,
+    retrievalId,
+  } = event.queryStringParameters as { idp: string; aar?: string; retrievalId?: string };
 
   const oneIdentitySecretName = retrieveEnvVariable("ONE_IDENTITY_SECRET_NAME");
   const { oneIdentityClientId } = await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
@@ -16,6 +24,13 @@ export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise
 
   const state = generateRandomUniqueString();
   const nonce = generateRandomUniqueString();
+
+  await RedisHandler.connectRedis();
+  try {
+    await RedisHandler.setJson(`${REDIS_STATE_PREFIX}${state}`, { nonce, idp, aar, retrievalId }, { EX: REDIS_STATE_TTL_SEC });
+  } finally {
+    await RedisHandler.disconnectRedis();
+  }
 
   const location = `${oneIdentityBaseUrl}/oidc/authorize?idp=${idp}&client_id=${oneIdentityClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid&nonce=${nonce}&state=${state}`;
 
