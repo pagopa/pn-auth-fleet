@@ -1,6 +1,6 @@
 import { decode, verify } from "jsonwebtoken";
+import { ValidationException } from "../../../exception/validationException";
 import { OIDecodedIdToken, OIDecodedToken } from "../models/Token";
-import { ValidationException } from "../exception/validationException";
 import { getAWSParameterStore } from "../utils/AwsParameters";
 import { copyAndMaskObject } from "../utils/Object";
 import { getPublicKey } from "../utils/PublicKey";

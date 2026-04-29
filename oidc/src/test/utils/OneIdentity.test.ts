@@ -1,8 +1,8 @@
-import { ValidationException } from "../../app/handlers/oidcToken/exception/validationException";
+import { ValidationException } from "../../app/exception/validationException";
 import { exchangeOneIdentityCode } from "../../app/handlers/oidcToken/utils/OneIdentity";
 import {
-  oneIdentityCredentialsMock,
-  oneIdentityExchangeCodeResponseMock,
+    oneIdentityCredentialsMock,
+    oneIdentityExchangeCodeResponseMock,
 } from "../__mock__/oneIdentity.mock";
 import { setupEnv } from "../test.utils";
 

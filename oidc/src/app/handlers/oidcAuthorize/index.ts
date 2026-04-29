@@ -1,6 +1,10 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { generateRedirectResponse } from "../../utils/Responses";
 
 export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const eventOrigin = event.headers?.origin;
+
   console.log("oidc-authorize called", JSON.stringify(event));
-  return { statusCode: 200, body: JSON.stringify({ message: "ok" }) };
+  const loocation = '';
+  return generateRedirectResponse(loocation, eventOrigin!);
 };

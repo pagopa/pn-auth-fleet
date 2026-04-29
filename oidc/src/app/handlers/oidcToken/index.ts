@@ -1,50 +1,26 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { ValidationException } from "../../exception/validationException";
+import { auditLog } from "../../utils/AuditLog";
+import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
 import { OneIdentityAwsSecretObject } from "./models/Aws";
 import { RequestEventBody } from "./models/Event";
 import { TokenExchangeResponse } from "./models/Token";
-import { ValidationException } from "./exception/validationException";
-import { auditLog } from "./utils/AuditLog";
 import { getAWSSecret } from "./utils/AwsParameters";
 import { exchangeOneIdentityCode } from "./utils/OneIdentity";
 import {
-  generateKoResponse,
-  generateOkResponse,
   generateTokenExchangeResponse,
 } from "./utils/Responses";
-import { makeLower, retrieveEnvVariable } from "./utils/String";
 import { generateSourceObject } from "./utils/TokenGenerator";
-import { isOriginAllowed } from "./validation/Origin";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
+import { retrieveEnvVariable } from "../../utils/String";
 
 export const oidcTokenHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  event.headers = makeLower(event.headers);
-
-  const eventOrigin = event.headers?.origin;
+  const eventOrigin = event.headers?.origin!;
   let oidcCode: string | undefined;
   let redirectUri: string | undefined;
   let nonce: string | undefined;
   let state: string | undefined;
   let source;
-
-  if (!eventOrigin) {
-    auditLog({
-      message: "eventOrigin is null",
-      aud_orig: eventOrigin,
-      status: "KO",
-    }).warn("error");
-    return generateKoResponse("eventOrigin is null", "*");
-  }
-
-  auditLog({ aud_orig: eventOrigin }).info("info");
-
-  if (!isOriginAllowed(eventOrigin)) {
-    auditLog({
-      message: `Origin: ${eventOrigin} is not allowed`,
-      aud_orig: eventOrigin,
-      status: "KO",
-    }).warn("error");
-    return generateKoResponse("Origin not allowed", eventOrigin);
-  }
 
   try {
     if (!event.body) {

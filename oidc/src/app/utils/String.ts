@@ -1,14 +1,12 @@
 import { APIGatewayProxyEventHeaders } from "aws-lambda";
-import { SPID_FISCAL_NUMBER_PREFIX } from "../models/Token";
+export const SPID_FISCAL_NUMBER_PREFIX = "TINIT-";
 
 /**
  * Converts all header keys to lowercase.
  *
  * @param headers - The headers object to convert
  */
-export function makeLower(
-  headers: APIGatewayProxyEventHeaders,
-): APIGatewayProxyEventHeaders {
+export function makeLower(headers: APIGatewayProxyEventHeaders): APIGatewayProxyEventHeaders {
   const head: APIGatewayProxyEventHeaders = {};
   for (const key in headers) {
     if (headers.hasOwnProperty(key)) {

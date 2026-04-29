@@ -1,23 +1,23 @@
 import {
-  DescribeKeyCommand,
-  KMSClient,
-  KMSClientResolvedConfig,
-  ServiceInputTypes,
-  ServiceOutputTypes,
-  SignCommand,
+    DescribeKeyCommand,
+    KMSClient,
+    KMSClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes,
+    SignCommand,
 } from "@aws-sdk/client-kms";
 import { AwsStub, mockClient } from "aws-sdk-client-mock";
-import { ValidationException } from "../../app/handlers/oidcToken/exception/validationException";
+import { ValidationException } from "../../app/exception/validationException";
+import { SourceChannel, SourceEventType } from "../../app/handlers/oidcToken/models/Source";
 import { getRetrievalPayload } from "../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import {
-  generateJwtPayload,
-  generateSessionToken,
-  generateSourceObject,
+    generateJwtPayload,
+    generateSessionToken,
+    generateSourceObject,
 } from "../../app/handlers/oidcToken/utils/TokenGenerator";
-import { SourceChannel, SourceEventType } from "../../app/handlers/oidcToken/models/Source";
 import {
-  checkTppResponseMock,
-  retrievalIdMock,
+    checkTppResponseMock,
+    retrievalIdMock,
 } from "../__mock__/emdIntegration.mock";
 import { payloadMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";

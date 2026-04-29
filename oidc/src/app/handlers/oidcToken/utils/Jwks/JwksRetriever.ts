@@ -4,7 +4,7 @@ import https from "https";
 
 import { JWKS } from "../../models/Jwks";
 import { retryWithDelay } from "../Retry";
-import { retrieveEnvVariable } from "../String";
+import { retrieveEnvVariable } from "../../../../utils/String";
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);

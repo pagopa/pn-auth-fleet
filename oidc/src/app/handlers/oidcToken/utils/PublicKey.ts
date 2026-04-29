@@ -1,6 +1,6 @@
 import jwkToPem from "jwk-to-pem";
+import { ValidationException } from "../../../exception/validationException";
 import { JWKS } from "../models/Jwks";
-import { ValidationException } from "../exception/validationException";
 import { get, isCacheActive } from "./Jwks/JwksCache";
 import { getJwks } from "./Jwks/JwksRetriever";
 

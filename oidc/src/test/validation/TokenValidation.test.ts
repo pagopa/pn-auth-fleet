@@ -1,16 +1,16 @@
 import { decode, verify } from "jsonwebtoken";
-import { ValidationException } from "../../app/handlers/oidcToken/exception/validationException";
+import { ValidationException } from "../../app/exception/validationException";
 import { getAWSParameterStore } from "../../app/handlers/oidcToken/utils/AwsParameters";
 import { getPublicKey } from "../../app/handlers/oidcToken/utils/PublicKey";
 import {
-  isIssuerValid,
-  isTaxIdValid,
-  validateOneIdentityIdToken,
+    isIssuerValid,
+    isTaxIdValid,
+    validateOneIdentityIdToken,
 } from "../../app/handlers/oidcToken/validation/TokenValidation";
+import { tokenNonce } from "../__mock__/event.mock";
+import { oneIdentityClientIdMock } from "../__mock__/oneIdentity.mock";
 import { oneIdentityDecodedTokenMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
-import { oneIdentityClientIdMock } from "../__mock__/oneIdentity.mock";
-import { tokenNonce } from "../__mock__/event.mock";
 
 jest.mock("jsonwebtoken");
 jest.mock("../../app/handlers/oidcToken/utils/AwsParameters.ts");
