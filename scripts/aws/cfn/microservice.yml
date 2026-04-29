@@ -252,54 +252,54 @@ Parameters:
   PnRaddBaseliningLambdaName:
     Type: String
   # - Token Exchange Lambda OIDC Parameters
-  OneIdentityLambdaName:
+  OidcLambdaName:
     Type: String
-    Description: 'Name for OneIdentity Lambda function'
+    Description: 'Name for Oidc Lambda function'
 
-  OneIdentityLambdaEnvironmentCacheTtl:
+  OidcLambdaEnvironmentCacheTtl:
     Type: String
     Description: Cryptography keys cache entry duration in seconds
     Default: 120
 
-  OneIdentityLambdaEnvironmentTokenTtl:
+  OidcLambdaEnvironmentTokenTtl:
     Type: String
-    Description: Session token duration (in seconds) for "Piattaforman Notifiche" sessions for OneIdentityLambda.
+    Description: Session token duration (in seconds) for "Piattaforman Notifiche" sessions for OidcLambda.
     Default: 3200
 
-  OneIdentityLambdaEnvironmentAllowedIssuer:
+  OidcLambdaEnvironmentAllowedIssuer:
     Type: String
     Description: "Comma separated list of external authentication token issuers"
 
-  OneIdentityLambdaEnvironmentAllowedOrigin:
+  OidcLambdaEnvironmentAllowedOrigin:
     Type: String
     Description: 'Comma separated list of websites allowed to use SEND back-ends API'
 
-  OneIdentityLambdaEnvironmentAllowedTaxIdsParameter:
+  OidcLambdaEnvironmentAllowedTaxIdsParameter:
     Type: String
     Description: "Parameter of allowed login Tax Ids"
     Default: "/pn-auth-fleet/allowedLoginTaxids"
 
-  OneIdentityBaseURL:
+  OidcBaseURL:
     Type: String
-    Description: 'Base URL for OneIdentity API'
+    Description: 'Base URL for Oidc API'
 
-  OneIdentitySecretName:
+  OidcSecretName:
     Type: String
     Description: 'AWS secret name for One Identity credentials'
 
-  OneIdentityLatencyLimit:
+  OidcLatencyLimit:
     Type: Number
     Default: 2000
     Description: Default latency limit for token exchange oidc api
 
-  OneIdentityWafLimit:
+  OidcWafLimit:
     Type: Number
     Default: 600000
 
-  EnableOneIdentityApi:
+  EnableOidcApi:
     Type: String
     Default: false
-    Description: Enable API Gateway for OneIdentity (feature flag for gradual rollout)
+    Description: Enable API Gateway for Oidc (feature flag for gradual rollout)
     AllowedValues:
       - true
       - false
@@ -650,7 +650,7 @@ Conditions:
   RequiresIoPlayground: !Or
     - !Equals [!Ref EnvironmentType, "dev"]
     - !Equals [!Ref EnvironmentType, "uat"]
-  EnableOidcApi: !Equals ["true", !Ref EnableOneIdentityApi]
+  EnableOidcApi: !Equals ["true", !Ref EnableOidcApi]
   EnableOidcApiAndSendLogToKinesis: !And
     - !Condition EnableOidcApi
     - !Condition SendLogToKinesis
@@ -1525,54 +1525,54 @@ Resources:
   ###           TOKEN EXCHANGE OIDC LAMBDA                ###
   ###########################################################
 
-  OneIdentityLambdaSecurityGroup:
+  OidcLambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Sub ${ProjectName}-one-identity-SecGrp
+      GroupDescription: !Sub ${ProjectName}-oidc-SecGrp
       VpcId: !Ref VpcId
 
   # Lambda function
-  OneIdentityLambda:
+  OidcLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Ref OneIdentityLambdaName
+      FunctionName: !Ref OidcLambdaName
       Runtime: nodejs22.x
       Handler: "index.handler"
       MemorySize: 256
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/oneIdentity.zip"
+        S3Key: !Sub "${BucketBasePath}/oidc.zip"
       Environment:
         Variables:
           PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
           KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
-          ### variables varorized by OneIdentityLambda specific parameters ###
-          ALLOWED_ISSUER: !Ref OneIdentityLambdaEnvironmentAllowedIssuer
-          ALLOWED_ORIGIN: !Ref OneIdentityLambdaEnvironmentAllowedOrigin
-          ONE_IDENTITY_BASEURL: !Ref OneIdentityBaseURL
-          ONE_IDENTITY_SECRET_NAME: !Ref OneIdentitySecretName
-          ALLOWED_TAXIDS_PARAMETER: !Ref OneIdentityLambdaEnvironmentAllowedTaxIdsParameter
-          TOKEN_TTL: !Ref OneIdentityLambdaEnvironmentTokenTtl
-          CACHE_TTL: !Ref OneIdentityLambdaEnvironmentCacheTtl
+          ### variables varorized by OidcLambda specific parameters ###
+          ALLOWED_ISSUER: !Ref OidcLambdaEnvironmentAllowedIssuer
+          ALLOWED_ORIGIN: !Ref OidcLambdaEnvironmentAllowedOrigin
+          ONE_IDENTITY_BASEURL: !Ref OidcBaseURL
+          ONE_IDENTITY_SECRET_NAME: !Ref OidcSecretName
+          ALLOWED_TAXIDS_PARAMETER: !Ref OidcLambdaEnvironmentAllowedTaxIdsParameter
+          TOKEN_TTL: !Ref OidcLambdaEnvironmentTokenTtl
+          CACHE_TTL: !Ref OidcLambdaEnvironmentCacheTtl
           ### Variables valorized by shared parameters used ALSO for TokenExchangeLambda,values are inherited from pn-ipc.yml stack ###
           ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
-      Role: !GetAtt OneIdentityLambdaRole.Arn
+      Role: !GetAtt OidcLambdaRole.Arn
       Timeout: 10
       TracingConfig:
         Mode: Active
       VpcConfig:
         SecurityGroupIds:
-          - !Ref OneIdentityLambdaSecurityGroup
+          - !Ref OidcLambdaSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
       Layers:
         - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
 
   # Lambda function role
-  OneIdentityLambdaRole:
+  OidcLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${ProjectName}-oneIdentityLambdaRole
+      RoleName: !Sub ${ProjectName}-oidcLambdaRole
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -1587,12 +1587,12 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
 
   # Lambda function IAM policy
-  OneIdentityLambdaPolicy:
+  OidcLambdaPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub ${ProjectName}-oneIdentityLambdaPolicy
+      PolicyName: !Sub ${ProjectName}-oidcLambdaPolicy
       Roles:
-        - !Ref OneIdentityLambdaRole
+        - !Ref OidcLambdaRole
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -1606,7 +1606,7 @@ Resources:
               - logs:CreateLogStream
               - logs:PutLogEvents
             Effect: Allow
-            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${OneIdentityLambdaName}:*
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${OidcLambdaName}:*
           - Sid: AllowLambdaToReadParameterStore
             Action:
               - ssm:GetParameter
@@ -1616,25 +1616,25 @@ Resources:
             Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${OneIdentitySecretName}*"
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${OidcSecretName}*"
 
-  OneIdentityLambdaAlarms:
+  OidcLambdaAlarms:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
       Parameters:
-        FunctionName: !Ref OneIdentityLambdaName
+        FunctionName: !Ref OidcLambdaName
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   ###       TOKEN EXCHANGE OIDC API          SERVICE      ###
   ###########################################################
 
   # API definition
-  OneIdentityRestApi:
+  OidcRestApi:
     Type: AWS::ApiGateway::RestApi
     Condition: EnableOidcApi
     Properties:
-      Name: !Sub "${ProjectName}-one-identity-api"
+      Name: !Sub "${ProjectName}-oidc-api"
       FailOnWarnings: true
       DisableExecuteApiEndpoint: true
       EndpointConfiguration:
@@ -1642,30 +1642,30 @@ Resources:
           - REGIONAL
 
   # Deployment
-  OneIdentityRestApiDeployment:
+  OidcRestApiDeployment:
     Type: AWS::ApiGateway::Deployment
     Condition: EnableOidcApi
     DependsOn:
-      - OneIdentityTokenPostMethod
-      - OneIdentityTokenOptionsMethod
-      - OneIdentityAuthorizeGetMethod
-      - OneIdentityAuthorizeOptionsMethod
-      - OneIdentityStateGetMethod
-      - OneIdentityStateOptionsMethod
+      - OidcTokenPostMethod
+      - OidcTokenOptionsMethod
+      - OidcAuthorizeGetMethod
+      - OidcAuthorizeOptionsMethod
+      - OidcStateGetMethod
+      - OidcStateOptionsMethod
     Properties:
-      RestApiId: !Ref OneIdentityRestApi
+      RestApiId: !Ref OidcRestApi
 
   # Stage
-  OneIdentityRestApiStage:
+  OidcRestApiStage:
     Type: AWS::ApiGateway::Stage
     Condition: EnableOidcApi
     Properties:
-      RestApiId: !Ref OneIdentityRestApi
+      RestApiId: !Ref OidcRestApi
       StageName: unique
       TracingEnabled: true
-      DeploymentId: !Ref OneIdentityRestApiDeployment
+      DeploymentId: !Ref OidcRestApiDeployment
       AccessLogSetting:
-        DestinationArn: !GetAtt "OneIdentityApiLogGroup.Arn"
+        DestinationArn: !GetAtt "OidcApiLogGroup.Arn"
         Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","resourcePath":"$context.resourcePath","status":$context.status,"responseLatency":$context.responseLatency,"xrayTraceId":"$context.xrayTraceId","errorMessage":"$context.error.message","validationError":"$context.error.validationErrorString","integrationRequestId":"$context.integration.requestId","functionResponseStatus":"$context.integration.status","integrationLatency":"$context.integration.latency","integrationServiceStatus":"$context.integration.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}'
       MethodSettings:
         - ResourcePath: "/*"
@@ -1675,72 +1675,72 @@ Resources:
           LoggingLevel: "INFO"
 
   # Log Group
-  OneIdentityApiLogGroup:
+  OidcApiLogGroup:
     Type: AWS::Logs::LogGroup
     Condition: EnableOidcApi
     Properties:
       RetentionInDays: !Ref LogRetention
 
   # Expose API to custom domain
-  OneIdentityAPIMapping:
+  OidcAPIMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Condition: EnableOidcApi
     Properties:
       DomainName: !Ref WebApiDnsName
-      RestApiId: !Ref OneIdentityRestApi
-      Stage: !Ref OneIdentityRestApiStage
+      RestApiId: !Ref OidcRestApi
+      Stage: !Ref OidcRestApiStage
 
   # Lambda access right for POST method (oidc-token)
-  OneIdentityTokenLambdaPermission:
+  OidcTokenLambdaPermission:
     Type: AWS::Lambda::Permission
     Condition: EnableOidcApi
     DependsOn:
-      - OneIdentityLambda
-      - OneIdentityRestApi
+      - OidcLambda
+      - OidcRestApi
     Properties:
-      FunctionName: !Ref OneIdentityLambdaName
+      FunctionName: !Ref OidcLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OneIdentityRestApi}/*/POST/oidc-token"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/POST/oidc-token"
       SourceAccount: !Ref AWS::AccountId
 
   # Lambda access right for GET method (oidc-authorize)
-  OneIdentityAuthorizeLambdaPermission:
+  OidcAuthorizeLambdaPermission:
     Type: AWS::Lambda::Permission
     Condition: EnableOidcApi
     DependsOn:
-      - OneIdentityLambda
-      - OneIdentityRestApi
+      - OidcLambda
+      - OidcRestApi
     Properties:
-      FunctionName: !Ref OneIdentityLambdaName
+      FunctionName: !Ref OidcLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OneIdentityRestApi}/*/GET/oidc-authorize"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/GET/oidc-authorize"
       SourceAccount: !Ref AWS::AccountId
 
   # Lambda access right for GET method (oidc-state)
-  OneIdentityStateLambdaPermission:
+  OidcStateLambdaPermission:
     Type: AWS::Lambda::Permission
     Condition: EnableOidcApi
     DependsOn:
-      - OneIdentityLambda
-      - OneIdentityRestApi
+      - OidcLambda
+      - OidcRestApi
     Properties:
-      FunctionName: !Ref OneIdentityLambdaName
+      FunctionName: !Ref OidcLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OneIdentityRestApi}/*/GET/oidc-state"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/GET/oidc-state"
       SourceAccount: !Ref AWS::AccountId
 
   # Token Exchange OIDC Body model
-  OneIdentityModel:
+  OidcModel:
     Type: "AWS::ApiGateway::Model"
     Condition: EnableOidcApi
     Properties:
-      RestApiId: !Ref OneIdentityRestApi
+      RestApiId: !Ref OidcRestApi
       ContentType: application/json
       Description: Schema for Token Exchange OIDC body
-      Name: OneIdentityModel
+      Name: OidcModel
       Schema:
         type: object
         required:
@@ -1759,56 +1759,56 @@ Resources:
             type: string
 
   # Token Exchange OIDC resources
-  OneIdentityAuthorizeResource:
+  OidcAuthorizeResource:
     Type: AWS::ApiGateway::Resource
     Condition: EnableOidcApi
     Properties:
-      RestApiId: !Ref OneIdentityRestApi
-      ParentId: !GetAtt OneIdentityRestApi.RootResourceId
+      RestApiId: !Ref OidcRestApi
+      ParentId: !GetAtt OidcRestApi.RootResourceId
       PathPart: "oidc-authorize"
 
-  OneIdentityTokenResource:
+  OidcTokenResource:
     Type: AWS::ApiGateway::Resource
     Condition: EnableOidcApi
     Properties:
-      RestApiId: !Ref OneIdentityRestApi
-      ParentId: !GetAtt OneIdentityRestApi.RootResourceId
+      RestApiId: !Ref OidcRestApi
+      ParentId: !GetAtt OidcRestApi.RootResourceId
       PathPart: "oidc-token"
 
   # Token Exchange OIDC POST method (oidc-token)
-  OneIdentityTokenPostMethod:
-    DependsOn: OneIdentityLambda
+  OidcTokenPostMethod:
+    DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
     Condition: EnableOidcApi
     Properties:
       OperationName: "Proxy to Token Exchange OIDC Lambda - token"
-      RestApiId: !Ref OneIdentityRestApi
-      ResourceId: !Ref OneIdentityTokenResource
+      RestApiId: !Ref OidcRestApi
+      ResourceId: !Ref OidcTokenResource
       HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
-      RequestValidatorId: !Ref OneIdentityPostMethodRequestValidator
+      RequestValidatorId: !Ref OidcPostMethodRequestValidator
       RequestParameters:
         "method.request.header.Origin": true
       RequestModels:
-        "application/json": !Ref OneIdentityModel
+        "application/json": !Ref OidcModel
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OneIdentityLambda.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OidcLambda.Arn}/invocations"
         PassthroughBehavior: WHEN_NO_MATCH
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
 
   # Token Exchange OIDC GET method (oidc-authorize)
-  OneIdentityAuthorizeGetMethod:
-    DependsOn: OneIdentityLambda
+  OidcAuthorizeGetMethod:
+    DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
     Condition: EnableOidcApi
     Properties:
       OperationName: "Proxy to Token Exchange OIDC Lambda - authorize"
-      RestApiId: !Ref OneIdentityRestApi
-      ResourceId: !Ref OneIdentityAuthorizeResource
+      RestApiId: !Ref OidcRestApi
+      ResourceId: !Ref OidcAuthorizeResource
       HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
@@ -1817,28 +1817,28 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OneIdentityLambda.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OidcLambda.Arn}/invocations"
         PassthroughBehavior: WHEN_NO_MATCH
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
 
-  OneIdentityPostMethodRequestValidator:
+  OidcPostMethodRequestValidator:
     Type: AWS::ApiGateway::RequestValidator
     Condition: EnableOidcApi
     Properties:
-      RestApiId: !Ref OneIdentityRestApi
+      RestApiId: !Ref OidcRestApi
       ValidateRequestBody: true
       ValidateRequestParameters: true
 
   # Token Exchange OIDC OPTIONS method (oidc-token)
-  OneIdentityTokenOptionsMethod:
-    DependsOn: OneIdentityLambda
+  OidcTokenOptionsMethod:
+    DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
     Condition: EnableOidcApi
     Properties:
       OperationName: "Options for Token Exchange OIDC - token"
-      RestApiId: !Ref OneIdentityRestApi
-      ResourceId: !Ref OneIdentityTokenResource
+      RestApiId: !Ref OidcRestApi
+      ResourceId: !Ref OidcTokenResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       ApiKeyRequired: false
@@ -1866,14 +1866,14 @@ Resources:
               "application/json": ""
 
   # Token Exchange OIDC OPTIONS method (oidc-authorize)
-  OneIdentityAuthorizeOptionsMethod:
-    DependsOn: OneIdentityLambda
+  OidcAuthorizeOptionsMethod:
+    DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
     Condition: EnableOidcApi
     Properties:
       OperationName: "Options for Token Exchange OIDC - authorize"
-      RestApiId: !Ref OneIdentityRestApi
-      ResourceId: !Ref OneIdentityAuthorizeResource
+      RestApiId: !Ref OidcRestApi
+      ResourceId: !Ref OidcAuthorizeResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       ApiKeyRequired: false
@@ -1900,23 +1900,23 @@ Resources:
             ResponseTemplates:
               "application/json": ""
 
-  OneIdentityStateResource:
+  OidcStateResource:
     Type: AWS::ApiGateway::Resource
     Condition: EnableOidcApi
     Properties:
-      RestApiId: !Ref OneIdentityRestApi
-      ParentId: !GetAtt OneIdentityRestApi.RootResourceId
+      RestApiId: !Ref OidcRestApi
+      ParentId: !GetAtt OidcRestApi.RootResourceId
       PathPart: "oidc-state"
 
-  # OneIdentity GET method (oidc-state)
-  OneIdentityStateGetMethod:
-    DependsOn: OneIdentityLambda
+  # Oidc GET method (oidc-state)
+  OidcStateGetMethod:
+    DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
     Condition: EnableOidcApi
     Properties:
-      OperationName: "Proxy to OneIdentity Lambda - state"
-      RestApiId: !Ref OneIdentityRestApi
-      ResourceId: !Ref OneIdentityStateResource
+      OperationName: "Proxy to Oidc Lambda - state"
+      RestApiId: !Ref OidcRestApi
+      ResourceId: !Ref OidcStateResource
       HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
@@ -1925,20 +1925,20 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OneIdentityLambda.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OidcLambda.Arn}/invocations"
         PassthroughBehavior: WHEN_NO_MATCH
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
 
-  # OneIdentity OPTIONS method (oidc-state)
-  OneIdentityStateOptionsMethod:
-    DependsOn: OneIdentityLambda
+  # Oidc OPTIONS method (oidc-state)
+  OidcStateOptionsMethod:
+    DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
     Condition: EnableOidcApi
     Properties:
-      OperationName: "Options for OneIdentity - state"
-      RestApiId: !Ref OneIdentityRestApi
-      ResourceId: !Ref OneIdentityStateResource
+      OperationName: "Options for Oidc - state"
+      RestApiId: !Ref OidcRestApi
+      ResourceId: !Ref OidcStateResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       ApiKeyRequired: false
@@ -1965,33 +1965,33 @@ Resources:
             ResponseTemplates:
               "application/json": ""
 
-  OneIdentityApiSubscriptionFilter:
+  OidcApiSubscriptionFilter:
     Condition: EnableOidcApiAndSendLogToKinesis
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
-      LogGroupName: !Ref OneIdentityApiLogGroup
+      LogGroupName: !Ref OidcApiLogGroup
       FilterPattern: !Ref CloudwatchFilterPattern
       DestinationArn: !Ref LogsKinesisSourceStreamArn
 
-  OneIdentityApiWaf:
+  OidcApiWaf:
     Condition: EnableOidcApi
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
       Parameters:
-        WAFName: !Sub "${ProjectName}-one-identity-web"
+        WAFName: !Sub "${ProjectName}-oidc-web"
         IntendedUsage: WEB
-        APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${OneIdentityRestApi}/stages/${OneIdentityRestApiStage}"
-        Limit: !Ref OneIdentityWafLimit
+        APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${OidcRestApi}/stages/${OidcRestApiStage}"
+        Limit: !Ref OidcWafLimit
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
         AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
-  OneIdentityAPIGatewayApiLatencyAlarm:
+  OidcAPIGatewayApiLatencyAlarm:
     Condition: EnableOidcApi
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub "oncall-${ProjectName}-one-identity-api-LatencyAlarm"
+      AlarmName: !Sub "oncall-${ProjectName}-oidc-api-LatencyAlarm"
       AlarmDescription: "CloudWatch alarm for when API Gateway OIDC latency exceeds the limit."
       AlarmActions:
         - !Ref AlarmSNSTopicArn
@@ -2003,20 +2003,20 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 20
       Period: 60
-      Threshold: !Ref OneIdentityLatencyLimit
+      Threshold: !Ref OidcLatencyLimit
       TreatMissingData: notBreaching
       Namespace: "AWS/ApiGateway"
       MetricName: "Latency"
       Dimensions:
         - Name: ApiName
-          Value: !Sub "${ProjectName}-one-identity-api"
+          Value: !Sub "${ProjectName}-oidc-api"
       ExtendedStatistic: "p90"
 
-  OneIdentityAPIGatewayApiErrorAlarm:
+  OidcAPIGatewayApiErrorAlarm:
     Condition: EnableOidcApi
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub "${ProjectName}-one-identity-api-ErrorAlarm"
+      AlarmName: !Sub "${ProjectName}-oidc-api-ErrorAlarm"
       AlarmDescription: "CloudWatch alarm for when API Gateway OIDC has 4xx or 5xx error."
       AlarmActions:
         - !Ref AlarmSNSTopicArn
@@ -2035,7 +2035,7 @@ Resources:
             Metric:
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub ${ProjectName}-one-identity-api
+                  Value: !Sub ${ProjectName}-oidc-api
               MetricName: 4XXError
               Namespace: AWS/ApiGateway
             Period: 60
@@ -2046,7 +2046,7 @@ Resources:
             Metric:
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub ${ProjectName}-one-identity-api
+                  Value: !Sub ${ProjectName}-oidc-api
               MetricName: 5XXError
               Namespace: AWS/ApiGateway
             Period: 60
@@ -2058,13 +2058,13 @@ Resources:
           ReturnData: False
         - Id: e1
           Expression: SUM([e2,m2])
-          Label: !Sub "${ProjectName}-one-identity-api-ErrorMetric"
+          Label: !Sub "${ProjectName}-oidc-api-ErrorMetric"
 
-  OneIdentityAPIGatewayApiErrorAlarmWakeup:
+  OidcAPIGatewayApiErrorAlarmWakeup:
     Condition: EnableOidcApi
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub "oncall-${ProjectName}-one-identity-api-ErrorAlarm"
+      AlarmName: !Sub "oncall-${ProjectName}-oidc-api-ErrorAlarm"
       AlarmDescription: "CloudWatch alarm for when API Gateway OIDC has 4xx or 5xx error."
       AlarmActions:
         - !Ref AlarmSNSTopicArn
@@ -2083,7 +2083,7 @@ Resources:
             Metric:
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub ${ProjectName}-one-identity-api
+                  Value: !Sub ${ProjectName}-oidc-api
               MetricName: 4XXError
               Namespace: AWS/ApiGateway
             Period: 60
@@ -2094,7 +2094,7 @@ Resources:
             Metric:
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub ${ProjectName}-one-identity-api
+                  Value: !Sub ${ProjectName}-oidc-api
               MetricName: 5XXError
               Namespace: AWS/ApiGateway
             Period: 60
@@ -2105,7 +2105,7 @@ Resources:
             Metric:
               Dimensions:
                 - Name: ApiName
-                  Value: !Sub "${ProjectName}-one-identity-api"
+                  Value: !Sub "${ProjectName}-oidc-api"
               MetricName: Count
               Namespace: AWS/ApiGateway
             Period: 60
@@ -2113,7 +2113,7 @@ Resources:
           ReturnData: False
         - Id: e1
           Expression: IF(m3>=10 AND (m1/m3>=0.9 OR m2/m3>=0.1), 1, 0)
-          Label: !Sub "${ProjectName}-one-identity-api-ErrorMetric-OnCall"
+          Label: !Sub "${ProjectName}-oidc-api-ErrorMetric-OnCall"
 
   ###          JWKS CACHE FORCE REFRESH LAMBDA          ###
   #########################################################
@@ -3025,15 +3025,15 @@ Resources:
             - !GetAtt B2BAuthorizerLambda.Arn
             - !GetAtt TokenExchangeLambda.Arn
             - !GetAtt JwksCacheForceRefreshLambda.Arn
-            - !If [EnableOidcApi, !GetAtt OneIdentityLambda.Arn, !Ref AWS::NoValue]
+            - !If [EnableOidcApi, !GetAtt OidcLambda.Arn, !Ref AWS::NoValue]
         RestApiStageArns: !Join
           - ","
           - - !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
-            - !If [EnableOidcApi, !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${OneIdentityRestApi}/stages/${OneIdentityRestApiStage}", !Ref AWS::NoValue]
+            - !If [EnableOidcApi, !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}::/apis/${OidcRestApi}/stages/${OidcRestApiStage}", !Ref AWS::NoValue]
         RestApiNames: !Join
           - ","
           - - !Ref TokenExchangeRestApiStage
-            - !If [EnableOidcApi, !Ref OneIdentityRestApiStage, !Ref AWS::NoValue]
+            - !If [EnableOidcApi, !Ref OidcRestApiStage, !Ref AWS::NoValue]
         AlarmArns: !Join
           - ","
           - - !GetAtt ApiKeyAuthorizerV2LambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
@@ -3045,9 +3045,9 @@ Resources:
             - !GetAtt JWKSCacheRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt TokenExchangeLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwksCacheForceRefreshLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
-            - !If [EnableOidcApi, !GetAtt OneIdentityLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm, !Ref AWS::NoValue]
+            - !If [EnableOidcApi, !GetAtt OidcLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm, !Ref AWS::NoValue]
             - !GetAtt TokenExchangeAPIGatewayApiErrorAlarm.Arn
-            - !If [EnableOidcApi, !GetAtt OneIdentityAPIGatewayApiErrorAlarm.Arn, !Ref AWS::NoValue]
+            - !If [EnableOidcApi, !GetAtt OidcAPIGatewayApiErrorAlarm.Arn, !Ref AWS::NoValue]
             - !Ref JWKSCacheForceRefreshDLQAlarmARN
             - !Ref JWKSCacheForceRefreshAlarmARN
         LogGroupsNames: !Join
@@ -3061,7 +3061,7 @@ Resources:
             - !Sub "/aws/lambda/${B2BAuthorizerLambdaName}"
             - !Sub "/aws/lambda/${TokenExchangeLambdaName}"
             - !Sub "/aws/lambda/${JwksCacheForceRefreshLambdaName}"
-            - !If [EnableOidcApi, !Sub "/aws/lambda/${OneIdentityLambdaName}", !Ref AWS::NoValue]
+            - !If [EnableOidcApi, !Sub "/aws/lambda/${OidcLambdaName}", !Ref AWS::NoValue]
 
   # Event Bridge rule to trigger JWKSCacheRefreshLambda every JWKSCacheRefreshIntervalInMinutes minutes
   JWKSCacheRefreshEventRule:

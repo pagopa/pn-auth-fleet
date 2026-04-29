@@ -33,11 +33,11 @@
     "IdpProviderConfigBaseUri": "https://api.is.eng.pagopa.it",
     "IdpHttpTimeoutMs": "1000",
     "RedisJtisExcludedInvalidationParameter": "/pn-auth-fleet/redisJtisExcludedInvalidation",
-    "OneIdentityLambdaEnvironmentAllowedIssuer": "https://uat.oneid.pagopa.it",
-    "OneIdentityLambdaEnvironmentAllowedOrigin": "https://cittadini.dev.notifichedigitali.it",
-    "EnableOneIdentityApi": "true",
-    "OneIdentitySecretName": "pn-auth-fleet/one-identity-credentials",
-    "OneIdentityBaseURL": "https://uat.oneid.pagopa.it",
+    "OidcLambdaEnvironmentAllowedIssuer": "https://uat.oneid.pagopa.it",
+    "OidcLambdaEnvironmentAllowedOrigin": "https://cittadini.dev.notifichedigitali.it",
+    "EnableOidcApi": "true",
+    "OidcSecretName": "pn-auth-fleet/oidc-credentials",
+    "OidcBaseURL": "https://uat.oneid.pagopa.it",
     "LollipopSecretsKey": "pn-Lollipop-Secrets-Key"
   }
 }
