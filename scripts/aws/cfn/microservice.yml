@@ -283,6 +283,10 @@ Parameters:
     Type: String
     Description: 'Base URL for Oidc API'
 
+  OidcAuthorizeRedirectUri:
+    Type: String
+    Description: 'Redirect URI for oidc-authorize endpoint'
+
   OidcSecretName:
     Type: String
     Description: 'AWS secret name for One Identity credentials'
@@ -1550,6 +1554,7 @@ Resources:
           ALLOWED_ISSUER: !Ref OidcLambdaEnvironmentAllowedIssuer
           ALLOWED_ORIGIN: !Ref OidcLambdaEnvironmentAllowedOrigin
           ONE_IDENTITY_BASEURL: !Ref OidcBaseURL
+          ONE_IDENTITY_REDIRECT_URI: !Ref OidcAuthorizeRedirectUri
           ONE_IDENTITY_SECRET_NAME: !Ref OidcSecretName
           ALLOWED_TAXIDS_PARAMETER: !Ref OidcLambdaEnvironmentAllowedTaxIdsParameter
           TOKEN_TTL: !Ref OidcLambdaEnvironmentTokenTtl
@@ -1812,8 +1817,10 @@ Resources:
       HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
+      RequestValidatorId: !Ref OidcPostMethodRequestValidator
       RequestParameters:
         "method.request.header.Origin": true
+        "method.request.querystring.idp": true
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST

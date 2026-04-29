@@ -1,4 +1,5 @@
 import { APIGatewayProxyEventHeaders } from "aws-lambda";
+import { v4 as uuidv4 } from 'uuid';
 export const SPID_FISCAL_NUMBER_PREFIX = "TINIT-";
 
 /**
@@ -58,3 +59,5 @@ export function retrieveEnvVariable(name: string) {
 export function removeFiscalNumberPrefix(fiscalNumber: string): string {
   return fiscalNumber.replace(SPID_FISCAL_NUMBER_PREFIX, "");
 }
+
+export const generateRandomUniqueString = () => uuidv4().replace(/-/g, '').slice(0, 20);
