@@ -36,7 +36,7 @@
     "OidcLambdaEnvironmentAllowedIssuer": "https://uat.oneid.pagopa.it",
     "OidcLambdaEnvironmentAllowedOrigin": "https://cittadini.dev.notifichedigitali.it",
     "EnableOidcApi": "true",
-    "OidcSecretName": "pn-auth-fleet/oidc-credentials",
+    "OidcSecretName": "pn-auth-fleet/one-identity-credentials",
     "OidcBaseURL": "https://uat.oneid.pagopa.it",
     "OidcAuthorizeRedirectUri": "https://cittadini.dev.notifichedigitali.it/auth/callback",
     "LollipopSecretsKey": "pn-Lollipop-Secrets-Key"
