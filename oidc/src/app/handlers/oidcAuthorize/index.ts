@@ -4,6 +4,7 @@ import { OneIdentityAwsSecretObject } from "../oidcToken/models/Aws";
 import { getAWSSecret } from "../oidcToken/utils/AwsParameters";
 import { generateRedirectResponse } from "../../utils/Responses";
 import { generateRandomUniqueString, retrieveEnvVariable } from "../../utils/String";
+import { auditLog } from "../../utils/AuditLog";
 
 const REDIS_STATE_PREFIX = "oidc::";
 const REDIS_STATE_TTL_SEC = 300;
@@ -27,12 +28,24 @@ export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise
 
   await RedisHandler.connectRedis();
   try {
-    await RedisHandler.setJson(`${REDIS_STATE_PREFIX}${state}`, { nonce, idp, aar, retrievalId }, { EX: REDIS_STATE_TTL_SEC });
+    await RedisHandler.setJson(
+      `${REDIS_STATE_PREFIX}${state}`,
+      { nonce, idp, aar, retrievalId },
+      { EX: REDIS_STATE_TTL_SEC },
+    );
   } finally {
     await RedisHandler.disconnectRedis();
   }
 
   const location = `${oneIdentityBaseUrl}/oidc/authorize?idp=${idp}&client_id=${oneIdentityClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid&nonce=${nonce}&state=${state}`;
+
+  auditLog({
+    message: `Redirecting to One Identity for authorization, idp: ${idp}`,
+    aud_orig: eventOrigin,
+    status: "OK",
+    cx_type: "PF",
+    jti: state,
+  }).info("success");
 
   return generateRedirectResponse(location, eventOrigin);
 };
