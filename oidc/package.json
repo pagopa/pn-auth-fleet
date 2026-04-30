@@ -1,7 +1,7 @@
 {
-  "name": "one-identity",
+  "name": "oidc",
   "version": "1.0.0",
-  "description": "Lambda function to handle token exchange with One Identity provider.",
+  "description": "Lambda function to handle authentication with One Identity provider.",
   "private": true,
   "scripts": {
     "type-check": "tsc --noEmit",
