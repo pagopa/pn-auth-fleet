@@ -7,4 +7,7 @@ declare module "pn-auth-common" {
     setJson(key: string, value: unknown, options?: { EX?: number }): Promise<void>;
     getJson<T = unknown>(key: string): Promise<T | null>;
   };
+  export const COMMON_CONSTANTS: {
+    [key:string]: string;
+  };
 }

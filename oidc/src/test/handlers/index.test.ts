@@ -5,8 +5,12 @@ jest.mock("pn-auth-common", () => ({
     setJson: jest.fn(),
     getJson: jest.fn(),
   },
+  COMMON_CONSTANTS: {
+    REDIS_PN_SESSION_PREFIX: "pn-session::",
+  },
 }));
 
+import { COMMON_CONSTANTS } from "pn-auth-common";
 import { handler } from "../../app/index";
 import * as AuditLog from "../../app/utils/AuditLog";
 import * as Origin from "../../app/utils/Origin";

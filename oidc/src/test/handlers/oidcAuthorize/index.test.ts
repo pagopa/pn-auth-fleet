@@ -11,6 +11,9 @@ jest.mock("pn-auth-common", () => ({
     disconnectRedis: jest.fn(),
     setJson: jest.fn(),
   },
+  COMMON_CONSTANTS: {
+    REDIS_PN_SESSION_PREFIX: "pn-session::",
+  },
 }));
 
 import { RedisHandler } from "pn-auth-common";
@@ -70,7 +73,7 @@ describe("oidcAuthorize handler", () => {
 
     expect(RedisHandler.connectRedis).toHaveBeenCalledTimes(1);
     expect(RedisHandler.setJson).toHaveBeenCalledWith(
-      `oidc::${mockState}`,
+      `pn-session::oidc::${mockState}`,
       { nonce: mockNonce, idp: mockIdp, aar: undefined, retrievalId: undefined },
       { EX: 300 },
     );
@@ -86,7 +89,7 @@ describe("oidcAuthorize handler", () => {
     await handler(eventWithOptionals);
 
     expect(RedisHandler.setJson).toHaveBeenCalledWith(
-      `oidc::${mockState}`,
+      `pn-session::oidc::${mockState}`,
       { nonce: mockNonce, idp: mockIdp, aar: "aar-token-123", retrievalId: "retrieval-456" },
       { EX: 300 },
     );

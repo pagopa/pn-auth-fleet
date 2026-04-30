@@ -5,8 +5,8 @@ import { auditLog } from "../../utils/AuditLog";
 import { generateRedirectResponse } from "../../utils/Responses";
 import { generateRandomUniqueString, retrieveEnvVariable } from "../../utils/String";
 import { getAWSSecret } from "../oidcToken/utils/AwsParameters";
+import { getOidcStateRedisKey } from "../../utils/Constants";
 
-const REDIS_STATE_PREFIX = "oidc::";
 const REDIS_STATE_TTL_SEC = 300;
 
 export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -29,7 +29,7 @@ export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise
   await RedisHandler.connectRedis();
   try {
     await RedisHandler.setJson(
-      `${REDIS_STATE_PREFIX}${state}`,
+      getOidcStateRedisKey(state),
       { nonce, idp, aar, retrievalId },
       { EX: REDIS_STATE_TTL_SEC },
     );
