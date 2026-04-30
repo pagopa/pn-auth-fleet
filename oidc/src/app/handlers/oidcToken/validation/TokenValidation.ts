@@ -1,8 +1,8 @@
 import { decode, verify } from "jsonwebtoken";
 import { ValidationException } from "../../../exception/validationException";
+import { copyAndMaskObject } from "../../../utils/Object";
 import { OIDecodedIdToken, OIDecodedToken } from "../models/Token";
 import { getAWSParameterStore } from "../utils/AwsParameters";
-import { copyAndMaskObject } from "../utils/Object";
 import { getPublicKey } from "../utils/PublicKey";
 
 type ValidateOneIdentityIdTokenProps = {

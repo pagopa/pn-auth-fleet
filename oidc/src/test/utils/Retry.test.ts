@@ -1,4 +1,4 @@
-import { retryWithDelay } from "../../app/handlers/oidcToken/utils/Retry";
+import { retryWithDelay } from "../../app/utils/Retry";
 
 describe("retryWithDelay", () => {
   beforeEach(() => {

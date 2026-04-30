@@ -54,7 +54,7 @@ describe("oidcAuthorize handler", () => {
 
     const expectedLocation =
       `${process.env.ONE_IDENTITY_BASEURL}/oidc/authorize` +
-      `?idp=${mockIdp}` +
+      `?idp=${encodeURIComponent(mockIdp)}` +
       `&client_id=${oneIdentityCredentialsMock.oneIdentityClientId}` +
       `&response_type=code` +
       `&redirect_uri=${encodeURIComponent(process.env.ONE_IDENTITY_REDIRECT_URI!)}` +

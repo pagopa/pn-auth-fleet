@@ -2,9 +2,9 @@ import AWSXRay from "aws-xray-sdk-core";
 import http from "http";
 import https from "https";
 
-import { JWKS } from "../../models/Jwks";
-import { retryWithDelay } from "../Retry";
+import { retryWithDelay } from "../../../../utils/Retry";
 import { retrieveEnvVariable } from "../../../../utils/String";
+import { JWKS } from "../../models/Jwks";
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);

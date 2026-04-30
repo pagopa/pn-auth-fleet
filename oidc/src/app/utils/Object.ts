@@ -1,4 +1,4 @@
-import { maskString } from "../../../utils/String";
+import { maskString } from "./String";
 
 export function copyAndMaskObject<T extends Record<string, any>>(
   originalObject: T,

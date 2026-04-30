@@ -1,8 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { ValidationException } from "../../exception/validationException";
+import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import { auditLog } from "../../utils/AuditLog";
 import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
-import { OneIdentityAwsSecretObject } from "./models/Aws";
+import { retrieveEnvVariable } from "../../utils/String";
 import { RequestEventBody } from "./models/Event";
 import { TokenExchangeResponse } from "./models/Token";
 import { getAWSSecret } from "./utils/AwsParameters";
@@ -12,7 +13,6 @@ import {
 } from "./utils/Responses";
 import { generateSourceObject } from "./utils/TokenGenerator";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
-import { retrieveEnvVariable } from "../../utils/String";
 
 export const oidcTokenHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const eventOrigin = event.headers?.origin!;
