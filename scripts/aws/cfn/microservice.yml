@@ -1562,6 +1562,9 @@ Resources:
           ### Variables valorized by shared parameters used ALSO for TokenExchangeLambda,values are inherited from pn-ipc.yml stack ###
           ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
+          REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
       Role: !GetAtt OidcLambdaRole.Arn
       Timeout: 10
       TracingConfig:
@@ -1569,6 +1572,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds:
           - !Ref OidcLambdaSecurityGroup
+          - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
       Layers:
         - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
@@ -1622,6 +1626,13 @@ Resources:
               - secretsmanager:GetSecretValue
             Effect: Allow
             Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${OidcSecretName}*"
+          - Sid: RedisAuth
+            Action:
+              - elasticache:Connect
+            Effect: Allow
+            Resource:
+              - !Ref RedisServerlessArn
+              - !Ref ElasticCacheAuthFleetSessionsUserArn
 
   OidcLambdaAlarms:
     Type: AWS::CloudFormation::Stack
