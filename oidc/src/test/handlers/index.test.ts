@@ -1,3 +1,12 @@
+jest.mock("pn-auth-common", () => ({
+  RedisHandler: {
+    connectRedis: jest.fn(),
+    disconnectRedis: jest.fn(),
+    setJson: jest.fn(),
+    getJson: jest.fn(),
+  },
+}));
+
 import { handler } from "../../app/index";
 import * as AuditLog from "../../app/utils/AuditLog";
 import * as Origin from "../../app/utils/Origin";
