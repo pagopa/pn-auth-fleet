@@ -38,6 +38,7 @@
     "EnableOidcApi": "true",
     "OidcSecretName": "pn-auth-fleet/oidc-credentials",
     "OidcBaseURL": "https://uat.oneid.pagopa.it",
+    "OidcAuthorizeRedirectUri": "https://cittadini.dev.notifichedigitali.it/auth/callback",
     "LollipopSecretsKey": "pn-Lollipop-Secrets-Key"
   }
 }

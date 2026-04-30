@@ -1,29 +1,28 @@
+import { ValidationException } from "../../../app/exception/validationException";
 import { oidcTokenHandler as handler } from "../../../app/handlers/oidcToken";
-import { ValidationException } from "../../../app/handlers/oidcToken/exception/validationException";
-import * as AuditLog from "../../../app/handlers/oidcToken/utils/AuditLog";
 import * as AwsParameters from "../../../app/handlers/oidcToken/utils/AwsParameters";
+import * as EmdIntegrationClient from "../../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import * as OneIdentity from "../../../app/handlers/oidcToken/utils/OneIdentity";
 import * as Responses from "../../../app/handlers/oidcToken/utils/Responses";
-import * as Origin from "../../../app/handlers/oidcToken/validation/Origin";
-import * as TokenValidation from "../../../app/handlers/oidcToken/validation/TokenValidation";
-import * as EmdIntegrationClient from "../../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import * as TokenGenerator from "../../../app/handlers/oidcToken/utils/TokenGenerator";
+import * as TokenValidation from "../../../app/handlers/oidcToken/validation/TokenValidation";
+import * as AuditLog from "../../../app/utils/AuditLog";
 import {
-  mockAllowedOrigin,
-  mockState,
-  mockTokenExchangeEvent,
+    checkTppResponseMock,
+    retrievalIdMock,
+} from "../../__mock__/emdIntegration.mock";
+import {
+    mockAllowedOrigin,
+    mockState,
+    mockTokenExchangeEvent,
 } from "../../__mock__/event.mock";
 import {
-  oneIdentityCredentialsMock,
-  oneIdentityExchangeCodeResponseMock,
+    oneIdentityCredentialsMock,
+    oneIdentityExchangeCodeResponseMock,
 } from "../../__mock__/oneIdentity.mock";
 import { tokenExchangeResponse } from "../../__mock__/responses.mock";
 import { oneIdentityIdTokenMock } from "../../__mock__/token.mock";
 import { setupEnv } from "../../test.utils";
-import {
-  checkTppResponseMock,
-  retrievalIdMock,
-} from "../../__mock__/emdIntegration.mock";
 
 const parseResponse = (result: any) => ({
   statusCode: result.statusCode,
@@ -32,7 +31,6 @@ const parseResponse = (result: any) => ({
 
 describe("Event Handler tests", () => {
   let auditLogSpy: jest.SpyInstance;
-  let isOriginAllowedSpy: jest.SpyInstance;
   let getAWSSecretSpy: jest.SpyInstance;
   let exchangeOneIdentityCodeSpy: jest.SpyInstance;
   let validateOneIdentityIdTokenSpy: jest.SpyInstance;
@@ -51,10 +49,6 @@ describe("Event Handler tests", () => {
     auditLogSpy = jest
       .spyOn(AuditLog, "auditLog")
       .mockReturnValue(mockAuditLog as any);
-
-    isOriginAllowedSpy = jest
-      .spyOn(Origin, "isOriginAllowed")
-      .mockReturnValue(true);
 
     getAWSSecretSpy = jest
       .spyOn(AwsParameters, "getAWSSecret")
@@ -75,65 +69,10 @@ describe("Event Handler tests", () => {
 
   afterEach(() => {
     auditLogSpy.mockRestore();
-    isOriginAllowedSpy.mockRestore();
     getAWSSecretSpy.mockRestore();
     exchangeOneIdentityCodeSpy.mockRestore();
     validateOneIdentityIdTokenSpy.mockRestore();
     generateTokenExchangeResponseSpy.mockRestore();
-  });
-
-  describe("Origin validation", () => {
-    it("should return error when event has no origin", async () => {
-      const eventWithoutOrigin = {
-        ...mockTokenExchangeEvent,
-        headers: {
-          origin: undefined,
-        },
-      };
-
-      const result = await handler(eventWithoutOrigin as any);
-      const { statusCode, body } = parseResponse(result);
-
-      expect(statusCode).toBe(500);
-      expect(body.error).toEqual("eventOrigin is null");
-      expect(body.traceId).toEqual(process.env._X_AMZN_TRACE_ID);
-
-      expect(auditLogSpy).toHaveBeenCalledWith({
-        message: "eventOrigin is null",
-        aud_orig: undefined,
-        status: "KO",
-      });
-      expect(mockAuditLog.warn).toHaveBeenCalledWith("error");
-    });
-
-    it("should return error when the origin is not allowed", async () => {
-      isOriginAllowedSpy.mockReturnValue(false);
-
-      const eventWithInvalidOrigin = {
-        ...mockTokenExchangeEvent,
-        headers: {
-          origin: "invalid-origin",
-        },
-      };
-
-      const result = await handler(eventWithInvalidOrigin as any);
-      const { statusCode, body } = parseResponse(result);
-
-      expect(statusCode).toEqual(500);
-      expect(body.error).toEqual("Origin not allowed");
-      expect(body.traceId).toEqual(process.env._X_AMZN_TRACE_ID);
-
-      expect(auditLogSpy).toHaveBeenNthCalledWith(1, {
-        aud_orig: "invalid-origin",
-      });
-      expect(auditLogSpy).toHaveBeenNthCalledWith(2, {
-        message: "Origin: invalid-origin is not allowed",
-        aud_orig: "invalid-origin",
-        status: "KO",
-      });
-      expect(mockAuditLog.info).toHaveBeenCalledTimes(1);
-      expect(mockAuditLog.warn).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe("Request body validation", () => {
@@ -150,7 +89,7 @@ describe("Event Handler tests", () => {
       expect(body.error).toEqual("Missing request body");
       expect(body.traceId).toEqual(process.env._X_AMZN_TRACE_ID);
 
-      expect(auditLogSpy).toHaveBeenNthCalledWith(2, {
+      expect(auditLogSpy).toHaveBeenCalledWith({
         message: "Error during body parsing: Missing request body",
         aud_orig: mockAllowedOrigin,
         status: "KO",

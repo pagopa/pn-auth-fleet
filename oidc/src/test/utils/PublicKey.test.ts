@@ -1,13 +1,13 @@
 import jwkToPem from "jwk-to-pem";
-import { ValidationException } from "../../app/handlers/oidcToken/exception/validationException";
+import { ValidationException } from "../../app/exception/validationException";
 import * as JwksCache from "../../app/handlers/oidcToken/utils/Jwks/JwksCache";
 import { get } from "../../app/handlers/oidcToken/utils/Jwks/JwksCache";
 import { getJwks } from "../../app/handlers/oidcToken/utils/Jwks/JwksRetriever";
 import { getPublicKey } from "../../app/handlers/oidcToken/utils/PublicKey";
 import {
-  jwksKid,
-  mockCacheJwksResponse,
-  mockJwksResponse,
+    jwksKid,
+    mockCacheJwksResponse,
+    mockJwksResponse,
 } from "../__mock__/jwks.mock";
 
 jest.mock("../../app/handlers/oidcToken/utils/Jwks/JwksCache");

@@ -283,6 +283,10 @@ Parameters:
     Type: String
     Description: 'Base URL for Oidc API'
 
+  OidcAuthorizeRedirectUri:
+    Type: String
+    Description: 'Redirect URI for oidc-authorize endpoint'
+
   OidcSecretName:
     Type: String
     Description: 'AWS secret name for One Identity credentials'
@@ -1550,6 +1554,7 @@ Resources:
           ALLOWED_ISSUER: !Ref OidcLambdaEnvironmentAllowedIssuer
           ALLOWED_ORIGIN: !Ref OidcLambdaEnvironmentAllowedOrigin
           ONE_IDENTITY_BASEURL: !Ref OidcBaseURL
+          ONE_IDENTITY_REDIRECT_URI: !Ref OidcAuthorizeRedirectUri
           ONE_IDENTITY_SECRET_NAME: !Ref OidcSecretName
           ALLOWED_TAXIDS_PARAMETER: !Ref OidcLambdaEnvironmentAllowedTaxIdsParameter
           TOKEN_TTL: !Ref OidcLambdaEnvironmentTokenTtl
@@ -1557,6 +1562,9 @@ Resources:
           ### Variables valorized by shared parameters used ALSO for TokenExchangeLambda,values are inherited from pn-ipc.yml stack ###
           ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
+          REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
       Role: !GetAtt OidcLambdaRole.Arn
       Timeout: 10
       TracingConfig:
@@ -1564,6 +1572,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds:
           - !Ref OidcLambdaSecurityGroup
+          - !Ref ElasticacheSecurityGroup
         SubnetIds: !Ref VpcEgressSubnetsIds
       Layers:
         - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
@@ -1617,6 +1626,13 @@ Resources:
               - secretsmanager:GetSecretValue
             Effect: Allow
             Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${OidcSecretName}*"
+          - Sid: RedisAuth
+            Action:
+              - elasticache:Connect
+            Effect: Allow
+            Resource:
+              - !Ref RedisServerlessArn
+              - !Ref ElasticCacheAuthFleetSessionsUserArn
 
   OidcLambdaAlarms:
     Type: AWS::CloudFormation::Stack
@@ -1812,8 +1828,10 @@ Resources:
       HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
+      RequestValidatorId: !Ref OidcPostMethodRequestValidator
       RequestParameters:
         "method.request.header.Origin": true
+        "method.request.querystring.idp": true
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST

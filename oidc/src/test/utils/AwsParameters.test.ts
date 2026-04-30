@@ -7,7 +7,7 @@ import { setupEnv } from "../test.utils";
 global.fetch = jest.fn();
 
 // Mock retryWithDelay to call the function immediately without delay
-jest.mock("../../app/handlers/oidcToken/utils/Retry.ts", () => ({
+jest.mock("../../app/utils/Retry.ts", () => ({
   retryWithDelay: jest.fn((fn) => fn()),
 }));
 

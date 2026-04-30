@@ -1,5 +1,5 @@
-import { retryWithDelay } from "./Retry";
-import { retrieveEnvVariable } from "./String";
+import { retryWithDelay } from "../../../utils/Retry";
+import { retrieveEnvVariable } from "../../../utils/String";
 
 const RETRY_DELAY_MS = 1000;
 const MAX_RETRIES = 3;

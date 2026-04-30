@@ -1,7 +1,5 @@
 import { Source } from "./Source";
 
-export const SPID_FISCAL_NUMBER_PREFIX = "TINIT-";
-
 export interface OIDecodedToken {
   header: {
     alg: string;

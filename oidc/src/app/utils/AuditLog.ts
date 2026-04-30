@@ -1,5 +1,7 @@
 import { createLogger, LogLevel } from "bunyan";
-import { AUD_TYPE, AuditLogStatus } from "../models/AuditLog";
+
+export const AUD_TYPE = "AUD_ACC_LOGIN";
+export type AuditLogStatus = "OK" | "KO";
 
 const LOG_LEVEL_MAP: Record<
   AuditLogStatus,
@@ -22,6 +24,8 @@ type AuditLogProps = {
   cx_id?: string;
   uid?: string;
   jti?: string;
+  // TODO
+  // aggiungere request_id
 };
 
 export function auditLog({
@@ -46,7 +50,7 @@ export function auditLog({
     aud_orig,
     level,
     level_value: value,
-    logger_name: "oneIdentity",
+    logger_name: "oidc",
     uid,
     cx_type,
     cx_id,

@@ -6,7 +6,7 @@ jest.mock("aws-xray-sdk-core", () => ({
   captureHTTPsGlobal: jest.fn(),
 }));
 
-jest.mock("../../../app/handlers/oidcToken/utils/Retry", () => ({
+jest.mock("../../../app/utils/Retry", () => ({
   retryWithDelay: jest.fn((fn) => fn()),
 }));
 

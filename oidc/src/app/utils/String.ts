@@ -1,14 +1,13 @@
+import { randomUUID } from "node:crypto";
 import { APIGatewayProxyEventHeaders } from "aws-lambda";
-import { SPID_FISCAL_NUMBER_PREFIX } from "../models/Token";
+export const SPID_FISCAL_NUMBER_PREFIX = "TINIT-";
 
 /**
  * Converts all header keys to lowercase.
  *
  * @param headers - The headers object to convert
  */
-export function makeLower(
-  headers: APIGatewayProxyEventHeaders,
-): APIGatewayProxyEventHeaders {
+export function makeLower(headers: APIGatewayProxyEventHeaders): APIGatewayProxyEventHeaders {
   const head: APIGatewayProxyEventHeaders = {};
   for (const key in headers) {
     if (headers.hasOwnProperty(key)) {
@@ -60,3 +59,8 @@ export function retrieveEnvVariable(name: string) {
 export function removeFiscalNumberPrefix(fiscalNumber: string): string {
   return fiscalNumber.replace(SPID_FISCAL_NUMBER_PREFIX, "");
 }
+
+/** 
+ * Generates a random unique string of 20 characters by creating a UUID, removing dashes, and slicing it.
+ */
+export const generateRandomUniqueString = () => randomUUID().replace(/-/g, '').slice(0, 20);
