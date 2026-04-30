@@ -1,7 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
-import { auditLog } from "../../utils/AuditLog";
 import { generateRedirectResponse } from "../../utils/Responses";
 import { generateRandomUniqueString, retrieveEnvVariable } from "../../utils/String";
 import { getAWSSecret } from "../oidcToken/utils/AwsParameters";
@@ -39,13 +38,7 @@ export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise
 
   const location = `${oneIdentityBaseUrl}/oidc/authorize?idp=${encodeURIComponent(idp)}&client_id=${oneIdentityClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid&nonce=${nonce}&state=${state}`;
 
-  auditLog({
-    message: `Redirecting to One Identity for authorization, idp: ${idp}`,
-    aud_orig: eventOrigin,
-    status: "OK",
-    cx_type: "PF",
-    jti: state,
-  }).info("success");
+  console.log(`Redirecting  successful to OIDC provider with idP ${idp}`);
 
   return generateRedirectResponse(location, eventOrigin);
 };
