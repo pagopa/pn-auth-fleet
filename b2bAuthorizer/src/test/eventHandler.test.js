@@ -142,7 +142,7 @@ describe("test eventHandler", () => {
         cx_jti: 'test-kid',
         applicationRole: "user",
         allowedApplicationRoles: "[\"user\"]",
-        originalBaseUrl: "https://api.radd.dev.notifichedigitali.it"
+        baseUrl: "https://api.radd.dev.notifichedigitali.it"
       },
       usageIdentifierKey: null
     })
@@ -289,7 +289,7 @@ describe("test eventHandler", () => {
         cx_jti: 'test-kid',
         applicationRole: "user",
         allowedApplicationRoles: "[\"user\"]",
-        originalBaseUrl: "https://api.radd.dev.notifichedigitali.it"
+        baseUrl: "https://api.radd.dev.notifichedigitali.it"
       },
       usageIdentifierKey: null
     })
