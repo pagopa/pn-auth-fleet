@@ -51,6 +51,10 @@ const prepareContextForLogger = (lambdaEvent) => {
   return context;
 }
 
+const getOriginalBaseUrlFromEvent = (lambdaEvent) => {
+  return `https://${lambdaEvent.requestContext.domainName}`;
+}
+
 function getDecodedToken(jwtToken) {
   try {
     return jwtService.decodeToken(jwtToken);
@@ -105,6 +109,7 @@ async function handleEvent(event) {
     const attributeResolution = await attributeResolvers.resolveAttributes( simpleJwt, event, issuerInfo.cfg.attributeResolversCfgs );
     logger.addToContext('attributeResolution', attributeResolution);
     const context = attributeResolution.context;
+    context.originalBaseUrl = getOriginalBaseUrlFromEvent(event);
     const usageIdentifierKey = attributeResolution.usageIdentifierKey;
     
     // Viene generata la policy a partire dal context
