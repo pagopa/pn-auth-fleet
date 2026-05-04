@@ -291,6 +291,11 @@ Parameters:
     Type: String
     Description: 'AWS secret name for One Identity credentials'
 
+  OidcRedisStateTtl:
+    Type: Number
+    Default: 300
+    Description: 'TTL in seconds for the OIDC state stored in Redis'
+
   OidcLatencyLimit:
     Type: Number
     Default: 2000
@@ -1556,6 +1561,7 @@ Resources:
           ONE_IDENTITY_BASEURL: !Ref OidcBaseURL
           ONE_IDENTITY_REDIRECT_URI: !Ref OidcAuthorizeRedirectUri
           ONE_IDENTITY_SECRET_NAME: !Ref OidcSecretName
+          ONE_IDENTITY_REDIS_STATE_TTL: !Ref OidcRedisStateTtl
           ALLOWED_TAXIDS_PARAMETER: !Ref OidcLambdaEnvironmentAllowedTaxIdsParameter
           TOKEN_TTL: !Ref OidcLambdaEnvironmentTokenTtl
           CACHE_TTL: !Ref OidcLambdaEnvironmentCacheTtl
