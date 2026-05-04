@@ -13,6 +13,7 @@ export function setupEnv() {
     ONE_IDENTITY_SECRET_NAME: "one-identity-secret-name",
     ONE_IDENTITY_BASEURL: "https://uat.oneid.pagopa.it",
     ONE_IDENTITY_REDIRECT_URI: "https://cittadini.dev.notifichedigitali.it/auth/callback",
+    ONE_IDENTITY_REDIS_STATE_TTL: "300",
     AWS_SESSION_TOKEN: "fake-session-token",
     PN_EMD_INTEGRATION_BASEURL: "http://${ApplicationLoadBalancerDomain}:8080",
   };
