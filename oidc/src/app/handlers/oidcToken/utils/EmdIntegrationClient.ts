@@ -3,7 +3,7 @@ import http from "http";
 import https from "https";
 
 import { GetRetrievalPayloadResponse } from "../models/Source";
-import { retrieveEnvVariable } from "../../../utils/String";
+import { retrieveEnvVariable } from "../../../config";
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);

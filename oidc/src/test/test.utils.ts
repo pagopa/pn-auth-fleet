@@ -1,3 +1,5 @@
+import { EnvVariableName } from "../app/config";
+
 // Mock the environment variables
 export function setupEnv() {
   process.env = {
@@ -16,5 +18,5 @@ export function setupEnv() {
     ONE_IDENTITY_REDIS_STATE_TTL: "300",
     AWS_SESSION_TOKEN: "fake-session-token",
     PN_EMD_INTEGRATION_BASEURL: "http://${ApplicationLoadBalancerDomain}:8080",
-  };
+  } satisfies Record<EnvVariableName, string>;
 }

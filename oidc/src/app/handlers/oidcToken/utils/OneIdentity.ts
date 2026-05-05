@@ -1,6 +1,6 @@
 import { ValidationException } from "../../../exception/validationException";
 import { OneIdentityAwsSecretObject } from "../../../models/Aws";
-import { retrieveEnvVariable } from "../../../utils/String";
+import { retrieveEnvVariable } from "../../../config";
 import { OIExchangeCodeResponse } from "../models/Token";
 
 type ExchangeOneIdentityCodeProps = {

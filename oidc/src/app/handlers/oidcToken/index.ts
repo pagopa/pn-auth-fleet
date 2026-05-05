@@ -3,7 +3,7 @@ import { ValidationException } from "../../exception/validationException";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import { auditLog } from "../../utils/AuditLog";
 import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
-import { retrieveEnvVariable } from "../../utils/String";
+import { retrieveEnvVariable } from "../../config";
 import { RequestEventBody } from "./models/Event";
 import { TokenExchangeResponse } from "./models/Token";
 import { getAWSSecret } from "./utils/AwsParameters";

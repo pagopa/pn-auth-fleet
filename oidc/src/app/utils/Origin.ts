@@ -1,10 +1,14 @@
+import { retrieveEnvVariable } from "../config";
+
 export function isOriginAllowed(origin: string) {
-  if (!process.env.ALLOWED_ORIGIN) {
+  const allowedOriginEnv = retrieveEnvVariable("ALLOWED_ORIGIN", "");
+
+  if (!allowedOriginEnv) {
     console.error("ALLOWED_ORIGIN env var is not set");
     return false;
   }
 
-  const allowedOrigins = process.env.ALLOWED_ORIGIN.split(",");
+  const allowedOrigins = allowedOriginEnv.split(",");
   const isOriginIncluded = allowedOrigins.includes(origin);
 
   if (!isOriginIncluded) {

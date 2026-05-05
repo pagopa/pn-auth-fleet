@@ -38,20 +38,6 @@ export function maskString(stringToMask: string): string {
 }
 
 /**
- * Retrieves an environment variable by name.
- * Throws an error if the variable is not set.
- *
- * @param name - The name of the environment variable
- */
-export function retrieveEnvVariable(name: string) {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`${name} is not set`);
-  }
-  return value;
-}
-
-/**
  * Sanitizes a fiscal number by removing the SPID prefix if present.
  *
  * @param fiscalNumber - The fiscal number to sanitize

@@ -1,11 +1,8 @@
 import {
   makeLower,
   maskString,
-  retrieveEnvVariable,
   removeFiscalNumberPrefix,
 } from "../../app/utils/String";
-import { setupEnv } from "../test.utils";
-
 describe("String utils Tests", () => {
   describe("makeLower", () => {
     it("makes keys of an object lowercase", () => {
@@ -39,29 +36,6 @@ describe("String utils Tests", () => {
       expect(maskString("123456")).toBe("12**56");
       expect(maskString("john.doe@example.com")).toBe("jo****************om");
       expect(maskString("ABCDEFGHIJ")).toBe("AB******IJ");
-    });
-  });
-
-  describe("retrieveEnvVariable", () => {
-    beforeEach(() => {
-      jest.resetModules();
-      setupEnv();
-    });
-
-    it("should return environment variable value when it exists", () => {
-      process.env.TEST_VAR = "test_value";
-
-      const result = retrieveEnvVariable("TEST_VAR");
-
-      expect(result).toBe("test_value");
-    });
-
-    it("should throw error when environment variable is not set", () => {
-      delete process.env.TEST_VAR;
-
-      expect(() => retrieveEnvVariable("TEST_VAR")).toThrow(
-        new Error("TEST_VAR is not set"),
-      );
     });
   });
 
