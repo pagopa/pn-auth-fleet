@@ -56,6 +56,7 @@ export function generateRedirectResponse(location: string, allowedOrigin: string
     statusCode: 302,
     headers: {
       "Access-Control-Allow-Origin": allowedOrigin,
+      "Access-Control-Expose-Headers": "Location",
       "Strict-Transport-Security":
         "max-age=31536000; includeSubDomains; preload",
       Location: location,
