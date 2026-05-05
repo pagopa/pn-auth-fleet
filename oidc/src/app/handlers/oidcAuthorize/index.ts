@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
+import type { OidcStateData } from "../../models/OidcState";
 import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
 import { generateRandomUniqueString, retrieveEnvVariable } from "../../utils/String";
 import { getAWSSecret } from "../oidcToken/utils/AwsParameters";
@@ -40,7 +41,11 @@ export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise
 
   await RedisHandler.connectRedis();
   try {
-    await RedisHandler.setJson(getOidcStateRedisKey(state), { nonce, idp, aar, retrievalId }, { EX: redisStateTtlSec });
+    await RedisHandler.setJson<OidcStateData>(
+      getOidcStateRedisKey(state),
+      { nonce, idp, aar, retrievalId },
+      { EX: redisStateTtlSec },
+    );
   } finally {
     await RedisHandler.disconnectRedis();
   }
