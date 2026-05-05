@@ -1821,7 +1821,7 @@ Resources:
       HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
-      RequestValidatorId: !Ref OidcPostMethodRequestValidator
+      RequestValidatorId: !Ref OidcRequestValidator
       RequestParameters:
         "method.request.header.Origin": true
       RequestModels:
@@ -1846,7 +1846,7 @@ Resources:
       HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
-      RequestValidatorId: !Ref OidcPostMethodRequestValidator
+      RequestValidatorId: !Ref OidcRequestValidator
       RequestParameters:
         "method.request.header.Origin": true
         "method.request.querystring.idp": true
@@ -1858,7 +1858,7 @@ Resources:
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
 
-  OidcPostMethodRequestValidator:
+  OidcRequestValidator:
     Type: AWS::ApiGateway::RequestValidator
     Condition: EnableOidcApi
     Properties:
@@ -1956,8 +1956,10 @@ Resources:
       HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
+      RequestValidatorId: !Ref OidcRequestValidator
       RequestParameters:
         "method.request.header.Origin": true
+        "method.request.querystring.state": true
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
