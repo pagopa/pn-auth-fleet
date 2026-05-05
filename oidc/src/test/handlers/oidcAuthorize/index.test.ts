@@ -19,6 +19,8 @@ jest.mock("pn-auth-common", () => ({
 import { RedisHandler } from "pn-auth-common";
 
 const mockIdp = "https://id.lepida.it/idp/shibboleth";
+const mockAar = "A".repeat(106);
+const mockRetrievalId = "a".repeat(50);
 const mockState = "generated-state-uuid";
 const mockNonce = "generated-nonce-uuid";
 
@@ -83,14 +85,14 @@ describe("oidcAuthorize handler", () => {
   it("should include optional aar and retrievalId in Redis payload when provided", async () => {
     const eventWithOptionals = {
       ...mockAuthorizeEvent,
-      queryStringParameters: { idp: mockIdp, aar: "aar-token-123", retrievalId: "retrieval-456" },
+      queryStringParameters: { idp: mockIdp, aar: mockAar, retrievalId: mockRetrievalId },
     };
 
     await handler(eventWithOptionals);
 
     expect(RedisHandler.setJson).toHaveBeenCalledWith(
       `pn-session::oidc::${mockState}`,
-      { nonce: mockNonce, idp: mockIdp, aar: "aar-token-123", retrievalId: "retrieval-456" },
+      { nonce: mockNonce, idp: mockIdp, aar: mockAar, retrievalId: mockRetrievalId },
       { EX: 300 },
     );
   });
