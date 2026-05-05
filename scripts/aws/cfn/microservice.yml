@@ -1765,20 +1765,32 @@ Resources:
       Name: OidcModel
       Schema:
         type: object
+        additionalProperties: false
         required:
           - code
-          - redirect_uri
           - nonce
           - state
         properties:
           code:
             type: string
-          redirect_uri:
-            type: string
           nonce:
             type: string
           state:
             type: string
+          source:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - id
+            properties:
+              type:
+                type: string
+                enum:
+                  - QR
+                  - TPP
+              id:
+                type: string
 
   # Token Exchange OIDC resources
   OidcAuthorizeResource:
