@@ -50,10 +50,10 @@ describe("oidcAuthorize handler", () => {
     generateRandomUniqueStringSpy.mockRestore();
   });
 
-  it("should return 302 with correct Location header", async () => {
+  it("should return 200 with correct location in body", async () => {
     const result = await handler(mockAuthorizeEvent);
 
-    expect(result.statusCode).toBe(302);
+    expect(result.statusCode).toBe(200);
 
     const expectedLocation =
       `${process.env.ONE_IDENTITY_BASEURL}/oidc/authorize` +
@@ -65,7 +65,7 @@ describe("oidcAuthorize handler", () => {
       `&nonce=${mockNonce}` +
       `&state=${mockState}`;
 
-    expect(result.headers?.Location).toBe(expectedLocation);
+    expect(JSON.parse(result.body).location).toBe(expectedLocation);
   });
 
   it("should save state payload to Redis with correct key and TTL", async () => {
