@@ -3,7 +3,7 @@ import {
   generateTokenExchangeResponse,
 } from "../../app/handlers/oidcToken/utils/Responses";
 import * as TokenGenerator from "../../app/handlers/oidcToken/utils/TokenGenerator";
-import { generateKoResponse, generateOkResponse } from "../../app/utils/Responses";
+import { generateKoResponse, generateOkResponse, generateRedirectResponse } from "../../app/utils/Responses";
 import { mockState } from "../__mock__/event.mock";
 import {
   allowedOrigin,
@@ -86,6 +86,18 @@ describe("Responses Tests", () => {
       const result = generateOkResponse(tokenExchangeResponse, allowedOrigin);
 
       expect(result).toEqual(okResponseMock);
+    });
+  });
+
+  describe("generateRedirectResponse", () => {
+    it("Returns 302 with Location and Access-Control-Expose-Headers", () => {
+      const location = "https://example.com/auth/callback?code=abc";
+      const result = generateRedirectResponse(location, allowedOrigin);
+
+      expect(result.statusCode).toBe(302);
+      expect(result.headers["Location"]).toBe(location);
+      expect(result.headers["Access-Control-Allow-Origin"]).toBe(allowedOrigin);
+      expect(result.headers["Access-Control-Expose-Headers"]).toBe("Location");
     });
   });
 
