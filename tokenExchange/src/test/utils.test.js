@@ -11,6 +11,7 @@ const {
   addSourceChannelInfo,
   getUserType,
 } = require("../app/utils.js");
+const { supportToken } = require("./__mocks__/token.mock.js");
 
 const pgToken = {
   organization: {
@@ -127,6 +128,12 @@ describe("utils tests", () => {
     const result = getUserType(paToken);
 
     expect(result).to.eq("PA");
+  });
+
+  it("checks that user is BS type", () => {
+    const result = getUserType(supportToken);
+
+    expect(result).to.eq("BS");
   });
 
   it("enrichDecodedToken", () => {
