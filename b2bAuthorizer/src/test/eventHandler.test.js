@@ -79,6 +79,7 @@ describe("test eventHandler", () => {
 
     // mock issuersCache
     const jwks = fs.readFileSync('./src/test/resources/jwks.json');
+
     const jwksAsBuffer = Buffer.from(jwks, 'utf8');
     const issuersCache = {
       getOrLoad: async (issuerId) => {
@@ -86,12 +87,22 @@ describe("test eventHandler", () => {
           cfg: {
             iss: issuerId,
             attributeResolversCfgs: [
-
+            ]
+          },
+          jwksCache: [ { JWKSBody: jwksAsBuffer } ]
+        }
+      },
+      getWithForceRefresh: async (issuerId) => {
+        return {
+          cfg: {
+            iss: issuerId,
+            attributeResolversCfgs: [
             ]
           },
           jwksCache: [ { JWKSBody: jwksAsBuffer } ]
         }
       }
+
     }
     EventHandler.__set__("issuersCache", issuersCache);
 

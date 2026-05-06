@@ -1,0 +1,25 @@
+{
+  "principalId": "user",
+  "policyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "execute-api:Invoke",
+        "Effect": "Allow",
+        "Resource": [
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*/documents/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*/payments/*/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/history",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/status",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/legal-facts/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/sender-dashboard/dashboard-data-request/*/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/institutions",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/institutions/products"
+        ]
+      }
+    ]
+  },
+  "context": {}
+}
