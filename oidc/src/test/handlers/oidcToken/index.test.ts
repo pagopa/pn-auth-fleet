@@ -1,5 +1,15 @@
+import { RedisHandler } from "pn-auth-common";
 import { ValidationException } from "../../../app/exception/validationException";
 import { oidcTokenHandler as handler } from "../../../app/handlers/oidcToken";
+
+jest.mock("pn-auth-common", () => ({
+  RedisHandler: {
+    connectRedis: jest.fn().mockResolvedValue(undefined),
+    disconnectRedis: jest.fn().mockResolvedValue(undefined),
+    del: jest.fn().mockResolvedValue(undefined),
+  },
+  COMMON_CONSTANTS: { REDIS_PN_SESSION_PREFIX: "test::" },
+}));
 import * as AwsParameters from "../../../app/handlers/oidcToken/utils/AwsParameters";
 import * as EmdIntegrationClient from "../../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import * as OneIdentity from "../../../app/handlers/oidcToken/utils/OneIdentity";
@@ -111,6 +121,8 @@ describe("Event Handler tests", () => {
         aud_orig: mockAllowedOrigin,
       });
       expect(mockAuditLog.info).toHaveBeenCalled();
+
+      expect(RedisHandler.del).toHaveBeenCalledWith(`test::oidc::${mockState}`);
     });
 
     it("should handle AWS secret retrieval failure", async () => {
@@ -132,6 +144,8 @@ describe("Event Handler tests", () => {
 
       expect(exchangeOneIdentityCodeSpy).not.toHaveBeenCalled();
       expect(validateOneIdentityIdTokenSpy).not.toHaveBeenCalled();
+
+      expect(RedisHandler.del).toHaveBeenCalledWith(`test::oidc::${mockState}`);
     });
 
     it("should handle exchange code failure", async () => {

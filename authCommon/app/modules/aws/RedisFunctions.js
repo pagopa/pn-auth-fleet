@@ -72,6 +72,10 @@ async function getJson(key) {
     return result ?? null;
 }
 
+async function del(key) {
+    await redisClient.del(key);
+}
+
 module.exports = {
     connectRedis,
     lockFunction,
@@ -80,6 +84,7 @@ module.exports = {
     extendLockFunction,
     get,
     set,
+    del,
     setJson,
     getJson,
 };

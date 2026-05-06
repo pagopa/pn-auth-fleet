@@ -1,9 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { RedisHandler } from "pn-auth-common";
 import { ValidationException } from "../../exception/validationException";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import { auditLog } from "../../utils/AuditLog";
 import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
 import { retrieveEnvVariable } from "../../config";
+import { getOidcStateRedisKey } from "../../utils/Constants";
 import { RequestEventBody } from "./models/Event";
 import { TokenExchangeResponse } from "./models/Token";
 import { getAWSSecret } from "./utils/AwsParameters";
@@ -71,5 +73,11 @@ export const oidcTokenHandler = async (event: APIGatewayProxyEvent): Promise<API
       log.error("error");
     }
     return generateKoResponse(err, eventOrigin);
+  } finally {
+    console.debug("Deleting state in Redis for state: ", state);
+    await RedisHandler.connectRedis()
+      .then(() => RedisHandler.del(getOidcStateRedisKey(state)))
+      .then(() => RedisHandler.disconnectRedis())
+      .catch((e) => console.warn("Failed to invalidate state key", e));
   }
 };
