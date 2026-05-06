@@ -46,7 +46,7 @@ describe("index tests", function () {
 
     stubs.validateLollipopAuthorizer.resolves({
       statusCode: 200,
-      resultCode: "VERIFICATION_SUCCESS_CODE",
+      resultCode: "SUCCESS",
       name: "Mario",
       familyName: "Rossi"
     });
@@ -134,7 +134,7 @@ describe("index tests", function () {
         // validateLollipopAuthorizer success
         stubs.validateLollipopAuthorizer.resolves({
           statusCode: 200,
-          resultCode: "VERIFICATION_SUCCESS_CODE"
+          resultCode: "SUCCESS"
         });
 
         // Axios fallisce con 500
