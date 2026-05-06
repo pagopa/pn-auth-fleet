@@ -8,7 +8,6 @@ export const mockTokenExchangeEvent = {
   },
   body: JSON.stringify({
     code: "rC2wiIdM8UjVDCU1tk-df_9DfzQG_X8qkcofpZq_ElI",
-    redirect_uri: "https://cittadini.dev.notifichedigitali.it/auth/callback",
     nonce: tokenNonce,
     state: mockState,
   }),

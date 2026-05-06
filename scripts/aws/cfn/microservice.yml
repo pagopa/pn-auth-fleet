@@ -1765,20 +1765,36 @@ Resources:
       Name: OidcModel
       Schema:
         type: object
+        additionalProperties: false
         required:
           - code
-          - redirect_uri
           - nonce
           - state
         properties:
           code:
             type: string
-          redirect_uri:
-            type: string
           nonce:
             type: string
+            description: UUID v4
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
           state:
             type: string
+            description: UUID v4
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+          source:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - id
+            properties:
+              type:
+                type: string
+                enum:
+                  - QR
+                  - TPP
+              id:
+                type: string
 
   # Token Exchange OIDC resources
   OidcAuthorizeResource:

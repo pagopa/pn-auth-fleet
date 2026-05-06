@@ -1,9 +1,10 @@
 import { CachedJwks, JWKS } from "../../models/Jwks";
+import { retrieveEnvVariable } from "../../../../config";
 import { getJwks } from "./JwksRetriever";
 
 const cachedJwks = new Map<string, CachedJwks>();
 const TWO_HOURS_IN_MILLISECONDS = 7200000;
-const TTL = process.env.CACHE_TTL ? Number(process.env.CACHE_TTL) : 300;
+const TTL = Number(retrieveEnvVariable("CACHE_TTL", "300"));
 
 export const isCacheActive = TTL != 0;
 

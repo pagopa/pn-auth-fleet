@@ -1,63 +1,36 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { RedisHandler } from "pn-auth-common";
 import { ValidationException } from "../../exception/validationException";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import { auditLog } from "../../utils/AuditLog";
 import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
-import { retrieveEnvVariable } from "../../utils/String";
+import { retrieveEnvVariable } from "../../config";
+import { getOidcStateRedisKey } from "../../utils/Constants";
 import { RequestEventBody } from "./models/Event";
 import { TokenExchangeResponse } from "./models/Token";
 import { getAWSSecret } from "./utils/AwsParameters";
 import { exchangeOneIdentityCode } from "./utils/OneIdentity";
-import {
-  generateTokenExchangeResponse,
-} from "./utils/Responses";
+import { generateTokenExchangeResponse } from "./utils/Responses";
 import { generateSourceObject } from "./utils/TokenGenerator";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
 
 export const oidcTokenHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const eventOrigin = event.headers?.origin!;
-  let oidcCode: string | undefined;
-  let redirectUri: string | undefined;
-  let nonce: string | undefined;
-  let state: string | undefined;
-  let source;
+
+  // The body is already validated by API Gateway, so we can safely parse it
+  // See OidcModal schema in microservice.yaml for the expected structure of the body
+  const requestBody: RequestEventBody = JSON.parse(event.body!);
+  const { code, nonce, state, source } = requestBody;
 
   try {
-    if (!event.body) {
-      throw new Error("Missing request body");
-    }
-    const requestBody: RequestEventBody = JSON.parse(event.body);
-    oidcCode = requestBody?.code;
-    redirectUri = requestBody?.redirect_uri;
-    nonce = requestBody?.nonce;
-    state = requestBody?.state;
-    source = requestBody?.source;
+    const oneIdentitySecretName = retrieveEnvVariable("ONE_IDENTITY_SECRET_NAME");
 
-    if (!oidcCode || !redirectUri || !nonce || !state) {
-      return generateKoResponse(
-        "Missing required parameters in body",
-        eventOrigin,
-      );
-    }
-  } catch (err: any) {
-    auditLog({
-      message: `Error during body parsing: ${err.message}`,
-      aud_orig: eventOrigin,
-      status: "KO",
-    }).warn("error");
-    return generateKoResponse(err, eventOrigin);
-  }
+    const oneIdentityCredentials = await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
 
-  try {
-    const oneIdentitySecretName = retrieveEnvVariable(
-      "ONE_IDENTITY_SECRET_NAME",
-    );
-
-    const oneIdentityCredentials =
-      await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
+    const redirectUri = retrieveEnvVariable("ONE_IDENTITY_REDIRECT_URI");
 
     const oneIdentityToken = await exchangeOneIdentityCode({
-      code: oidcCode,
+      code,
       redirectUri,
       oneIdentityCredentials,
     });
@@ -100,5 +73,11 @@ export const oidcTokenHandler = async (event: APIGatewayProxyEvent): Promise<API
       log.error("error");
     }
     return generateKoResponse(err, eventOrigin);
+  } finally {
+    console.debug("Deleting state in Redis for state: ", state);
+    await RedisHandler.connectRedis()
+      .then(() => RedisHandler.del(getOidcStateRedisKey(state)))
+      .then(() => RedisHandler.disconnectRedis())
+      .catch((e) => console.warn("Failed to invalidate state key", e));
   }
 };

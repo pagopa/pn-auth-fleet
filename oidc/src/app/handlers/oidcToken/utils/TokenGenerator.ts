@@ -5,7 +5,7 @@ import { ValidationException } from "../../../exception/validationException";
 import { Source, SourceChannel, SourceEvent } from "../models/Source";
 import { JwtParts, JwtPayload } from "../models/Token";
 import { getRetrievalPayload } from "./EmdIntegrationClient";
-import { retrieveEnvVariable } from "../../../utils/String";
+import { retrieveEnvVariable } from "../../../config";
 
 const kms = captureAWSv3Client(new KMS());
 

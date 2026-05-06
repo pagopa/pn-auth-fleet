@@ -1,5 +1,15 @@
+import { RedisHandler } from "pn-auth-common";
 import { ValidationException } from "../../../app/exception/validationException";
 import { oidcTokenHandler as handler } from "../../../app/handlers/oidcToken";
+
+jest.mock("pn-auth-common", () => ({
+  RedisHandler: {
+    connectRedis: jest.fn().mockResolvedValue(undefined),
+    disconnectRedis: jest.fn().mockResolvedValue(undefined),
+    del: jest.fn().mockResolvedValue(undefined),
+  },
+  COMMON_CONSTANTS: { REDIS_PN_SESSION_PREFIX: "test::" },
+}));
 import * as AwsParameters from "../../../app/handlers/oidcToken/utils/AwsParameters";
 import * as EmdIntegrationClient from "../../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import * as OneIdentity from "../../../app/handlers/oidcToken/utils/OneIdentity";
@@ -75,119 +85,6 @@ describe("Event Handler tests", () => {
     generateTokenExchangeResponseSpy.mockRestore();
   });
 
-  describe("Request body validation", () => {
-    it("should return error when event body is not present", async () => {
-      const eventWithoutBody = {
-        ...mockTokenExchangeEvent,
-        body: undefined,
-      };
-
-      const result = await handler(eventWithoutBody as any);
-      const { statusCode, body } = parseResponse(result);
-
-      expect(statusCode).toEqual(500);
-      expect(body.error).toEqual("Missing request body");
-      expect(body.traceId).toEqual(process.env._X_AMZN_TRACE_ID);
-
-      expect(auditLogSpy).toHaveBeenCalledWith({
-        message: "Error during body parsing: Missing request body",
-        aud_orig: mockAllowedOrigin,
-        status: "KO",
-      });
-      expect(mockAuditLog.warn).toHaveBeenCalled();
-    });
-
-    it("should return error when fails to parse body", async () => {
-      const eventWithInvalidBody = {
-        ...mockTokenExchangeEvent,
-        body: "invalid-json{",
-      };
-
-      const result = await handler(eventWithInvalidBody as any);
-      console.log("----- RESULT ----", result);
-      const { statusCode, body } = parseResponse(result);
-
-      expect(statusCode).toEqual(500);
-      expect(body.error).toBeDefined();
-
-      // Verify error audit log was called
-      const errorCalls = auditLogSpy.mock.calls.filter(
-        (call) =>
-          call[0].status === "KO" &&
-          call[0].message?.includes("Error during body parsing:"),
-      );
-      expect(errorCalls.length).toBeGreaterThan(0);
-      expect(mockAuditLog.warn).toHaveBeenCalled();
-    });
-
-    it("should return error when event body has no code", async () => {
-      const eventWithoutCode = {
-        ...mockTokenExchangeEvent,
-        body: JSON.stringify({
-          redirect_uri: "https://example.com",
-          nonce: "test-nonce",
-          state: "test-state",
-        }),
-      };
-
-      const result = await handler(eventWithoutCode as any);
-      const { statusCode, body } = parseResponse(result);
-
-      expect(statusCode).toEqual(500);
-      expect(body.error).toEqual("Missing required parameters in body");
-    });
-
-    it("should return error when event body has no redirect_uri", async () => {
-      const eventWithoutRedirectUri = {
-        ...mockTokenExchangeEvent,
-        body: JSON.stringify({
-          code: "test-code",
-          nonce: "test-nonce",
-          state: "test-state",
-        }),
-      };
-
-      const result = await handler(eventWithoutRedirectUri as any);
-      const { statusCode, body } = parseResponse(result);
-
-      expect(statusCode).toEqual(500);
-      expect(body.error).toEqual("Missing required parameters in body");
-    });
-
-    it("should return error when event body has no nonce", async () => {
-      const eventWithoutNonce = {
-        ...mockTokenExchangeEvent,
-        body: JSON.stringify({
-          code: "test-code",
-          redirect_uri: "https://example.com",
-          state: "test-state",
-        }),
-      };
-
-      const result = await handler(eventWithoutNonce as any);
-      const { statusCode, body } = parseResponse(result);
-
-      expect(statusCode).toEqual(500);
-      expect(body.error).toEqual("Missing required parameters in body");
-    });
-
-    it("should return error when event body has no state", async () => {
-      const eventWithoutState = {
-        ...mockTokenExchangeEvent,
-        body: JSON.stringify({
-          code: "test-code",
-          redirect_uri: "https://example.com",
-          nonce: "test-nonce",
-        }),
-      };
-
-      const result = await handler(eventWithoutState as any);
-      const { statusCode, body } = parseResponse(result);
-
-      expect(statusCode).toEqual(500);
-      expect(body.error).toEqual("Missing required parameters in body");
-    });
-  });
 
   describe("Token exchange flow", () => {
     it("should successfully handle valid token exchange", async () => {
@@ -224,6 +121,8 @@ describe("Event Handler tests", () => {
         aud_orig: mockAllowedOrigin,
       });
       expect(mockAuditLog.info).toHaveBeenCalled();
+
+      expect(RedisHandler.del).toHaveBeenCalledWith(`test::oidc::${mockState}`);
     });
 
     it("should handle AWS secret retrieval failure", async () => {
@@ -245,6 +144,8 @@ describe("Event Handler tests", () => {
 
       expect(exchangeOneIdentityCodeSpy).not.toHaveBeenCalled();
       expect(validateOneIdentityIdTokenSpy).not.toHaveBeenCalled();
+
+      expect(RedisHandler.del).toHaveBeenCalledWith(`test::oidc::${mockState}`);
     });
 
     it("should handle exchange code failure", async () => {

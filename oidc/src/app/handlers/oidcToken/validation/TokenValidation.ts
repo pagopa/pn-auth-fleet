@@ -4,6 +4,7 @@ import { copyAndMaskObject } from "../../../utils/Object";
 import { OIDecodedIdToken, OIDecodedToken } from "../models/Token";
 import { getAWSParameterStore } from "../utils/AwsParameters";
 import { getPublicKey } from "../utils/PublicKey";
+import { retrieveEnvVariable } from "../../../config";
 
 type ValidateOneIdentityIdTokenProps = {
   oneIdentityIdToken: string;
@@ -108,7 +109,7 @@ export async function validateOneIdentityIdToken({
  * @param iss - Issuer from the token
  */
 export function isIssuerValid(iss: string): boolean {
-  const allowedIssuersEnv = process.env.ALLOWED_ISSUER;
+  const allowedIssuersEnv = retrieveEnvVariable("ALLOWED_ISSUER", "");
 
   if (!allowedIssuersEnv) {
     console.error("ALLOWED_ISSUER env var is not set");
@@ -125,7 +126,7 @@ export function isIssuerValid(iss: string): boolean {
  * @param taxIdCode - Tax ID from the token
  */
 export async function isTaxIdValid(taxIdCode?: string): Promise<boolean> {
-  const allowedTaxIdsParameter = process.env.ALLOWED_TAXIDS_PARAMETER;
+  const allowedTaxIdsParameter = retrieveEnvVariable("ALLOWED_TAXIDS_PARAMETER", "");
 
   // If no parameter is set, all tax IDs are allowed
   if (!allowedTaxIdsParameter) {
