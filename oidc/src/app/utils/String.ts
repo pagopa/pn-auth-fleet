@@ -46,7 +46,10 @@ export function removeFiscalNumberPrefix(fiscalNumber: string): string {
   return fiscalNumber.replace(SPID_FISCAL_NUMBER_PREFIX, "");
 }
 
-/** 
- * Generates a random unique string of 20 characters by creating a UUID, removing dashes, and slicing it.
- */
-export const generateRandomUniqueString = () => randomUUID().replace(/-/g, '').slice(0, 20);
+/** UUID for state */
+
+export const generateRandomUniqueString = (): string => randomUUID();
+
+const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+export const isValidState = (state: string): boolean => UUID_V4_PATTERN.test(state);
