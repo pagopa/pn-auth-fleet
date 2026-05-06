@@ -1,5 +1,5 @@
-import { randomUUID } from "node:crypto";
 import { APIGatewayProxyEventHeaders } from "aws-lambda";
+import { randomUUID } from "node:crypto";
 export const SPID_FISCAL_NUMBER_PREFIX = "TINIT-";
 
 /**
@@ -52,4 +52,4 @@ export const generateRandomUniqueString = (): string => randomUUID();
 
 const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
-export const isValidState = (state: string): boolean => UUID_V4_PATTERN.test(state);
+export const isValidUUID = (state: string): boolean => UUID_V4_PATTERN.test(state);
