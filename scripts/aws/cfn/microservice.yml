@@ -1676,6 +1676,7 @@ Resources:
       - OidcStateOptionsMethod
     Properties:
       RestApiId: !Ref OidcRestApi
+      Description: "Deployment for OIDC API - !Ref AWS::StackName"
 
   # Stage
   OidcRestApiStage:
