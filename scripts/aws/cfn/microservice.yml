@@ -1674,9 +1674,10 @@ Resources:
       - OidcAuthorizeOptionsMethod
       - OidcStateGetMethod
       - OidcStateOptionsMethod
+      - OidcModel
     Properties:
       RestApiId: !Ref OidcRestApi
-      Description: "Deployment for OIDC API - !Ref AWS::StackName"
+      Description: "Deployment for OIDC API - no redirect_uri in model"
 
   # Stage
   OidcRestApiStage:
