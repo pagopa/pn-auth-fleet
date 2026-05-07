@@ -1756,16 +1756,6 @@ Resources:
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/GET/oidc-state"
       SourceAccount: !Ref AWS::AccountId
 
-  OidcBadRequestBodyResponse:
-    Type: AWS::ApiGateway::GatewayResponse
-    Condition: EnableOidcApi
-    Properties:
-      RestApiId: !Ref OidcRestApi
-      ResponseType: BAD_REQUEST_BODY
-      StatusCode: '400'
-      ResponseTemplates:
-        application/json: '{"message": "$context.error.message", "validationError": "$context.error.validationErrorString"}'
-
   # Token Exchange OIDC Body model
   OidcModel:
     Type: "AWS::ApiGateway::Model"
