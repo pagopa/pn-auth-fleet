@@ -1,29 +1,47 @@
-# Token Exchange One Identity
+# OIDC Lambda
 
-Questa lambda si occupa di eseguire la token exchange andando a scambiare il codice OIDC ricevuto da One Identity con un token JWT che permette l'accesso alle piattaforme frontend di SEND.
+Lambda Node.js che implementa il flusso OIDC con One Identity per l'autenticazione degli utenti CITTADINI su SEND. Esposta tramite API Gateway su tre endpoint.
+
+## Flusso
+
+```text
+Frontend → GET /oidc-authorize → redirect a One Identity
+One Identity → GET /oidc-state → recupera nonce e dati dalla sessione Redis
+One Identity → POST /oidc-token → scambia il codice OIDC con un JWT SEND
+```
+
+### GET /oidc-authorize
+
+Riceve `idp` (obbligatorio), `aar` e `retrievalId` (opzionali) come query string. Genera `state` e `nonce` come UUID v4, li salva in Redis con TTL configurabile, e restituisce la URL di redirect verso One Identity.
+
+### GET /oidc-state
+
+Riceve `state` come query string (UUID v4). Legge da Redis i dati associati allo state (`nonce`, `idp`, `aar`, `retrievalId`) e li restituisce al chiamante (One Identity).
+
+### POST /oidc-token
+
+Riceve `code`, `nonce`, `state` (obbligatori, validati da API Gateway) e `source` (opzionale). Esegue la token exchange con One Identity, valida l'`id_token` ricevuto, genera il JWT SEND e invalida la chiave Redis dello state. In caso di errore, la chiave Redis viene comunque eliminata (nel `finally`).
+
+Il campo `source` può avere tipo `TPP` (pagamento via app bancaria) o `QR` (QR code). In entrambi i casi viene risolto in un oggetto `source` nel token di risposta.
 
 ## Build
 
-Il comando di seguito genera uno zip (`function.zip`) nella root del progetto contenente il codice della lambda e sole le dipendenze necessarie all'ambiente di produzione.
+Genera `function.zip` nella root del progetto con il codice e le sole dipendenze di produzione.
 
-```script
+```sh
 npm run build
 ```
 
-## Esecuzione test
+## Test
 
-Il comando di seguito permette di eseguire tutti i test previsti
-
-```script
+```sh
 npm test
 ```
 
-In locale le variabili di ambiente necessarie per l'esecuzione dei test possono essere definite nel file `./src/test/test.utils.ts`
+Le variabili d'ambiente per i test sono definite in `src/test/test.utils.ts`.
 
-## Esecuzione test, coverage, sonar e build
+## Test + coverage + sonar + build (CI/CD)
 
-```script
+```sh
 npm run test-build
 ```
-
-N.B. Questo comando viene eseguito dalla pipeline CI/CD

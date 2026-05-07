@@ -5,6 +5,7 @@ import type { OidcStateData } from "../../models/OidcState";
 import { getOidcStateRedisKey } from "../../utils/Constants";
 import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
 import { isValidUUID } from "../../utils/String";
+import { auditLog } from "../../utils/AuditLog";
 
 export const oidcStateHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const eventOrigin = event.headers.origin!;
@@ -21,6 +22,15 @@ export const oidcStateHandler = async (event: APIGatewayProxyEvent): Promise<API
     if (!stateData) {
       return generateKoResponse(new ValidationException("Oidc state not found"), eventOrigin);
     }
+
+    auditLog({
+      message: `Oidc state retrieved successfully, state: ${state}`,
+      aud_orig: eventOrigin,
+      status: "OK",
+      cx_type: "PF",
+      jti: state,
+    }).info("success");
+
     return generateOkResponse(stateData, eventOrigin);
   } finally {
     await RedisHandler.disconnectRedis();
