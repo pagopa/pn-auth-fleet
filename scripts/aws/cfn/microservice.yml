@@ -1754,6 +1754,16 @@ Resources:
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/GET/oidc-state"
       SourceAccount: !Ref AWS::AccountId
 
+  OidcBadRequestBodyResponse:
+    Type: AWS::ApiGateway::GatewayResponse
+    Condition: EnableOidcApi
+    Properties:
+      RestApiId: !Ref OidcRestApi
+      ResponseType: BAD_REQUEST_BODY
+      StatusCode: '400'
+      ResponseTemplates:
+        application/json: '{"message": "$context.error.message", "validationError": "$context.error.validationErrorString"}'
+
   # Token Exchange OIDC Body model
   OidcModel:
     Type: "AWS::ApiGateway::Model"
@@ -1765,6 +1775,7 @@ Resources:
       Name: OidcModel
       Schema:
         type: object
+        additionalProperties: false
         required:
           - code
           - nonce
@@ -1782,6 +1793,7 @@ Resources:
             pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
           source:
             type: object
+            additionalProperties: false
             required:
               - type
               - id
