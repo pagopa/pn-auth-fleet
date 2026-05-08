@@ -1000,6 +1000,12 @@ Resources:
                 Resource:
                   - !Ref RedisServerlessArn
                   - !Ref ElasticCacheAuthFleetSessionsUserArn
+              - Effect: Allow
+                Action:
+                  - "apigateway:GET"
+                Resource:
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}"
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
@@ -1809,6 +1815,7 @@ Resources:
         APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeOidcRestApi}/stages/${TokenExchangeOidcRestApiStage}"
         Limit: !Ref TokenExchangeOidcWafLimit
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   TokenExchangeOidcAPIGatewayApiLatencyAlarm:
     Condition: EnableOidcApi
@@ -2383,6 +2390,7 @@ Resources:
         APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${TokenExchangeRestApi}/stages/${TokenExchangeRestApiStage}"
         Limit: !Ref TokenExchangeWafLimit
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   ### IAM Role used by Subscription filters to allow read logs from Cloudwatch and send logs to Kinesis Firehose
   SubscriptionFilterServiceRole:
@@ -2551,6 +2559,9 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
+      Tags:
+        - Key: ApiName
+          Value: "logout"
   # Deployment
   WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment
@@ -2680,6 +2691,7 @@ Resources:
         APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}/stages/${WebLogoutRestApiStage}"
         Limit: !Ref WebLogoutWafLimit
         EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
  # WEB Authorizer
   JwtLambdaPermission:
@@ -3050,6 +3062,7 @@ Resources:
         APIGatewayARNs: !GetAtt IoPlaygroundAPI.Outputs.APIGatewayARN
         Limit: 0 # disable IP limit based rule
         # AllowedCidrs: !Ref IOBackendCidrs
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
 
   LollipopAuthorizerTestLambda:
     Condition: RequiresIoPlayground
