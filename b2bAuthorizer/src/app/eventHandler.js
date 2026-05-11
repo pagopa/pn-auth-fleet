@@ -51,6 +51,7 @@ const prepareContextForLogger = (lambdaEvent) => {
   return context;
 }
 
+// domainName is already required by the existing JWT audience validation flow.
 const getBaseUrlFromEvent = (lambdaEvent) => {
   return `https://${lambdaEvent.requestContext.domainName}`;
 }
