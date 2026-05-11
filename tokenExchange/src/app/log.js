@@ -1,6 +1,6 @@
 const bunyan = require("bunyan");
 
-function auditLog(
+function auditLog({
   message = "",
   aud_type,
   aud_orig,
@@ -9,8 +9,9 @@ function auditLog(
   cx_id,
   cx_role,
   uid,
-  jti
-) {
+  jti,
+  request_id,
+} = {}) {
   let statusMessage = `INFO - ${message}`;
   if (status === "OK") {
     statusMessage = `OK - SUCCESS - ${message}`;
@@ -22,15 +23,16 @@ function auditLog(
   return bunyan.createLogger({
     name: "AUDIT_LOG",
     message: `[${aud_type}] - ${statusMessage}`,
-    aud_type: aud_type,
-    aud_orig: aud_orig,
+    aud_type,
+    aud_orig,
     level: status === "KO" ? "WARN" : "INFO",
     level_value: status === "KO" ? 40000 : 20000,
     logger_name: "tokenExchange",
-    uid: uid,
-    cx_type: cx_type,
-    cx_id: cx_id,
+    uid,
+    cx_type,
+    cx_id,
     trace_id: traceId,
+    request_id,
     tags: ["AUDIT10Y"],
     jti,
   });
