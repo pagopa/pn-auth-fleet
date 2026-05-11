@@ -30,7 +30,6 @@ lollipopAuthorizer/
     └── requestValidation.test.js
 ```
 
-
 ---
 
 ### Installazione

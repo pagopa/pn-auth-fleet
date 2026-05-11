@@ -26,8 +26,8 @@ import LollipopAssertionException from "../app/exception/lollipopAssertionExcept
             //STEP 3 - Validazione della assertion della request Lollipop.
             commandResult = await validateLollipopAssertion(request);
 
-            // Se la validazione è completata con successo - VERIFICATION_SUCCESS_CODE
-            if(commandResult.resultCode === "VERIFICATION_SUCCESS_CODE"){
+            // Se la validazione è completata con successo
+            if(commandResult.resultCode === "SUCCESS"){
                 commandResult.statusCode = 200;
             }
             console.log("[validateLollipopAuthorizer] - ending statusCode: ", commandResult.statusCode,
@@ -39,28 +39,28 @@ import LollipopAssertionException from "../app/exception/lollipopAssertionExcept
             console.error("Lollipop Authorizer Validation failed:", error.name, error.message);
             // Gestione degli errori
             let statusCode = 500;
-            let resultCode = "FATAL_ERROR";
+            let resultCode = "ASSERTION_VERIFICATION_FAILED";
             let message = '';
             if (error instanceof LollipopRequestContentValidationException) {
                 // Bad Request per dati mancanti/invalidi
                 statusCode = 401;
-                resultCode = "REQUEST_PARAMS_VALIDATION_FAILED";
+                resultCode = "REQUEST PARAMS VALIDATION FAILED";
                 message = `Error validating Lollipop request header or body, validation failed`
                           + ` with error code [${error.errorCode}] and message: ${error.message}`;
 
-            }else if (error instanceof LollipopHttpSignatureValidationException) {
+            } else if (error instanceof LollipopHttpSignatureValidationException) {
                 statusCode = 402;
-                resultCode = "HTTP_MESSAGE_VALIDATION_FAILED";
+                resultCode = "REQUEST_VALIDATION_ERROR";
                 message = `Error validating Lollipop http Signature, validation failed`
                           + ` with error code [${error.errorCode}] and message: ${error.message}`;
 
-            }else if (error instanceof LollipopAssertionException) {
+            } else if (error instanceof LollipopAssertionException) {
                 statusCode = 403;
-                resultCode = "REQUEST_ASSERTION_VALIDATION_FAILED";
+                resultCode = error.errorCode || "ASSERTION_VERIFICATION_FAILED";
                 message = `Error validating Lollipop request assertion, validation failed`
                           + ` with error code [${error.errorCode}] and message: ${error.message}`;
 
-            }else {
+            } else {
                 message = `Error validating Lollipop request assertion, validation failed`
                           + ` with error code [${error.errorCode}] and message: ${error.message}`;
             }
@@ -70,7 +70,7 @@ import LollipopAssertionException from "../app/exception/lollipopAssertionExcept
 
             return {
                 statusCode,
-                resultCode: error.errorCode || resultCode,
+                resultCode,
                 resultMessage: message || error.message
             };
         }
