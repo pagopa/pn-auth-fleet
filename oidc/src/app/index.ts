@@ -7,7 +7,8 @@ import { oidcAuthorizeHandler } from "./handlers/oidcAuthorize";
 import { oidcStateHandler } from "./handlers/oidcState";
 import { oidcTokenHandler } from "./handlers/oidcToken";
 
-export const handler: APIGatewayProxyHandler = async (event) => {
+export const handler: APIGatewayProxyHandler = async (event, context) => {
+  const request_id = context.awsRequestId;
   event.headers = makeLower(event.headers);
 
   const eventOrigin = event.headers?.origin;
@@ -17,30 +18,32 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       message: "eventOrigin is null",
       aud_orig: eventOrigin,
       status: "KO",
+      request_id,
     }).warn("error");
     return generateKoResponse("eventOrigin is null", "*");
   }
 
-  auditLog({ aud_orig: eventOrigin }).info("info");
+  auditLog({ aud_orig: eventOrigin, request_id }).info("info");
 
   if (!isOriginAllowed(eventOrigin)) {
     auditLog({
       message: `Origin: ${eventOrigin} is not allowed`,
       aud_orig: eventOrigin,
       status: "KO",
+      request_id,
     }).warn("error");
     return generateKoResponse("Origin not allowed", eventOrigin);
   }
 
   const resource = event.resource;
   if (resource === "/oidc-authorize") {
-    return oidcAuthorizeHandler(event);
+    return oidcAuthorizeHandler(event, context);
   }
   if (resource === "/oidc-token") {
-    return oidcTokenHandler(event);
+    return oidcTokenHandler(event, context);
   }
   if (resource === "/oidc-state") {
-    return oidcStateHandler(event);
+    return oidcStateHandler(event, context);
   }
 
   throw new Error(`Unsupported resource: ${resource}`);

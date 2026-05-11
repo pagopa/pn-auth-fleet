@@ -1,6 +1,8 @@
 export const mockAllowedOrigin = "https://cittadini.dev.notifichedigitali.it";
 export const mockState = "01G0CFW80HGTTW0RH54WQD6F6S";
 export const tokenNonce = "test-nonce-123";
+export const mockRequestId = "mock-aws-request-id";
+export const mockContext = { awsRequestId: mockRequestId } as any;
 
 export const mockTokenExchangeEvent = {
   headers: {
