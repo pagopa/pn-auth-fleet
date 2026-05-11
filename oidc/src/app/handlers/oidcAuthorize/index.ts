@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import type { OidcStateData } from "../../models/OidcState";
@@ -11,7 +11,8 @@ import { auditLog } from "../../utils/AuditLog";
 import { validateAar, validateIdp, validateRetrievalId } from "./validation/AuthorizeValidation";
 import { ValidationException } from "../../exception/validationException";
 
-export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
+  const request_id = context.awsRequestId;
   const eventOrigin = event.headers.origin!;
   const {
     idp, // required, validated by API Gateway: method.request.querystring.idp
@@ -59,6 +60,7 @@ export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent): Promise
     status: "OK",
     cx_type: "PF",
     jti: state,
+    request_id,
   }).info("success");
 
   return generateOkResponse<{ location: string }>({ location }, eventOrigin);

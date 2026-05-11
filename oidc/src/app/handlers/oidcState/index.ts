@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
 import { ValidationException } from "../../exception/validationException";
 import type { OidcStateData } from "../../models/OidcState";
@@ -7,7 +7,8 @@ import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
 import { isValidUUID } from "../../utils/String";
 import { auditLog } from "../../utils/AuditLog";
 
-export const oidcStateHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const oidcStateHandler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
+  const request_id = context.awsRequestId;
   const eventOrigin = event.headers.origin!;
   const state = event.queryStringParameters?.state!; // required, validated by API Gateway: method.request.querystring.state
 
@@ -29,6 +30,7 @@ export const oidcStateHandler = async (event: APIGatewayProxyEvent): Promise<API
       status: "OK",
       cx_type: "PF",
       jti: state,
+      request_id,
     }).info("success");
 
     return generateOkResponse(stateData, eventOrigin);

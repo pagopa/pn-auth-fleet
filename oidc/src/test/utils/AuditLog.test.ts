@@ -5,6 +5,7 @@ describe("Audit Log", () => {
   const cx_id = "1111";
   const uid = "ed84b8c9-444e-410d-80d7-cfad6aa12070";
   const aud_origin = "https://portale-pf-develop.fe.dev.pn.pagopa.it";
+  const request_id = "mock-aws-request-id";
 
   it("should log error correctly", () => {
     const msg = "Authorization Token not present";
@@ -16,6 +17,7 @@ describe("Audit Log", () => {
       cx_type,
       cx_id,
       uid,
+      request_id,
     });
 
     expect(logObj.fields.message).toBe(
@@ -33,6 +35,7 @@ describe("Audit Log", () => {
       cx_type,
       cx_id,
       uid,
+      request_id,
     });
 
     expect(logObj.fields.message).toBe(
@@ -48,6 +51,7 @@ describe("Audit Log", () => {
       cx_type,
       cx_id,
       uid,
+      request_id,
     });
 
     expect(logObj.fields.message).toBe(

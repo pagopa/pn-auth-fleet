@@ -2,7 +2,7 @@ import { oidcAuthorizeHandler as handler } from "../../../app/handlers/oidcAutho
 import * as AwsParameters from "../../../app/handlers/oidcToken/utils/AwsParameters";
 import * as String from "../../../app/utils/String";
 import { oneIdentityCredentialsMock } from "../../__mock__/oneIdentity.mock";
-import { mockAllowedOrigin } from "../../__mock__/event.mock";
+import { mockAllowedOrigin, mockContext } from "../../__mock__/event.mock";
 import { setupEnv } from "../../test.utils";
 
 jest.mock("pn-auth-common", () => ({
@@ -53,7 +53,7 @@ describe("oidcAuthorize handler", () => {
   });
 
   it("should return 200 with correct location in body", async () => {
-    const result = await handler(mockAuthorizeEvent);
+    const result = await handler(mockAuthorizeEvent, mockContext);
 
     expect(result.statusCode).toBe(200);
 
@@ -71,7 +71,7 @@ describe("oidcAuthorize handler", () => {
   });
 
   it("should save state payload to Redis with correct key and TTL", async () => {
-    await handler(mockAuthorizeEvent);
+    await handler(mockAuthorizeEvent, mockContext);
 
     expect(RedisHandler.connectRedis).toHaveBeenCalledTimes(1);
     expect(RedisHandler.setJson).toHaveBeenCalledWith(
@@ -88,7 +88,7 @@ describe("oidcAuthorize handler", () => {
       queryStringParameters: { idp: mockIdp, aar: mockAar, retrievalId: mockRetrievalId },
     };
 
-    await handler(eventWithOptionals);
+    await handler(eventWithOptionals, mockContext);
 
     expect(RedisHandler.setJson).toHaveBeenCalledWith(
       `pn-session::oidc::${mockState}`,
@@ -100,13 +100,13 @@ describe("oidcAuthorize handler", () => {
   it("should disconnect Redis even if setJson throws", async () => {
     (RedisHandler.setJson as jest.Mock).mockRejectedValue(new Error("Redis error"));
 
-    await expect(handler(mockAuthorizeEvent)).rejects.toThrow("Redis error");
+    await expect(handler(mockAuthorizeEvent, mockContext)).rejects.toThrow("Redis error");
 
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(1);
   });
 
   it("should set CORS and HSTS headers on the response", async () => {
-    const result = await handler(mockAuthorizeEvent);
+    const result = await handler(mockAuthorizeEvent, mockContext);
 
     expect(result.headers?.["Access-Control-Allow-Origin"]).toBe(mockAllowedOrigin);
     expect(result.headers?.["Strict-Transport-Security"]).toContain("max-age=");

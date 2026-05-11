@@ -24,8 +24,7 @@ type AuditLogProps = {
   cx_id?: string;
   uid?: string;
   jti?: string;
-  // TODO
-  // aggiungere request_id
+  request_id: string;
 };
 
 export function auditLog({
@@ -36,6 +35,7 @@ export function auditLog({
   cx_id,
   uid,
   jti,
+  request_id,
 }: AuditLogProps) {
   const statusPrefix =
     statusPrefixMap[status as keyof typeof statusPrefixMap] ?? "INFO";
@@ -55,6 +55,7 @@ export function auditLog({
     cx_type,
     cx_id,
     trace_id: process.env._X_AMZN_TRACE_ID,
+    request_id,
     tags: ["AUDIT10Y"],
     jti,
   });

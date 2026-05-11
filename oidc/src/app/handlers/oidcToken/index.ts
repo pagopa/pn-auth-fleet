@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
 import { ValidationException } from "../../exception/validationException";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
@@ -14,7 +14,8 @@ import { generateTokenExchangeResponse } from "./utils/Responses";
 import { generateSourceObject } from "./utils/TokenGenerator";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
 
-export const oidcTokenHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const oidcTokenHandler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
+  const request_id = context.awsRequestId;
   const eventOrigin = event.headers?.origin!;
 
   // The body is already validated by API Gateway, so we can safely parse it
@@ -57,6 +58,7 @@ export const oidcTokenHandler = async (event: APIGatewayProxyEvent): Promise<API
       cx_id: `PF-${decodedIdToken.pairwise}`,
       uid: decodedIdToken.pairwise,
       jti: state,
+      request_id,
     }).info("success");
 
     return generateOkResponse<TokenExchangeResponse>(response, eventOrigin);
@@ -65,6 +67,7 @@ export const oidcTokenHandler = async (event: APIGatewayProxyEvent): Promise<API
       message: `Error generating token: ${err.message}`,
       aud_orig: eventOrigin,
       status: "KO",
+      request_id,
     });
 
     if (err instanceof ValidationException) {

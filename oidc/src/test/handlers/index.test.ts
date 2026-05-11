@@ -14,7 +14,7 @@ import { COMMON_CONSTANTS } from "pn-auth-common";
 import { handler } from "../../app/index";
 import * as AuditLog from "../../app/utils/AuditLog";
 import * as Origin from "../../app/utils/Origin";
-import { mockTokenExchangeEvent } from "../__mock__/event.mock";
+import { mockContext, mockRequestId, mockTokenExchangeEvent } from "../__mock__/event.mock";
 import { setupEnv } from "../test.utils";
 
 const parseResponse = (result: any) => ({
@@ -57,7 +57,7 @@ describe("Main handler - Origin validation", () => {
       headers: { origin: undefined },
     };
 
-    const result = await handler(eventWithoutOrigin as any, {} as any, () => {});
+    const result = await handler(eventWithoutOrigin as any, mockContext, () => {});
     const { statusCode, body } = parseResponse(result);
 
     expect(statusCode).toBe(500);
@@ -68,6 +68,7 @@ describe("Main handler - Origin validation", () => {
       message: "eventOrigin is null",
       aud_orig: undefined,
       status: "KO",
+      request_id: mockRequestId,
     });
     expect(mockAuditLog.warn).toHaveBeenCalledWith("error");
   });
@@ -81,7 +82,7 @@ describe("Main handler - Origin validation", () => {
       headers: { origin: "invalid-origin" },
     };
 
-    const result = await handler(eventWithInvalidOrigin as any, {} as any, () => {});
+    const result = await handler(eventWithInvalidOrigin as any, mockContext, () => {});
     const { statusCode, body } = parseResponse(result);
 
     expect(statusCode).toEqual(500);
@@ -90,11 +91,13 @@ describe("Main handler - Origin validation", () => {
 
     expect(auditLogSpy).toHaveBeenNthCalledWith(1, {
       aud_orig: "invalid-origin",
+      request_id: mockRequestId,
     });
     expect(auditLogSpy).toHaveBeenNthCalledWith(2, {
       message: "Origin: invalid-origin is not allowed",
       aud_orig: "invalid-origin",
       status: "KO",
+      request_id: mockRequestId,
     });
     expect(mockAuditLog.info).toHaveBeenCalledTimes(1);
     expect(mockAuditLog.warn).toHaveBeenCalledTimes(1);
