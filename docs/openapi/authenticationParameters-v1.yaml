@@ -67,8 +67,8 @@ components:
       required: true
       schema:
         type: string
-        maxLength: 3
-        pattern: "B2B|WEB|TPP|IO|B2BPG"
+        maxLength: 8
+        pattern: "B2B|WEB|TPP|IO|B2BPG|RADD|RADD_FSU"
     headerSourceChannelDetails:
       name: x-pagopa-pn-src-ch-details
       in: header
