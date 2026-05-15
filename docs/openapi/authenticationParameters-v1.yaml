@@ -76,7 +76,23 @@ components:
       required: false
       schema:
         type: string
-    
+    headerLanguage:
+      name: x-pagopa-pn-language
+      in: header
+      description: >
+        User preferred language for platform communications.
+        Mirrors LanguageEnum of pn-templates-engine client (IT/DE/SL/FR/EN).
+      required: false
+      schema:
+        type: string
+        enum:
+          - IT
+          - DE
+          - SL
+          - FR
+          - EN
+        default: IT
+
     ############################################################################################
     ###                     HEADER DI AUTENTICAZIONE LOLLIPOP                               ###
     ############################################################################################
