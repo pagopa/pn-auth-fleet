@@ -79,9 +79,7 @@ components:
     headerLanguage:
       name: x-pagopa-pn-language
       in: header
-      description: >
-        User preferred language for platform communications.
-        Mirrors LanguageEnum of pn-templates-engine client (IT/DE/SL/FR/EN).
+      description: User preferred language for platform communications.
       required: false
       schema:
         type: string
