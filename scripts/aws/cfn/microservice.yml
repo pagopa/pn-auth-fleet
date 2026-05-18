@@ -1672,8 +1672,6 @@ Resources:
       - OidcTokenOptionsMethod
       - OidcAuthorizeGetMethod
       - OidcAuthorizeOptionsMethod
-      - OidcStateGetMethod
-      - OidcStateOptionsMethod
       - OidcModel
     Properties:
       RestApiId: !Ref OidcRestApi
@@ -1742,20 +1740,6 @@ Resources:
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/GET/oidc-authorize"
       SourceAccount: !Ref AWS::AccountId
 
-  # Lambda access right for GET method (oidc-state)
-  OidcStateLambdaPermission:
-    Type: AWS::Lambda::Permission
-    Condition: EnableOidcApi
-    DependsOn:
-      - OidcLambda
-      - OidcRestApi
-    Properties:
-      FunctionName: !Ref OidcLambdaName
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/GET/oidc-state"
-      SourceAccount: !Ref AWS::AccountId
-
   # Token Exchange OIDC Body model
   OidcModel:
     Type: "AWS::ApiGateway::Model"
@@ -1770,33 +1754,14 @@ Resources:
         additionalProperties: false
         required:
           - code
-          - nonce
           - state
         properties:
           code:
             type: string
-          nonce:
-            type: string
-            description: UUID v4
-            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
           state:
             type: string
             description: UUID v4
             pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-          source:
-            type: object
-            additionalProperties: false
-            required:
-              - type
-              - id
-            properties:
-              type:
-                type: string
-                enum:
-                  - QR
-                  - TPP
-              id:
-                type: string
 
   # Token Exchange OIDC resources
   OidcAuthorizeResource:
@@ -1916,73 +1881,6 @@ Resources:
       OperationName: "Options for Token Exchange OIDC - authorize"
       RestApiId: !Ref OidcRestApi
       ResourceId: !Ref OidcAuthorizeResource
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      ApiKeyRequired: false
-      MethodResponses:
-        - StatusCode: 200
-          ResponseParameters:
-            "method.response.header.Access-Control-Allow-Headers": false
-            "method.response.header.Access-Control-Allow-Methods": false
-            "method.response.header.Access-Control-Allow-Origin": false
-          ResponseModels:
-            "application/json": "Empty"
-      Integration:
-        Type: MOCK
-        RequestTemplates:
-          "application/json": '{"statusCode": 200}'
-        PassthroughBehavior: WHEN_NO_MATCH
-        TimeoutInMillis: 29000
-        IntegrationResponses:
-          - StatusCode: 200
-            ResponseParameters:
-              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'"
-              "method.response.header.Access-Control-Allow-Origin": "'*'"
-            ResponseTemplates:
-              "application/json": ""
-
-  OidcStateResource:
-    Type: AWS::ApiGateway::Resource
-    Condition: EnableOidcApi
-    Properties:
-      RestApiId: !Ref OidcRestApi
-      ParentId: !GetAtt OidcRestApi.RootResourceId
-      PathPart: "oidc-state"
-
-  # Oidc GET method (oidc-state)
-  OidcStateGetMethod:
-    DependsOn: OidcLambda
-    Type: AWS::ApiGateway::Method
-    Condition: EnableOidcApi
-    Properties:
-      OperationName: "Proxy to Oidc Lambda - state"
-      RestApiId: !Ref OidcRestApi
-      ResourceId: !Ref OidcStateResource
-      HttpMethod: GET
-      AuthorizationType: NONE
-      ApiKeyRequired: false
-      RequestValidatorId: !Ref OidcRequestValidator
-      RequestParameters:
-        "method.request.header.Origin": true
-        "method.request.querystring.state": true
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OidcLambda.Arn}/invocations"
-        PassthroughBehavior: WHEN_NO_MATCH
-        ContentHandling: CONVERT_TO_TEXT
-        TimeoutInMillis: 29000
-
-  # Oidc OPTIONS method (oidc-state)
-  OidcStateOptionsMethod:
-    DependsOn: OidcLambda
-    Type: AWS::ApiGateway::Method
-    Condition: EnableOidcApi
-    Properties:
-      OperationName: "Options for Oidc - state"
-      RestApiId: !Ref OidcRestApi
-      ResourceId: !Ref OidcStateResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       ApiKeyRequired: false

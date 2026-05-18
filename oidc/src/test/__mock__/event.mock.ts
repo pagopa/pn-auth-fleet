@@ -10,7 +10,6 @@ export const mockTokenExchangeEvent = {
   },
   body: JSON.stringify({
     code: "rC2wiIdM8UjVDCU1tk-df_9DfzQG_X8qkcofpZq_ElI",
-    nonce: tokenNonce,
     state: mockState,
   }),
 } as any;

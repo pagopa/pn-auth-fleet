@@ -1,35 +1,28 @@
 import {
-    DescribeKeyCommand,
-    KMSClient,
-    KMSClientResolvedConfig,
-    ServiceInputTypes,
-    ServiceOutputTypes,
-    SignCommand,
+  DescribeKeyCommand,
+  KMSClient,
+  KMSClientResolvedConfig,
+  ServiceInputTypes,
+  ServiceOutputTypes,
+  SignCommand,
 } from "@aws-sdk/client-kms";
 import { AwsStub, mockClient } from "aws-sdk-client-mock";
-import { ValidationException } from "../../app/exception/validationException";
-import { SourceChannel, SourceEventType } from "../../app/handlers/oidcToken/models/Source";
+import { SourceChannel } from "../../app/handlers/oidcToken/models/Source";
 import { getRetrievalPayload } from "../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import {
-    generateJwtPayload,
-    generateSessionToken,
-    generateSourceObject,
+  generateJwtPayload,
+  generateSessionToken,
+  generateSourceObject,
 } from "../../app/handlers/oidcToken/utils/TokenGenerator";
-import {
-    checkTppResponseMock,
-    retrievalIdMock,
-} from "../__mock__/emdIntegration.mock";
+import { checkTppResponseMock, retrievalIdMock } from "../__mock__/emdIntegration.mock";
 import { payloadMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
+import { OidcStateData } from "../../app/models/OidcState";
 
 jest.mock("../../app/handlers/oidcToken/utils/EmdIntegrationClient.ts");
 
 describe("TokenGenerator", () => {
-  let kmsClientMock: AwsStub<
-    ServiceInputTypes,
-    ServiceOutputTypes,
-    KMSClientResolvedConfig
-  >;
+  let kmsClientMock: AwsStub<ServiceInputTypes, ServiceOutputTypes, KMSClientResolvedConfig>;
 
   beforeEach(() => {
     setupEnv();
@@ -139,9 +132,7 @@ describe("TokenGenerator", () => {
         },
       });
 
-      const binarySignature = new Uint8Array([
-        115, 105, 103, 110, 97, 116, 117, 114, 101,
-      ]);
+      const binarySignature = new Uint8Array([115, 105, 103, 110, 97, 116, 117, 114, 101]);
       kmsClientMock.on(SignCommand).resolves({
         KeyId: "test-key-id",
         Signature: binarySignature,
@@ -174,9 +165,7 @@ describe("TokenGenerator", () => {
       await generateSessionToken(payloadMock);
 
       expect(kmsClientMock.commandCalls(DescribeKeyCommand)).toHaveLength(1);
-      expect(
-        kmsClientMock.commandCalls(DescribeKeyCommand)[0].args[0].input,
-      ).toEqual({
+      expect(kmsClientMock.commandCalls(DescribeKeyCommand)[0].args[0].input).toEqual({
         KeyId: "SessionKey", // KEY_ALIAS from setupEnv
       });
     });
@@ -211,9 +200,7 @@ describe("TokenGenerator", () => {
         },
       });
 
-      await expect(generateSessionToken(payloadMock)).rejects.toThrow(
-        "Unable to resolve KMS keyId for alias",
-      );
+      await expect(generateSessionToken(payloadMock)).rejects.toThrow("Unable to resolve KMS keyId for alias");
     });
 
     it("should throw error when KMS does not return a signature", async () => {
@@ -227,9 +214,7 @@ describe("TokenGenerator", () => {
         KeyId: "test-key-id",
       });
 
-      await expect(generateSessionToken(payloadMock)).rejects.toThrow(
-        "KMS returned an empty signature",
-      );
+      await expect(generateSessionToken(payloadMock)).rejects.toThrow("KMS returned an empty signature");
     });
 
     it("should include correct header in JWT", async () => {
@@ -279,9 +264,7 @@ describe("TokenGenerator", () => {
     });
 
     it("should produce consistent signature for same input", async () => {
-      const mockSignature = new Uint8Array([
-        115, 105, 103, 110, 97, 116, 117, 114, 101,
-      ]);
+      const mockSignature = new Uint8Array([115, 105, 103, 110, 97, 116, 117, 114, 101]);
 
       kmsClientMock.on(DescribeKeyCommand).resolves({
         KeyMetadata: {
@@ -311,13 +294,9 @@ describe("TokenGenerator", () => {
     });
 
     it("should handle KMS client errors gracefully", async () => {
-      kmsClientMock
-        .on(DescribeKeyCommand)
-        .rejects(new Error("KMS service unavailable"));
+      kmsClientMock.on(DescribeKeyCommand).rejects(new Error("KMS service unavailable"));
 
-      await expect(generateSessionToken(payloadMock)).rejects.toThrow(
-        "KMS service unavailable",
-      );
+      await expect(generateSessionToken(payloadMock)).rejects.toThrow("KMS service unavailable");
     });
 
     it("should handle SignCommand errors gracefully", async () => {
@@ -329,24 +308,23 @@ describe("TokenGenerator", () => {
 
       kmsClientMock.on(SignCommand).rejects(new Error("Signing failed"));
 
-      await expect(generateSessionToken(payloadMock)).rejects.toThrow(
-        "Signing failed",
-      );
+      await expect(generateSessionToken(payloadMock)).rejects.toThrow("Signing failed");
     });
   });
 
+  const oidcStateMock: OidcStateData = {
+    nonce: "test-nonce",
+    idp: "test-idp",
+  };
   describe("generateSourceObject", () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
     it("should return valid object when source is TPP", async () => {
-      (getRetrievalPayload as jest.Mock).mockResolvedValue(
-        checkTppResponseMock,
-      );
+      (getRetrievalPayload as jest.Mock).mockResolvedValue(checkTppResponseMock);
 
-      const source = { type: SourceEventType.TPP, id: retrievalIdMock };
-      const result = await generateSourceObject(source);
+      const result = await generateSourceObject({ ...oidcStateMock, retrievalId: retrievalIdMock });
 
       expect(result).toEqual({
         channel: SourceChannel.TPP,
@@ -357,8 +335,7 @@ describe("TokenGenerator", () => {
     });
 
     it("should return valid object when source is QR", async () => {
-      const source = { type: SourceEventType.QR, id: "qr-123" };
-      const result = await generateSourceObject(source);
+      const result = await generateSourceObject({ ...oidcStateMock, aar: "qr-123" });
 
       expect(result).toEqual({
         channel: SourceChannel.WEB,
@@ -374,15 +351,10 @@ describe("TokenGenerator", () => {
       expect(getRetrievalPayload).not.toHaveBeenCalled();
     });
 
-    it("should throw a ValidationException when source is not valid", async () => {
-      const source = { type: "INVALID", id: "invalid-123" } as any;
+    it("should return undefined when neither aar nor retrievalId is present", async () => {
+      const result = await generateSourceObject({ ...oidcStateMock });
 
-      await expect(generateSourceObject(source)).rejects.toThrow(
-        ValidationException,
-      );
-      await expect(generateSourceObject(source)).rejects.toThrow(
-        "Invalid source type",
-      );
+      expect(result).toBeUndefined();
       expect(getRetrievalPayload).not.toHaveBeenCalled();
     });
   });

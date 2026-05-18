@@ -1,11 +1,12 @@
 import { RedisHandler } from "pn-auth-common";
 import { ValidationException } from "../../../app/exception/validationException";
-import { oidcTokenHandler as handler } from "../../../app/handlers/oidcToken";
+import { clearCredentialsCache, oidcTokenHandler as handler } from "../../../app/handlers/oidcToken";
 
 jest.mock("pn-auth-common", () => ({
   RedisHandler: {
     connectRedis: jest.fn().mockResolvedValue(undefined),
     disconnectRedis: jest.fn().mockResolvedValue(undefined),
+    getJson: jest.fn(),
     del: jest.fn().mockResolvedValue(undefined),
   },
   COMMON_CONSTANTS: { REDIS_PN_SESSION_PREFIX: "test::" },
@@ -27,6 +28,7 @@ import {
     mockRequestId,
     mockState,
     mockTokenExchangeEvent,
+    tokenNonce,
 } from "../../__mock__/event.mock";
 import {
     oneIdentityCredentialsMock,
@@ -35,6 +37,8 @@ import {
 import { tokenExchangeResponse } from "../../__mock__/responses.mock";
 import { oneIdentityIdTokenMock } from "../../__mock__/token.mock";
 import { setupEnv } from "../../test.utils";
+
+const mockStateData = { nonce: tokenNonce, idp: "https://id.lepida.it/idp/shibboleth" };
 
 const parseResponse = (result: any) => ({
   statusCode: result.statusCode,
@@ -56,7 +60,10 @@ describe("Event Handler tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearCredentialsCache();
     setupEnv();
+
+    (RedisHandler.getJson as jest.Mock).mockResolvedValue(mockStateData);
 
     auditLogSpy = jest
       .spyOn(AuditLog, "auditLog")
@@ -87,10 +94,9 @@ describe("Event Handler tests", () => {
     generateTokenExchangeResponseSpy.mockRestore();
   });
 
-
   describe("Token exchange flow", () => {
     it("should successfully handle valid token exchange", async () => {
-      const result = await handler(mockTokenExchangeEvent as any, mockContext);
+      const result = await handler(mockTokenExchangeEvent, mockContext);
       const { statusCode, body } = parseResponse(result);
 
       expect(getAWSSecretSpy).toHaveBeenCalledTimes(1);
@@ -101,7 +107,7 @@ describe("Event Handler tests", () => {
       });
       expect(validateOneIdentityIdTokenSpy).toHaveBeenCalledWith({
         oneIdentityIdToken: oneIdentityExchangeCodeResponseMock.id_token,
-        nonce: "test-nonce-123",
+        nonce: tokenNonce,
         oneIdentityClientId: oneIdentityCredentialsMock.oneIdentityClientId,
       });
       expect(generateTokenExchangeResponseSpy).toHaveBeenCalledWith({
@@ -112,7 +118,6 @@ describe("Event Handler tests", () => {
       expect(statusCode).toBe(200);
       expect(body).toEqual(tokenExchangeResponse);
 
-      // Verify success audit log with exact values
       expect(auditLogSpy).toHaveBeenCalledWith({
         message: `Token successful generated with id: ${mockState}`,
         status: "OK",
@@ -128,16 +133,34 @@ describe("Event Handler tests", () => {
       expect(RedisHandler.del).toHaveBeenCalledWith(`test::oidc::${mockState}`);
     });
 
+    it("should return error when oidc state is not found in Redis", async () => {
+      (RedisHandler.getJson as jest.Mock).mockResolvedValue(null);
+
+      const result = await handler(mockTokenExchangeEvent, mockContext);
+      const { statusCode, body } = parseResponse(result);
+
+      expect(statusCode).toEqual(400);
+      expect(body.error).toEqual("Oidc state not found");
+
+      expect(auditLogSpy).toHaveBeenCalledWith({
+        message: "Oidc state not found",
+        status: "KO",
+        aud_orig: mockAllowedOrigin,
+        request_id: mockRequestId,
+      });
+      expect(mockAuditLog.warn).toHaveBeenCalledWith("error");
+      expect(getAWSSecretSpy).not.toHaveBeenCalled();
+    });
+
     it("should handle AWS secret retrieval failure", async () => {
       getAWSSecretSpy.mockRejectedValue(new Error("Secret not found"));
 
-      const result = await handler(mockTokenExchangeEvent as any, mockContext);
+      const result = await handler(mockTokenExchangeEvent, mockContext);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
       expect(body.error).toEqual("Secret not found");
 
-      // Verify error audit log
       expect(auditLogSpy).toHaveBeenCalledWith({
         message: "Error generating token: Secret not found",
         status: "KO",
@@ -157,7 +180,7 @@ describe("Event Handler tests", () => {
         new Error("One Identity code exchange failed"),
       );
 
-      const result = await handler(mockTokenExchangeEvent as any, mockContext);
+      const result = await handler(mockTokenExchangeEvent, mockContext);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
@@ -166,7 +189,6 @@ describe("Event Handler tests", () => {
       expect(getAWSSecretSpy).toHaveBeenCalled();
       expect(validateOneIdentityIdTokenSpy).not.toHaveBeenCalled();
 
-      // Verify error audit log
       expect(auditLogSpy).toHaveBeenCalledWith({
         message: "Error generating token: One Identity code exchange failed",
         status: "KO",
@@ -181,7 +203,7 @@ describe("Event Handler tests", () => {
         new ValidationException("Error during ID Token validation"),
       );
 
-      const result = await handler(mockTokenExchangeEvent as any, mockContext);
+      const result = await handler(mockTokenExchangeEvent, mockContext);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(400);
@@ -191,7 +213,6 @@ describe("Event Handler tests", () => {
       expect(exchangeOneIdentityCodeSpy).toHaveBeenCalled();
       expect(validateOneIdentityIdTokenSpy).toHaveBeenCalled();
 
-      // ValidationException should trigger warn, not error
       expect(mockAuditLog.warn).toHaveBeenCalledWith("error");
       expect(mockAuditLog.error).not.toHaveBeenCalled();
 
@@ -208,13 +229,12 @@ describe("Event Handler tests", () => {
         new Error("Unexpected validation error"),
       );
 
-      const result = await handler(mockTokenExchangeEvent as any, mockContext);
+      const result = await handler(mockTokenExchangeEvent, mockContext);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toEqual(500);
       expect(body.error).toEqual("Unexpected validation error");
 
-      // Non-ValidationException should trigger error, not warn
       expect(mockAuditLog.error).toHaveBeenCalledWith("error");
       expect(mockAuditLog.warn).not.toHaveBeenCalled();
     });
@@ -240,19 +260,13 @@ describe("Event Handler tests", () => {
       getRetrievalPayloadSpy.mockRestore();
     });
 
-    it("should successfully handle token exchange with TPP source", async () => {
-      const eventWithTppSource = {
-        ...mockTokenExchangeEvent,
-        body: JSON.stringify({
-          ...JSON.parse(mockTokenExchangeEvent.body as string),
-          source: {
-            type: "TPP",
-            id: retrievalIdMock,
-          },
-        }),
-      };
+    it("should successfully handle token exchange with TPP source from Redis state", async () => {
+      (RedisHandler.getJson as jest.Mock).mockResolvedValue({
+        ...mockStateData,
+        retrievalId: retrievalIdMock,
+      });
 
-      const result = await handler(eventWithTppSource as any, mockContext);
+      const result = await handler(mockTokenExchangeEvent, mockContext);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toBe(200);
@@ -264,19 +278,13 @@ describe("Event Handler tests", () => {
       expect(getRetrievalPayloadSpy).toHaveBeenCalledWith(retrievalIdMock);
     });
 
-    it("should successfully handle token exchange with QR source", async () => {
-      const eventWithQrSource = {
-        ...mockTokenExchangeEvent,
-        body: JSON.stringify({
-          ...JSON.parse(mockTokenExchangeEvent.body as string),
-          source: {
-            type: "QR",
-            id: "qr-123",
-          },
-        }),
-      };
+    it("should successfully handle token exchange with QR source from Redis state", async () => {
+      (RedisHandler.getJson as jest.Mock).mockResolvedValue({
+        ...mockStateData,
+        aar: "some-aar-value",
+      });
 
-      const result = await handler(eventWithQrSource as any, mockContext);
+      const result = await handler(mockTokenExchangeEvent, mockContext);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toBe(200);
@@ -287,7 +295,7 @@ describe("Event Handler tests", () => {
     });
 
     it("should successfully handle token exchange without source", async () => {
-      const result = await handler(mockTokenExchangeEvent as any, mockContext);
+      const result = await handler(mockTokenExchangeEvent, mockContext);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toBe(200);
@@ -295,27 +303,20 @@ describe("Event Handler tests", () => {
     });
 
     it("should handle error when generateSourceObject fails", async () => {
+      (RedisHandler.getJson as jest.Mock).mockResolvedValue({
+        ...mockStateData,
+        retrievalId: retrievalIdMock,
+      });
+
       const generateSourceObjectSpy = jest
         .spyOn(TokenGenerator, "generateSourceObject")
         .mockRejectedValue(new Error("Failed to retrieve TPP payload"));
 
-      const eventWithTppSource = {
-        ...mockTokenExchangeEvent,
-        body: JSON.stringify({
-          ...JSON.parse(mockTokenExchangeEvent.body as string),
-          source: {
-            type: "TPP",
-            id: retrievalIdMock,
-          },
-        }),
-      };
-
-      const result = await handler(eventWithTppSource as any, mockContext);
+      const result = await handler(mockTokenExchangeEvent, mockContext);
       const { statusCode, body } = parseResponse(result);
 
       expect(statusCode).toBe(500);
       expect(body.error).toEqual("Failed to retrieve TPP payload");
-
       expect(mockAuditLog.error).toHaveBeenCalledWith("error");
 
       generateSourceObjectSpy.mockRestore();
