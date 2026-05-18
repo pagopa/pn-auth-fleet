@@ -82,14 +82,7 @@ components:
       description: User preferred language for platform communications.
       required: false
       schema:
-        type: string
-        enum:
-          - IT
-          - DE
-          - SL
-          - FR
-          - EN
-        default: IT
+        $ref: '#/components/schemas/CxLanguage'
 
     ############################################################################################
     ###                     HEADER DI AUTENTICAZIONE LOLLIPOP                               ###
@@ -181,3 +174,12 @@ components:
         - 'RADD'
         - 'BO'
         - 'BS'
+    CxLanguage:
+      type: string
+      enum:
+        - IT
+        - DE
+        - SL
+        - FR
+        - EN
+      default: IT
