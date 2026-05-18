@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda
 import { RedisHandler } from "pn-auth-common";
 import { ValidationException } from "../../exception/validationException";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
+import type { OidcStateData } from "../../models/OidcState";
 import { auditLog } from "../../utils/AuditLog";
 import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
 import { retrieveEnvVariable } from "../../config";
@@ -14,20 +15,51 @@ import { generateTokenExchangeResponse } from "./utils/Responses";
 import { generateSourceObject } from "./utils/TokenGenerator";
 import { validateOneIdentityIdToken } from "./validation/TokenValidation";
 
-export const oidcTokenHandler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
+// Module-level variable: persists across warm Lambda invocations, avoiding a Secrets Manager call on every request.
+// On cold start it is undefined and gets populated on the first invocation.
+let cachedOneIdentityCredentials: OneIdentityAwsSecretObject | undefined;
+export const clearCredentialsCache = () => {
+  cachedOneIdentityCredentials = undefined;
+};
+
+export const oidcTokenHandler = async (
+  event: APIGatewayProxyEvent,
+  context: Context,
+): Promise<APIGatewayProxyResult> => {
   const request_id = context.awsRequestId;
   const eventOrigin = event.headers?.origin!;
 
   // The body is already validated by API Gateway, so we can safely parse it
   // See OidcModal schema in microservice.yaml for the expected structure of the body
   const requestBody: RequestEventBody = JSON.parse(event.body!);
-  const { code, nonce, state, source } = requestBody;
+  const { code, state } = requestBody;
+
+  await RedisHandler.connectRedis();
+  let oidcStateData: OidcStateData | null;
+  try {
+    oidcStateData = await RedisHandler.getJson<OidcStateData>(getOidcStateRedisKey(state));
+  } finally {
+    await RedisHandler.disconnectRedis();
+  }
+
+  if (!oidcStateData) {
+    auditLog({
+      message: "Oidc state not found",
+      aud_orig: eventOrigin,
+      status: "KO",
+      request_id,
+    }).warn("error");
+    return generateKoResponse(new ValidationException("Oidc state not found"), eventOrigin);
+  }
+
+  const { nonce } = oidcStateData;
 
   try {
-    const oneIdentitySecretName = retrieveEnvVariable("ONE_IDENTITY_SECRET_NAME");
-
-    const oneIdentityCredentials = await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
-
+    if (!cachedOneIdentityCredentials) {
+      const oneIdentitySecretName = retrieveEnvVariable("ONE_IDENTITY_SECRET_NAME");
+      cachedOneIdentityCredentials = await getAWSSecret<OneIdentityAwsSecretObject>(oneIdentitySecretName);
+    }
+    const oneIdentityCredentials = cachedOneIdentityCredentials;
     const redirectUri = retrieveEnvVariable("ONE_IDENTITY_REDIRECT_URI");
 
     const oneIdentityToken = await exchangeOneIdentityCode({
@@ -42,12 +74,13 @@ export const oidcTokenHandler = async (event: APIGatewayProxyEvent, context: Con
       oneIdentityClientId: oneIdentityCredentials.oneIdentityClientId,
     });
 
-    const sourceResponse = await generateSourceObject(source);
+    const sourceResponse = await generateSourceObject(oidcStateData);
 
     const response = await generateTokenExchangeResponse({
       decodedIdToken,
       state,
       source: sourceResponse,
+      oidcStateData,
     });
 
     auditLog({

@@ -4,7 +4,6 @@ import { isOriginAllowed } from "./utils/Origin";
 import { generateKoResponse } from "./utils/Responses";
 import { makeLower } from "./utils/String";
 import { oidcAuthorizeHandler } from "./handlers/oidcAuthorize";
-import { oidcStateHandler } from "./handlers/oidcState";
 import { oidcTokenHandler } from "./handlers/oidcToken";
 
 export const handler: APIGatewayProxyHandler = async (event, context) => {
@@ -41,9 +40,6 @@ export const handler: APIGatewayProxyHandler = async (event, context) => {
   }
   if (resource === "/oidc-token") {
     return oidcTokenHandler(event, context);
-  }
-  if (resource === "/oidc-state") {
-    return oidcStateHandler(event, context);
   }
 
   throw new Error(`Unsupported resource: ${resource}`);

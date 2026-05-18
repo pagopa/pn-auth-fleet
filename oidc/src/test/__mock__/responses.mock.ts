@@ -18,6 +18,7 @@ export const tokenExchangeResponse: TokenExchangeResponse = {
   aud: "webapi.dev.notifichedigitali.it",
   iss: "https://webapi.dev.notifichedigitali.it",
   jti: mockState,
+  idp: "https://id.lepida.it/idp/shibboleth",
 };
 
 export const okResponseMock = {
