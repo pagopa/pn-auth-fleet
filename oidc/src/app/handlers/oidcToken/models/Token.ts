@@ -50,6 +50,9 @@ export interface TokenExchangeResponse extends JwtPayload {
   from_aa: boolean;
   level: string;
   source?: Source;
+  idp: string;
+  aar?: string;
+  retrievalId?: string;
 }
 
 export interface JwtParts {

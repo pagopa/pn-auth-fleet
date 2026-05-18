@@ -35,14 +35,14 @@ export const oidcTokenHandler = async (
   const { code, state } = requestBody;
 
   await RedisHandler.connectRedis();
-  let stateData: OidcStateData | null;
+  let oidcStateData: OidcStateData | null;
   try {
-    stateData = await RedisHandler.getJson<OidcStateData>(getOidcStateRedisKey(state));
+    oidcStateData = await RedisHandler.getJson<OidcStateData>(getOidcStateRedisKey(state));
   } finally {
     await RedisHandler.disconnectRedis();
   }
 
-  if (!stateData) {
+  if (!oidcStateData) {
     auditLog({
       message: "Oidc state not found",
       aud_orig: eventOrigin,
@@ -52,7 +52,7 @@ export const oidcTokenHandler = async (
     return generateKoResponse(new ValidationException("Oidc state not found"), eventOrigin);
   }
 
-  const { nonce } = stateData;
+  const { nonce } = oidcStateData;
 
   try {
     if (!cachedOneIdentityCredentials) {
@@ -74,12 +74,13 @@ export const oidcTokenHandler = async (
       oneIdentityClientId: oneIdentityCredentials.oneIdentityClientId,
     });
 
-    const sourceResponse = await generateSourceObject(stateData);
+    const sourceResponse = await generateSourceObject(oidcStateData);
 
     const response = await generateTokenExchangeResponse({
       decodedIdToken,
       state,
       source: sourceResponse,
+      oidcStateData,
     });
 
     auditLog({

@@ -113,6 +113,8 @@ describe("Event Handler tests", () => {
       expect(generateTokenExchangeResponseSpy).toHaveBeenCalledWith({
         decodedIdToken: oneIdentityIdTokenMock,
         state: mockState,
+        source: undefined,
+        oidcStateData: mockStateData,
       });
 
       expect(statusCode).toBe(200);
@@ -320,6 +322,59 @@ describe("Event Handler tests", () => {
       expect(mockAuditLog.error).toHaveBeenCalledWith("error");
 
       generateSourceObjectSpy.mockRestore();
+    });
+  });
+
+  describe("Token Exchange response fields from oidcState", () => {
+    let generateSourceObjectSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      generateSourceObjectSpy = jest
+        .spyOn(TokenGenerator, "generateSourceObject")
+        .mockResolvedValue(undefined);
+
+      generateTokenExchangeResponseSpy = jest
+        .spyOn(Responses, "generateTokenExchangeResponse")
+        .mockImplementation(async ({ oidcStateData }) => ({
+          ...tokenExchangeResponse,
+          idp: oidcStateData.idp,
+          aar: oidcStateData.aar,
+          retrievalId: oidcStateData.retrievalId,
+        }));
+    });
+
+    afterEach(() => {
+      generateSourceObjectSpy.mockRestore();
+    });
+
+    it("should return idp and aar from Redis state in the response", async () => {
+      (RedisHandler.getJson as jest.Mock).mockResolvedValue({
+        ...mockStateData,
+        aar: "some-aar-value",
+      });
+
+      const result = await handler(mockTokenExchangeEvent, mockContext);
+      const { statusCode, body } = parseResponse(result);
+
+      expect(statusCode).toBe(200);
+      expect(body.idp).toBe(mockStateData.idp);
+      expect(body.aar).toBe("some-aar-value");
+      expect(body.retrievalId).toBeUndefined();
+    });
+
+    it("should return idp and retrievalId from Redis state in the response", async () => {
+      (RedisHandler.getJson as jest.Mock).mockResolvedValue({
+        ...mockStateData,
+        retrievalId: retrievalIdMock,
+      });
+
+      const result = await handler(mockTokenExchangeEvent, mockContext);
+      const { statusCode, body } = parseResponse(result);
+
+      expect(statusCode).toBe(200);
+      expect(body.idp).toBe(mockStateData.idp);
+      expect(body.retrievalId).toBe(retrievalIdMock);
+      expect(body.aar).toBeUndefined();
     });
   });
 });
