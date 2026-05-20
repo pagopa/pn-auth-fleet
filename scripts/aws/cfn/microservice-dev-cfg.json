@@ -39,6 +39,7 @@
     "OidcSecretName": "pn-auth-fleet/one-identity-credentials",
     "OidcBaseURL": "https://uat.oneid.pagopa.it",
     "OidcAuthorizeRedirectUri": "https://cittadini.dev.notifichedigitali.it/auth/callback",
+    "TokenExchangeLambdaEnvironmentJwksMapping": "{\"PAGOPA\":\"https://uat.selfcare.pagopa.it/.well-known/jwks.json\"}",
     "LollipopSecretsKey": "pn-Lollipop-Secrets-Key"
   }
 }
