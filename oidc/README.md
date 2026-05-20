@@ -1,12 +1,11 @@
 # OIDC Lambda
 
-Lambda Node.js che implementa il flusso OIDC con One Identity per l'autenticazione degli utenti CITTADINI su SEND. Esposta tramite API Gateway su tre endpoint.
+Lambda Node.js che implementa il flusso OIDC con One Identity per l'autenticazione degli utenti CITTADINI su SEND. Esposta tramite API Gateway su due endpoint.
 
 ## Flusso
 
 ```text
 Frontend → GET /oidc-authorize → redirect a One Identity
-One Identity → GET /oidc-state → recupera nonce e dati dalla sessione Redis
 One Identity → POST /oidc-token → scambia il codice OIDC con un JWT SEND
 ```
 
@@ -14,15 +13,11 @@ One Identity → POST /oidc-token → scambia il codice OIDC con un JWT SEND
 
 Riceve `idp` (obbligatorio), `aar` e `retrievalId` (opzionali) come query string. Genera `state` e `nonce` come UUID v4, li salva in Redis con TTL configurabile, e restituisce la URL di redirect verso One Identity.
 
-### GET /oidc-state
-
-Riceve `state` come query string (UUID v4). Legge da Redis i dati associati allo state (`nonce`, `idp`, `aar`, `retrievalId`) e li restituisce al chiamante (One Identity).
-
 ### POST /oidc-token
 
-Riceve `code`, `nonce`, `state` (obbligatori, validati da API Gateway) e `source` (opzionale). Esegue la token exchange con One Identity, valida l'`id_token` ricevuto, genera il JWT SEND e invalida la chiave Redis dello state. In caso di errore, la chiave Redis viene comunque eliminata (nel `finally`).
+Riceve `code` e `state` (obbligatori, validati da API Gateway). Legge da Redis i dati associati allo `state` (`nonce`, `idp`, `aar`, `retrievalId`): se lo state non esiste risponde 400. Esegue la token exchange con One Identity, valida l'`id_token` usando il `nonce` letto da Redis, genera il JWT SEND e invalida la chiave Redis dello state. In caso di errore la chiave Redis viene comunque eliminata (nel `finally`).
 
-Il campo `source` può avere tipo `TPP` (pagamento via app bancaria) o `QR` (QR code). In entrambi i casi viene risolto in un oggetto `source` nel token di risposta.
+La `source` viene derivata dai dati Redis: `retrievalId` presente → tipo `TPP` (pagamento via app bancaria); `aar` presente → tipo `QR` (QR code); altrimenti assente. Il JWT di risposta include anche `idp`, `aar` e `retrievalId` letti dallo state Redis.
 
 ## Build
 
