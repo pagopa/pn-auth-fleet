@@ -13,9 +13,6 @@ describe("get RetrievalPayload", () => {
 
     before(() => {
         mock = new MockAdapter(axios);
-        process.env = Object.assign(process.env, {
-            PN_EMD_INTEGRATION_BASEURL: "http://${ApplicationLoadBalancerDomain}:8080"
-          });
     });
 
     after(() => {
