@@ -82,9 +82,6 @@ describe("test eventHandler", () => {
     // mock token verify
     sinon.stub(jsonwebtoken, "verify").returns("token.token.token");
     mock = new MockAdapter(axios);
-    process.env = Object.assign(process.env, {
-      PN_EMD_INTEGRATION_BASEURL: "http://${ApplicationLoadBalancerDomain}:8080"
-    });
     mock.onGet("http://${ApplicationLoadBalancerDomain}:8080/emd-integration-private/token/check-tpp", 
       { params: { retrievalId:  retrievalId}}
     ).reply(200, retrievalPayload);
