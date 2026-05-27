@@ -1,14 +1,14 @@
 import AWSXRay from "aws-xray-sdk-core";
 import http from "http";
 import https from "https";
+import axios from "axios";
+
 import { retryWithDelay } from "../../../../utils/Retry";
 import { retrieveEnvVariable } from "../../../../config";
 import { JWKS } from "../../models/Jwks";
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
-
-import axios from "axios";
 
 const DEFAULT_TIMEOUT = 2000;
 const RETRY_DELAY = 1000;

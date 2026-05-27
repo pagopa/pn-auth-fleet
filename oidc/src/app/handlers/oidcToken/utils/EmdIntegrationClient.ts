@@ -1,14 +1,13 @@
 import AWSXRay from "aws-xray-sdk-core";
 import http from "http";
 import https from "https";
+import axios from "axios";
 
 import { GetRetrievalPayloadResponse } from "../models/Source";
 import { retrieveEnvVariable } from "../../../config";
 
 AWSXRay.captureHTTPsGlobal(http);
 AWSXRay.captureHTTPsGlobal(https);
-
-import axios from "axios";
 
 /**
  * Retrieves the payload data for a given retrieval ID from the pn-emd-integration service.
