@@ -76,7 +76,14 @@ components:
       required: false
       schema:
         type: string
-    
+    headerLanguage:
+      name: x-pagopa-pn-language
+      in: header
+      description: User preferred language for platform communications.
+      required: false
+      schema:
+        $ref: '#/components/schemas/CxLanguage'
+
     ############################################################################################
     ###                     HEADER DI AUTENTICAZIONE LOLLIPOP                               ###
     ############################################################################################
@@ -167,3 +174,12 @@ components:
         - 'RADD'
         - 'BO'
         - 'BS'
+    CxLanguage:
+      type: string
+      enum:
+        - IT
+        - DE
+        - SL
+        - FR
+        - EN
+      default: IT
