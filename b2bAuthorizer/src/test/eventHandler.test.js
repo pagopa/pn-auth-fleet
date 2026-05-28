@@ -141,7 +141,8 @@ describe("test eventHandler", () => {
         sourceChannel: "RADD",
         cx_jti: 'test-kid',
         applicationRole: "user",
-        allowedApplicationRoles: "[\"user\"]"
+        allowedApplicationRoles: "[\"user\"]",
+        baseUrl: "https://api.radd.dev.notifichedigitali.it"
       },
       usageIdentifierKey: null
     })
@@ -287,7 +288,8 @@ describe("test eventHandler", () => {
         sourceChannel: "RADD",
         cx_jti: 'test-kid',
         applicationRole: "user",
-        allowedApplicationRoles: "[\"user\"]"
+        allowedApplicationRoles: "[\"user\"]",
+        baseUrl: "https://api.radd.dev.notifichedigitali.it"
       },
       usageIdentifierKey: null
     })

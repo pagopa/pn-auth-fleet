@@ -76,6 +76,14 @@ components:
       required: false
       schema:
         type: string
+    headerBaseUrl:
+      name: x-pagopa-pn-base-url
+      in: header
+      description: Trusted base URL resolved by the platform for backend link generation
+      required: false
+      schema:
+        type: string
+    
     headerLanguage:
       name: x-pagopa-pn-language
       in: header
