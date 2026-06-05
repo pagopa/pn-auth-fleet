@@ -143,4 +143,162 @@ describe('EventHandler - Test Suite', () => {
         delete process.env.LOLLIPOP_BLOCK;
     });
 
+    describe('effectiveBlock - override per-URL', () => {
+        let handleEventWithConfig;
+        let stubsWithConfig;
+
+        beforeEach(async () => {
+            stubsWithConfig = {
+                validateLollipopAuthorizer: sinon.stub(),
+                generateIAMPolicy: sinon.stub(),
+                getCxId: sinon.stub(),
+                findMicroserviceConfig: sinon.stub()
+            };
+
+            const module = await esmock(
+                '../app/eventHandler.js',
+                {
+                    '../app/lollipopAuthorizerValidation.js': {
+                        validateLollipopAuthorizer: stubsWithConfig.validateLollipopAuthorizer
+                    },
+                    '../app/iamPolicyGen.js': {
+                        generateIAMPolicy: stubsWithConfig.generateIAMPolicy
+                    },
+                    '../app/dataVaultClient.js': {
+                        getCxId: stubsWithConfig.getCxId
+                    },
+                    '../app/requestValidation.js': {
+                        findMicroserviceConfig: stubsWithConfig.findMicroserviceConfig
+                    }
+                }
+            );
+            handleEventWithConfig = module.handleEvent;
+        });
+
+        afterEach(() => {
+            sinon.restore();
+            delete process.env.LOLLIPOP_BLOCK;
+        });
+
+        it('T-6: per-URL blocking true, globale false, validazione KO => DENY', async () => {
+            process.env.LOLLIPOP_BLOCK = 'false';
+            const mockEvent = {
+                methodArn: 'arn:aws:execute-api:region:account:api/stage/POST/path',
+                path: '/api/v1/io-connector/send',
+                headers: { 'x-pagopa-cx-taxid': 'RSSMRA85T10A562S' }
+            };
+            stubsWithConfig.findMicroserviceConfig.returns({ substringURL: '/io-connector/', methods: ['POST'], URLpattern: '.*', blocking: true });
+            stubsWithConfig.validateLollipopAuthorizer.resolves({ statusCode: 400, resultCode: 'VALIDATION_ERROR' });
+
+            const result = await handleEventWithConfig(mockEvent);
+
+            expect(result).to.deep.equal(defaultDenyAllPolicy);
+        });
+
+        it('T-7: per-URL blocking false, globale true, validazione KO => ALLOW flow (pass)', async () => {
+            process.env.LOLLIPOP_BLOCK = 'true';
+            const mockPolicy = { principalId: 'user', policyDocument: { Statement: [{ Effect: 'Allow' }] } };
+            const mockEvent = {
+                methodArn: 'arn:aws:execute-api:region:account:api/stage/POST/path',
+                path: '/api/v1/delivery/send',
+                headers: { 'x-pagopa-cx-taxid': 'RSSMRA85T10A562S' }
+            };
+            stubsWithConfig.findMicroserviceConfig.returns({ substringURL: '/delivery/', methods: ['POST'], URLpattern: '.*', blocking: false });
+            stubsWithConfig.validateLollipopAuthorizer.resolves({ statusCode: 400, resultCode: 'VALIDATION_ERROR' });
+            stubsWithConfig.getCxId.resolves('CX-ID-123');
+            stubsWithConfig.generateIAMPolicy.resolves(mockPolicy);
+
+            const result = await handleEventWithConfig(mockEvent);
+
+            expect(result).to.deep.equal(mockPolicy);
+        });
+
+        it('T-8: entry senza campo blocking, globale false, validazione KO => ALLOW flow (pass)', async () => {
+            process.env.LOLLIPOP_BLOCK = 'false';
+            const mockPolicy = { principalId: 'user', policyDocument: { Statement: [{ Effect: 'Allow' }] } };
+            const mockEvent = {
+                methodArn: 'arn:aws:execute-api:region:account:api/stage/POST/path',
+                path: '/api/v1/delivery/send',
+                headers: { 'x-pagopa-cx-taxid': 'RSSMRA85T10A562S' }
+            };
+            stubsWithConfig.findMicroserviceConfig.returns({ substringURL: '/delivery/', methods: ['POST'], URLpattern: '.*' });
+            stubsWithConfig.validateLollipopAuthorizer.resolves({ statusCode: 400, resultCode: 'VALIDATION_ERROR' });
+            stubsWithConfig.getCxId.resolves('CX-ID-123');
+            stubsWithConfig.generateIAMPolicy.resolves(mockPolicy);
+
+            const result = await handleEventWithConfig(mockEvent);
+
+            expect(result).to.deep.equal(mockPolicy);
+        });
+
+        it('T-9: URL non in mappa (eccezione findMicroserviceConfig), globale false, validazione KO => ALLOW flow (pass)', async () => {
+            process.env.LOLLIPOP_BLOCK = 'false';
+            const mockPolicy = { principalId: 'user', policyDocument: { Statement: [{ Effect: 'Allow' }] } };
+            const mockEvent = {
+                methodArn: 'arn:aws:execute-api:region:account:api/stage/POST/path',
+                path: '/api/v1/unknown/endpoint',
+                headers: { 'x-pagopa-cx-taxid': 'RSSMRA85T10A562S' }
+            };
+            stubsWithConfig.findMicroserviceConfig.throws(new Error('MICROSERVICE_CONFIG_NOT_FOUND'));
+            stubsWithConfig.validateLollipopAuthorizer.resolves({ statusCode: 400, resultCode: 'VALIDATION_ERROR' });
+            stubsWithConfig.getCxId.resolves('CX-ID-123');
+            stubsWithConfig.generateIAMPolicy.resolves(mockPolicy);
+
+            const result = await handleEventWithConfig(mockEvent);
+
+            expect(result).to.deep.equal(mockPolicy);
+        });
+
+        it('T-9b: mappa assente (findMicroserviceConfig restituisce null), globale false, validazione KO => ALLOW flow (pass)', async () => {
+            process.env.LOLLIPOP_BLOCK = 'false';
+            const mockPolicy = { principalId: 'user', policyDocument: { Statement: [{ Effect: 'Allow' }] } };
+            const mockEvent = {
+                methodArn: 'arn:aws:execute-api:region:account:api/stage/POST/path',
+                path: '/api/v1/unknown/endpoint',
+                headers: { 'x-pagopa-cx-taxid': 'RSSMRA85T10A562S' }
+            };
+            stubsWithConfig.findMicroserviceConfig.returns(null);
+            stubsWithConfig.validateLollipopAuthorizer.resolves({ statusCode: 400, resultCode: 'VALIDATION_ERROR' });
+            stubsWithConfig.getCxId.resolves('CX-ID-123');
+            stubsWithConfig.generateIAMPolicy.resolves(mockPolicy);
+
+            const result = await handleEventWithConfig(mockEvent);
+
+            expect(result).to.deep.equal(mockPolicy);
+        });
+
+        it('T-10: per-URL blocking true, globale false, validazione OK => ALLOW', async () => {
+            process.env.LOLLIPOP_BLOCK = 'false';
+            const mockPolicy = { principalId: 'user', policyDocument: { Statement: [{ Effect: 'Allow' }] } };
+            const mockEvent = {
+                methodArn: 'arn:aws:execute-api:region:account:api/stage/POST/path',
+                path: '/api/v1/io-connector/send',
+                headers: { 'x-pagopa-cx-taxid': 'RSSMRA85T10A562S' }
+            };
+            stubsWithConfig.findMicroserviceConfig.returns({ substringURL: '/io-connector/', methods: ['POST'], URLpattern: '.*', blocking: true });
+            stubsWithConfig.validateLollipopAuthorizer.resolves({ statusCode: 200, resultCode: 'SUCCESS' });
+            stubsWithConfig.getCxId.resolves('CX-ID-123');
+            stubsWithConfig.generateIAMPolicy.resolves(mockPolicy);
+
+            const result = await handleEventWithConfig(mockEvent);
+
+            expect(result).to.deep.equal(mockPolicy);
+        });
+
+        it('T-11: per-URL blocking true, globale false, validateLollipopAuthorizer lancia eccezione => DENY', async () => {
+            process.env.LOLLIPOP_BLOCK = 'false';
+            const mockEvent = {
+                methodArn: 'arn:aws:execute-api:region:account:api/stage/POST/path',
+                path: '/api/v1/io-connector/send',
+                headers: { 'x-pagopa-cx-taxid': 'RSSMRA85T10A562S' }
+            };
+            stubsWithConfig.findMicroserviceConfig.returns({ substringURL: '/io-connector/', methods: ['POST'], URLpattern: '.*', blocking: true });
+            stubsWithConfig.validateLollipopAuthorizer.rejects(new Error('Unexpected error'));
+
+            const result = await handleEventWithConfig(mockEvent);
+
+            expect(result).to.deep.equal(defaultDenyAllPolicy);
+        });
+    });
+
 });
