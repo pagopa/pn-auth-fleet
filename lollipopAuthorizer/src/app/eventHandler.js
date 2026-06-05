@@ -2,6 +2,7 @@ import { validateLollipopAuthorizer  } from "./lollipopAuthorizerValidation.js";
 import { generateIAMPolicy  } from "./iamPolicyGen.js";
 import { getCxId  } from "./dataVaultClient.js";
 import { lollipopConfig } from './config/lollipopConsumerRequestConfig.js';
+import { findMicroserviceConfig  } from './requestValidation.js';
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -39,6 +40,18 @@ async function handleEvent(event) {
 
     console.log("[handleEvent] Lollipop Authorizer Validation Allowed - Modalita: ", lollipopBlock);
 
+    let entryConfig = null;
+    try {
+        entryConfig = findMicroserviceConfig(event.path);
+    } catch (e) {
+        console.warn(`[handleEvent] findMicroserviceConfig error for path: ${event.path}`, e.message);
+    }
+
+    const effectiveBlock =
+        entryConfig !== null && typeof entryConfig.blocking === 'boolean'
+            ? entryConfig.blocking
+            : String(lollipopBlock).toLowerCase() === 'true';
+
     let commandResult;
     let commandResultName ='';
     let commandResultFamilyName='';
@@ -53,7 +66,7 @@ async function handleEvent(event) {
 
         commandResult = await validateLollipopAuthorizer(request);
         // ATTENZIONE: IN FASE DI Enforcement, la variabile lollipopBlock deve essere valorizzato a true
-        if (String(lollipopBlock).toLowerCase() === "true") {
+        if (effectiveBlock) {
           if(commandResult.statusCode !== 200){
             console.error(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
             return defaultDenyAllPolicy;
@@ -64,7 +77,7 @@ async function handleEvent(event) {
           }
         }
     } catch (error) {
-        if (String(lollipopBlock).toLowerCase() === "true") {
+        if (effectiveBlock) {
               const resultCode = commandResult?.resultCode ?? 'UNKNOWN';
               console.error(`[handleEvent] - Lollipop Authorizer Validation fallita: ${resultCode}. Denying access.`);
               return defaultDenyAllPolicy;
