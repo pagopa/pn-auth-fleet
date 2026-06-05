@@ -1,5 +1,5 @@
 import { SignedXml  } from "xml-crypto";
-import { DOMParser, XMLSerializer  } from "@xmldom/xmldom";
+import { XMLSerializer  } from "@xmldom/xmldom";
 import LollipopAssertionException from "./exception/lollipopAssertionException.js";
 import { VALIDATION_ERROR_CODES  } from "./constants/lollipopErrorsConstants.js";
 import { BEGIN_CERTIFICATE, END_CERTIFICATE  } from "./constants/lollipopConstants.js";
@@ -9,7 +9,7 @@ import { lollipopConfig  } from "../app/config/lollipopConsumerRequestConfig.js"
 /**
  * Estrae l'assertion firmata da un documento xml. Se il documento contiene più tag <Assertion>, viene selezionata la prima
  * che presenta una firma valida.
- * @param {Document} doc 
+ * @param {Document} doc
  * @returns {Document} Documento contenente l'assertion firmata
  * @throws {LollipopAssertionException} Se non viene trovata nessuna <Assertion> o assertion firmata
  */
@@ -65,19 +65,8 @@ function extractAssertion(doc) {
             'No signed Assertion found in document'
         );
     }
-    
-    if (doc.documentElement === assertionElement) {
-        console.log('[extractAssertion] Document root is already the target Assertion');
-        return doc;
-    }
-    
-    const parser = new DOMParser();
-    const serializer = new XMLSerializer();
-    const assertionXml = serializer.serializeToString(assertionElement);
-    const assertionDoc = parser.parseFromString(assertionXml, 'text/xml');
-    
-    console.log('[extractAssertion] Assertion extracted successfully from wrapper');
-    return assertionDoc;
+
+    return assertionElement;
 }
 
 /**
@@ -91,14 +80,15 @@ function extractAssertion(doc) {
 function validateSignature(assertionDoc, idpCertDataList) {
     console.log('[validateSignature] Starting SAML signature validation.');
     
+    let assertionElement;
     try {
-        assertionDoc = extractAssertion(assertionDoc);
+        assertionElement = extractAssertion(assertionDoc);
     } catch (error) {
         console.error('[validateSignature] Failed to extract Assertion:', error.message);
         throw error;
     }
-    
-    const signatureElements = assertionDoc.getElementsByTagNameNS(
+
+    const signatureElements = assertionElement.getElementsByTagNameNS(
         lollipopConfig.samlNamespaceSignature,
         lollipopConfig.signatureTag
     );
@@ -122,9 +112,18 @@ function validateSignature(assertionDoc, idpCertDataList) {
         const refUri = signatureReferences[0].getAttribute('URI');
         console.log(`[validateSignature] Signature Reference URI: ${refUri}`);
     }
-    
-    const xmlString = new XMLSerializer().serializeToString(assertionDoc);
-    
+
+    const legacyXmlString = new XMLSerializer().serializeToString(assertionElement);
+    if (attemptVerification(signatureElement, legacyXmlString, idpCertDataList)) {
+        return true;
+    }
+
+    console.warn('[validateSignature] Primary verification failed, retrying in original document context.');
+    const inContextXmlString = new XMLSerializer().serializeToString(assertionElement.ownerDocument);
+    return attemptVerification(signatureElement, inContextXmlString, idpCertDataList);
+}
+
+function attemptVerification(signatureElement, xmlString, idpCertDataList) {
     let attemptCount = 0;
     let lastError = null;
     
