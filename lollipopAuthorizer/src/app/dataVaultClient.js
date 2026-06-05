@@ -61,4 +61,4 @@ async function getCxId(taxId) {
   }
 }
 
-export { getCxId };
+export { getCxId, anonymizeTaxId };
