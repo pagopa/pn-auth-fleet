@@ -1,6 +1,7 @@
 import AWSXRay from "aws-xray-sdk-core";
 import http from "http";
 import https from "https";
+import axios from "axios";
 
 import { retryWithDelay } from "../../../../utils/Retry";
 import { retrieveEnvVariable } from "../../../../config";
@@ -22,20 +23,10 @@ async function innerGetJwks(): Promise<JWKS> {
 
   console.info("Fetching JWKS from:", jwksEndpoint);
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
-
   try {
-    const response = await fetch(jwksEndpoint, { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
-    }
-
-    return await response.json();
+    const response = await axios.get<JWKS>(jwksEndpoint, { timeout: DEFAULT_TIMEOUT });
+    return response.data;
   } catch (error) {
-    clearTimeout(timeoutId);
     console.warn("Error fetching JWKS:", error);
     throw new Error("Error in get pub key");
   }

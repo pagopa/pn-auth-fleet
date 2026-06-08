@@ -1,3 +1,4 @@
+import axios from "axios";
 import { ValidationException } from "../../../exception/validationException";
 import { OneIdentityAwsSecretObject } from "../../../models/Aws";
 import { retrieveEnvVariable } from "../../../config";
@@ -37,28 +38,27 @@ export const exchangeOneIdentityCode = async ({
     redirect_uri: redirectUri,
   });
 
-  const response = await fetch(`${oneIdentityBaseUrl}/oidc/token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${credentials}`,
-    },
-    body: body.toString(),
-  });
-
-  if (!response.ok) {
-    const responseBody = await response.text();
-    const errorMessage = `Error during code exchange with OneIdentity: ${responseBody}`;
-
-    if (response.status === 400) {
-      throw new ValidationException(errorMessage);
+  try {
+    const response = await axios.post<OIExchangeCodeResponse>(
+      `${oneIdentityBaseUrl}/oidc/token`,
+      body.toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${credentials}`,
+        },
+      }
+    );
+    console.info("One Identity Code exchanged successfully");
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      const errorMessage = `Error during code exchange with OneIdentity: ${err.response.data}`;
+      if (err.response.status === 400) {
+        throw new ValidationException(errorMessage);
+      }
+      throw new Error(errorMessage);
     }
-
-    throw new Error(errorMessage);
+    throw err;
   }
-
-  console.info("One Identity Code exchanged successfully");
-
-  const data: OIExchangeCodeResponse = await response.json();
-  return data;
 };
