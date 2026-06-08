@@ -1,71 +1,78 @@
-## Creazione file .env
-Creare il file _.env_ nella root del progetto settando le seguenti variabili d'ambiente:
-- KEY_ID
-- CACHE_TTL
-- TOKEN_TTL
-- ISSUER
-- ALLOWED_ISSUER
-- ALLOWED_ORIGIN
-- ALLOWED_TAXIDS_PARAMETER
+# TokenExchange
 
-Esempio file .env:
-```
-    CACHE_TTL=3600
-    TOKEN_TTL=7200
-    ALLOWED_TAXIDS_PARAMETER=fake-path/fake-param
-```
+Lambda che implementa il flusso di token exchange per Piattaforma Notifiche. Riceve un token di autenticazione esterno (emesso da SPID Hub o SelfCare), ne valida issuer, audience, algoritmo e ruolo, arricchisce il payload con le informazioni dell'utente e genera un session token firmato tramite KMS da restituire al frontend. Supporta anche il canale TPP, recuperando il payload di retrieval da pn-emd-integration prima di generare il token.
+
+## Variabili d'ambiente
+
+### Configurate in `microservice-dev-cfg.json`
+
+| Variabile | Parametro CFN | Descrizione |
+| --- | --- | --- |
+| `CACHE_TTL` | `TokenExchangeLambdaEnvironmentCacheTtl` | TTL in secondi della cache JWKS (default: 300) |
+| `TOKEN_TTL` | `TokenExchangeLambdaEnvironmentTokenTtl` | Durata in secondi del session token generato |
+
+### Iniettate da `pn-infra-core` (output Terraform)
+
+| Variabile | Parametro CFN | Valore |
+| --- | --- | --- |
+| `ISSUER` | `TokenExchangeLambdaEnvironmentIssuer` | `https://webapi.<dns_zone>` |
+| `ALLOWED_ISSUER` | `TokenExchangeLambdaEnvironmentAllowedIssuer` | `https://hub-login.spid.<dns_zone>,<pn_auth_fleet_addictive_allowed_issuer>` |
+| `ALLOWED_ORIGIN` | `TokenExchangeLambdaEnvironmentAllowedOrigin` | `Core_CorsAllowedDomains` |
+| `ACCEPTED_AUDIENCE` | `TokenExchangeLambdaEnvironmentAcceptedAudience` | `Core_CdnDomains` |
+| `AUDIENCE` | `TokenExchangeLambdaEnvironmentAudience` | `webapi.<dns_zone>` |
+| `JWKS_MAPPING` | `TokenExchangeLambdaEnvironmentJwksMapping` | `{}` |
+| `ALLOWED_TAXIDS_PARAMETER` | `TokenExchangeLambdaEnvironmentAllowedTaxIdsParameter` | Path nel Parameter Store contenente la whitelist dei codici fiscali. Default: `/pn-auth-fleet/allowedLoginTaxids`. Il valore del parametro può essere: `*` (tutti validi), lista di codici fiscali separati da virgola, oppure `*` + codici fiscali preceduti da `!` e separati da virgola (blacklist). |
+
+### Derivate da risorse interne allo stack CFN
+
+| Variabile | Sorgente CFN | Descrizione |
+| --- | --- | --- |
+| `KEY_ALIAS` | `!Ref PnAuthFleetJwtSignKeyAlias` | Alias della chiave KMS usata per firmare il session token |
+| `PN_EMD_INTEGRATION_BASEURL` | `!Sub "http://${ApplicationLoadBalancerDomain}:8080"` | Base URL del servizio pn-emd-integration |
+
+### Iniettate dal runtime Lambda (non configurare manualmente)
+
+| Variabile | Descrizione |
+| --- | --- |
+| `AWS_SESSION_TOKEN` | Token di sessione AWS |
+| `_X_AMZN_TRACE_ID` | Trace ID X-Ray |
+
+---
 
 ## Esecuzione build
 
 Il comando di seguito genera uno zip nella directory build contenente tutte e sole le dipendenze necessarie all'ambiente di produzione
 
+```bash
+npm run-script build
 ```
-    npm run-script build
-```
+
 ## Esecuzione test
+
 Il comando di seguito permette di eseguire tutti i test previsti
 
-```
-    npm test
+```bash
+npm test
 ```
 
 ## Esecuzione codecoverage
-Il comando di seguito permette di eseguire la code coverga dopo l'esecuizione dei test
 
-```
-    npm run-script coverage
+Il comando di seguito permette di eseguire la code coverage dopo l'esecuzione dei test
+
+```bash
+npm run-script coverage
 ```
 
 ## Esecuzione test, coverage, sonar e build
+
 Il comando di seguito permette di eseguire la routine dei test per poi generare lo zip di build
 
-```
-    npm run-script test-build
+```bash
+npm run-script test-build
 ```
 
+---
 
 ## Handler
-L'handler della lambda è presente nel file index.js
 
-## White list tax id
-La variabile di ambiente **ALLOWED_TAXIDS_PARAMETER** deve essere valorizzata con il nome del parametro (nel ParameterStore) che contiene la white list dei codici fiscali.\
-
-Il valore del parametro dentro al ParameterStore può assumere a sua volta tre valori:
-- \* per indicare che tutti i codici fiscali sono validi
-- lista di codici fiscali separati da virgola per indicare quali sono validi
-- \* + lista di codici fiscali ognuno preceduto da ! e separati da virgola, per indicare quali codici fiscali sono esclusi
-
-````bash
-PROFILE=
-REGION=
-VALUE="*"
-aws ssm put-parameter \
-    --profile $PROFILE \
-    --region $REGION \
-    --description "TokenExchange login allowed tax ids" \
-    --name "/pn-auth-fleet/allowedLoginTaxids" \
-    --value $VALUE \
-    --type "String" \
-    --overwrite
-````
-
+L'handler della lambda è presente nel file `index.js`.

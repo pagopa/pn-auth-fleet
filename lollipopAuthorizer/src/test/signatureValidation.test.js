@@ -401,4 +401,19 @@ ${VALID_IDP_CERTIFICATE}
             expect(result).to.be.true;
         });
     });
+
+    describe('PN-19959 - namespace ereditato dal Response (caso register.it)', () => {
+        const INHERITED_NS_RESPONSE_XML = '<saml2p:Response xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:xs="http://www.w3.org/2001/XMLSchema" ID="_resp000" IssueInstant="2030-01-01T00:00:00Z" Version="2.0"><saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" ID="_pn19959synthetic000000000000000" IssueInstant="2030-01-01T00:00:00Z" Version="2.0"><saml2:Issuer>https://synthetic-idp.example</saml2:Issuer><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/><SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/><Reference URI="#_pn19959synthetic000000000000000"><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"><InclusiveNamespaces PrefixList="xs" xmlns="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></Transform><Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><InclusiveNamespaces PrefixList="xs" xmlns="http://www.w3.org/2001/10/xml-exc-c14n#"/></Transform></Transforms><DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><DigestValue>NohHSVUBlZWz2NOlD2NICQUIgvI+x8QI7ADsojs7YX8=</DigestValue></Reference></SignedInfo><SignatureValue>PLAx4tQUjp3hm58bcluTHUAv6gy8B/1cNewA0QEOTs9VPFwV1t9xOiXlkcAzOzqyqVNJY2YymB6TISakp+pJaq/ZvvgmNNRwWVUicp1Si77Le7bFzEV//8PiQYQizuMv1fwUnOAfxUMdSzN/tALBrmuPiezZ/N8Ju3nNSmkKfv6mwakFIieYH6E3k1VjhSxktYlu0MhXtJR0HTtZil/6Sim8NSWuZa+0RqnTv9/Cfj1ulZ0TSrtja53iuujZ5DJa0UZKvSWOqCGYa5D13nn9E6eqqCyy49yG1gaQ34NXq8H+U3J5oFSq3yPlMI/Pli+z1BbE+betszZ11uSZrGOBRQ==</SignatureValue></Signature><saml2:Subject><saml2:NameID>SYNTH-SUBJECT</saml2:NameID></saml2:Subject><saml2:Conditions NotBefore="2030-01-01T00:00:00Z" NotOnOrAfter="2030-01-01T01:00:00Z"/><saml2:AttributeStatement><saml2:Attribute Name="fiscalNumber"><saml2:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">TINIT-SYNTH00A00A000A</saml2:AttributeValue></saml2:Attribute></saml2:AttributeStatement></saml2:Assertion></saml2p:Response>';
+
+        const SYNTHETIC_TEST_CERT = 'MIIDFzCCAf+gAwIBAgIUbG9yrMEhlZqnGvws9V1I/ZV34nkwDQYJKoZIhvcNAQELBQAwGzEZMBcGA1UEAwwQdGVzdC1pZHAtUE4xOTk1OTAeFw0yNjA2MDQxMDUxNDNaFw0zNjA2MDExMDUxNDNaMBsxGTAXBgNVBAMMEHRlc3QtaWRwLVBOMTk5NTkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDLn+71jmZ9ITHJAIp0egiVx06Pog7N4p8k5GyFmqDhHVxcdxL93WMZ3OojK5T4oerl8O7RXwDVepmKzyuaCD3eBVDt8ZTZDopIUfPHTLINfKh1fcaQO2+No+C776E0GGa2yAYZzvsFF+m4SH6ep1ZdLjOc4odk5FVSXZDPHJzoE73Gl82p3G1C+wPrq4pZdGQRBPQWDYy6bxyQE5R4M8Gv/D7Z7q+xU6npRw9uWHBt7JuJz/V4o41cuEZ3vvibg2rrSUxvwyqdWlYC/8tsPxft74sDs51z/3X+vhfvAxbLwXFVrLsoPa7HB8uYEZy36Q6betFkqplUZ1JM++Qhj3OTAgMBAAGjUzBRMB0GA1UdDgQWBBRVqbzXkyBan9+Ltxczvgy+lqHMrzAfBgNVHSMEGDAWgBRVqbzXkyBan9+Ltxczvgy+lqHMrzAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQAkWiDQAj87kpOpJuh6xd9LaCOMrqjSLrwAsIAVlZ6CAdIiiwsRvqkV3aBJzn0jpPZnci5XXCPAtoNAybG2XC7t5WflN6+DEiKWISJAt+0s5unO2nYb74JUBoELn1lvdvytoKQVG/4v4pt+6TP4HDSNgmeokh8rJnOflFPPiSfV98p/DHYWEIdeZhgHfbdDWwvjL051HUZjcPkDIIloTHaZjF6HZ8XshDEeuIkofTP2akB/MN3oYD+dJ5RIQ8xA6vbvyni52IWyu/oG7KzOBMMjdUGyJkSRHu5+v85N3fTnQQEnlpvV0dP76nbtABViQrAFR33SI4DdPrpTsI1/mQo4';
+
+        it('deve validare la firma di un Assertion con namespace ereditato dal Response', () => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(INHERITED_NS_RESPONSE_XML, 'text/xml');
+
+            const result = validateSignature(doc, [{ certData: [SYNTHETIC_TEST_CERT] }]);
+
+            expect(result).to.be.true;
+        });
+    });
 });
