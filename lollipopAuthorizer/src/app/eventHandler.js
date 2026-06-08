@@ -29,7 +29,6 @@ function validateSourceDetails(sourceDetails) {
 
 async function handleEvent(event) {
 
-    console.log("event: %o", event);
     // Declare Policy
     let iamPolicy = null;
 
@@ -117,7 +116,7 @@ async function handleEvent(event) {
                     sourceChannelDetails: sourceDetails,
               };
               iamPolicy = await generateIAMPolicy(event.methodArn, contextMap );
-              console.log("IAM Policy", JSON.stringify(iamPolicy));
+              console.log("IAM Policy generated", iamPolicy?.policyDocument?.Statement?.[0]?.Effect);
               return iamPolicy;
             } catch (err) {
               console.error("Error generating IAM policy with error ", err);
