@@ -1,3 +1,4 @@
+import axios from "axios";
 import { getJwks } from "../../../app/handlers/oidcToken/utils/Jwks/JwksRetriever";
 import { mockJwksResponse } from "../../__mock__/jwks.mock";
 import { setupEnv } from "../../test.utils";
@@ -10,7 +11,8 @@ jest.mock("../../../app/utils/Retry", () => ({
   retryWithDelay: jest.fn((fn) => fn()),
 }));
 
-global.fetch = jest.fn();
+jest.mock("axios");
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const mockJwksEndpoint = "https://uat.oneid.pagopa.it/oidc/keys";
 
@@ -22,30 +24,22 @@ describe("retrieverJwks", () => {
 
   describe("getJwks", () => {
     it("should successfully fetch and return JWKS", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockJwksResponse,
-      });
+      mockedAxios.get.mockResolvedValueOnce({ data: mockJwksResponse });
 
       const result = await getJwks();
 
-      expect(fetch).toHaveBeenCalledWith(mockJwksEndpoint, {
-        signal: expect.any(AbortSignal),
+      expect(mockedAxios.get).toHaveBeenCalledWith(mockJwksEndpoint, {
+        timeout: 2000,
       });
       expect(result).toEqual(mockJwksResponse);
     });
 
     it("should throw error when fetch fails with HTTP error", async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
-      });
+      mockedAxios.get.mockRejectedValueOnce(new Error("Internal Server Error"));
 
       await expect(getJwks()).rejects.toThrow("Error in get pub key");
-      expect(fetch).toHaveBeenCalledWith(mockJwksEndpoint, {
-        signal: expect.any(AbortSignal),
+      expect(mockedAxios.get).toHaveBeenCalledWith(mockJwksEndpoint, {
+        timeout: 2000,
       });
     });
   });

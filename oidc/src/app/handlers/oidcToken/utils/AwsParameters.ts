@@ -1,3 +1,4 @@
+import axios from "axios";
 import { retryWithDelay } from "../../../utils/Retry";
 import { retrieveEnvVariable } from "../../../config";
 
@@ -63,21 +64,18 @@ const fetchAwsParameter = async (
 
   const url = `http://localhost:2773/${endpoint}`;
 
-  const response = await fetch(url, {
-    headers: {
-      "X-Aws-Parameters-Secrets-Token": sessionToken,
-    },
+  const response = await axios.get(url, {
+    headers: { "X-Aws-Parameters-Secrets-Token": sessionToken },
+  }).catch((err: any) => {
+    if (err?.response) {
+      throw new Error(
+        `Failed to fetch ${isSecret ? "secret" : "parameter"} "${name}": ${err.response.status} ${err.response.statusText}`
+      );
+    }
+    throw err;
   });
 
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch ${isSecret ? "secret" : "parameter"} "${name}": ${
-        response.status
-      } ${response.statusText}`
-    );
-  }
-
-  const data = await response.json();
+  const data = response.data;
 
   if (isSecret) {
     return data.SecretString || JSON.stringify(data.SecretBinary);

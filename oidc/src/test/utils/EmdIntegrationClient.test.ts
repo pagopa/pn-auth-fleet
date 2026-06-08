@@ -1,3 +1,4 @@
+import axios from "axios";
 import { getRetrievalPayload } from "../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import {
   checkTppResponseMock,
@@ -5,7 +6,11 @@ import {
 } from "../__mock__/emdIntegration.mock";
 import { setupEnv } from "../test.utils";
 
-global.fetch = jest.fn();
+jest.mock("aws-xray-sdk-core", () => ({
+  captureHTTPsGlobal: jest.fn(),
+}));
+jest.mock("axios");
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("EMD Integration Client tests", () => {
   beforeEach(() => {
@@ -14,27 +19,19 @@ describe("EMD Integration Client tests", () => {
   });
 
   it("should successfully get retrieval payload", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => checkTppResponseMock,
-    });
+    mockedAxios.get.mockResolvedValue({ data: checkTppResponseMock });
 
     const result = await getRetrievalPayload(retrievalIdMock);
 
     expect(result).toBe(checkTppResponseMock);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(mockedAxios.get).toHaveBeenCalledWith(
       `${process.env.PN_EMD_INTEGRATION_BASEURL}/emd-integration-private/token/check-tpp?retrievalId=${retrievalIdMock}`,
-      expect.objectContaining({
-        method: "GET",
-      })
+      expect.objectContaining({ timeout: 2000 })
     );
   });
 
   it("should throw an error if response is not ok", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: false,
-      status: 500,
-    });
+    mockedAxios.get.mockRejectedValue(new Error("HTTP error! status: 500"));
 
     await expect(getRetrievalPayload(retrievalIdMock)).rejects.toThrow(
       "Failed to retrieve TPP payload"
@@ -42,9 +39,7 @@ describe("EMD Integration Client tests", () => {
   });
 
   it("should throw an error if fetch fails", async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(
-      new Error("Error during check TPP")
-    );
+    mockedAxios.get.mockRejectedValue(new Error("Error during check TPP"));
 
     await expect(getRetrievalPayload(retrievalIdMock)).rejects.toThrow(
       "Failed to retrieve TPP payload"

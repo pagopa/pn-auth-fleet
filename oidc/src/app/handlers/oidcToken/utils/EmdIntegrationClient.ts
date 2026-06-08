@@ -1,6 +1,7 @@
 import AWSXRay from "aws-xray-sdk-core";
 import http from "http";
 import https from "https";
+import axios from "axios";
 
 import { GetRetrievalPayloadResponse } from "../models/Source";
 import { retrieveEnvVariable } from "../../../config";
@@ -31,19 +32,11 @@ export const getRetrievalPayload = async (
   );
 
   try {
-    const response = await fetch(pnEmdIntegrationUrl, {
-      method: "GET",
-      headers: {
-        "Content-Type": "text/plain",
-      },
-      signal: AbortSignal.timeout(2000),
+    const response = await axios.get<GetRetrievalPayloadResponse>(pnEmdIntegrationUrl, {
+      headers: { "Content-Type": "text/plain" },
+      timeout: 2000,
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    return response.data;
   } catch (err) {
     console.error("External service pn-emd-integration returned errors", {
       error: err,
