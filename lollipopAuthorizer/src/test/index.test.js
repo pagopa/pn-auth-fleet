@@ -64,6 +64,7 @@ describe("index tests", function () {
       httpMethod: "GET",
       headers: {
         "x-pagopa-cx-taxid": taxId,
+        "x-pagopa-lollipop-user-id": taxId,
         "x-pagopa-lollipop-assertion-type": "SAML"
       },
       requestContext: {
@@ -111,6 +112,7 @@ describe("index tests", function () {
       const event = {
           headers: {
               "x-pagopa-cx-taxid": taxId,
+              "x-pagopa-lollipop-user-id": taxId,
               "x-pagopa-pn-io-src": "QR_CODE" // Aggiunto per passare validateSourceDetails
           },
           methodArn: "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request"
@@ -141,7 +143,7 @@ describe("index tests", function () {
         mock.onPost(expectedUrl, taxId).reply(500);
 
         const event = {
-          headers: { "x-pagopa-cx-taxid": taxId },
+          headers: { "x-pagopa-cx-taxid": taxId, "x-pagopa-lollipop-user-id": taxId },
           methodArn: "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request"
         };
 
@@ -166,7 +168,7 @@ describe("index tests", function () {
         mock.onPost(expectedUrl, taxId).timeout();
 
         const event = {
-          headers: { "x-pagopa-cx-taxid": taxId },
+          headers: { "x-pagopa-cx-taxid": taxId, "x-pagopa-lollipop-user-id": taxId },
           methodArn: "arn:aws:execute-api:us-east-1:123456789012:abcdef123/test/GET/request"
         };
 

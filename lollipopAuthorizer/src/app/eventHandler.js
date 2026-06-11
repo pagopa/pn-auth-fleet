@@ -96,32 +96,38 @@ async function handleEvent(event) {
             return defaultDenyAllPolicy;
         }
 
-        if (!taxId) {
-            console.error("Header 'x-pagopa-cx-taxid' is missing. Denying access.");
+        if (!userId) {
+            console.error("Header 'x-pagopa-lollipop-user-id' is missing. Denying access.");
             return defaultDenyAllPolicy;
-        } else if (userId && taxId.toUpperCase() !== userId.toUpperCase()) {
-            console.error("Mismatch between taxId and userId.");
-            return defaultDenyAllPolicy;
-        } else {
-            console.info("Match found between taxId and userId");
-            try {
-              const cxId = await getCxId(taxId);
-              console.info("cxId", cxId);
-              // Generate IAM Policy
-              const contextMap = {
-                    resultCode: commandResult.resultCode || '',
-                    name: commandResult.name || '',
-                    familyName: commandResult.familyName || '',
-                    cxId: cxId,
-                    sourceChannelDetails: sourceDetails,
-              };
-              iamPolicy = await generateIAMPolicy(event.methodArn, contextMap );
-              console.log("IAM Policy generated", iamPolicy?.policyDocument?.Statement?.[0]?.Effect);
-              return iamPolicy;
-            } catch (err) {
-              console.error("Error generating IAM policy with error ", err);
-              return defaultDenyAllPolicy;
+        } 
+        
+        if (taxId) {
+            console.info("Header 'x-pagopa-cx-taxid' present");
+            if (userId.toUpperCase() !== taxId.toUpperCase()) {
+                console.error("Mismatch between taxId and userId.");
+                return defaultDenyAllPolicy;
+            } else {
+                console.info("Match found between taxId and userId");
             }
+        }
+        
+        try {
+          const cxId = await getCxId(userId);
+          console.info("cxId", cxId);
+          // Generate IAM Policy
+          const contextMap = {
+                resultCode: commandResult.resultCode || '',
+                name: commandResult.name || '',
+                familyName: commandResult.familyName || '',
+                cxId: cxId,
+                sourceChannelDetails: sourceDetails,
+          };
+          iamPolicy = await generateIAMPolicy(event.methodArn, contextMap );
+          console.log("IAM Policy generated", iamPolicy?.policyDocument?.Statement?.[0]?.Effect);
+          return iamPolicy;
+        } catch (err) {
+          console.error("Error generating IAM policy with error ", err);
+          return defaultDenyAllPolicy;
         }
 
     } catch (error) {
