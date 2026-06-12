@@ -159,8 +159,9 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
     );
   }
 
-  console.log("[TESTUAT][validateUserId] userIdFromAssertion:", anonymizeTaxId(userIdFromAssertion));
-  console.log("[TESTUAT][validateUserId] userIdHeader:", anonymizeTaxId(userIdHeader));
+  // Traccia commentata: contiene dati personali derivati dall'assertion (codice fiscale, anche se parzialmente anonimizzato)
+  // console.log("[TESTUAT][validateUserId] userIdFromAssertion:", anonymizeTaxId(userIdFromAssertion));
+  // console.log("[TESTUAT][validateUserId] userIdHeader:", anonymizeTaxId(userIdHeader));
   console.log("[TESTUAT][validateUserId] match:", userIdFromAssertion === userIdHeader);
   console.log("Ending validation userId fiscal number");
   return userIdFromAssertion === userIdHeader;
