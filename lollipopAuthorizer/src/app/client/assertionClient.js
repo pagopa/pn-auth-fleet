@@ -33,6 +33,10 @@ async function getAssertionFromClient(jwt, assertionRef) {
                 console.log('[TESTUAT][assertionClient.getAssertionFromClient] === HTTP RESPONSE ===');
                 console.log('[TESTUAT][assertionClient.getAssertionFromClient] response status:', response?.status);
                 console.log('[TESTUAT][assertionClient.getAssertionFromClient] response headers:', JSON.stringify(response?.headers));
+                /** commented lines (logs personal data, to be uncommented only for testing purposes)
+                console.log('[TESTUAT][assertionClient.getAssertionFromClient] response body:', JSON.stringify(response?.body));
+                console.log('[TESTUAT][assertionClient.getAssertionFromClient] response text:', response?.text);
+                **/
                 if (error) {
                     console.log('[TESTUAT][assertionClient.getAssertionFromClient] error:', error?.message ?? error);
                     console.log('[TESTUAT][assertionClient.getAssertionFromClient] error status:', error?.status);
