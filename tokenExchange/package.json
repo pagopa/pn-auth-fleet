@@ -15,7 +15,7 @@
   "devDependencies": {
     "@aws-sdk/client-kms": "^3.1026.0",
     "aws-sdk-client-mock": "^3.0.0",
-    "axios-mock-adapter": "^1.20.0",
+    "axios-mock-adapter": "^2.1.0",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "dependency-check": "^4.1.0",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "aws-xray-sdk-core": "^3.3.6",
-    "axios": "^0.25.0",
+    "axios": "^1.15.0",
     "base64url": "^3.0.1",
     "bunyan": "^1.8.15",
     "jsonwebtoken": "^9.0.0",
