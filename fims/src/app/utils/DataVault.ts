@@ -17,9 +17,11 @@ import { maskString } from "pn-auth-common-ts";
  *
  * @param taxId - the plain tax id to anonymize and resolve
  */
+// HTTP timeout (ms) for pn-data-vault calls, hardcoded like lollipopAuthorizer.
+const DATA_VAULT_HTTP_TIMEOUT_MS = 2000;
+
 export async function getCxId(taxId: string): Promise<string> {
   const baseUrl = retrieveEnvVariable("PN_DATA_VAULT_BASEURL");
-  const timeout = Number(retrieveEnvVariable("DATA_VAULT_HTTP_TIMEOUT_MS", "2000"));
   const url = `${baseUrl}/datavault-private/v1/recipients/external/PF`;
 
   console.log("Invoking external service pn-data-vault PF. Waiting Sync response.", {
@@ -30,7 +32,7 @@ export async function getCxId(taxId: string): Promise<string> {
   try {
     const response = await axios.post<string>(url, taxId, {
       headers: { "Content-Type": "text/plain" },
-      timeout,
+      timeout: DATA_VAULT_HTTP_TIMEOUT_MS,
     });
     return response.data;
   } catch (err) {

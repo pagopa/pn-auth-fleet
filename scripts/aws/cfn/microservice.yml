@@ -318,11 +318,6 @@ Parameters:
     Type: String
     Description: 'Name for Fims Lambda function'
 
-  FimsDataVaultHttpTimeoutMs:
-    Type: String
-    Default: "2000"
-    Description: 'HTTP timeout (ms) for pn-data-vault calls from Fims Lambda'
-
   FimsLambdaEnvironmentTokenTtl:
     Type: String
     Default: 3200
@@ -2141,7 +2136,6 @@ Resources:
           FIMS_SECRET_NAME: !Ref FimsSecretName
           ### data-vault (confidential) reached inside the VPC, like lollipopAuthorizer ###
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
-          DATA_VAULT_HTTP_TIMEOUT_MS: !Ref FimsDataVaultHttpTimeoutMs
           ### Variables valorized by shared parameters, inherited from pn-ipc.yml stack ###
           ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
