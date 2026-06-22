@@ -7,7 +7,7 @@
     "type-check": "tsc --noEmit",
     "build": "npm run type-check && esbuild src/app/index.ts --bundle --platform=node --outdir=dist --minify --sourcemap --external:dtrace-provider && cd dist && zip -r ../function.zip .",
     "test": "npm run type-check && jest --coverage --silent",
-    "test-build": "(cd ../../authCommon && npm install) && npm run test && npm run coverage && npm run sonar && npm run build",
+    "test-build": "(cd ../../authCommon && npm install) && (cd ../../authCommonTs && npm install) && npm run test && npm run coverage && npm run sonar && npm run build",
     "coverage": "jest --coverage --coverageReporters=lcov",
     "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
     "clean": "rm -rf dist function.zip coverage"
@@ -20,7 +20,8 @@
     "bunyan": "^1.8.15",
     "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.7",
-    "pn-auth-common": "file:../authCommon"
+    "pn-auth-common": "file:../authCommon",
+    "pn-auth-common-ts": "file:../authCommonTs"
   },
   "devDependencies": {
     "@aws-sdk/client-kms": "^3.1026.0",

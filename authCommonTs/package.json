@@ -1,0 +1,27 @@
+{
+  "name": "pn-auth-common-ts",
+  "version": "1.0.0",
+  "description": "Shared TypeScript utilities for pn-auth-fleet TypeScript lambdas (oidc, fims, ...).",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "test": "npm run type-check && jest --coverage --silent",
+    "coverage": "jest --coverage --coverageReporters=lcov",
+    "clean": "rm -rf coverage"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.16.1",
+    "bunyan": "^1.8.15"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.159",
+    "@types/bunyan": "^1.8.11",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.9",
+    "typescript": "^5.9.3"
+  }
+}

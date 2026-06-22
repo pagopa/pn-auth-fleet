@@ -1,6 +1,7 @@
-import { auditLog } from "../../app/utils/AuditLog";
+import { createAuditLogger } from "../AuditLog";
 
 describe("Audit Log", () => {
+  const auditLog = createAuditLogger("test-logger");
   const cx_type = "AUD";
   const cx_id = "1111";
   const uid = "ed84b8c9-444e-410d-80d7-cfad6aa12070";
@@ -8,12 +9,10 @@ describe("Audit Log", () => {
   const request_id = "mock-aws-request-id";
 
   it("should log error correctly", () => {
-    const msg = "Authorization Token not present";
-    const status = "KO";
     const logObj = auditLog({
-      message: msg,
+      message: "Authorization Token not present",
       aud_orig: aud_origin,
-      status,
+      status: "KO",
       cx_type,
       cx_id,
       uid,
@@ -23,15 +22,14 @@ describe("Audit Log", () => {
     expect(logObj.fields.message).toBe(
       "[AUD_ACC_LOGIN] - KO - FAILURE - Authorization Token not present"
     );
+    expect(logObj.fields.logger_name).toBe("test-logger");
   });
 
   it("should log success correctly", () => {
-    const msg = "Authorization validated";
-    const status = "OK";
     const logObj = auditLog({
-      message: msg,
+      message: "Authorization validated",
       aud_orig: aud_origin,
-      status,
+      status: "OK",
       cx_type,
       cx_id,
       uid,
@@ -44,9 +42,8 @@ describe("Audit Log", () => {
   });
 
   it("should log info correctly", () => {
-    const msg = "Start Token validation";
     const logObj = auditLog({
-      message: msg,
+      message: "Start Token validation",
       aud_orig: aud_origin,
       cx_type,
       cx_id,
@@ -59,11 +56,9 @@ describe("Audit Log", () => {
     );
   });
 
-  // it.only("test", () => {
-  //   auditLog({
-  //     message: "Origin not allowed",
-  //     aud_orig: "cioa",
-  //     status: "KO",
-  //   }).error("Errore custom");
-  // });
+  it("should bind a different logger_name per logger", () => {
+    const otherLogger = createAuditLogger("another");
+    const logObj = otherLogger({ request_id });
+    expect(logObj.fields.logger_name).toBe("another");
+  });
 });

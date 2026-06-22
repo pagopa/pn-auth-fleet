@@ -3,7 +3,7 @@ import http from "http";
 import https from "https";
 import axios from "axios";
 
-import { retryWithDelay } from "../../../../utils/Retry";
+import { retryWithDelay } from "pn-auth-common-ts";
 import { retrieveEnvVariable } from "../../../../config";
 import { JWKS } from "../../models/Jwks";
 

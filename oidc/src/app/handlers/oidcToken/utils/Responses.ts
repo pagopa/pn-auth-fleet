@@ -1,5 +1,5 @@
 import { OidcStateData } from "../../../models/OidcState";
-import { removeFiscalNumberPrefix } from "../../../utils/String";
+import { removeFiscalNumberPrefix } from "pn-auth-common-ts";
 import { Source } from "../models/Source";
 import { OIDecodedIdToken, TokenExchangeResponse } from "../models/Token";
 import { generateJwtPayload, generateSessionToken } from "./TokenGenerator";

@@ -1,12 +1,8 @@
 import axios from "axios";
-import {
-  getAWSParameterStore,
-  getAWSSecret,
-} from "../../app/handlers/oidcToken/utils/AwsParameters";
-import { setupEnv } from "../test.utils";
+import { getAWSParameterStore, getAWSSecret } from "../AwsParameters";
 
 jest.mock("axios");
-jest.mock("../../app/utils/Retry.ts", () => ({
+jest.mock("../Retry", () => ({
   retryWithDelay: jest.fn((fn) => fn()),
 }));
 
@@ -18,7 +14,7 @@ const axiosError = (status: number, statusText: string) => ({
 
 describe("AwsParameters", () => {
   beforeEach(() => {
-    setupEnv();
+    process.env.AWS_SESSION_TOKEN = "fake-session-token";
     jest.clearAllMocks();
   });
 

@@ -1,8 +1,8 @@
 import { decode, verify } from "jsonwebtoken";
-import { ValidationException } from "../../../exception/validationException";
+import { ValidationException } from "pn-auth-common-ts";
 import { copyAndMaskObject } from "../../../utils/Object";
 import { OIDecodedIdToken, OIDecodedToken } from "../models/Token";
-import { getAWSParameterStore } from "../utils/AwsParameters";
+import { getAWSParameterStore } from "pn-auth-common-ts";
 import { getPublicKey } from "../utils/PublicKey";
 import { retrieveEnvVariable } from "../../../config";
 

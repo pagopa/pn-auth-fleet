@@ -15,11 +15,10 @@ export type EnvVariableName =
   | "CACHE_TTL"
   | "_X_AMZN_TRACE_ID";
 
+import { retrieveEnvVariable as retrieve } from "pn-auth-common-ts";
+
+// Thin typed wrapper around the shared helper, keeping the OIDC env var union
+// for call-site type-safety.
 export function retrieveEnvVariable(name: EnvVariableName, defaultValue?: string): string {
-  const value = process.env[name];
-  if (!value) {
-    if (defaultValue !== undefined) return defaultValue;
-    throw new Error(`${name} is not set`);
-  }
-  return value;
+  return retrieve(name, defaultValue);
 }

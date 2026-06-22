@@ -1,6 +1,5 @@
 import { oidcAuthorizeHandler as handler } from "../../../app/handlers/oidcAuthorize";
-import * as AwsParameters from "../../../app/handlers/oidcToken/utils/AwsParameters";
-import * as String from "../../../app/utils/String";
+import { getAWSSecret, generateRandomUniqueString } from "pn-auth-common-ts";
 import { oneIdentityCredentialsMock } from "../../__mock__/oneIdentity.mock";
 import { mockAllowedOrigin, mockContext } from "../../__mock__/event.mock";
 import { setupEnv } from "../../test.utils";
@@ -14,6 +13,13 @@ jest.mock("pn-auth-common", () => ({
   COMMON_CONSTANTS: {
     REDIS_PN_SESSION_PREFIX: "pn-session::",
   },
+}));
+
+jest.mock("pn-auth-common-ts", () => ({
+  __esModule: true,
+  ...jest.requireActual("pn-auth-common-ts"),
+  getAWSSecret: jest.fn(),
+  generateRandomUniqueString: jest.fn(),
 }));
 
 import { RedisHandler } from "pn-auth-common";
@@ -30,26 +36,15 @@ const mockAuthorizeEvent = {
 } as any;
 
 describe("oidcAuthorize handler", () => {
-  let getAWSSecretSpy: jest.SpyInstance;
-  let generateRandomUniqueStringSpy: jest.SpyInstance;
-
   beforeEach(() => {
     jest.resetAllMocks();
     setupEnv();
 
-    getAWSSecretSpy = jest
-      .spyOn(AwsParameters, "getAWSSecret")
-      .mockResolvedValue(oneIdentityCredentialsMock as any);
+    (getAWSSecret as jest.Mock).mockResolvedValue(oneIdentityCredentialsMock as any);
 
-    generateRandomUniqueStringSpy = jest
-      .spyOn(String, "generateRandomUniqueString")
+    (generateRandomUniqueString as jest.Mock)
       .mockReturnValueOnce(mockState)
       .mockReturnValueOnce(mockNonce);
-  });
-
-  afterEach(() => {
-    getAWSSecretSpy.mockRestore();
-    generateRandomUniqueStringSpy.mockRestore();
   });
 
   it("should return 200 with correct location in body", async () => {

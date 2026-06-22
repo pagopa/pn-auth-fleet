@@ -7,7 +7,9 @@ jest.mock("aws-xray-sdk-core", () => ({
   captureHTTPsGlobal: jest.fn(),
 }));
 
-jest.mock("../../../app/utils/Retry", () => ({
+jest.mock("pn-auth-common-ts", () => ({
+  __esModule: true,
+  ...jest.requireActual("pn-auth-common-ts"),
   retryWithDelay: jest.fn((fn) => fn()),
 }));
 
