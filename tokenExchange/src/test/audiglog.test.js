@@ -11,18 +11,16 @@ const aud_origin = "https://portale-pf-develop.fe.dev.pn.pagopa.it";
 
 describe("audit log test", () => {
   it("log error", function (done) {
-    const msg = "Authorization Token not present";
-    const status = "KO";
-    const logObj = auditLog(
-      msg,
+    const logObj = auditLog({
+      message: "Authorization Token not present",
       aud_type,
-      aud_origin,
-      status,
+      aud_orig: aud_origin,
+      status: "KO",
       cx_type,
       cx_id,
       cx_role,
-      uid
-    );
+      uid,
+    });
     console.log(logObj);
     expect(logObj.fields.message).to.equal(
       "[AUD_ACC_LOGTEST] - KO - FAILURE - Authorization Token not present"
@@ -30,18 +28,16 @@ describe("audit log test", () => {
     done();
   });
   it("log success", function (done) {
-    const msg = "Authorization validated";
-    const status = "OK";
-    const logObj = auditLog(
-      msg,
+    const logObj = auditLog({
+      message: "Authorization validated",
       aud_type,
-      aud_origin,
-      status,
+      aud_orig: aud_origin,
+      status: "OK",
       cx_type,
       cx_id,
       cx_role,
-      uid
-    );
+      uid,
+    });
     console.log(logObj);
     expect(logObj.fields.message).to.equal(
       "[AUD_ACC_LOGTEST] - OK - SUCCESS - Authorization validated"
@@ -49,18 +45,16 @@ describe("audit log test", () => {
     done();
   });
   it("log info", function (done) {
-    const msg = "Start Token validation";
-    const status = "";
-    const logObj = auditLog(
-      msg,
+    const logObj = auditLog({
+      message: "Start Token validation",
       aud_type,
-      aud_origin,
-      status,
+      aud_orig: aud_origin,
+      status: "",
       cx_type,
       cx_id,
       cx_role,
-      uid
-    );
+      uid,
+    });
     console.log(logObj);
     expect(logObj.fields.message).to.equal(
       "[AUD_ACC_LOGTEST] - INFO - Start Token validation"

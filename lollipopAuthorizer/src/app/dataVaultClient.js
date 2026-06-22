@@ -1,9 +1,5 @@
-import AWSXRay from "aws-xray-sdk-core";
 import http from "http";
 import https from "https";
-
-AWSXRay.captureHTTPsGlobal(http);
-AWSXRay.captureHTTPsGlobal(https);
 
 // the axios import must be after the xray capture, otherwise the xray tracking will not work
 import axios from "axios";
@@ -65,4 +61,4 @@ async function getCxId(taxId) {
   }
 }
 
-export { getCxId };
+export { getCxId, anonymizeTaxId };
