@@ -76,7 +76,22 @@ components:
       required: false
       schema:
         type: string
+    headerBaseUrl:
+      name: x-pagopa-pn-base-url
+      in: header
+      description: Trusted base URL resolved by the platform for backend link generation
+      required: false
+      schema:
+        type: string
     
+    headerLanguage:
+      name: x-pagopa-pn-language
+      in: header
+      description: User preferred language for platform communications.
+      required: false
+      schema:
+        $ref: '#/components/schemas/CxLanguage'
+
     ############################################################################################
     ###                     HEADER DI AUTENTICAZIONE LOLLIPOP                               ###
     ############################################################################################
@@ -167,3 +182,12 @@ components:
         - 'RADD'
         - 'BO'
         - 'BS'
+    CxLanguage:
+      type: string
+      enum:
+        - IT
+        - DE
+        - SL
+        - FR
+        - EN
+      default: IT

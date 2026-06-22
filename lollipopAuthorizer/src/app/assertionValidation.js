@@ -10,6 +10,7 @@ import LollipopAssertionNotFoundException from "./exception/lollipopAssertionNot
 import { getAssertion  } from "./service/assertionService.js";
 import { getIdpCertData  } from "./service/assertionVerifierService.js";
 import { VALIDATION_ERROR_CODES, ASSERTION_ERROR_CODES  } from "../app/constants/lollipopErrorsConstants.js";
+import { anonymizeTaxId } from "./dataVaultClient.js";
 
 /**
  * Recupera e costruisce il documento dell'asserzione SAML
@@ -22,12 +23,11 @@ import { VALIDATION_ERROR_CODES, ASSERTION_ERROR_CODES  } from "../app/constants
  */
 async function getAssertionDoc(jwt, assertionRef) {
     let assertion;
-    console.log("[TESTUAT] jwt: ",jwt)
+    console.log("[TESTUAT] jwt present: ", !!jwt)
     console.log("[TESTUAT] assertionRef: ",assertionRef)
 
     try {
         assertion = await getAssertion(jwt, assertionRef);
-        console.log("[TESTUAT] assertion: ",assertion)
     } catch (e) {
         if (e instanceof OidcAssertionNotSupported) {
             throw new ErrorRetrievingAssertionException(ASSERTION_ERROR_CODES.OIDC_ASSERTION_TYPE_NOT_SUPPORTED, e.message);
@@ -159,8 +159,8 @@ async function validateSignatureAssertion(assertionDoc, idpCertDataList) {
     );
   }
 
-  console.log("[TESTUAT][validateUserId] userIdFromAssertion:", userIdFromAssertion);
-  console.log("[TESTUAT][validateUserId] userIdHeader:", userIdHeader);
+  console.log("[TESTUAT][validateUserId] userIdFromAssertion:", anonymizeTaxId(userIdFromAssertion));
+  console.log("[TESTUAT][validateUserId] userIdHeader:", anonymizeTaxId(userIdHeader));
   console.log("[TESTUAT][validateUserId] match:", userIdFromAssertion === userIdHeader);
   console.log("Ending validation userId fiscal number");
   return userIdFromAssertion === userIdHeader;

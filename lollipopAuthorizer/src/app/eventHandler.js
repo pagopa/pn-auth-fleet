@@ -2,6 +2,7 @@ import { validateLollipopAuthorizer  } from "./lollipopAuthorizerValidation.js";
 import { generateIAMPolicy  } from "./iamPolicyGen.js";
 import { getCxId  } from "./dataVaultClient.js";
 import { lollipopConfig } from './config/lollipopConsumerRequestConfig.js';
+import { findMicroserviceConfig  } from './requestValidation.js';
 
 const defaultDenyAllPolicy = {
   principalId: "user",
@@ -28,7 +29,6 @@ function validateSourceDetails(sourceDetails) {
 
 async function handleEvent(event) {
 
-    console.log("event: %o", event);
     // Declare Policy
     let iamPolicy = null;
 
@@ -39,6 +39,18 @@ async function handleEvent(event) {
         lollipopBlock = process.env.LOLLIPOP_BLOCK;
 
     console.log("[handleEvent] Lollipop Authorizer Validation Allowed - Modalita: ", lollipopBlock);
+
+    let entryConfig = null;
+    try {
+        entryConfig = findMicroserviceConfig(event.path);
+    } catch (e) {
+        console.warn(`[handleEvent] findMicroserviceConfig error for path: ${event.path}`, e.message);
+    }
+
+    const effectiveBlock =
+        entryConfig !== null && typeof entryConfig.blocking === 'boolean'
+            ? entryConfig.blocking
+            : String(lollipopBlock).toLowerCase() === 'true';
 
     let commandResult;
     let commandResultName ='';
@@ -54,7 +66,7 @@ async function handleEvent(event) {
 
         commandResult = await validateLollipopAuthorizer(request);
         // ATTENZIONE: IN FASE DI Enforcement, la variabile lollipopBlock deve essere valorizzato a true
-        if (String(lollipopBlock).toLowerCase() === "true") {
+        if (effectiveBlock) {
           if(commandResult.statusCode !== 200){
             console.error(`[handleEvent] - Validazione fallita: ${commandResult.resultCode}. Denying access.`);
             return defaultDenyAllPolicy;
@@ -65,7 +77,7 @@ async function handleEvent(event) {
           }
         }
     } catch (error) {
-        if (String(lollipopBlock).toLowerCase() === "true") {
+        if (effectiveBlock) {
               const resultCode = commandResult?.resultCode ?? 'UNKNOWN';
               console.error(`[handleEvent] - Lollipop Authorizer Validation fallita: ${resultCode}. Denying access.`);
               return defaultDenyAllPolicy;
@@ -84,32 +96,38 @@ async function handleEvent(event) {
             return defaultDenyAllPolicy;
         }
 
-        if (!taxId) {
-            console.error("Header 'x-pagopa-cx-taxid' is missing. Denying access.");
+        if (!userId) {
+            console.error("Header 'x-pagopa-lollipop-user-id' is missing. Denying access.");
             return defaultDenyAllPolicy;
-        } else if (userId && taxId.toUpperCase() !== userId.toUpperCase()) {
-            console.error("Mismatch between taxId and userId.");
-            return defaultDenyAllPolicy;
-        } else {
-            console.info("Match found between taxId and userId");
-            try {
-              const cxId = await getCxId(taxId);
-              console.info("cxId", cxId);
-              // Generate IAM Policy
-              const contextMap = {
-                    resultCode: commandResult.resultCode || '',
-                    name: commandResult.name || '',
-                    familyName: commandResult.familyName || '',
-                    cxId: cxId,
-                    sourceChannelDetails: sourceDetails,
-              };
-              iamPolicy = await generateIAMPolicy(event.methodArn, contextMap );
-              console.log("IAM Policy", JSON.stringify(iamPolicy));
-              return iamPolicy;
-            } catch (err) {
-              console.error("Error generating IAM policy with error ", err);
-              return defaultDenyAllPolicy;
+        } 
+        
+        if (taxId) {
+            console.info("Header 'x-pagopa-cx-taxid' present");
+            if (userId.toUpperCase() !== taxId.toUpperCase()) {
+                console.error("Mismatch between taxId and userId.");
+                return defaultDenyAllPolicy;
+            } else {
+                console.info("Match found between taxId and userId");
             }
+        }
+        
+        try {
+          const cxId = await getCxId(userId);
+          console.info("cxId", cxId);
+          // Generate IAM Policy
+          const contextMap = {
+                resultCode: commandResult.resultCode || '',
+                name: commandResult.name || '',
+                familyName: commandResult.familyName || '',
+                cxId: cxId,
+                sourceChannelDetails: sourceDetails,
+          };
+          iamPolicy = await generateIAMPolicy(event.methodArn, contextMap );
+          console.log("IAM Policy generated", iamPolicy?.policyDocument?.Statement?.[0]?.Effect);
+          return iamPolicy;
+        } catch (err) {
+          console.error("Error generating IAM policy with error ", err);
+          return defaultDenyAllPolicy;
         }
 
     } catch (error) {
