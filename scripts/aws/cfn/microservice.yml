@@ -337,7 +337,7 @@ Parameters:
 
   FimsRedisStateTtl:
     Type: Number
-    Default: 300
+    Default: 60
     Description: 'TTL in seconds for the FIMS state stored in Redis'
 
   FimsLatencyLimit:
