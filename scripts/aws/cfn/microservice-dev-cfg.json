@@ -42,7 +42,7 @@
     "LollipopSecretsKey": "pn-Lollipop-Secrets-Key",
     "EnableFimsApi": "true",
     "FimsBaseURL": "https://oauth.io.pagopa.it",
-    "FimsRedirectUri": "https://cittadini.dev.notifichedigitali.it/fims-token",
+    "FimsRedirectUri": "https://webapi.dev.notifichedigitali.it/fims-token",
     "FimsSecretName": "pn-auth-fleet/fims-credentials"
   }
 }
