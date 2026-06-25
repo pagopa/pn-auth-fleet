@@ -13,12 +13,9 @@ const DEFAULT_TIMEOUT = 2000;
 const RETRY_DELAY = 1000;
 const MAX_RETRIES = 3;
 
-/**
- * Fetches JWKS (JSON Web Key Set) from the OneIdentity OIDC endpoint.
- */
 async function innerGetJwks(): Promise<JWKS> {
-  const oneIdentityBaseUrl = retrieveEnvVariable("ONE_IDENTITY_BASEURL");
-  const jwksEndpoint = `${oneIdentityBaseUrl}/oidc/keys`;
+  const fimsIssuerUrl = retrieveEnvVariable("FIMS_ISSUER_URL");
+  const jwksEndpoint = `${fimsIssuerUrl}/oidc/keys`;
 
   console.info("Fetching JWKS from:", jwksEndpoint);
 

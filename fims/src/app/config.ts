@@ -1,9 +1,11 @@
 export type EnvVariableName =
   | "PN_DATA_VAULT_BASEURL"
   | "FIMS_BASEURL"
+  | "FIMS_ISSUER_URL"
   | "FIMS_REDIRECT_URI"
   | "FIMS_SECRET_NAME"
-  | "FIMS_REDIS_STATE_TTL";
+  | "FIMS_REDIS_STATE_TTL"
+  | "CACHE_TTL";
 
 import { retrieveEnvVariable as retrieve } from "pn-auth-common-ts";
 

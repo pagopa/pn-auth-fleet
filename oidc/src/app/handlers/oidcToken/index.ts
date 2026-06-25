@@ -33,9 +33,9 @@ export const oidcTokenHandler = async (
   const requestBody: RequestEventBody = JSON.parse(event.body!);
   const { code, state } = requestBody;
 
-  await RedisHandler.connectRedis();
   let oidcStateData: OidcStateData | null;
   try {
+    await RedisHandler.connectRedis();
     oidcStateData = await RedisHandler.getJson<OidcStateData>(getOidcStateRedisKey(state));
   } finally {
     await RedisHandler.disconnectRedis();

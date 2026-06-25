@@ -18,3 +18,5 @@ export {
   SPID_FISCAL_NUMBER_PREFIX,
 } from "./String";
 export { type ErrorResponseBody } from "./Responses";
+export { type JWKS, type CachedJwks } from "./Jwks";
+export { initJwksCache, get as getJwksCache, isCacheActive, clearCache as clearJwksCache } from "./JwksCache";
