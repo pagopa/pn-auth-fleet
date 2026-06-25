@@ -4,8 +4,7 @@ import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { generateRedirectResponse } from "../../utils/Responses";
 import { retrieveEnvVariable } from "../../config";
-import { generateRandomUniqueString } from "pn-auth-common-ts";
-import { getAWSSecret } from "pn-auth-common-ts";
+import { generateRandomUniqueString, getAWSSecret } from "pn-auth-common-ts";
 import { getFimsStateRedisKey } from "../../utils/Constants";
 import { auditLog } from "../../utils/AuditLog";
 

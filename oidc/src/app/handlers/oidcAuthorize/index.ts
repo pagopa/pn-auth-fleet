@@ -4,12 +4,10 @@ import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import type { OidcStateData } from "../../models/OidcState";
 import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
 import { retrieveEnvVariable } from "../../config";
-import { generateRandomUniqueString } from "pn-auth-common-ts";
-import { getAWSSecret } from "pn-auth-common-ts";
+import { generateRandomUniqueString, getAWSSecret, ValidationException } from "pn-auth-common-ts";
 import { getOidcStateRedisKey } from "../../utils/Constants";
 import { auditLog } from "../../utils/AuditLog";
 import { validateAar, validateIdp, validateRetrievalId } from "./validation/AuthorizeValidation";
-import { ValidationException } from "pn-auth-common-ts";
 
 export const oidcAuthorizeHandler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
   const request_id = context.awsRequestId;

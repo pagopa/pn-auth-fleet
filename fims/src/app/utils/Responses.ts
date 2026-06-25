@@ -1,5 +1,4 @@
-import { ValidationException } from "pn-auth-common-ts";
-import { ErrorResponseBody } from "pn-auth-common-ts";
+import { ValidationException, type ErrorResponseBody } from "pn-auth-common-ts";
 
 // FIMS responses do NOT include CORS (Access-Control-*) headers: the endpoints
 // are called by native apps, so there is no browser origin to authorize.
