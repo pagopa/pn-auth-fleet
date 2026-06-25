@@ -11,9 +11,6 @@ import { exchangeFimsCode } from "./utils/Fims";
 import { validateFimsIdToken } from "./validation/TokenValidation";
 import { FimsTokenRequestBody } from "../../models/FimsToken";
 
-const fimsIssuerUrl = retrieveEnvVariable("FIMS_ISSUER_URL");
-const fimsSecretName = retrieveEnvVariable("FIMS_SECRET_NAME");
-
 // Module-level variable: persists across warm Lambda invocations, avoiding a Secrets Manager call on every request.
 // On cold start it is undefined and gets populated on the first invocation.
 let cachedFimsCredentials: FimsAwsSecretObject | undefined;
@@ -26,6 +23,9 @@ export const fimsTokenHandler = async (
   context: Context,
 ): Promise<APIGatewayProxyResult> => {
   const request_id = context.awsRequestId;
+
+  const fimsIssuerUrl = retrieveEnvVariable("FIMS_ISSUER_URL");
+  const fimsSecretName = retrieveEnvVariable("FIMS_SECRET_NAME");
 
   try {
     const { code, state, iss } = JSON.parse(event.body!) as FimsTokenRequestBody;

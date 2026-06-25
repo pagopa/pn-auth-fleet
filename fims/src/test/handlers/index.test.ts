@@ -19,6 +19,22 @@ jest.mock("pn-auth-common-ts", () => ({
   }),
 }));
 
+// The fims-token happy path delegates the actual token exchange and id_token
+// verification to these collaborators, which reach out to FIMS over HTTP; they
+// have their own unit tests, so here they are stubbed to exercise routing.
+jest.mock("../../app/handlers/fimsToken/utils/Fims", () => ({
+  exchangeFimsCode: jest.fn().mockResolvedValue({
+    access_token: "fake-access-token",
+    id_token: "fake-id-token",
+    token_type: "Bearer",
+    expires_in: 3600,
+  }),
+}));
+
+jest.mock("../../app/handlers/fimsToken/validation/TokenValidation", () => ({
+  validateFimsIdToken: jest.fn().mockResolvedValue({}),
+}));
+
 import { RedisHandler } from "pn-auth-common";
 import { handler } from "../../app/index";
 import * as AuditLog from "../../app/utils/AuditLog";
@@ -85,13 +101,25 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(1);
   });
 
-  it("should route POST /fims-token and return a 302", async () => {
-    const event = { ...baseEvent, resource: "/fims-token", httpMethod: "POST" };
+  it("should route POST /fims-token and return a 200 with the access token", async () => {
+    (RedisHandler.getJson as jest.Mock).mockResolvedValue({ nonce: "fake-nonce" });
+
+    const event = {
+      ...baseEvent,
+      resource: "/fims-token",
+      httpMethod: "POST",
+      body: JSON.stringify({
+        code: "fake-code",
+        state: "fake-state",
+        iss: "https://oauth.io.pagopa.it",
+      }),
+    };
 
     const result: any = await handler(event, mockContext, () => {});
 
-    expect(result.statusCode).toBe(302);
-    expect(result.headers.Location).toBeDefined();
+    expect(result.statusCode).toBe(200);
+    expect(JSON.parse(result.body).access_token).toBe("fake-access-token");
+    // No CORS header is set for FIMS
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
   });
 

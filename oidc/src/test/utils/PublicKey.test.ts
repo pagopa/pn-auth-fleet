@@ -1,107 +1,47 @@
-import jwkToPem from "jwk-to-pem";
-import { ValidationException } from "pn-auth-common-ts";
-import * as JwksCache from "../../app/handlers/oidcToken/utils/Jwks/JwksCache";
-import { get } from "../../app/handlers/oidcToken/utils/Jwks/JwksCache";
-import { getJwks } from "../../app/handlers/oidcToken/utils/Jwks/JwksRetriever";
+import { getJwksPublicKey } from "pn-auth-common-ts";
 import { getPublicKey } from "../../app/handlers/oidcToken/utils/PublicKey";
-import {
-    jwksKid,
-    mockCacheJwksResponse,
-    mockJwksResponse,
-} from "../__mock__/jwks.mock";
+import { setupEnv } from "../test.utils";
 
-jest.mock("../../app/handlers/oidcToken/utils/Jwks/JwksCache");
-jest.mock("../../app/handlers/oidcToken/utils/Jwks/JwksRetriever");
-jest.mock("jwk-to-pem");
+jest.mock("aws-xray-sdk-core", () => ({
+  captureHTTPsGlobal: jest.fn(),
+}));
 
-const mockGet = get as jest.MockedFunction<typeof get>;
-const mockGetJwks = getJwks as jest.MockedFunction<typeof getJwks>;
-const mockJwkToPem = jwkToPem as jest.MockedFunction<typeof jwkToPem>;
+jest.mock("pn-auth-common-ts", () => ({
+  __esModule: true,
+  ...jest.requireActual("pn-auth-common-ts"),
+  getJwksPublicKey: jest.fn(),
+}));
+
+const mockGetJwksPublicKey = getJwksPublicKey as jest.MockedFunction<
+  typeof getJwksPublicKey
+>;
 
 describe("getPublicKey", () => {
-  const testIssuer = "https://test-issuer.com";
-  const mockPemKey = "mocked-pem-key";
+  const issuer = "https://uat.oneid.pagopa.it";
+  const kid = "ce617dc9-83a9-4a4e-b060-2cdf9575f05a";
+  const pemKey = "mocked-pem-key";
 
   beforeEach(() => {
+    setupEnv();
     jest.clearAllMocks();
-    mockJwkToPem.mockReturnValue(mockPemKey);
   });
 
-  describe("with cache active", () => {
-    beforeEach(() => {
-      Object.defineProperty(JwksCache, "isCacheActive", {
-        value: true,
-      });
-    });
+  it("composes the JWKS URL from ONE_IDENTITY_BASEURL and delegates", async () => {
+    mockGetJwksPublicKey.mockResolvedValue(pemKey);
 
-    it("should retrieve public key from cache successfully", async () => {
-      mockGet.mockResolvedValue(mockCacheJwksResponse);
+    const result = await getPublicKey(issuer, kid);
 
-      const result = await getPublicKey(testIssuer, jwksKid);
-
-      expect(result).toEqual(mockPemKey);
-      expect(mockGet).toHaveBeenCalledWith(testIssuer);
-      expect(mockJwkToPem).toHaveBeenCalledWith(mockJwksResponse.keys[0]);
-      expect(mockGetJwks).not.toHaveBeenCalled();
-    });
-
-    it("should throw ValidationException when key not found in cache", async () => {
-      mockGet.mockResolvedValue(undefined);
-
-      await expect(getPublicKey(testIssuer, jwksKid)).rejects.toThrow(
-        new ValidationException("Public key not found in cache"),
-      );
-    });
-
-    it("should throw ValidationException when key with specified kid not found in cache", async () => {
-      mockGet.mockResolvedValue(mockCacheJwksResponse);
-
-      await expect(
-        getPublicKey(testIssuer, "non-existent-kid"),
-      ).rejects.toThrow(
-        new ValidationException(
-          "Public key with kid non-existent-kid not found in JWKS",
-        ),
-      );
-    });
+    expect(result).toEqual(pemKey);
+    expect(mockGetJwksPublicKey).toHaveBeenCalledWith(
+      "https://uat.oneid.pagopa.it/oidc/keys",
+      issuer,
+      kid,
+    );
   });
 
-  describe("without cache", () => {
-    beforeEach(() => {
-      Object.defineProperty(JwksCache, "isCacheActive", {
-        value: false,
-      });
-    });
+  it("propagates errors from getJwksPublicKey", async () => {
+    mockGetJwksPublicKey.mockRejectedValue(new Error("boom"));
 
-    it("should retrieve public key without cache successfully", async () => {
-      mockGetJwks.mockResolvedValue(mockJwksResponse);
-
-      const result = await getPublicKey(testIssuer, jwksKid);
-
-      expect(result).toEqual(mockPemKey);
-      expect(mockGetJwks).toHaveBeenCalled();
-      expect(mockJwkToPem).toHaveBeenCalledWith(mockJwksResponse.keys[0]);
-      expect(mockGet).not.toHaveBeenCalled();
-    });
-
-    it("should throw ValidationException when JWKS has no keys", async () => {
-      mockGetJwks.mockResolvedValue({ keys: [] });
-
-      await expect(getPublicKey(testIssuer, jwksKid)).rejects.toThrow(
-        new ValidationException("No keys found in JWKS"),
-      );
-    });
-
-    it("should throw ValidationException when key with specified kid not found in JWKS", async () => {
-      mockGetJwks.mockResolvedValue(mockJwksResponse);
-
-      await expect(
-        getPublicKey(testIssuer, "non-existent-kid"),
-      ).rejects.toThrow(
-        new ValidationException(
-          "Public key with kid non-existent-kid not found in JWKS",
-        ),
-      );
-    });
+    await expect(getPublicKey(issuer, kid)).rejects.toThrow("boom");
   });
 });

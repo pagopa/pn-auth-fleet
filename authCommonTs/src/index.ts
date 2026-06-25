@@ -3,12 +3,7 @@ export { ValidationException } from "./ValidationException";
 export { retryWithDelay } from "./Retry";
 export { retrieveEnvVariable } from "./Env";
 export { getAWSSecret, getAWSParameterStore } from "./AwsParameters";
-export {
-  createAuditLogger,
-  AUD_TYPE,
-  type AuditLogStatus,
-  type AuditLogProps,
-} from "./AuditLog";
+export { createAuditLogger, AUD_TYPE, type AuditLogStatus, type AuditLogProps } from "./AuditLog";
 export {
   makeLower,
   maskString,
@@ -19,4 +14,4 @@ export {
 } from "./String";
 export { type ErrorResponseBody } from "./Responses";
 export { type JWKS, type CachedJwks } from "./Jwks";
-export { initJwksCache, get as getJwksCache, isCacheActive, clearCache as clearJwksCache } from "./JwksCache";
+export { getJwksPublicKey, clearJwksCache } from "./JwksCache";
