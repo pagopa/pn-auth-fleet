@@ -3,5 +3,6 @@ import { retrieveEnvVariable } from "../../../config";
 
 export async function getPublicKey(issuer: string, kid: string) {
   const jwksUrl = `${retrieveEnvVariable("ONE_IDENTITY_BASEURL")}/oidc/keys`;
-  return getJwksPublicKey(jwksUrl, issuer, kid);
+  const cacheTTL = Number(retrieveEnvVariable("CACHE_TTL", "300"));
+  return getJwksPublicKey({ jwksUrl, issuer, kid, cacheTTL });
 }

@@ -32,11 +32,12 @@ describe("getPublicKey", () => {
     const result = await getPublicKey(issuer, kid);
 
     expect(result).toEqual(pemKey);
-    expect(mockGetJwksPublicKey).toHaveBeenCalledWith(
-      "https://uat.oneid.pagopa.it/oidc/keys",
+    expect(mockGetJwksPublicKey).toHaveBeenCalledWith({
+      jwksUrl: "https://uat.oneid.pagopa.it/oidc/keys",
       issuer,
       kid,
-    );
+      cacheTTL: 3600,
+    });
   });
 
   it("propagates errors from getJwksPublicKey", async () => {

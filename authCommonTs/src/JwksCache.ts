@@ -5,7 +5,6 @@ import axios from "axios";
 import jwkToPem from "jwk-to-pem";
 
 import { CachedJwks, JWKS } from "./Jwks";
-import { retrieveEnvVariable } from "./Env";
 import { retryWithDelay } from "./Retry";
 import { ValidationException } from "./ValidationException";
 
@@ -15,24 +14,37 @@ AWSXRay.captureHTTPsGlobal(https);
 const DEFAULT_TIMEOUT = 2000;
 const RETRY_DELAY = 1000;
 const MAX_RETRIES = 3;
+const TWO_HOURS_IN_MILLISECONDS = 7200000;
 
 const cachedJwks = new Map<string, CachedJwks>();
-const TWO_HOURS_IN_MILLISECONDS = 7200000;
-const TTL = Number(retrieveEnvVariable("CACHE_TTL", "300"));
 
-const isCacheActive = TTL != 0;
+type GetJwksPublicKeyProps = {
+  /** Full URL of the JWKS endpoint to fetch from */
+  jwksUrl: string;
+  /** Issuer the JWKS belongs to, used as cache key */
+  issuer: string;
+  /** Key id of the JWK to resolve */
+  kid: string;
+  /** Cache TTL in seconds, provided by the caller (0 disables caching) */
+  cacheTTL: number;
+};
 
 /**
  * Resolves the PEM public key for the given `kid` from the JWKS published at
- * `jwksUrl`. Results are cached per `issuer` for `CACHE_TTL` seconds; if a
- * refresh fails, a stale value is served for up to two hours.
- *
- * @param jwksUrl - Full URL of the JWKS endpoint to fetch from
- * @param issuer - Issuer the JWKS belongs to, used as cache key
- * @param kid - Key id of the JWK to resolve
+ * `jwksUrl`. Results are cached per `issuer` for `cacheTTL` seconds (pass 0 to
+ * disable caching); if a refresh fails, a stale value is served for up to two
+ * hours.
  */
-export async function getJwksPublicKey(jwksUrl: string, issuer: string, kid: string): Promise<string> {
-  const jwks = isCacheActive ? await getFromCache(issuer, jwksUrl) : await getJwks(jwksUrl);
+export async function getJwksPublicKey({
+  jwksUrl,
+  issuer,
+  kid,
+  cacheTTL,
+}: GetJwksPublicKeyProps): Promise<string> {
+  const jwks =
+    cacheTTL > 0
+      ? await getFromCache(issuer, jwksUrl, cacheTTL)
+      : await getJwks(jwksUrl);
 
   if (!jwks) {
     throw new ValidationException("Public key not found in cache");
@@ -59,9 +71,13 @@ async function getJwks(jwksUrl: string): Promise<JWKS> {
   return retryWithDelay<JWKS>(() => innerGetJwks(jwksUrl), RETRY_DELAY, MAX_RETRIES);
 }
 
-async function getFromCache(issuer: string, jwksUrl: string): Promise<JWKS | undefined> {
+async function getFromCache(
+  issuer: string,
+  jwksUrl: string,
+  cacheTTL: number,
+): Promise<JWKS | undefined> {
   if (isCacheEmpty(issuer) || isCacheExpired(issuer)) {
-    await refreshCache(issuer, jwksUrl);
+    await refreshCache(issuer, jwksUrl, cacheTTL);
   }
   return cachedJwks.get(issuer);
 }
@@ -73,21 +89,21 @@ const isCacheExpired = (issuer: string) => {
   return !!jwks && jwks.expiresOn < Date.now();
 };
 
-const refreshCache = async (issuer: string, jwksUrl: string) => {
+const refreshCache = async (issuer: string, jwksUrl: string, cacheTTL: number) => {
   console.debug(`Starting refresh cache for issuer : ${issuer}`);
   try {
     const jwks = await getJwks(jwksUrl);
-    setCachedData(jwks, issuer);
+    setCachedData(jwks, issuer, cacheTTL);
   } catch (error) {
     handleCacheRefreshFail(error, issuer);
   }
 };
 
-const setCachedData = (jwks: JWKS, issuer: string) => {
+const setCachedData = (jwks: JWKS, issuer: string, cacheTTL: number) => {
   const now = Date.now();
 
   cachedJwks.set(issuer, {
-    expiresOn: now + TTL * 1000,
+    expiresOn: now + cacheTTL * 1000,
     keys: jwks.keys,
     lastUpdate: now,
   });

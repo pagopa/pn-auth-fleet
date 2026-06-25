@@ -1,6 +1,7 @@
 import axios from "axios";
 import jwkToPem from "jwk-to-pem";
 import { ValidationException } from "../ValidationException";
+import { getJwksPublicKey, clearJwksCache } from "../JwksCache";
 import { mockJwksResponse, jwksKid } from "./__mock__/jwks.mock";
 
 jest.mock("aws-xray-sdk-core", () => ({
@@ -23,14 +24,14 @@ const jwksUrl = "https://uat.oneid.pagopa.it/oidc/keys";
 const issuer = "uat.oneid.pagopa.it";
 const pemKey = "mocked-pem-key";
 
-// Cache is active by default (CACHE_TTL defaults to 300).
-const TTL_MS = 300 * 1000;
+const CACHE_TTL = 300;
+const TTL_MS = CACHE_TTL * 1000;
 const SIX_MINUTES_IN_MS = 360000;
 
-describe("getJwksPublicKey (cache active)", () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { getJwksPublicKey, clearJwksCache } = require("../JwksCache");
+const getKey = (kid: string, cacheTTL = CACHE_TTL) =>
+  getJwksPublicKey({ jwksUrl, issuer, kid, cacheTTL });
 
+describe("getJwksPublicKey (cache active)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearJwksCache();
@@ -45,31 +46,29 @@ describe("getJwksPublicKey (cache active)", () => {
   it("fetches, converts to PEM and caches on first call", async () => {
     mockedAxios.get.mockResolvedValue({ data: mockJwksResponse });
 
-    const result = await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    const result = await getKey(jwksKid);
 
     expect(result).toEqual(pemKey);
     expect(mockedAxios.get).toHaveBeenCalledWith(jwksUrl, { timeout: 2000 });
     expect(mockedJwkToPem).toHaveBeenCalledWith(mockJwksResponse.keys[0]);
 
     // Second call within TTL is served from cache (no extra fetch).
-    await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    await getKey(jwksKid);
     expect(mockedAxios.get).toHaveBeenCalledTimes(1);
   });
 
   it("throws when the fetch fails and the cache is empty", async () => {
     mockedAxios.get.mockRejectedValue(new Error("Internal Server Error"));
 
-    await expect(getJwksPublicKey(jwksUrl, issuer, jwksKid)).rejects.toThrow(
-      "Error in get pub key",
-    );
+    await expect(getKey(jwksKid)).rejects.toThrow("Error in get pub key");
   });
 
   it("refreshes the cache once the entry has expired", async () => {
     mockedAxios.get.mockResolvedValue({ data: mockJwksResponse });
 
-    await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    await getKey(jwksKid);
     jest.advanceTimersByTime(TTL_MS + SIX_MINUTES_IN_MS);
-    await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    await getKey(jwksKid);
 
     expect(mockedAxios.get).toHaveBeenCalledTimes(2);
   });
@@ -79,10 +78,10 @@ describe("getJwksPublicKey (cache active)", () => {
       .mockResolvedValueOnce({ data: mockJwksResponse })
       .mockRejectedValueOnce(new Error("Failed to refresh"));
 
-    await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    await getKey(jwksKid);
     jest.advanceTimersByTime(TTL_MS + SIX_MINUTES_IN_MS);
 
-    const result = await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    const result = await getKey(jwksKid);
 
     expect(result).toEqual(pemKey);
     expect(mockedAxios.get).toHaveBeenCalledTimes(2);
@@ -94,10 +93,10 @@ describe("getJwksPublicKey (cache active)", () => {
       .mockResolvedValueOnce({ data: mockJwksResponse })
       .mockRejectedValueOnce(new Error("Failed to refresh"));
 
-    await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    await getKey(jwksKid);
     jest.advanceTimersByTime(7200000 + TTL_MS + 1000);
 
-    const result = await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    const result = await getKey(jwksKid);
 
     expect(result).toEqual(pemKey);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -109,9 +108,7 @@ describe("getJwksPublicKey (cache active)", () => {
   it("throws ValidationException when the kid is not found", async () => {
     mockedAxios.get.mockResolvedValue({ data: mockJwksResponse });
 
-    await expect(
-      getJwksPublicKey(jwksUrl, issuer, "non-existent-kid"),
-    ).rejects.toThrow(
+    await expect(getKey("non-existent-kid")).rejects.toThrow(
       new ValidationException(
         "Public key with kid non-existent-kid not found in JWKS",
       ),
@@ -121,7 +118,7 @@ describe("getJwksPublicKey (cache active)", () => {
   it("throws ValidationException when the JWKS has no keys", async () => {
     mockedAxios.get.mockResolvedValue({ data: { keys: [] } });
 
-    await expect(getJwksPublicKey(jwksUrl, issuer, jwksKid)).rejects.toThrow(
+    await expect(getKey(jwksKid)).rejects.toThrow(
       new ValidationException("No keys found in JWKS"),
     );
   });
@@ -129,43 +126,26 @@ describe("getJwksPublicKey (cache active)", () => {
   it("re-fetches after the cache is cleared", async () => {
     mockedAxios.get.mockResolvedValue({ data: mockJwksResponse });
 
-    await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    await getKey(jwksKid);
     clearJwksCache();
-    await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    await getKey(jwksKid);
 
     expect(mockedAxios.get).toHaveBeenCalledTimes(2);
   });
 });
 
-describe("getJwksPublicKey (cache disabled)", () => {
-  let getJwksPublicKey: (
-    jwksUrl: string,
-    issuer: string,
-    kid: string,
-  ) => Promise<string>;
-
-  beforeAll(() => {
-    jest.isolateModules(() => {
-      process.env.CACHE_TTL = "0";
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      getJwksPublicKey = require("../JwksCache").getJwksPublicKey;
-    });
-  });
-
-  afterAll(() => {
-    delete process.env.CACHE_TTL;
-  });
-
+describe("getJwksPublicKey (cache disabled with cacheTTL = 0)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearJwksCache();
     mockedJwkToPem.mockReturnValue(pemKey);
   });
 
   it("fetches on every call without caching", async () => {
     mockedAxios.get.mockResolvedValue({ data: mockJwksResponse });
 
-    await getJwksPublicKey(jwksUrl, issuer, jwksKid);
-    await getJwksPublicKey(jwksUrl, issuer, jwksKid);
+    await getKey(jwksKid, 0);
+    await getKey(jwksKid, 0);
 
     expect(mockedAxios.get).toHaveBeenCalledTimes(2);
   });
