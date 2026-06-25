@@ -1,5 +1,6 @@
 import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { randomUUID } from "node:crypto";
+
 export const SPID_FISCAL_NUMBER_PREFIX = "TINIT-";
 
 /**
@@ -47,7 +48,6 @@ export function removeFiscalNumberPrefix(fiscalNumber: string): string {
 }
 
 /** UUID for state */
-
 export const generateRandomUniqueString = (): string => randomUUID();
 
 const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;

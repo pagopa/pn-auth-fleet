@@ -1,4 +1,4 @@
-import { ValidationException } from "../../app/exception/validationException";
+import { ValidationException } from "pn-auth-common-ts";
 import { generateTokenExchangeResponse } from "../../app/handlers/oidcToken/utils/Responses";
 import * as TokenGenerator from "../../app/handlers/oidcToken/utils/TokenGenerator";
 import { generateKoResponse, generateOkResponse, generateRedirectResponse } from "../../app/utils/Responses";

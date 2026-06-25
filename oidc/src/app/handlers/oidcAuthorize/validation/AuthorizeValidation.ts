@@ -1,4 +1,4 @@
-import { ValidationException } from "../../../exception/validationException";
+import { ValidationException } from "pn-auth-common-ts";
 
 const AAR_PATTERN = /^[A-Za-z0-9_-]*$/;
 const RETRIEVAL_ID_PATTERN = /^[ -~]{1,50}$/;

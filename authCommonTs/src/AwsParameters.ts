@@ -1,6 +1,6 @@
 import axios from "axios";
-import { retryWithDelay } from "../../../utils/Retry";
-import { retrieveEnvVariable } from "../../../config";
+import { retryWithDelay } from "./Retry";
+import { retrieveEnvVariable } from "./Env";
 
 const RETRY_DELAY_MS = 1000;
 const MAX_RETRIES = 3;
@@ -8,7 +8,7 @@ const MAX_RETRIES = 3;
 type ParameterType = "parameter" | "secret";
 
 /**
- * Retrieves an AWS Parameter Store parameter with retries
+ * Retrieves an AWS Parameter Store parameter with retries.
  *
  * @param parameterName - The name of the parameter to fetch
  */
@@ -23,12 +23,10 @@ export async function getAWSParameterStore(
 }
 
 /**
- * Retrieves an AWS Secrets Manager secret with retries
- * Expects the secret to contain key/value pairs in JSON format
+ * Retrieves an AWS Secrets Manager secret with retries.
+ * Expects the secret to contain key/value pairs in JSON format.
  *
  * @param secretName - The name of the secret to fetch
- * @param key - The key to retrieve from the secret
- * @returns The value for the specified key as a string
  */
 export async function getAWSSecret<T extends Record<string, string>>(
   secretName: string
@@ -50,7 +48,7 @@ export async function getAWSSecret<T extends Record<string, string>>(
   }
 }
 
-// Fetches a parameter or secret from AWS Parameter Store or Secrets Manager
+// Fetches a parameter or secret via the AWS Parameters and Secrets Lambda Extension.
 const fetchAwsParameter = async (
   name: string,
   type: ParameterType
@@ -64,16 +62,18 @@ const fetchAwsParameter = async (
 
   const url = `http://localhost:2773/${endpoint}`;
 
-  const response = await axios.get(url, {
-    headers: { "X-Aws-Parameters-Secrets-Token": sessionToken },
-  }).catch((err: any) => {
-    if (err?.response) {
-      throw new Error(
-        `Failed to fetch ${isSecret ? "secret" : "parameter"} "${name}": ${err.response.status} ${err.response.statusText}`
-      );
-    }
-    throw err;
-  });
+  const response = await axios
+    .get(url, {
+      headers: { "X-Aws-Parameters-Secrets-Token": sessionToken },
+    })
+    .catch((err: any) => {
+      if (err?.response) {
+        throw new Error(
+          `Failed to fetch ${isSecret ? "secret" : "parameter"} "${name}": ${err.response.status} ${err.response.statusText}`
+        );
+      }
+      throw err;
+    });
 
   const data = response.data;
 

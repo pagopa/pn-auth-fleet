@@ -1,8 +1,5 @@
-import {
-  makeLower,
-  maskString,
-  removeFiscalNumberPrefix,
-} from "../../app/utils/String";
+import { makeLower, maskString, removeFiscalNumberPrefix, isValidUUID } from "../String";
+
 describe("String utils Tests", () => {
   describe("makeLower", () => {
     it("makes keys of an object lowercase", () => {
@@ -41,15 +38,21 @@ describe("String utils Tests", () => {
 
   describe("removeFiscalNumberPrefix", () => {
     it("should remove the fiscal number international prefix if present", () => {
-      const fiscalNumberWithPrefix = "TINIT-12345678901";
-      const sanitized = removeFiscalNumberPrefix(fiscalNumberWithPrefix);
-      expect(sanitized).toBe("12345678901");
+      expect(removeFiscalNumberPrefix("TINIT-12345678901")).toBe("12345678901");
     });
 
     it("should return the fiscal number unchanged if no prefix is present", () => {
-      const fiscalNumberWithoutPrefix = "12345678901";
-      const sanitized = removeFiscalNumberPrefix(fiscalNumberWithoutPrefix);
-      expect(sanitized).toBe("12345678901");
+      expect(removeFiscalNumberPrefix("12345678901")).toBe("12345678901");
+    });
+  });
+
+  describe("isValidUUID", () => {
+    it("should accept a valid UUID v4", () => {
+      expect(isValidUUID("9f1a8b3c-4d5e-4f6a-8b9c-0d1e2f3a4b5c")).toBe(true);
+    });
+
+    it("should reject a non-UUID string", () => {
+      expect(isValidUUID("not-a-uuid")).toBe(false);
     });
   });
 });

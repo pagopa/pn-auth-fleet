@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
-import { ValidationException } from "../../exception/validationException";
+import { ValidationException, getAWSSecret } from "pn-auth-common-ts";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import type { OidcStateData } from "../../models/OidcState";
 import { auditLog } from "../../utils/AuditLog";
@@ -9,7 +9,6 @@ import { retrieveEnvVariable } from "../../config";
 import { getOidcStateRedisKey } from "../../utils/Constants";
 import { RequestEventBody } from "./models/Event";
 import { TokenExchangeResponse } from "./models/Token";
-import { getAWSSecret } from "./utils/AwsParameters";
 import { exchangeOneIdentityCode } from "./utils/OneIdentity";
 import { generateTokenExchangeResponse } from "./utils/Responses";
 import { generateSourceObject } from "./utils/TokenGenerator";

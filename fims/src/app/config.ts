@@ -1,0 +1,14 @@
+export type EnvVariableName =
+  | "PN_DATA_VAULT_BASEURL"
+  | "FIMS_BASEURL"
+  | "FIMS_REDIRECT_URI"
+  | "FIMS_SECRET_NAME"
+  | "FIMS_REDIS_STATE_TTL";
+
+import { retrieveEnvVariable as retrieve } from "pn-auth-common-ts";
+
+// Thin typed wrapper around the shared helper, keeping the FIMS env var union
+// for call-site type-safety.
+export function retrieveEnvVariable(name: EnvVariableName, defaultValue?: string): string {
+  return retrieve(name, defaultValue);
+}

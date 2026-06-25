@@ -1,5 +1,5 @@
 import jwkToPem from "jwk-to-pem";
-import { ValidationException } from "../../../exception/validationException";
+import { ValidationException } from "pn-auth-common-ts";
 import { JWKS } from "../models/Jwks";
 import { get, isCacheActive } from "./Jwks/JwksCache";
 import { getJwks } from "./Jwks/JwksRetriever";
