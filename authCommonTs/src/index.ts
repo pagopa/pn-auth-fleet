@@ -1,3 +1,4 @@
+/// <reference path="./pn-auth-common.d.ts" />
 export { ValidationException } from "./ValidationException";
 export { retryWithDelay } from "./Retry";
 export { retrieveEnvVariable } from "./Env";
