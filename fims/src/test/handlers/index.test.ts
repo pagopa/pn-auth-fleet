@@ -83,25 +83,19 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(location.searchParams.get("client_id")).toBe("fake-client-id");
     expect(location.searchParams.get("response_type")).toBe("code");
     expect(location.searchParams.get("scope")).toBe("openid profile lollipop");
-    expect(location.searchParams.get("redirect_uri")).toBe(
-      "https://webapi.dev.notifichedigitali.it/fims-token",
-    );
+    expect(location.searchParams.get("redirect_uri")).toBe("https://webapi.dev.notifichedigitali.it/fims-token");
     const state = location.searchParams.get("state") ?? "";
     const nonce = location.searchParams.get("nonce") ?? "";
     expect(state).toBeTruthy();
     expect(nonce).toBeTruthy();
 
     // state/nonce are persisted in Redis with a TTL
-    expect(RedisHandler.setJson).toHaveBeenCalledWith(
-      getFimsStateRedisKey(state),
-      { nonce },
-      { EX: 300 },
-    );
+    expect(RedisHandler.setJson).toHaveBeenCalledWith(getFimsStateRedisKey(state), { nonce }, { EX: 300 });
     expect(RedisHandler.connectRedis).toHaveBeenCalledTimes(1);
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(1);
   });
 
-  it("should route POST /fims-token and return a 200 with the access token", async () => {
+  it("should route POST /fims-token and return a 302", async () => {
     (RedisHandler.getJson as jest.Mock).mockResolvedValue({ nonce: "fake-nonce" });
 
     const event = {
@@ -117,8 +111,8 @@ describe("Main handler - routing (no origin validation)", () => {
 
     const result: any = await handler(event, mockContext, () => {});
 
-    expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body).access_token).toBe("fake-access-token");
+    expect(result.statusCode).toBe(302);
+    expect(result.headers.Location).toBeDefined();
     // No CORS header is set for FIMS
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
   });
@@ -134,8 +128,6 @@ describe("Main handler - routing (no origin validation)", () => {
   it("should throw on an unsupported resource", async () => {
     const event = { ...baseEvent, resource: "/unknown" };
 
-    await expect(handler(event, mockContext, () => {})).rejects.toThrow(
-      "Unsupported resource: /unknown",
-    );
+    await expect(handler(event, mockContext, () => {})).rejects.toThrow("Unsupported resource: /unknown");
   });
 });

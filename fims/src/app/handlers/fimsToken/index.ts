@@ -5,11 +5,11 @@ import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { retrieveEnvVariable } from "../../config";
 import { getFimsStateRedisKey } from "../../utils/Constants";
-import { generateKoResponse } from "../../utils/Responses";
-import { auditLog } from "../../utils/AuditLog";
+import { generateKoResponse, generateRedirectResponse } from "../../utils/Responses";
 import { exchangeFimsCode } from "./utils/Fims";
 import { validateFimsIdToken } from "./validation/TokenValidation";
 import { FimsTokenRequestBody } from "../../models/FimsToken";
+import { auditLog } from "../../utils/AuditLog";
 
 // Module-level variable: persists across warm Lambda invocations, avoiding a Secrets Manager call on every request.
 // On cold start it is undefined and gets populated on the first invocation.
@@ -18,6 +18,8 @@ export const clearCredentialsCache = () => {
   cachedFimsCredentials = undefined;
 };
 
+// TODO: implement the real FIMS token flow (read Redis, call data-vault, issue JWT).
+// For now it only returns a 302.
 export const fimsTokenHandler = async (
   event: APIGatewayProxyEvent,
   context: Context,
@@ -72,12 +74,7 @@ export const fimsTokenHandler = async (
     // TODO: call UserInfo endpoint
     // TODO: checkAssertion + checkLollipop
 
-    return {
-      statusCode: 200,
-      headers: { "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload" },
-      body: JSON.stringify({ access_token: tokens.access_token }),
-      isBase64Encoded: false,
-    };
+    return generateRedirectResponse("/");
   } catch (err) {
     auditLog({ message: `fims-token error: ${(err as Error).message}`, status: "KO", request_id }).error("error");
     return generateKoResponse(err as Error);
