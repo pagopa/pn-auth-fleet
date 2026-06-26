@@ -53,8 +53,8 @@ describe("Main handler - routing (no origin validation)", () => {
     auditLogSpy.mockRestore();
   });
 
-  it("should route GET /fims-authorize and return a 302 to the OAuth provider", async () => {
-    const event = { ...baseEvent, resource: "/fims-authorize", httpMethod: "GET" };
+  it("should route GET /authorize and return a 302 to the OAuth provider", async () => {
+    const event = { ...baseEvent, resource: "/authorize", httpMethod: "GET" };
 
     const result: any = await handler(event, mockContext, () => {});
 
@@ -68,7 +68,7 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(location.searchParams.get("response_type")).toBe("code");
     expect(location.searchParams.get("scope")).toBe("openid profile lollipop");
     expect(location.searchParams.get("redirect_uri")).toBe(
-      "https://webapi.dev.notifichedigitali.it/fims-token",
+      "https://webapi.dev.notifichedigitali.it/fims/token",
     );
     const state = location.searchParams.get("state") ?? "";
     const nonce = location.searchParams.get("nonce") ?? "";
@@ -85,8 +85,8 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(1);
   });
 
-  it("should route POST /fims-token and return a 302", async () => {
-    const event = { ...baseEvent, resource: "/fims-token", httpMethod: "POST" };
+  it("should route POST /token and return a 302", async () => {
+    const event = { ...baseEvent, resource: "/token", httpMethod: "POST" };
 
     const result: any = await handler(event, mockContext, () => {});
 
@@ -96,7 +96,7 @@ describe("Main handler - routing (no origin validation)", () => {
   });
 
   it("should not require an Origin header", async () => {
-    const event = { ...baseEvent, resource: "/fims-authorize", httpMethod: "GET", headers: {} };
+    const event = { ...baseEvent, resource: "/authorize", httpMethod: "GET", headers: {} };
 
     const result: any = await handler(event, mockContext, () => {});
 
