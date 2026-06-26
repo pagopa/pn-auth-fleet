@@ -2415,6 +2415,7 @@ Resources:
 
   FimsApiWaf:
     Condition: EnableFimsApi
+    DependsOn: OidcApiWaf # serializza il WAF dopo OIDC: associazioni WebACL concorrenti possono fallire (WAFUnavailableEntityException/timeout). DependsOn su risorsa con Condition false viene ignorato.
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
