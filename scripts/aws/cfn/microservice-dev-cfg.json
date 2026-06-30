@@ -43,6 +43,7 @@
     "EnableFimsApi": "true",
     "FimsBaseURL": "https://oauth.io.pagopa.it",
     "FimsRedirectUri": "https://webapi.dev.notifichedigitali.it/fims/token",
+    "FimsFrontendBaseUrl": "https://cittadini.dev.notifichedigitali.it",
     "FimsSecretName": "pn-auth-fleet/fims-credentials"
   }
 }

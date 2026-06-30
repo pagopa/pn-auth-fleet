@@ -35,6 +35,16 @@ jest.mock("../../app/handlers/fimsToken/validation/TokenValidation", () => ({
   validateFimsIdToken: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock("../../app/handlers/fimsToken/utils/UserInfo", () => ({
+  getFimsUserInfo: jest.fn().mockResolvedValue({
+    sub: "AAAAAA00A00A000A",
+    fiscal_code: "AAAAAA00A00A000A",
+    public_key: "fake-public-key",
+    assertion_ref: "sha256-fake",
+    assertion: "<fake-saml-assertion/>",
+  }),
+}));
+
 import { RedisHandler } from "pn-auth-common";
 import { handler } from "../../app/index";
 import * as AuditLog from "../../app/utils/AuditLog";
@@ -97,7 +107,7 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(1);
   });
 
-  it("should route POST /fims-token and return a 302", async () => {
+  it("should route POST /fims-token and redirect to the frontend with the token in the fragment", async () => {
     (RedisHandler.getJson as jest.Mock).mockResolvedValue({ nonce: "fake-nonce" });
 
     const event = {
@@ -114,7 +124,9 @@ describe("Main handler - routing (no origin validation)", () => {
     const result: any = await handler(event, mockContext, () => {});
 
     expect(result.statusCode).toBe(302);
-    expect(result.headers.Location).toBeDefined();
+    expect(result.headers.Location).toBe(
+      "https://cittadini.dev.notifichedigitali.it#token=fake-access-token",
+    );
     // No CORS header is set for FIMS
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
   });

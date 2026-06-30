@@ -7,6 +7,7 @@ import { retrieveEnvVariable } from "../../config";
 import { getFimsStateRedisKey } from "../../utils/Constants";
 import { generateKoResponse, generateRedirectResponse } from "../../utils/Responses";
 import { exchangeFimsCode } from "./utils/Fims";
+import { getFimsUserInfo } from "./utils/UserInfo";
 import { validateFimsIdToken } from "./validation/TokenValidation";
 import { FimsTokenRequestBody } from "../../models/FimsToken";
 import { auditLog } from "../../utils/AuditLog";
@@ -18,8 +19,6 @@ export const clearCredentialsCache = () => {
   cachedFimsCredentials = undefined;
 };
 
-// TODO: implement the real FIMS token flow (read Redis, call data-vault, issue JWT).
-// For now it only returns a 302.
 export const fimsTokenHandler = async (
   event: APIGatewayProxyEvent,
   context: Context,
@@ -64,17 +63,22 @@ export const fimsTokenHandler = async (
       fimsClientId: cachedFimsCredentials.fimsClientId,
     });
 
+    // 5. Fetch the citizen's claims (assertion, public_key, assertion_ref, fiscal_code, ...)
+    const userInfo = await getFimsUserInfo({ accessToken: tokens.access_token });
+    console.debug("FIMS user info received", { assertionRef: userInfo.assertion_ref });
+
     auditLog({
-      message: "Token exchange successful",
+      message: "Token exchange and user info retrieval successful",
       status: "OK",
       jti: state,
       request_id,
     }).info("info");
 
-    // TODO: call UserInfo endpoint
-    // TODO: checkAssertion + checkLollipop
+    // TODO (parked): verify Lollipop (checks 1-6 via lollipopAuthorizer) + check 7 (nonce == state) using userInfo
 
-    return generateRedirectResponse("/");
+    // 6. Redirect the frontend to the access token via the URL fragment.
+    const frontendBaseUrl = retrieveEnvVariable("FIMS_FRONTEND_BASEURL");
+    return generateRedirectResponse(`${frontendBaseUrl}#token=${tokens.access_token}`);
   } catch (err) {
     auditLog({ message: `fims-token error: ${(err as Error).message}`, status: "KO", request_id }).error("error");
     return generateKoResponse(err as Error);

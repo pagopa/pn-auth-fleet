@@ -3,6 +3,7 @@ export type EnvVariableName =
   | "FIMS_BASEURL"
   | "FIMS_ISSUER_URL"
   | "FIMS_REDIRECT_URI"
+  | "FIMS_FRONTEND_BASEURL"
   | "FIMS_SECRET_NAME"
   | "FIMS_REDIS_STATE_TTL"
   | "CACHE_TTL";
