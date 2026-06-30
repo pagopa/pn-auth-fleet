@@ -13,10 +13,10 @@ export const handler: APIGatewayProxyHandler = async (event, context) => {
   auditLog({ request_id }).info("info");
 
   const resource = event.resource;
-  if (resource === "/fims-authorize") {
+  if (resource === "/authorize") {
     return fimsAuthorizeHandler(event, context);
   }
-  if (resource === "/fims-token") {
+  if (resource === "/token") {
     return fimsTokenHandler(event, context);
   }
 

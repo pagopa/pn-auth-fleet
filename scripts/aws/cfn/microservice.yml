@@ -329,7 +329,7 @@ Parameters:
 
   FimsRedirectUri:
     Type: String
-    Description: 'Redirect URI for the FIMS authorize flow (fims-token endpoint)'
+    Description: 'Redirect URI for the FIMS authorize flow (token endpoint)'
 
   FimsSecretName:
     Type: String
@@ -2281,11 +2281,12 @@ Resources:
     Type: AWS::ApiGateway::BasePathMapping
     Condition: EnableFimsApi
     Properties:
+      BasePath: "fims" # base path dedicato: la radice del dominio è già occupata da OidcAPIMapping
       DomainName: !Ref WebApiDnsName
       RestApiId: !Ref FimsRestApi
       Stage: !Ref FimsRestApiStage
 
-  # Lambda access right for POST method (fims-token)
+  # Lambda access right for POST method (token)
   FimsTokenLambdaPermission:
     Type: AWS::Lambda::Permission
     Condition: EnableFimsApi
@@ -2296,10 +2297,10 @@ Resources:
       FunctionName: !Ref FimsLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/POST/fims-token"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/POST/token"
       SourceAccount: !Ref AWS::AccountId
 
-  # Lambda access right for GET method (fims-authorize)
+  # Lambda access right for GET method (authorize)
   FimsAuthorizeLambdaPermission:
     Type: AWS::Lambda::Permission
     Condition: EnableFimsApi
@@ -2310,7 +2311,7 @@ Resources:
       FunctionName: !Ref FimsLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/GET/fims-authorize"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/GET/authorize"
       SourceAccount: !Ref AWS::AccountId
 
   # FIMS Body model
@@ -2346,7 +2347,7 @@ Resources:
     Properties:
       RestApiId: !Ref FimsRestApi
       ParentId: !GetAtt FimsRestApi.RootResourceId
-      PathPart: "fims-authorize"
+      PathPart: "authorize"
 
   FimsTokenResource:
     Type: AWS::ApiGateway::Resource
@@ -2354,7 +2355,7 @@ Resources:
     Properties:
       RestApiId: !Ref FimsRestApi
       ParentId: !GetAtt FimsRestApi.RootResourceId
-      PathPart: "fims-token"
+      PathPart: "token"
 
   FimsRequestValidator:
     Type: AWS::ApiGateway::RequestValidator
@@ -2364,7 +2365,7 @@ Resources:
       ValidateRequestBody: true
       ValidateRequestParameters: true
 
-  # FIMS POST method (fims-token) - no Origin/CORS validation (native app)
+  # FIMS POST method (token) - no Origin/CORS validation (native app)
   FimsTokenPostMethod:
     DependsOn: FimsLambda
     Type: AWS::ApiGateway::Method
@@ -2387,7 +2388,7 @@ Resources:
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
 
-  # FIMS GET method (fims-authorize) - no Origin/CORS validation (native app)
+  # FIMS GET method (authorize) - no Origin/CORS validation (native app)
   FimsAuthorizeGetMethod:
     DependsOn: FimsLambda
     Type: AWS::ApiGateway::Method
