@@ -1,4 +1,4 @@
-import { CachedJwks, JWKS } from "../../app/handlers/oidcToken/models/Jwks";
+import { CachedJwks, JWKS } from "../../Jwks";
 
 export const jwksKid = "ce617dc9-83a9-4a4e-b060-2cdf9575f05a";
 

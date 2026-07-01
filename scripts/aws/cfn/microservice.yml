@@ -318,11 +318,6 @@ Parameters:
     Type: String
     Description: 'Name for Fims Lambda function'
 
-  FimsLambdaEnvironmentTokenTtl:
-    Type: String
-    Default: 3200
-    Description: Session token duration (in seconds) for FimsLambda.
-
   FimsBaseURL:
     Type: String
     Description: 'Base URL of the FIMS OAuth provider'
@@ -330,6 +325,10 @@ Parameters:
   FimsRedirectUri:
     Type: String
     Description: 'Redirect URI for the FIMS authorize flow (token endpoint)'
+
+  FimsFrontendBaseUrl:
+    Type: String
+    Description: 'Base URL of the citizen frontend the FIMS token endpoint redirects to (token passed in the URL fragment)'
 
   FimsSecretName:
     Type: String
@@ -2127,18 +2126,16 @@ Resources:
         S3Key: !Sub "${BucketBasePath}/fims.zip"
       Environment:
         Variables:
-          KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
           ### variables valorized by FimsLambda specific parameters ###
-          TOKEN_TTL: !Ref FimsLambdaEnvironmentTokenTtl
           FIMS_REDIS_STATE_TTL: !Ref FimsRedisStateTtl
           FIMS_BASEURL: !Ref FimsBaseURL
+          # The OIDC issuer of this provider matches its base URL.
+          FIMS_ISSUER_URL: !Ref FimsBaseURL
           FIMS_REDIRECT_URI: !Ref FimsRedirectUri
+          FIMS_FRONTEND_BASEURL: !Ref FimsFrontendBaseUrl
           FIMS_SECRET_NAME: !Ref FimsSecretName
           ### data-vault (confidential) reached inside the VPC, like lollipopAuthorizer ###
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
-          ### Variables valorized by shared parameters, inherited from pn-ipc.yml stack ###
-          ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
-          AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
           REDIS_ENDPOINT: !Ref RedisEndpoint
           USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
           REDIS_SERVER_NAME: !Ref RedisServerlessName
@@ -2329,6 +2326,7 @@ Resources:
         required:
           - code
           - state
+          - iss
         properties:
           code:
             type: string
@@ -2336,6 +2334,8 @@ Resources:
             type: string
             description: UUID v4
             pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+          iss:
+            type: string
 
   # FIMS resources
   FimsAuthorizeResource:
