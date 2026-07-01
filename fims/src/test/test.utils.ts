@@ -9,7 +9,7 @@ export function setupEnv() {
     FIMS_REDIRECT_URI: "https://webapi.dev.notifichedigitali.it/fims/token",
     FIMS_FRONTEND_BASEURL: "https://cittadini.dev.notifichedigitali.it",
     FIMS_SECRET_NAME: "pn-auth-fleet/fims-credentials",
-    FIMS_REDIS_STATE_TTL: "300",
+    FIMS_REDIS_STATE_TTL: "60",
     CACHE_TTL: "300",
   } satisfies Record<EnvVariableName, string>;
 }

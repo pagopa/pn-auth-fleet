@@ -1,15 +1,16 @@
+import { randomUUID } from "node:crypto";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
 import { getAWSSecret } from "pn-auth-common-ts";
 import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { retrieveEnvVariable } from "../../config";
-import { getFimsStateRedisKey } from "../../utils/Constants";
+import { getFimsStateRedisKey, getFimsSessionRedisKey } from "../../utils/Constants";
 import { generateKoResponse, generateRedirectResponse } from "../../utils/Responses";
 import { exchangeFimsCode } from "./utils/Fims";
 import { getFimsUserInfo } from "./utils/UserInfo";
 import { validateFimsIdToken } from "./validation/TokenValidation";
-import { FimsTokenRequestBody } from "../../models/FimsToken";
+import { FimsSessionData, FimsTokenRequestBody } from "../../models/FimsToken";
 import { auditLog } from "../../utils/AuditLog";
 
 // Module-level variable: persists across warm Lambda invocations, avoiding a Secrets Manager call on every request.
@@ -67,18 +68,33 @@ export const fimsTokenHandler = async (
     const userInfo = await getFimsUserInfo({ accessToken: tokens.access_token });
     console.debug("FIMS user info received", { assertionRef: userInfo.assertion_ref });
 
+    // TODO verify Lollipop (checks 1-6 via lollipopAuthorizer) + check 7 (nonce == state) using userInfo
+
+    // 6. Store a one-time session in Redis and redirect the frontend with the opaque fimsId.
+    const fimsId = randomUUID();
+    const sessionData: FimsSessionData = {
+      family_name: userInfo.family_name ?? "",
+      given_name: userInfo.given_name ?? "",
+      fiscal_code: userInfo.fiscal_code,
+    };
+    const sessionTtl = Number(retrieveEnvVariable("FIMS_REDIS_STATE_TTL"));
+    await RedisHandler.connectRedis();
+    try {
+      await RedisHandler.setJson(getFimsSessionRedisKey(fimsId), sessionData, { EX: sessionTtl });
+    } finally {
+      await RedisHandler.disconnectRedis();
+    }
+
     auditLog({
-      message: "Token exchange and user info retrieval successful",
+      message: `Fims token successful verified and session created with fimsId: ${fimsId}`,
       status: "OK",
+      cx_type: "PF",
       jti: state,
       request_id,
-    }).info("info");
+    }).info("success");
 
-    // TODO (parked): verify Lollipop (checks 1-6 via lollipopAuthorizer) + check 7 (nonce == state) using userInfo
-
-    // 6. Redirect the frontend to the access token via the URL fragment.
     const frontendBaseUrl = retrieveEnvVariable("FIMS_FRONTEND_BASEURL");
-    return generateRedirectResponse(`${frontendBaseUrl}#token=${tokens.access_token}`);
+    return generateRedirectResponse(`${frontendBaseUrl}#fimsId=${fimsId}`);
   } catch (err) {
     auditLog({ message: `fims-token error: ${(err as Error).message}`, status: "KO", request_id }).error("error");
     return generateKoResponse(err as Error);
