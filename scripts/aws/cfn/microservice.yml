@@ -339,6 +339,11 @@ Parameters:
     Default: 60
     Description: 'TTL in seconds for the FIMS state stored in Redis'
 
+  FimsTokenTtl:
+    Type: Number
+    Default: 60
+    Description: 'TTL in seconds for the short-lived FIMS session token returned to the frontend'
+
   FimsLatencyLimit:
     Type: Number
     Default: 2000
@@ -2134,6 +2139,9 @@ Resources:
           FIMS_REDIRECT_URI: !Ref FimsRedirectUri
           FIMS_FRONTEND_BASEURL: !Ref FimsFrontendBaseUrl
           FIMS_SECRET_NAME: !Ref FimsSecretName
+          ### session token signing: same KMS key as oidc, dedicated short TTL ###
+          KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
+          FIMS_TOKEN_TTL: !Ref FimsTokenTtl
           ### data-vault (confidential) reached inside the VPC, like lollipopAuthorizer ###
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
           REDIS_ENDPOINT: !Ref RedisEndpoint

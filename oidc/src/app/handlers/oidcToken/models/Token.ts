@@ -54,9 +54,3 @@ export interface TokenExchangeResponse extends JwtPayload {
   aar?: string;
   retrievalId?: string;
 }
-
-export interface JwtParts {
-  header: string;
-  payload: string;
-  signature?: string;
-}

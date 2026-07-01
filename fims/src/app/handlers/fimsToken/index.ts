@@ -1,16 +1,17 @@
-import { randomUUID } from "node:crypto";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
 import { getAWSSecret } from "pn-auth-common-ts";
 import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { retrieveEnvVariable } from "../../config";
-import { getFimsStateRedisKey, getFimsSessionRedisKey } from "../../utils/Constants";
+import { getFimsStateRedisKey } from "../../utils/Constants";
+import { getCxId } from "../../utils/DataVault";
 import { generateKoResponse, generateRedirectResponse } from "../../utils/Responses";
 import { exchangeFimsCode } from "./utils/Fims";
 import { getFimsUserInfo } from "./utils/UserInfo";
+import { generateFimsJwtPayload, generateSessionToken } from "./utils/TokenGenerator";
 import { validateFimsIdToken } from "./validation/TokenValidation";
-import { FimsSessionData, FimsTokenRequestBody } from "../../models/FimsToken";
+import { FimsTokenRequestBody } from "../../models/FimsToken";
 import { auditLog } from "../../utils/AuditLog";
 
 // Module-level variable: persists across warm Lambda invocations, avoiding a Secrets Manager call on every request.
@@ -70,31 +71,29 @@ export const fimsTokenHandler = async (
 
     // TODO verify Lollipop (checks 1-6 via lollipopAuthorizer) + check 7 (nonce == state) using userInfo
 
-    // 6. Store a one-time session in Redis and redirect the frontend with the opaque fimsId.
-    const fimsId = randomUUID();
-    const sessionData: FimsSessionData = {
-      family_name: userInfo.family_name ?? "",
-      given_name: userInfo.given_name ?? "",
-      fiscal_code: userInfo.fiscal_code,
-    };
-    const sessionTtl = Number(retrieveEnvVariable("FIMS_REDIS_STATE_TTL"));
-    await RedisHandler.connectRedis();
-    try {
-      await RedisHandler.setJson(getFimsSessionRedisKey(fimsId), sessionData, { EX: sessionTtl });
-    } finally {
-      await RedisHandler.disconnectRedis();
-    }
+    // 6. Resolve the internal cx id (uid) from pn-data-vault, then sign a
+    // self-contained session token (KMS/RS256) and redirect the frontend.
+    const uid = await getCxId(userInfo.fiscal_code);
+    const fimsJwtPayload = generateFimsJwtPayload({
+      uid,
+      fiscalCode: userInfo.fiscal_code,
+      givenName: userInfo.given_name ?? "",
+      familyName: userInfo.family_name ?? "",
+      state,
+    });
+    const fimsToken = await generateSessionToken(fimsJwtPayload);
 
     auditLog({
-      message: `Fims token successful verified and session created with fimsId: ${fimsId}`,
+      message: "Fims token successfully verified and fims session token created",
       status: "OK",
       cx_type: "PF",
+      uid,
       jti: state,
       request_id,
     }).info("success");
 
     const frontendBaseUrl = retrieveEnvVariable("FIMS_FRONTEND_BASEURL");
-    return generateRedirectResponse(`${frontendBaseUrl}#fimsId=${fimsId}`);
+    return generateRedirectResponse(`${frontendBaseUrl}#fimsToken=${fimsToken}`);
   } catch (err) {
     auditLog({ message: `fims-token error: ${(err as Error).message}`, status: "KO", request_id }).error("error");
     return generateKoResponse(err as Error);
