@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
-import { getAWSSecret } from "pn-auth-common-ts";
+import { getAWSSecret, ValidationException } from "pn-auth-common-ts";
 import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { retrieveEnvVariable } from "../../config";
@@ -36,7 +36,7 @@ export const fimsTokenHandler = async (
     // 1. Check issuer
     if (iss !== fimsIssuerUrl) {
       auditLog({ message: "Invalid issuer", status: "KO", request_id }).warn("warn");
-      return generateKoResponse("Invalid issuer");
+      return generateKoResponse(new ValidationException("Invalid issuer"));
     }
 
     // 2. Retrieve nonce from Redis (implicitly validates state)
@@ -45,7 +45,7 @@ export const fimsTokenHandler = async (
     try {
       const stateData = await RedisHandler.getJson<FimsStateData>(getFimsStateRedisKey(state));
       if (!stateData) {
-        throw new Error("Fims state not found");
+        throw new ValidationException("Fims state not found");
       }
       nonce = stateData.nonce;
     } finally {
