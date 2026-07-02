@@ -11,5 +11,7 @@ export function setupEnv() {
     FIMS_SECRET_NAME: "pn-auth-fleet/fims-credentials",
     FIMS_REDIS_STATE_TTL: "60",
     CACHE_TTL: "300",
+    KEY_ALIAS: "SessionKey",
+    FIMS_TOKEN_TTL: "60",
   } satisfies Record<EnvVariableName, string>;
 }

@@ -6,7 +6,9 @@ export type EnvVariableName =
   | "FIMS_FRONTEND_BASEURL"
   | "FIMS_SECRET_NAME"
   | "FIMS_REDIS_STATE_TTL"
-  | "CACHE_TTL";
+  | "CACHE_TTL"
+  | "KEY_ALIAS"
+  | "FIMS_TOKEN_TTL";
 
 import { retrieveEnvVariable as retrieve } from "pn-auth-common-ts";
 

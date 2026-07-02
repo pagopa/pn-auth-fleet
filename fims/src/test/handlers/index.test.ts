@@ -1,8 +1,3 @@
-jest.mock("node:crypto", () => ({
-  ...jest.requireActual("node:crypto"),
-  randomUUID: jest.fn().mockReturnValue("fake-fims-id"),
-}));
-
 jest.mock("pn-auth-common", () => ({
   RedisHandler: {
     connectRedis: jest.fn(),
@@ -47,13 +42,32 @@ jest.mock("../../app/handlers/fimsToken/utils/UserInfo", () => ({
     public_key: "fake-public-key",
     assertion_ref: "sha256-fake",
     assertion: "<fake-saml-assertion/>",
+    family_name: "Rossi",
+    given_name: "Mario",
   }),
+}));
+
+// The KMS signing lives in pn-auth-common-ts (tested there); stub the FIMS token
+// generator so routing can be exercised without reaching KMS.
+jest.mock("../../app/handlers/fimsToken/utils/TokenGenerator", () => ({
+  generateFimsJwtPayload: jest.fn().mockReturnValue({ uid: "fake-cx-id" }),
+  generateSessionToken: jest.fn().mockResolvedValue("fake-session-token"),
+}));
+
+// pn-data-vault resolves the internal cx id; stub it to avoid the HTTP call.
+jest.mock("../../app/utils/DataVault", () => ({
+  getCxId: jest.fn().mockResolvedValue("fake-cx-id"),
 }));
 
 import { RedisHandler } from "pn-auth-common";
 import { handler } from "../../app/index";
 import * as AuditLog from "../../app/utils/AuditLog";
-import { getFimsStateRedisKey, getFimsSessionRedisKey } from "../../app/utils/Constants";
+import { getFimsStateRedisKey } from "../../app/utils/Constants";
+import {
+  generateFimsJwtPayload,
+  generateSessionToken,
+} from "../../app/handlers/fimsToken/utils/TokenGenerator";
+import { getCxId } from "../../app/utils/DataVault";
 import { setupEnv } from "../test.utils";
 
 const mockRequestId = "fake-request-id";
@@ -130,19 +144,23 @@ describe("Main handler - routing (no origin validation)", () => {
 
     expect(result.statusCode).toBe(302);
     expect(result.headers.Location).toBe(
-      "https://cittadini.dev.notifichedigitali.it#fimsId=fake-fims-id",
+      "https://cittadini.dev.notifichedigitali.it#fimsToken=fake-session-token",
     );
     // No CORS header is set for FIMS
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
 
-    // One-time session stored in Redis with 60s TTL
-    expect(RedisHandler.setJson).toHaveBeenCalledWith(
-      getFimsSessionRedisKey("fake-fims-id"),
-      { family_name: "", given_name: "", fiscal_code: "AAAAAA00A00A000A" },
-      { EX: 60 },
-    );
-    expect(RedisHandler.connectRedis).toHaveBeenCalledTimes(2);
-    expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(2);
+    // The cx id (uid) is resolved from pn-data-vault using the fiscal code
+    expect(getCxId).toHaveBeenCalledWith("AAAAAA00A00A000A");
+
+    // The session token is built from the UserInfo claims, the cx id and the OIDC state
+    expect(generateFimsJwtPayload).toHaveBeenCalledWith({
+      uid: "fake-cx-id",
+      fiscalCode: "AAAAAA00A00A000A",
+      givenName: "Mario",
+      familyName: "Rossi",
+      state: "fake-state",
+    });
+    expect(generateSessionToken).toHaveBeenCalledTimes(1);
   });
 
   it("should not require an Origin header", async () => {
