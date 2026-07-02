@@ -1,4 +1,4 @@
-import { Source } from "./Source";
+import { Source, SessionTokenResponse } from "pn-auth-common-ts";
 
 export interface OIDecodedToken {
   header: {
@@ -42,15 +42,5 @@ export interface JwtPayload {
   source?: Source;
 }
 
-export interface TokenExchangeResponse extends JwtPayload {
-  sessionToken: string;
-  name: string;
-  family_name: string;
-  fiscal_number: string;
-  from_aa: boolean;
-  level: string;
-  source?: Source;
-  idp: string;
-  aar?: string;
-  retrievalId?: string;
-}
+// The oidc/token response uses the shared shape so it matches fims/exchange.
+export type TokenExchangeResponse = SessionTokenResponse;

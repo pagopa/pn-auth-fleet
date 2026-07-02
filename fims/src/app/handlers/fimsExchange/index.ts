@@ -4,6 +4,8 @@ import { auditLog } from "../../utils/AuditLog";
 import { FimsExchangeRequestBody, FimsExchangeResponse } from "./models/Exchange";
 import { validateFimsToken } from "./validation/ExchangeTokenValidation";
 import { generateSessionPayload, generateSessionToken } from "./utils/SessionToken";
+import { SourceChannel, ValidationException } from "pn-auth-common-ts";
+import { isOriginAllowed } from "../../utils/Origin";
 
 // Exchanges the short-lived fimsToken (issued by /token, delivered to the
 // frontend in the redirect fragment) for a long-lived session token plus the
@@ -11,9 +13,15 @@ import { generateSessionPayload, generateSessionToken } from "./utils/SessionTok
 export const fimsExchangeHandler = async (
   event: APIGatewayProxyEvent,
   context: Context,
-  allowedOrigin: string,
 ): Promise<APIGatewayProxyResult> => {
   const request_id = context.awsRequestId;
+  const eventOrigin = event.headers?.origin;
+  if (!eventOrigin) {
+    return generateKoResponse(new ValidationException("eventOrigin is null"), "*");
+  }
+  if (!isOriginAllowed(eventOrigin)) {
+    return generateKoResponse(new ValidationException("Origin not allowed"), eventOrigin);
+  }
 
   try {
     const { authorizationToken } = JSON.parse(event.body!) as FimsExchangeRequestBody;
@@ -27,8 +35,10 @@ export const fimsExchangeHandler = async (
 
     auditLog({
       message: "Fims token exchanged for a session token",
+      aud_orig: eventOrigin,
       status: "OK",
       cx_type: "PF",
+      cx_id: `PF-${claims.uid}`,
       uid: claims.uid,
       jti: claims.state,
       request_id,
@@ -48,15 +58,19 @@ export const fimsExchangeHandler = async (
       iss: sessionPayload.iss,
       aud: sessionPayload.aud,
       jti: sessionPayload.jti,
+      source: {
+        channel: SourceChannel.WEB,
+        details: "FIMS",
+      },
     };
 
-    return generateOkResponse<FimsExchangeResponse>(response, allowedOrigin);
+    return generateOkResponse<FimsExchangeResponse>(response, eventOrigin);
   } catch (err) {
     auditLog({
       message: `fims-exchange error: ${(err as Error).message}`,
       status: "KO",
       request_id,
     }).error("error");
-    return generateKoResponse(err as Error, allowedOrigin);
+    return generateKoResponse(err as Error, eventOrigin);
   }
 };

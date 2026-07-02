@@ -86,6 +86,10 @@ describe("Main handler - /exchange routing", () => {
       iss: "https://webapi.dev.notifichedigitali.it",
       aud: "webapi.dev.pn.pagopa.it",
       jti: "fake-state",
+      source: {
+        channel: "WEB",
+        details: "FIMS",
+      },
     });
   });
 

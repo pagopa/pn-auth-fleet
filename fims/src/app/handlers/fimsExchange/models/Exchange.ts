@@ -15,13 +15,6 @@ export interface FimsSessionTokenPayload {
   jti: string;
 }
 
-// Success body returned to the frontend, mirroring oidc/token's response.
-// FIMS-inapplicable oidc fields (idp, source, aar, retrievalId) are omitted.
-export interface FimsExchangeResponse extends FimsSessionTokenPayload {
-  sessionToken: string;
-  name: string;
-  family_name: string;
-  fiscal_number: string;
-  from_aa: boolean;
-  level: string;
-}
+// Success body returned to the frontend: shared with oidc/token so the two
+// responses are identical (oidc-only fields idp/source/aar/retrievalId omitted).
+export type { SessionTokenResponse as FimsExchangeResponse } from "pn-auth-common-ts";
