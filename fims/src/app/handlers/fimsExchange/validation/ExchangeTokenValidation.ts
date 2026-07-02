@@ -13,15 +13,15 @@ import { FimsJwtPayload } from "../../fimsToken/models/Token";
 export async function validateFimsToken(fimsToken: string): Promise<FimsJwtPayload> {
   const cacheTTL = Number(retrieveEnvVariable("CACHE_TTL"));
 
-  const payload = await verifyKmsJwt<FimsJwtPayload & { [key: string]: unknown }>({
+  const payload = await verifyKmsJwt<FimsJwtPayload>({
     jwt: fimsToken,
     cacheTTL,
   });
 
   const { uid, fiscal_code, given_name, family_name, state } = payload;
-  if (!uid || !fiscal_code || !state) {
+  if (!uid || !fiscal_code || !state || !given_name || !family_name) {
     throw new ValidationException("fimsToken is missing required claims");
   }
 
-  return { uid, fiscal_code, given_name, family_name, state, iat: payload.iat, exp: payload.exp };
+  return payload;
 }
