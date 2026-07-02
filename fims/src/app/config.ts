@@ -8,7 +8,11 @@ export type EnvVariableName =
   | "FIMS_REDIS_STATE_TTL"
   | "CACHE_TTL"
   | "KEY_ALIAS"
-  | "FIMS_TOKEN_TTL";
+  | "FIMS_TOKEN_TTL"
+  | "ISSUER"
+  | "AUDIENCE"
+  | "TOKEN_TTL"
+  | "ALLOWED_ORIGIN";
 
 import { retrieveEnvVariable as retrieve } from "pn-auth-common-ts";
 

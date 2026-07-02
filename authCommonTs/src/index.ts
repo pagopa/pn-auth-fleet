@@ -16,3 +16,4 @@ export { type ErrorResponseBody } from "./Responses";
 export { type JWKS, type CachedJwks } from "./Jwks";
 export { getJwksPublicKey, clearJwksCache } from "./JwksCache";
 export { signKmsJwt } from "./KmsJwtSigner";
+export { verifyKmsJwt, clearKmsPublicKeyCache } from "./KmsJwtVerifier";

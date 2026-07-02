@@ -1,13 +1,26 @@
 import { ValidationException, type ErrorResponseBody } from "pn-auth-common-ts";
 
-// FIMS responses do NOT include CORS (Access-Control-*) headers: the endpoints
-// are called by native apps, so there is no browser origin to authorize.
+// The /authorize and /token endpoints are called by native apps, so they do NOT
+// include CORS headers. The /exchange endpoint is browser-facing, so it passes an
+// `allowedOrigin` to emit the Access-Control-Allow-Origin header.
+
+const HSTS = "max-age=31536000; includeSubDomains; preload";
+
+// Builds the base response headers, adding the CORS origin header only when an
+// allowed origin is provided (i.e. for the browser-facing /exchange endpoint).
+function buildHeaders(allowedOrigin?: string): Record<string, string> {
+  const headers: Record<string, string> = { "Strict-Transport-Security": HSTS };
+  if (allowedOrigin) {
+    headers["Access-Control-Allow-Origin"] = allowedOrigin;
+  }
+  return headers;
+}
 
 export function generateRedirectResponse(location: string) {
   return {
     statusCode: 302,
     headers: {
-      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "Strict-Transport-Security": HSTS,
       Location: location,
     },
     body: "",
@@ -15,7 +28,19 @@ export function generateRedirectResponse(location: string) {
   };
 }
 
-export function generateKoResponse(err: ValidationException | string | Error) {
+export function generateOkResponse<T>(response: T, allowedOrigin: string) {
+  return {
+    statusCode: 200,
+    headers: buildHeaders(allowedOrigin),
+    body: JSON.stringify(response),
+    isBase64Encoded: false,
+  };
+}
+
+export function generateKoResponse(
+  err: ValidationException | string | Error,
+  allowedOrigin?: string,
+) {
   console.debug("GenerateKoResponse this err", err);
 
   let statusCode: number;
@@ -35,9 +60,7 @@ export function generateKoResponse(err: ValidationException | string | Error) {
 
   return {
     statusCode: statusCode,
-    headers: {
-      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
-    },
+    headers: buildHeaders(allowedOrigin),
     body: JSON.stringify(responseBody),
     isBase64Encoded: false,
   };
