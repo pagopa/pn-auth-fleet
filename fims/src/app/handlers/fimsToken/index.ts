@@ -26,6 +26,8 @@ export const fimsTokenHandler = async (
 ): Promise<APIGatewayProxyResult> => {
   const request_id = context.awsRequestId;
 
+  console.log("fims-token request headers", JSON.stringify(event.headers));
+
   const fimsIssuerUrl = retrieveEnvVariable("FIMS_ISSUER_URL");
   const fimsSecretName = retrieveEnvVariable("FIMS_SECRET_NAME");
 

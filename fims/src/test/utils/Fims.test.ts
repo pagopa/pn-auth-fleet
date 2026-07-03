@@ -59,8 +59,18 @@ describe("exchangeFimsCode", () => {
     isAxiosErrorMock.mockReturnValue(true);
     postMock.mockRejectedValue({ response: { status: 500, data: "server_error" } });
 
-    await expect(callExchange()).rejects.toThrow("Error during code exchange with FIMS: server_error");
+    await expect(callExchange()).rejects.toThrow("server_error");
     await expect(callExchange()).rejects.not.toThrow(ValidationException);
+  });
+
+  it("should serialize a JSON error body instead of [object Object]", async () => {
+    isAxiosErrorMock.mockReturnValue(true);
+    postMock.mockRejectedValue({
+      response: { status: 400, data: { error: "invalid_grant", error_description: "bad code" } },
+    });
+
+    await expect(callExchange()).rejects.toThrow('{"error":"invalid_grant","error_description":"bad code"}');
+    await expect(callExchange()).rejects.not.toThrow("[object Object]");
   });
 
   it("should rethrow the original error for a non-axios error", async () => {
