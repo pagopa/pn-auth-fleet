@@ -13,6 +13,14 @@ jest.mock("pn-auth-common", () => ({
   COMMON_CONSTANTS: {
     REDIS_PN_SESSION_PREFIX: "pn-session::",
   },
+  validateLollipop: jest.fn(),
+  LollipopValidationError: class LollipopValidationError extends Error {
+    constructor(errorCode: string, message: string) {
+      super(message);
+      this.name = "LollipopValidationError";
+      Object.assign(this, { errorCode });
+    }
+  }
 }));
 
 jest.mock("pn-auth-common-ts", () => ({
@@ -50,7 +58,7 @@ jest.mock("../../app/handlers/fimsToken/utils/UserInfo", () => ({
   }),
 }));
 
-import { RedisHandler } from "pn-auth-common";
+import { LollipopValidationError, RedisHandler, validateLollipop } from "pn-auth-common";
 import { handler } from "../../app/index";
 import * as AuditLog from "../../app/utils/AuditLog";
 import { getFimsStateRedisKey, getFimsSessionRedisKey } from "../../app/utils/Constants";
@@ -135,6 +143,21 @@ describe("Main handler - routing (no origin validation)", () => {
     // No CORS header is set for FIMS
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
 
+    expect(validateLollipop).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assertion: "<fake-saml-assertion/>",
+        assertionRef: "sha256-fake",
+        publicKey: "fake-public-key",
+        fiscalCode: "AAAAAA00A00A000A",
+        expectedNonce: "fake-state",
+        expectedSignedHeaders: {
+          "x-pagopa-lollipop-custom-code": "fake-code",
+          "x-pagopa-lollipop-custom-state": "fake-state",
+          "x-pagopa-lollipop-custom-iss": "https://oauth.io.pagopa.it",
+        },
+      }),
+    );
+
     // One-time session stored in Redis with 60s TTL
     expect(RedisHandler.setJson).toHaveBeenCalledWith(
       getFimsSessionRedisKey("fake-fims-id"),
@@ -143,6 +166,40 @@ describe("Main handler - routing (no origin validation)", () => {
     );
     expect(RedisHandler.connectRedis).toHaveBeenCalledTimes(2);
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(2);
+  });
+
+  it("should return a generic validation error and not create a session when Lollipop validation fails", async () => {
+    (RedisHandler.getJson as jest.Mock).mockResolvedValue({
+      nonce: "fake-nonce",
+    });
+
+    (validateLollipop as jest.Mock).mockRejectedValueOnce(
+      new LollipopValidationError(
+        "INVALID_SIGNATURE",
+        "The assertion signature is not valid",
+      ),
+    );
+
+    const event = {
+      ...baseEvent,
+      resource: "/token",
+      httpMethod: "POST",
+      body: JSON.stringify({
+        code: "fake-code",
+        state: "fake-state",
+        iss: "https://oauth.io.pagopa.it",
+      }),
+    };
+
+    const result: any = await handler(event, mockContext, () => {});
+
+    expect(result.statusCode).toBe(400);
+    expect(JSON.parse(result.body)).toMatchObject({
+      error: "Invalid FIMS callback",
+      status: 400,
+    });
+
+    expect(RedisHandler.setJson).not.toHaveBeenCalled();
   });
 
   it("should not require an Origin header", async () => {

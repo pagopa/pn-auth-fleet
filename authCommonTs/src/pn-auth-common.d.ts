@@ -15,4 +15,32 @@ declare module "pn-auth-common" {
   export const COMMON_CONSTANTS: {
     [key: string]: string;
   };
+
+  export type LollipopIdpConfig = {
+    baseUrl: string;
+    cieEntityIds: string[];
+    timeoutMs?: number;
+  };
+
+  export type LollipopValidationInput = {
+    assertion: string;
+    assertionRef: string;
+    publicKey: string;
+    fiscalCode: string;
+    headers: Record<string, string | undefined>;
+    expectedNonce: string;
+    expectedSignedHeaders?: Record<string, string>;
+    assertionExpireInDays?: number;
+    idpConfig: LollipopIdpConfig;
+  };
+
+  export class LollipopValidationError extends Error {
+    errorCode: string;
+
+    constructor(errorCode: string, message: string, cause?: Error);
+  }
+
+  export function validateLollipop(
+    input: LollipopValidationInput,
+  ): Promise<void>;
 }

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
-import { RedisHandler } from "pn-auth-common";
-import { getAWSSecret } from "pn-auth-common-ts";
+import { LollipopValidationError, RedisHandler, validateLollipop } from "pn-auth-common";
+import { getAWSSecret, ValidationException } from "pn-auth-common-ts";
 import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { retrieveEnvVariable } from "../../config";
@@ -68,9 +68,31 @@ export const fimsTokenHandler = async (
     const userInfo = await getFimsUserInfo({ accessToken: tokens.access_token });
     console.debug("FIMS user info received", { assertionRef: userInfo.assertion_ref });
 
-    // TODO verify Lollipop (checks 1-6 via lollipopAuthorizer) + check 7 (nonce == state) using userInfo
+    // 6. Validate the Lollipop proof of possession before creating a SEND session/handoff.
+    await validateLollipop({
+      assertion: userInfo.assertion,
+      assertionRef: userInfo.assertion_ref,
+      publicKey: userInfo.public_key,
+      fiscalCode: userInfo.fiscal_code,
+      headers: event.headers,
+      expectedNonce: state,
+      expectedSignedHeaders: {
+        "x-pagopa-lollipop-custom-code": code,
+        "x-pagopa-lollipop-custom-state": state,
+        "x-pagopa-lollipop-custom-iss": iss,
+      },
+      assertionExpireInDays: Number(retrieveEnvVariable("ASSERTION_EXPIRE_IN_DAYS", "365")),
+      idpConfig: {
+        baseUrl: retrieveEnvVariable("IDP_CONFIG_BASE_URI"),
+        cieEntityIds: retrieveEnvVariable("IDP_CLIENT_CIEIDD")
+          .split(";")
+          .map((entityId) => entityId.trim())
+          .filter(Boolean),
+        timeoutMs: Number(retrieveEnvVariable("IDP_HTTP_TIMEOUT_MS", "10000")),
+      },
+    });
 
-    // 6. Store a one-time session in Redis and redirect the frontend with the opaque fimsId.
+    // 7. Store a one-time session in Redis and redirect the frontend with the opaque fimsId.
     const fimsId = randomUUID();
     const sessionData: FimsSessionData = {
       family_name: userInfo.family_name ?? "",
@@ -96,7 +118,9 @@ export const fimsTokenHandler = async (
     const frontendBaseUrl = retrieveEnvVariable("FIMS_FRONTEND_BASEURL");
     return generateRedirectResponse(`${frontendBaseUrl}#fimsId=${fimsId}`);
   } catch (err) {
-    auditLog({ message: `fims-token error: ${(err as Error).message}`, status: "KO", request_id }).error("error");
-    return generateKoResponse(err as Error);
+    const responseError = err instanceof LollipopValidationError ? new ValidationException("Invalid FIMS callback") : (err as Error);
+
+    auditLog({ message: `fims-token error: ${responseError.message}`, status: "KO", request_id }).error("error");
+    return generateKoResponse(responseError);
   }
 };
