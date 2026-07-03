@@ -15,7 +15,6 @@ import { FimsTokenRequestBody } from "../../models/FimsToken";
 import { auditLog } from "../../utils/AuditLog";
 
 // Module-level variable: persists across warm Lambda invocations, avoiding a Secrets Manager call on every request.
-// On cold start it is undefined and gets populated on the first invocation.
 let cachedFimsCredentials: FimsAwsSecretObject | undefined;
 export const clearCredentialsCache = () => {
   cachedFimsCredentials = undefined;
@@ -31,7 +30,8 @@ export const fimsTokenHandler = async (
   const fimsSecretName = retrieveEnvVariable("FIMS_SECRET_NAME");
 
   try {
-    const { code, state, iss } = JSON.parse(event.body!) as FimsTokenRequestBody;
+    const { code, state, iss } = (event.queryStringParameters ??
+      {}) as unknown as FimsTokenRequestBody;
 
     // 1. Check issuer
     if (iss !== fimsIssuerUrl) {

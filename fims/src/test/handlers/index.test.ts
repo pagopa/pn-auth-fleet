@@ -126,18 +126,18 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(1);
   });
 
-  it("should route POST /fims-token and redirect to the frontend with the token in the fragment", async () => {
+  it("should route GET /fims-token and redirect to the frontend with the token in the fragment", async () => {
     (RedisHandler.getJson as jest.Mock).mockResolvedValue({ nonce: "fake-nonce" });
 
     const event = {
       ...baseEvent,
       resource: "/token",
-      httpMethod: "POST",
-      body: JSON.stringify({
+      httpMethod: "GET",
+      queryStringParameters: {
         code: "fake-code",
         state: "fake-state",
         iss: "https://oauth.io.pagopa.it",
-      }),
+      },
     };
 
     const result: any = await handler(event, mockContext, () => {});

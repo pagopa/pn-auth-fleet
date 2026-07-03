@@ -2257,11 +2257,10 @@ Resources:
     Type: AWS::ApiGateway::Deployment
     Condition: EnableFimsApi
     DependsOn:
-      - FimsTokenPostMethod
+      - FimsTokenGetMethod
       - FimsAuthorizeGetMethod
       - FimsExchangePostMethod
       - FimsExchangeOptionsMethod
-      - FimsModel
       - FimsExchangeModel
     Properties:
       RestApiId: !Ref FimsRestApi
@@ -2303,7 +2302,7 @@ Resources:
       RestApiId: !Ref FimsRestApi
       Stage: !Ref FimsRestApiStage
 
-  # Lambda access right for POST method (token)
+  # Lambda access right for GET method (token) - FIMS redirects here (redirect_uri) via GET
   FimsTokenLambdaPermission:
     Type: AWS::Lambda::Permission
     Condition: EnableFimsApi
@@ -2314,7 +2313,7 @@ Resources:
       FunctionName: !Ref FimsLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/POST/token"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/GET/token"
       SourceAccount: !Ref AWS::AccountId
 
   # Lambda access right for GET method (authorize)
@@ -2344,32 +2343,6 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/POST/exchange"
       SourceAccount: !Ref AWS::AccountId
-
-  # FIMS Body model
-  FimsModel:
-    Type: "AWS::ApiGateway::Model"
-    Condition: EnableFimsApi
-    Properties:
-      RestApiId: !Ref FimsRestApi
-      ContentType: application/json
-      Description: Schema for FIMS token body
-      Name: FimsModel
-      Schema:
-        type: object
-        additionalProperties: false
-        required:
-          - code
-          - state
-          - iss
-        properties:
-          code:
-            type: string
-          state:
-            type: string
-            description: UUID v4
-            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-          iss:
-            type: string
 
   # FIMS exchange body model (fimsToken carried in authorizationToken, like tokenExchange)
   FimsExchangeModel:
@@ -2422,8 +2395,9 @@ Resources:
       ValidateRequestBody: true
       ValidateRequestParameters: true
 
-  # FIMS POST method (token) - no Origin/CORS validation (native app)
-  FimsTokenPostMethod:
+  # FIMS GET method (token) - FIMS redirects here (redirect_uri) with code/state/iss
+  # in the query string (OIDC code flow). No Origin/CORS validation (server-to-browser redirect).
+  FimsTokenGetMethod:
     DependsOn: FimsLambda
     Type: AWS::ApiGateway::Method
     Condition: EnableFimsApi
@@ -2431,12 +2405,14 @@ Resources:
       OperationName: "Proxy to FIMS Lambda - token"
       RestApiId: !Ref FimsRestApi
       ResourceId: !Ref FimsTokenResource
-      HttpMethod: POST
+      HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
       RequestValidatorId: !Ref FimsRequestValidator
-      RequestModels:
-        "application/json": !Ref FimsModel
+      RequestParameters:
+        "method.request.querystring.code": true
+        "method.request.querystring.state": true
+        "method.request.querystring.iss": true
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
