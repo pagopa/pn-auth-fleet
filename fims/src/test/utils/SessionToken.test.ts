@@ -1,4 +1,4 @@
-import { signKmsJwt } from "pn-auth-common-ts";
+import { signKmsJwt, SourceChannel } from "pn-auth-common-ts";
 import {
   generateSessionPayload,
   generateSessionToken,
@@ -37,6 +37,7 @@ describe("FIMS exchange SessionToken", () => {
         iss: "https://webapi.dev.notifichedigitali.it",
         aud: "webapi.dev.pn.pagopa.it",
         jti: "fake-state",
+        source: { channel: "WEB", details: "FIMS" },
       });
     });
   });
@@ -49,6 +50,7 @@ describe("FIMS exchange SessionToken", () => {
       iss: "https://webapi.dev.notifichedigitali.it",
       aud: "webapi.dev.pn.pagopa.it",
       jti: "fake-state",
+      source: { channel: SourceChannel.WEB, details: "FIMS" },
     };
 
     it("should delegate to signKmsJwt with the payload and KEY_ALIAS from env", async () => {

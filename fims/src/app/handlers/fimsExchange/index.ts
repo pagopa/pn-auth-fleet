@@ -4,7 +4,7 @@ import { auditLog } from "../../utils/AuditLog";
 import { FimsExchangeRequestBody, FimsExchangeResponse } from "./models/Exchange";
 import { validateFimsToken } from "./validation/ExchangeTokenValidation";
 import { generateSessionPayload, generateSessionToken } from "./utils/SessionToken";
-import { SourceChannel, ValidationException } from "pn-auth-common-ts";
+import { ValidationException } from "pn-auth-common-ts";
 import { isOriginAllowed } from "../../utils/Origin";
 
 // Exchanges the short-lived fimsToken (issued by /token, delivered to the
@@ -58,10 +58,7 @@ export const fimsExchangeHandler = async (
       iss: sessionPayload.iss,
       aud: sessionPayload.aud,
       jti: sessionPayload.jti,
-      source: {
-        channel: SourceChannel.WEB,
-        details: "FIMS",
-      },
+      source: sessionPayload.source,
     };
 
     return generateOkResponse<FimsExchangeResponse>(response, eventOrigin);

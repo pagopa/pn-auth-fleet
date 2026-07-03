@@ -30,6 +30,7 @@ jest.mock("../../app/handlers/fimsExchange/utils/SessionToken", () => ({
     iss: "https://webapi.dev.notifichedigitali.it",
     aud: "webapi.dev.pn.pagopa.it",
     jti: "fake-state",
+    source: { channel: "WEB", details: "FIMS" },
   }),
   generateSessionToken: jest.fn().mockResolvedValue("fake-session-token"),
 }));

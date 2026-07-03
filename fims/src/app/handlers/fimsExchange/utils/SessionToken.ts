@@ -1,4 +1,4 @@
-import { signKmsJwt } from "pn-auth-common-ts";
+import { signKmsJwt, SourceChannel } from "pn-auth-common-ts";
 import { retrieveEnvVariable } from "../../../config";
 import { FimsSessionTokenPayload } from "../models/Exchange";
 
@@ -7,9 +7,13 @@ interface GenerateSessionPayloadProps {
   state: string;
 }
 
+// The FIMS flow is always a WEB-channel login originated by app IO.
+const FIMS_SOURCE = { channel: SourceChannel.WEB, details: "FIMS" };
+
 /**
  * Build the long-lived session token payload, same shape and env config as the
- * oidc session token (ISSUER / AUDIENCE / TOKEN_TTL).
+ * oidc session token (ISSUER / AUDIENCE / TOKEN_TTL). `source` is embedded so it
+ * ends up inside the signed JWT, like oidc.
  *
  * @param uid - internal cx id
  * @param state - OIDC state, carried through as `jti`
@@ -30,6 +34,7 @@ export const generateSessionPayload = ({
     iss: issuer,
     aud: audience,
     jti: state,
+    source: FIMS_SOURCE,
   };
 };
 

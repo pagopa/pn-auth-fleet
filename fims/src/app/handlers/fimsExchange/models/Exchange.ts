@@ -1,3 +1,5 @@
+import { Source } from "pn-auth-common-ts";
+
 // Body posted by the frontend to /exchange. The short-lived fimsToken (issued by
 // /token, delivered in the redirect fragment) is carried in `authorizationToken`,
 // the same field name tokenExchange uses.
@@ -5,7 +7,8 @@ export interface FimsExchangeRequestBody {
   authorizationToken: string;
 }
 
-// Long-lived session token payload, same shape as the oidc session token.
+// Long-lived session token payload, same shape as the oidc session token
+// (source is embedded in the signed JWT, like oidc).
 export interface FimsSessionTokenPayload {
   iat: number;
   exp: number;
@@ -13,6 +16,7 @@ export interface FimsSessionTokenPayload {
   iss: string;
   aud: string;
   jti: string;
+  source: Source;
 }
 
 // Success body returned to the frontend: shared with oidc/token so the two
