@@ -2148,6 +2148,8 @@ Resources:
           TOKEN_TTL: !Ref TokenExchangeLambdaEnvironmentTokenTtl
           ### /exchange is browser-facing: authorize the citizen frontend origin ###
           ALLOWED_ORIGIN: !Ref FimsFrontendBaseUrl
+          ### public-key cache TTL (JWKS / KMS) in seconds ###
+          CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
           ### data-vault (confidential) reached inside the VPC, like lollipopAuthorizer ###
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
           REDIS_ENDPOINT: !Ref RedisEndpoint

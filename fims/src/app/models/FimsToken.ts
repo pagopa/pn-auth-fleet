@@ -20,8 +20,8 @@ export type FimsUserInfo = {
   public_key: string;
   assertion_ref: string;
   assertion: string;
-  given_name?: string;
-  family_name?: string;
+  given_name: string;
+  family_name: string;
   sid?: string;
   auth_time?: number;
   iss?: string;

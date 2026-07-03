@@ -37,13 +37,13 @@ jest.mock("../../app/handlers/fimsToken/validation/TokenValidation", () => ({
 
 jest.mock("../../app/handlers/fimsToken/utils/UserInfo", () => ({
   getFimsUserInfo: jest.fn().mockResolvedValue({
-    sub: "AAAAAA00A00A000A",
-    fiscal_code: "AAAAAA00A00A000A",
+    sub: "LVLDAA85T50G702B",
+    fiscal_code: "LVLDAA85T50G702B",
     public_key: "fake-public-key",
     assertion_ref: "sha256-fake",
     assertion: "<fake-saml-assertion/>",
-    family_name: "Rossi",
-    given_name: "Mario",
+    family_name: "Lovelace",
+    given_name: "Ada",
   }),
 }));
 
@@ -150,14 +150,14 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
 
     // The cx id (uid) is resolved from pn-data-vault using the fiscal code
-    expect(getCxId).toHaveBeenCalledWith("AAAAAA00A00A000A");
+    expect(getCxId).toHaveBeenCalledWith("LVLDAA85T50G702B");
 
     // The session token is built from the UserInfo claims, the cx id and the OIDC state
     expect(generateFimsJwtPayload).toHaveBeenCalledWith({
       uid: "fake-cx-id",
-      fiscalCode: "AAAAAA00A00A000A",
-      givenName: "Mario",
-      familyName: "Rossi",
+      fiscalCode: "LVLDAA85T50G702B",
+      givenName: "Ada",
+      familyName: "Lovelace",
       state: "fake-state",
     });
     expect(generateSessionToken).toHaveBeenCalledTimes(1);
