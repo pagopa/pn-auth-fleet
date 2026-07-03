@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
-import { ValidationException, getAWSSecret } from "pn-auth-common-ts";
+import { ValidationException, getAWSSecret, SessionTokenResponse } from "pn-auth-common-ts";
 import { OneIdentityAwsSecretObject } from "../../models/Aws";
 import type { OidcStateData } from "../../models/OidcState";
 import { auditLog } from "../../utils/AuditLog";
@@ -8,7 +8,6 @@ import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
 import { retrieveEnvVariable } from "../../config";
 import { getOidcStateRedisKey } from "../../utils/Constants";
 import { RequestEventBody } from "./models/Event";
-import { TokenExchangeResponse } from "./models/Token";
 import { exchangeOneIdentityCode } from "./utils/OneIdentity";
 import { generateTokenExchangeResponse } from "./utils/Responses";
 import { generateSourceObject } from "./utils/TokenGenerator";
@@ -93,7 +92,7 @@ export const oidcTokenHandler = async (
       request_id,
     }).info("success");
 
-    return generateOkResponse<TokenExchangeResponse>(response, eventOrigin);
+    return generateOkResponse<SessionTokenResponse>(response, eventOrigin);
   } catch (err: any) {
     const log = auditLog({
       message: `Error generating token: ${err.message}`,

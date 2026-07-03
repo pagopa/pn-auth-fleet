@@ -1,5 +1,3 @@
-import { Source } from "./Source";
-
 export interface OIDecodedToken {
   header: {
     alg: string;
@@ -30,27 +28,4 @@ export interface OIExchangeCodeResponse {
   scope: string;
   id_token: string;
   id_token_type: string;
-}
-
-export interface JwtPayload {
-  iat: number;
-  exp: number;
-  uid: string;
-  iss: string;
-  aud: string;
-  jti: string;
-  source?: Source;
-}
-
-export interface TokenExchangeResponse extends JwtPayload {
-  sessionToken: string;
-  name: string;
-  family_name: string;
-  fiscal_number: string;
-  from_aa: boolean;
-  level: string;
-  source?: Source;
-  idp: string;
-  aar?: string;
-  retrievalId?: string;
 }

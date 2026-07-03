@@ -15,4 +15,11 @@ declare module "pn-auth-common" {
   export const COMMON_CONSTANTS: {
     [key: string]: string;
   };
+  // KMS-based JWT validation (signature + expiry), shared with jwtAuthorizer.
+  export const KmsJwtVerifier: {
+    validation<T = Record<string, unknown>>(jwtToken: string, cacheTTL: number): Promise<T>;
+  };
+  export class ValidationException extends Error {
+    constructor(message: string);
+  }
 }

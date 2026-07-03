@@ -2139,9 +2139,17 @@ Resources:
           FIMS_REDIRECT_URI: !Ref FimsRedirectUri
           FIMS_FRONTEND_BASEURL: !Ref FimsFrontendBaseUrl
           FIMS_SECRET_NAME: !Ref FimsSecretName
-          ### session token signing: same KMS key as oidc, dedicated short TTL ###
+          ### fimsToken signing (short-lived handoff): same KMS key as oidc, dedicated short TTL ###
           KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
           FIMS_TOKEN_TTL: !Ref FimsTokenTtl
+          ### /exchange session token: same issuer / audience / TTL as oidc ###
+          ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
+          AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
+          TOKEN_TTL: !Ref TokenExchangeLambdaEnvironmentTokenTtl
+          ### /exchange is browser-facing: authorize the citizen frontend origin ###
+          ALLOWED_ORIGIN: !Ref FimsFrontendBaseUrl
+          ### public-key cache TTL (JWKS / KMS) in seconds ###
+          CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
           ### data-vault (confidential) reached inside the VPC, like lollipopAuthorizer ###
           PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
           REDIS_ENDPOINT: !Ref RedisEndpoint
@@ -2200,6 +2208,7 @@ Resources:
             Action:
               - "kms:Sign"
               - "kms:DescribeKey"
+              - "kms:GetPublicKey"
             Resource: "*"
           - Sid: AllowLambdaToCreateLogs
             Action:
@@ -2248,9 +2257,11 @@ Resources:
     Type: AWS::ApiGateway::Deployment
     Condition: EnableFimsApi
     DependsOn:
-      - FimsTokenPostMethod
+      - FimsTokenGetMethod
       - FimsAuthorizeGetMethod
-      - FimsModel
+      - FimsExchangePostMethod
+      - FimsExchangeOptionsMethod
+      - FimsExchangeModel
     Properties:
       RestApiId: !Ref FimsRestApi
       Description: "Deployment for FIMS API"
@@ -2291,7 +2302,7 @@ Resources:
       RestApiId: !Ref FimsRestApi
       Stage: !Ref FimsRestApiStage
 
-  # Lambda access right for POST method (token)
+  # Lambda access right for GET method (token) - FIMS redirects here (redirect_uri) via GET
   FimsTokenLambdaPermission:
     Type: AWS::Lambda::Permission
     Condition: EnableFimsApi
@@ -2302,7 +2313,7 @@ Resources:
       FunctionName: !Ref FimsLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/POST/token"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/GET/token"
       SourceAccount: !Ref AWS::AccountId
 
   # Lambda access right for GET method (authorize)
@@ -2319,30 +2330,36 @@ Resources:
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/GET/authorize"
       SourceAccount: !Ref AWS::AccountId
 
-  # FIMS Body model
-  FimsModel:
+  # Lambda access right for POST method (exchange)
+  FimsExchangeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Condition: EnableFimsApi
+    DependsOn:
+      - FimsLambda
+      - FimsRestApi
+    Properties:
+      FunctionName: !Ref FimsLambdaName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/POST/exchange"
+      SourceAccount: !Ref AWS::AccountId
+
+  # FIMS exchange body model (fimsToken carried in authorizationToken, like tokenExchange)
+  FimsExchangeModel:
     Type: "AWS::ApiGateway::Model"
     Condition: EnableFimsApi
     Properties:
       RestApiId: !Ref FimsRestApi
       ContentType: application/json
-      Description: Schema for FIMS token body
-      Name: FimsModel
+      Description: Schema for FIMS exchange body
+      Name: FimsExchangeModel
       Schema:
         type: object
         additionalProperties: false
         required:
-          - code
-          - state
-          - iss
+          - authorizationToken
         properties:
-          code:
-            type: string
-          state:
-            type: string
-            description: UUID v4
-            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-          iss:
+          authorizationToken:
             type: string
 
   # FIMS resources
@@ -2362,6 +2379,14 @@ Resources:
       ParentId: !GetAtt FimsRestApi.RootResourceId
       PathPart: "token"
 
+  FimsExchangeResource:
+    Type: AWS::ApiGateway::Resource
+    Condition: EnableFimsApi
+    Properties:
+      RestApiId: !Ref FimsRestApi
+      ParentId: !GetAtt FimsRestApi.RootResourceId
+      PathPart: "exchange"
+
   FimsRequestValidator:
     Type: AWS::ApiGateway::RequestValidator
     Condition: EnableFimsApi
@@ -2370,8 +2395,9 @@ Resources:
       ValidateRequestBody: true
       ValidateRequestParameters: true
 
-  # FIMS POST method (token) - no Origin/CORS validation (native app)
-  FimsTokenPostMethod:
+  # FIMS GET method (token) - FIMS redirects here (redirect_uri) with code/state/iss
+  # in the query string (OIDC code flow). No Origin/CORS validation (server-to-browser redirect).
+  FimsTokenGetMethod:
     DependsOn: FimsLambda
     Type: AWS::ApiGateway::Method
     Condition: EnableFimsApi
@@ -2379,12 +2405,14 @@ Resources:
       OperationName: "Proxy to FIMS Lambda - token"
       RestApiId: !Ref FimsRestApi
       ResourceId: !Ref FimsTokenResource
-      HttpMethod: POST
+      HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
       RequestValidatorId: !Ref FimsRequestValidator
-      RequestModels:
-        "application/json": !Ref FimsModel
+      RequestParameters:
+        "method.request.querystring.code": true
+        "method.request.querystring.state": true
+        "method.request.querystring.iss": true
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -2412,6 +2440,66 @@ Resources:
         PassthroughBehavior: WHEN_NO_MATCH
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
+
+  # FIMS POST method (exchange) - browser-facing: requires Origin header, validated inside the lambda
+  FimsExchangePostMethod:
+    DependsOn: FimsLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableFimsApi
+    Properties:
+      OperationName: "Proxy to FIMS Lambda - exchange"
+      RestApiId: !Ref FimsRestApi
+      ResourceId: !Ref FimsExchangeResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestValidatorId: !Ref FimsRequestValidator
+      RequestParameters:
+        "method.request.header.Origin": true
+      RequestModels:
+        "application/json": !Ref FimsExchangeModel
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FimsLambda.Arn}/invocations"
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  # FIMS OPTIONS method (exchange) - CORS preflight handled by API Gateway (MOCK)
+  FimsExchangeOptionsMethod:
+    DependsOn: FimsLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableFimsApi
+    Properties:
+      OperationName: "Options for FIMS Lambda - exchange"
+      RestApiId: !Ref FimsRestApi
+      ResourceId: !Ref FimsExchangeResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          ResponseModels:
+            "application/json": "Empty"
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          "application/json": '{"statusCode": 200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates:
+              "application/json": ""
 
   FimsApiSubscriptionFilter:
     Condition: EnableFimsApiAndSendLogToKinesis

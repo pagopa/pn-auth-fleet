@@ -37,13 +37,13 @@ jest.mock("../../app/handlers/fimsToken/validation/TokenValidation", () => ({
 
 jest.mock("../../app/handlers/fimsToken/utils/UserInfo", () => ({
   getFimsUserInfo: jest.fn().mockResolvedValue({
-    sub: "AAAAAA00A00A000A",
-    fiscal_code: "AAAAAA00A00A000A",
+    sub: "LVLDAA85T50G702B",
+    fiscal_code: "LVLDAA85T50G702B",
     public_key: "fake-public-key",
     assertion_ref: "sha256-fake",
     assertion: "<fake-saml-assertion/>",
-    family_name: "Rossi",
-    given_name: "Mario",
+    family_name: "Lovelace",
+    given_name: "Ada",
   }),
 }));
 
@@ -126,38 +126,39 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(1);
   });
 
-  it("should route POST /fims-token and redirect to the frontend with the token in the fragment", async () => {
+  it("should route GET /fims-token and redirect to the frontend with the token in the fragment", async () => {
     (RedisHandler.getJson as jest.Mock).mockResolvedValue({ nonce: "fake-nonce" });
 
     const event = {
       ...baseEvent,
       resource: "/token",
-      httpMethod: "POST",
-      body: JSON.stringify({
+      httpMethod: "GET",
+      queryStringParameters: {
         code: "fake-code",
         state: "fake-state",
         iss: "https://oauth.io.pagopa.it",
-      }),
+      },
     };
 
     const result: any = await handler(event, mockContext, () => {});
 
     expect(result.statusCode).toBe(302);
+    // utm params in the query string (visible to analytics), token in the fragment (not sent to the server)
     expect(result.headers.Location).toBe(
-      "https://cittadini.dev.notifichedigitali.it#fimsToken=fake-session-token",
+      "https://cittadini.dev.notifichedigitali.it/?utm_source=ioapp&utm_medium=app&utm_campaign=visita_send#fimsToken=fake-session-token",
     );
     // No CORS header is set for FIMS
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
 
     // The cx id (uid) is resolved from pn-data-vault using the fiscal code
-    expect(getCxId).toHaveBeenCalledWith("AAAAAA00A00A000A");
+    expect(getCxId).toHaveBeenCalledWith("LVLDAA85T50G702B");
 
     // The session token is built from the UserInfo claims, the cx id and the OIDC state
     expect(generateFimsJwtPayload).toHaveBeenCalledWith({
       uid: "fake-cx-id",
-      fiscalCode: "AAAAAA00A00A000A",
-      givenName: "Mario",
-      familyName: "Rossi",
+      fiscalCode: "LVLDAA85T50G702B",
+      givenName: "Ada",
+      familyName: "Lovelace",
       state: "fake-state",
     });
     expect(generateSessionToken).toHaveBeenCalledTimes(1);

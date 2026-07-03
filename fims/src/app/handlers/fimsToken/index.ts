@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { RedisHandler } from "pn-auth-common";
-import { getAWSSecret } from "pn-auth-common-ts";
+import { getAWSSecret, ValidationException } from "pn-auth-common-ts";
 import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { retrieveEnvVariable } from "../../config";
@@ -15,7 +15,6 @@ import { FimsTokenRequestBody } from "../../models/FimsToken";
 import { auditLog } from "../../utils/AuditLog";
 
 // Module-level variable: persists across warm Lambda invocations, avoiding a Secrets Manager call on every request.
-// On cold start it is undefined and gets populated on the first invocation.
 let cachedFimsCredentials: FimsAwsSecretObject | undefined;
 export const clearCredentialsCache = () => {
   cachedFimsCredentials = undefined;
@@ -31,12 +30,13 @@ export const fimsTokenHandler = async (
   const fimsSecretName = retrieveEnvVariable("FIMS_SECRET_NAME");
 
   try {
-    const { code, state, iss } = JSON.parse(event.body!) as FimsTokenRequestBody;
+    const { code, state, iss } = (event.queryStringParameters ??
+      {}) as unknown as FimsTokenRequestBody;
 
     // 1. Check issuer
     if (iss !== fimsIssuerUrl) {
       auditLog({ message: "Invalid issuer", status: "KO", request_id }).warn("warn");
-      return generateKoResponse("Invalid issuer");
+      return generateKoResponse(new ValidationException("Invalid issuer"));
     }
 
     // 2. Retrieve nonce from Redis (implicitly validates state)
@@ -45,7 +45,7 @@ export const fimsTokenHandler = async (
     try {
       const stateData = await RedisHandler.getJson<FimsStateData>(getFimsStateRedisKey(state));
       if (!stateData) {
-        throw new Error("Fims state not found");
+        throw new ValidationException("Fims state not found");
       }
       nonce = stateData.nonce;
     } finally {
@@ -68,7 +68,6 @@ export const fimsTokenHandler = async (
     // 5. Fetch the citizen's claims (assertion, public_key, assertion_ref, fiscal_code, ...)
     const userInfo = await getFimsUserInfo({ accessToken: tokens.access_token });
     console.debug("FIMS user info received", { assertionRef: userInfo.assertion_ref });
-
     // TODO verify Lollipop (checks 1-6 via lollipopAuthorizer) + check 7 (nonce == state) using userInfo
 
     // 6. Resolve the internal cx id (uid) from pn-data-vault, then sign a
@@ -93,7 +92,14 @@ export const fimsTokenHandler = async (
     }).info("success");
 
     const frontendBaseUrl = retrieveEnvVariable("FIMS_FRONTEND_BASEURL");
-    return generateRedirectResponse(`${frontendBaseUrl}#fimsToken=${fimsToken}`);
+
+    const redirectUrl = new URL(frontendBaseUrl);
+    redirectUrl.searchParams.set("utm_source", "ioapp");
+    redirectUrl.searchParams.set("utm_medium", "app");
+    redirectUrl.searchParams.set("utm_campaign", "visita_send");
+    redirectUrl.hash = `fimsToken=${fimsToken}`;
+
+    return generateRedirectResponse(redirectUrl.toString());
   } catch (err) {
     auditLog({ message: `fims-token error: ${(err as Error).message}`, status: "KO", request_id }).error("error");
     return generateKoResponse(err as Error);

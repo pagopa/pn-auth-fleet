@@ -1,10 +1,10 @@
-import { TokenExchangeResponse } from "../../app/handlers/oidcToken/models/Token";
+import { SessionTokenResponse } from "pn-auth-common-ts";
 import { mockState } from "./event.mock";
 import { userIdMock } from "./token.mock";
 
 export const allowedOrigin = "origin";
 
-export const tokenExchangeResponse: TokenExchangeResponse = {
+export const tokenExchangeResponse: SessionTokenResponse = {
   sessionToken:
     "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2V5LWlkIn0.eyJpYXQiOjE2NDk2ODY3NDksImV4cCI6MTY0OTY5Mzk0OSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwiaXNzIjoicG4tZGV2ZWxvcC5wbi5wYWdvcGEuaXQiLCJhdWQiOiJ3ZWJhcGkuZGV2LnBuLnBhZ29wYS5pdCIsImp0aSI6IjAxRzBDRlc4MEhHVFRXMFJINTRXUUQ2RjZTIn0.mock_signature",
   family_name: "Rossi",
