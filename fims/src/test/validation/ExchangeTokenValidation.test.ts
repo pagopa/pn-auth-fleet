@@ -1,14 +1,13 @@
-import { ValidationException, verifyKmsJwt } from "pn-auth-common-ts";
+import { KmsJwtVerifier } from "pn-auth-common";
+import { ValidationException } from "pn-auth-common-ts";
 import { validateFimsToken } from "../../app/handlers/fimsExchange/validation/ExchangeTokenValidation";
 import { setupEnv } from "../test.utils";
 
-jest.mock("pn-auth-common-ts", () => ({
-  __esModule: true,
-  ...jest.requireActual("pn-auth-common-ts"),
-  verifyKmsJwt: jest.fn(),
+jest.mock("pn-auth-common", () => ({
+  KmsJwtVerifier: { validation: jest.fn() },
 }));
 
-const verifyKmsJwtMock = verifyKmsJwt as jest.Mock;
+const validationMock = KmsJwtVerifier.validation as jest.Mock;
 
 const validClaims = {
   uid: "cx-123",
@@ -23,27 +22,28 @@ const validClaims = {
 describe("validateFimsToken", () => {
   beforeEach(() => {
     setupEnv();
-    verifyKmsJwtMock.mockReset();
+    validationMock.mockReset();
   });
 
   it("should verify the token with CACHE_TTL and return the decoded claims", async () => {
-    verifyKmsJwtMock.mockResolvedValue(validClaims);
+    validationMock.mockResolvedValue(validClaims);
 
     const claims = await validateFimsToken("a.b.c");
 
-    expect(verifyKmsJwtMock).toHaveBeenCalledWith({ jwt: "a.b.c", cacheTTL: 300 });
+    expect(validationMock).toHaveBeenCalledWith("a.b.c", 300);
     expect(claims).toEqual(validClaims);
   });
 
   it("should throw ValidationException when required claims are missing", async () => {
-    verifyKmsJwtMock.mockResolvedValue({ given_name: "Giuseppe" });
+    validationMock.mockResolvedValue({ given_name: "Giuseppe" });
 
     await expect(validateFimsToken("a.b.c")).rejects.toThrow(ValidationException);
   });
 
-  it("should propagate verification errors (bad signature / expired)", async () => {
-    verifyKmsJwtMock.mockRejectedValue(new ValidationException("invalid"));
+  it("should wrap verification errors (bad signature / expired) in a ValidationException", async () => {
+    validationMock.mockRejectedValue(new Error("jwt expired"));
 
     await expect(validateFimsToken("a.b.c")).rejects.toThrow(ValidationException);
+    await expect(validateFimsToken("a.b.c")).rejects.toThrow("jwt expired");
   });
 });
