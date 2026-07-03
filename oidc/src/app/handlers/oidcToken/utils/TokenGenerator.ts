@@ -1,6 +1,5 @@
-import { signKmsJwt } from "pn-auth-common-ts";
+import { signKmsJwt, SessionTokenPayload } from "pn-auth-common-ts";
 import { Source, SourceChannel } from "../models/Source";
-import { JwtPayload } from "../models/Token";
 import { getRetrievalPayload } from "./EmdIntegrationClient";
 import { retrieveEnvVariable } from "../../../config";
 import { OidcStateData } from "../../../models/OidcState";
@@ -17,7 +16,7 @@ interface GenerateJwtPayloadProps {
  * @param payload - The Session Token JWT Payload
  */
 export const generateSessionToken = async (
-  payload: JwtPayload,
+  payload: SessionTokenPayload,
 ): Promise<string> => {
   const keyAlias = retrieveEnvVariable("KEY_ALIAS");
   return signKmsJwt({ payload: { ...payload }, keyAlias });
@@ -34,7 +33,7 @@ export const generateJwtPayload = ({
   pairwise,
   state,
   source,
-}: GenerateJwtPayloadProps): JwtPayload => {
+}: GenerateJwtPayloadProps): SessionTokenPayload => {
   const issuer = retrieveEnvVariable("ISSUER");
   const audience = retrieveEnvVariable("AUDIENCE");
   const expDate = getExpDate();

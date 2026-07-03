@@ -18,6 +18,8 @@ export { getJwksPublicKey, clearJwksCache } from "./JwksCache";
 export { signKmsJwt } from "./KmsJwtSigner";
 export {
   SourceChannel,
+  buildSessionTokenResponse,
   type Source,
   type SessionTokenResponse,
+  type SessionTokenPayload,
 } from "./SessionTokenModels";

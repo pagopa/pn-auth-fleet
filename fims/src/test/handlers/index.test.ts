@@ -143,8 +143,9 @@ describe("Main handler - routing (no origin validation)", () => {
     const result: any = await handler(event, mockContext, () => {});
 
     expect(result.statusCode).toBe(302);
+    // utm params in the query string (visible to analytics), token in the fragment (not sent to the server)
     expect(result.headers.Location).toBe(
-      "https://cittadini.dev.notifichedigitali.it#fimsToken=fake-session-token",
+      "https://cittadini.dev.notifichedigitali.it/?utm_source=ioapp&utm_medium=app&utm_campaign=visita_send#fimsToken=fake-session-token",
     );
     // No CORS header is set for FIMS
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();

@@ -1,6 +1,5 @@
-import { signKmsJwt, SourceChannel } from "pn-auth-common-ts";
+import { signKmsJwt, SessionTokenPayload, SourceChannel } from "pn-auth-common-ts";
 import { retrieveEnvVariable } from "../../../config";
-import { FimsSessionTokenPayload } from "../models/Exchange";
 
 interface GenerateSessionPayloadProps {
   uid: string;
@@ -21,7 +20,7 @@ const FIMS_SOURCE = { channel: SourceChannel.WEB, details: "FIMS" };
 export const generateSessionPayload = ({
   uid,
   state,
-}: GenerateSessionPayloadProps): FimsSessionTokenPayload => {
+}: GenerateSessionPayloadProps): SessionTokenPayload => {
   const issuer = retrieveEnvVariable("ISSUER");
   const audience = retrieveEnvVariable("AUDIENCE");
   const ttl = Number(retrieveEnvVariable("TOKEN_TTL"));
@@ -41,7 +40,7 @@ export const generateSessionPayload = ({
 /**
  * Sign the long-lived session token with the KMS key identified by KEY_ALIAS.
  */
-export const generateSessionToken = async (payload: FimsSessionTokenPayload): Promise<string> => {
+export const generateSessionToken = async (payload: SessionTokenPayload): Promise<string> => {
   const keyAlias = retrieveEnvVariable("KEY_ALIAS");
   return signKmsJwt({ payload: { ...payload }, keyAlias });
 };

@@ -1,10 +1,14 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { generateKoResponse, generateOkResponse } from "../../utils/Responses";
 import { auditLog } from "../../utils/AuditLog";
-import { FimsExchangeRequestBody, FimsExchangeResponse } from "./models/Exchange";
+import { FimsExchangeRequestBody } from "./models/Exchange";
 import { validateFimsToken } from "./validation/ExchangeTokenValidation";
 import { generateSessionPayload, generateSessionToken } from "./utils/SessionToken";
-import { ValidationException } from "pn-auth-common-ts";
+import {
+  buildSessionTokenResponse,
+  SessionTokenResponse,
+  ValidationException,
+} from "pn-auth-common-ts";
 import { isOriginAllowed } from "../../utils/Origin";
 
 // Exchanges the short-lived fimsToken (issued by /token, delivered to the
@@ -44,24 +48,16 @@ export const fimsExchangeHandler = async (
       request_id,
     }).info("success");
 
-    // 3. Return the oidc/token-style response.
-    const response: FimsExchangeResponse = {
+    // 3. Return the oidc/token-style response (shared builder keeps them aligned).
+    const response: SessionTokenResponse = buildSessionTokenResponse({
       sessionToken,
+      payload: sessionPayload,
       name: claims.given_name,
       family_name: claims.family_name,
       fiscal_number: claims.fiscal_code,
-      from_aa: false,
-      level: "L2",
-      uid: sessionPayload.uid,
-      iat: sessionPayload.iat,
-      exp: sessionPayload.exp,
-      iss: sessionPayload.iss,
-      aud: sessionPayload.aud,
-      jti: sessionPayload.jti,
-      source: sessionPayload.source,
-    };
+    });
 
-    return generateOkResponse<FimsExchangeResponse>(response, eventOrigin);
+    return generateOkResponse<SessionTokenResponse>(response, eventOrigin);
   } catch (err) {
     auditLog({
       message: `fims-exchange error: ${(err as Error).message}`,

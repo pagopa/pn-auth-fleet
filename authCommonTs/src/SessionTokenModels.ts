@@ -29,9 +29,67 @@ export interface SessionTokenResponse {
   jti: string;
   iat: number;
   exp: number;
-  // OIDC-only fields (absent in the FIMS flow).
   source?: Source;
   idp?: string;
   aar?: string;
   retrievalId?: string;
+}
+
+// Base claims of the signed session token, shared by oidc and fims. The response
+// reuses these so the two flows can't drift.
+export interface SessionTokenPayload {
+  iat: number;
+  exp: number;
+  uid: string;
+  iss: string;
+  aud: string;
+  jti: string;
+  source?: Source;
+}
+
+interface BuildSessionTokenResponseInput {
+  sessionToken: string;
+  payload: SessionTokenPayload;
+  name: string;
+  family_name: string;
+  fiscal_number: string;
+  // OIDC-only extras (absent in the FIMS flow).
+  idp?: string;
+  aar?: string;
+  retrievalId?: string;
+}
+
+/**
+ * Assemble the session-token exchange response, centralizing the field mapping
+ * and the SEND-fixed constants (from_aa=false, level="L2") so oidc/token and
+ * fims/exchange always return the exact same shape.
+ */
+export function buildSessionTokenResponse({
+  sessionToken,
+  payload,
+  name,
+  family_name,
+  fiscal_number,
+  idp,
+  aar,
+  retrievalId,
+}: BuildSessionTokenResponseInput): SessionTokenResponse {
+  return {
+    sessionToken,
+    name,
+    family_name,
+    fiscal_number,
+    from_aa: false,
+    level: "L2",
+    uid: payload.uid,
+    iss: payload.iss,
+    aud: payload.aud,
+    jti: payload.jti,
+    iat: payload.iat,
+    exp: payload.exp,
+    source: payload.source,
+    idp,
+    aar,
+    retrievalId,
+  };
 }
