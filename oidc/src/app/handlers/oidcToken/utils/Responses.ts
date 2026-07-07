@@ -1,7 +1,11 @@
 import { OidcStateData } from "../../../models/OidcState";
-import { removeFiscalNumberPrefix } from "pn-auth-common-ts";
+import {
+  buildSessionTokenResponse,
+  removeFiscalNumberPrefix,
+  SessionTokenResponse,
+} from "pn-auth-common-ts";
 import { Source } from "../models/Source";
-import { OIDecodedIdToken, TokenExchangeResponse } from "../models/Token";
+import { OIDecodedIdToken } from "../models/Token";
 import { generateJwtPayload, generateSessionToken } from "./TokenGenerator";
 
 interface GenerateTokenResponseProps {
@@ -24,7 +28,7 @@ export const generateTokenExchangeResponse = async ({
   state,
   source,
   oidcStateData,
-}: GenerateTokenResponseProps): Promise<TokenExchangeResponse> => {
+}: GenerateTokenResponseProps): Promise<SessionTokenResponse> => {
   const tokenPayload = generateJwtPayload({
     pairwise: decodedIdToken.pairwise,
     state,
@@ -32,23 +36,15 @@ export const generateTokenExchangeResponse = async ({
   });
   const sessionToken = await generateSessionToken(tokenPayload);
 
-  return {
+  return buildSessionTokenResponse({
     sessionToken,
+    payload: tokenPayload,
     name: decodedIdToken.name,
     family_name: decodedIdToken.familyName,
-    uid: decodedIdToken.pairwise,
     fiscal_number: removeFiscalNumberPrefix(decodedIdToken.fiscalNumber),
-    from_aa: false,
-    level: "L2",
-    aud: tokenPayload.aud,
-    iat: tokenPayload.iat,
-    exp: tokenPayload.exp,
-    iss: tokenPayload.iss,
-    jti: state,
-    source,
     idp: oidcStateData.idp,
     aar: oidcStateData.aar,
     retrievalId: oidcStateData.retrievalId,
-  };
+  });
 };
 

@@ -15,3 +15,11 @@ export {
 export { type ErrorResponseBody } from "./Responses";
 export { type JWKS, type CachedJwks } from "./Jwks";
 export { getJwksPublicKey, clearJwksCache } from "./JwksCache";
+export { signKmsJwt } from "./KmsJwtSigner";
+export {
+  SourceChannel,
+  buildSessionTokenResponse,
+  type Source,
+  type SessionTokenResponse,
+  type SessionTokenPayload,
+} from "./SessionTokenModels";

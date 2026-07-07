@@ -1,8 +1,3 @@
-jest.mock("node:crypto", () => ({
-  ...jest.requireActual("node:crypto"),
-  randomUUID: jest.fn().mockReturnValue("fake-fims-id"),
-}));
-
 jest.mock("pn-auth-common", () => ({
   RedisHandler: {
     connectRedis: jest.fn(),
@@ -20,7 +15,7 @@ jest.mock("pn-auth-common", () => ({
       this.name = "LollipopValidationError";
       Object.assign(this, { errorCode });
     }
-  }
+  },
 }));
 
 jest.mock("pn-auth-common-ts", () => ({
@@ -50,18 +45,41 @@ jest.mock("../../app/handlers/fimsToken/validation/TokenValidation", () => ({
 
 jest.mock("../../app/handlers/fimsToken/utils/UserInfo", () => ({
   getFimsUserInfo: jest.fn().mockResolvedValue({
-    sub: "AAAAAA00A00A000A",
-    fiscal_code: "AAAAAA00A00A000A",
+    sub: "LVLDAA85T50G702B",
+    fiscal_code: "LVLDAA85T50G702B",
     public_key: "fake-public-key",
     assertion_ref: "sha256-fake",
     assertion: "<fake-saml-assertion/>",
+    family_name: "Lovelace",
+    given_name: "Ada",
   }),
 }));
 
-import { LollipopValidationError, RedisHandler, validateLollipop } from "pn-auth-common";
+// The KMS signing lives in pn-auth-common-ts (tested there); stub the FIMS token
+// generator so routing can be exercised without reaching KMS.
+jest.mock("../../app/handlers/fimsToken/utils/TokenGenerator", () => ({
+  generateFimsJwtPayload: jest.fn().mockReturnValue({ uid: "fake-cx-id" }),
+  generateSessionToken: jest.fn().mockResolvedValue("fake-session-token"),
+}));
+
+// pn-data-vault resolves the internal cx id; stub it to avoid the HTTP call.
+jest.mock("../../app/utils/DataVault", () => ({
+  getCxId: jest.fn().mockResolvedValue("fake-cx-id"),
+}));
+
+import {
+  LollipopValidationError,
+  RedisHandler,
+  validateLollipop,
+} from "pn-auth-common";
 import { handler } from "../../app/index";
 import * as AuditLog from "../../app/utils/AuditLog";
-import { getFimsStateRedisKey, getFimsSessionRedisKey } from "../../app/utils/Constants";
+import { getFimsStateRedisKey } from "../../app/utils/Constants";
+import {
+  generateFimsJwtPayload,
+  generateSessionToken,
+} from "../../app/handlers/fimsToken/utils/TokenGenerator";
+import { getCxId } from "../../app/utils/DataVault";
 import { setupEnv } from "../test.utils";
 
 const mockRequestId = "fake-request-id";
@@ -85,7 +103,9 @@ describe("Main handler - routing (no origin validation)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupEnv();
-    auditLogSpy = jest.spyOn(AuditLog, "auditLog").mockReturnValue(mockAuditLog as any);
+    auditLogSpy = jest
+      .spyOn(AuditLog, "auditLog")
+      .mockReturnValue(mockAuditLog as any);
   });
 
   afterEach(() => {
@@ -102,7 +122,9 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
 
     const location = new URL(result.headers.Location);
-    expect(location.origin + location.pathname).toBe("https://oauth.io.pagopa.it/authorize");
+    expect(location.origin + location.pathname).toBe(
+      "https://oauth.io.pagopa.it/authorize",
+    );
     expect(location.searchParams.get("client_id")).toBe("fake-client-id");
     expect(location.searchParams.get("response_type")).toBe("code");
     expect(location.searchParams.get("scope")).toBe("openid profile lollipop");
@@ -115,30 +137,37 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(nonce).toBeTruthy();
 
     // state/nonce are persisted in Redis with a TTL
-    expect(RedisHandler.setJson).toHaveBeenCalledWith(getFimsStateRedisKey(state), { nonce }, { EX: 60 });
+    expect(RedisHandler.setJson).toHaveBeenCalledWith(
+      getFimsStateRedisKey(state),
+      { nonce },
+      { EX: 60 },
+    );
     expect(RedisHandler.connectRedis).toHaveBeenCalledTimes(1);
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(1);
   });
 
-  it("should route POST /fims-token and redirect to the frontend with the token in the fragment", async () => {
-    (RedisHandler.getJson as jest.Mock).mockResolvedValue({ nonce: "fake-nonce" });
+  it("should route GET /fims-token and redirect to the frontend with the token in the fragment", async () => {
+    (RedisHandler.getJson as jest.Mock).mockResolvedValue({
+      nonce: "fake-nonce",
+    });
 
     const event = {
       ...baseEvent,
       resource: "/token",
-      httpMethod: "POST",
-      body: JSON.stringify({
+      httpMethod: "GET",
+      queryStringParameters: {
         code: "fake-code",
         state: "fake-state",
         iss: "https://oauth.io.pagopa.it",
-      }),
+      },
     };
 
     const result: any = await handler(event, mockContext, () => {});
 
     expect(result.statusCode).toBe(302);
+    // utm params in the query string (visible to analytics), token in the fragment (not sent to the server)
     expect(result.headers.Location).toBe(
-      "https://cittadini.dev.notifichedigitali.it#fimsId=fake-fims-id",
+      "https://cittadini.dev.notifichedigitali.it/?utm_source=ioapp&utm_medium=app&utm_campaign=visita_send#fimsToken=fake-session-token",
     );
     // No CORS header is set for FIMS
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
@@ -148,24 +177,28 @@ describe("Main handler - routing (no origin validation)", () => {
         assertion: "<fake-saml-assertion/>",
         assertionRef: "sha256-fake",
         publicKey: "fake-public-key",
-        fiscalCode: "AAAAAA00A00A000A",
+        fiscalCode: "LVLDAA85T50G702B",
         expectedNonce: "fake-state",
         expectedSignedHeaders: {
+          "x-pagopa-lollipop-original-method": "GET",
           "x-pagopa-lollipop-custom-code": "fake-code",
           "x-pagopa-lollipop-custom-state": "fake-state",
           "x-pagopa-lollipop-custom-iss": "https://oauth.io.pagopa.it",
         },
       }),
     );
+    // The cx id (uid) is resolved from pn-data-vault using the fiscal code
+    expect(getCxId).toHaveBeenCalledWith("LVLDAA85T50G702B");
 
-    // One-time session stored in Redis with 60s TTL
-    expect(RedisHandler.setJson).toHaveBeenCalledWith(
-      getFimsSessionRedisKey("fake-fims-id"),
-      { family_name: "", given_name: "", fiscal_code: "AAAAAA00A00A000A" },
-      { EX: 60 },
-    );
-    expect(RedisHandler.connectRedis).toHaveBeenCalledTimes(2);
-    expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(2);
+    // The session token is built from the UserInfo claims, the cx id and the OIDC state
+    expect(generateFimsJwtPayload).toHaveBeenCalledWith({
+      uid: "fake-cx-id",
+      fiscalCode: "LVLDAA85T50G702B",
+      givenName: "Ada",
+      familyName: "Lovelace",
+      state: "fake-state",
+    });
+    expect(generateSessionToken).toHaveBeenCalledTimes(1);
   });
 
   it("should return a generic validation error and not create a session when Lollipop validation fails", async () => {
@@ -183,12 +216,12 @@ describe("Main handler - routing (no origin validation)", () => {
     const event = {
       ...baseEvent,
       resource: "/token",
-      httpMethod: "POST",
-      body: JSON.stringify({
+      httpMethod: "GET",
+      queryStringParameters: {
         code: "fake-code",
         state: "fake-state",
         iss: "https://oauth.io.pagopa.it",
-      }),
+      },
     };
 
     const result: any = await handler(event, mockContext, () => {});
@@ -199,11 +232,18 @@ describe("Main handler - routing (no origin validation)", () => {
       status: 400,
     });
 
-    expect(RedisHandler.setJson).not.toHaveBeenCalled();
+    expect(getCxId).not.toHaveBeenCalled();
+    expect(generateFimsJwtPayload).not.toHaveBeenCalled();
+    expect(generateSessionToken).not.toHaveBeenCalled();
   });
 
   it("should not require an Origin header", async () => {
-    const event = { ...baseEvent, resource: "/authorize", httpMethod: "GET", headers: {} };
+    const event = {
+      ...baseEvent,
+      resource: "/authorize",
+      httpMethod: "GET",
+      headers: {},
+    };
 
     const result: any = await handler(event, mockContext, () => {});
 
@@ -213,6 +253,8 @@ describe("Main handler - routing (no origin validation)", () => {
   it("should throw on an unsupported resource", async () => {
     const event = { ...baseEvent, resource: "/unknown" };
 
-    await expect(handler(event, mockContext, () => {})).rejects.toThrow("Unsupported resource: /unknown");
+    await expect(handler(event, mockContext, () => {})).rejects.toThrow(
+      "Unsupported resource: /unknown",
+    );
   });
 });

@@ -16,5 +16,11 @@ export function setupEnv() {
     IDP_HTTP_TIMEOUT_MS: "10000",
     FIMS_REDIS_STATE_TTL: "60",
     CACHE_TTL: "300",
+    KEY_ALIAS: "SessionKey",
+    FIMS_TOKEN_TTL: "60",
+    ISSUER: "https://webapi.dev.notifichedigitali.it",
+    AUDIENCE: "webapi.dev.pn.pagopa.it",
+    TOKEN_TTL: "7200",
+    ALLOWED_ORIGIN: "https://cittadini.dev.notifichedigitali.it",
   } satisfies Record<EnvVariableName, string>;
 }

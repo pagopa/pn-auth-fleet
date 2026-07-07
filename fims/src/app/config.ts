@@ -10,7 +10,13 @@ export type EnvVariableName =
   | "IDP_CONFIG_BASE_URI"
   | "IDP_CLIENT_CIEIDD"
   | "IDP_HTTP_TIMEOUT_MS"
-  | "ASSERTION_EXPIRE_IN_DAYS";
+  | "ASSERTION_EXPIRE_IN_DAYS"
+  | "KEY_ALIAS"
+  | "FIMS_TOKEN_TTL"
+  | "ISSUER"
+  | "AUDIENCE"
+  | "TOKEN_TTL"
+  | "ALLOWED_ORIGIN";
 
 import { retrieveEnvVariable as retrieve } from "pn-auth-common-ts";
 

@@ -1,20 +1,20 @@
-import { randomUUID } from "node:crypto";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { LollipopValidationError, RedisHandler, validateLollipop } from "pn-auth-common";
 import { getAWSSecret, ValidationException } from "pn-auth-common-ts";
 import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { retrieveEnvVariable } from "../../config";
-import { getFimsStateRedisKey, getFimsSessionRedisKey } from "../../utils/Constants";
+import { getFimsStateRedisKey } from "../../utils/Constants";
+import { getCxId } from "../../utils/DataVault";
 import { generateKoResponse, generateRedirectResponse } from "../../utils/Responses";
 import { exchangeFimsCode } from "./utils/Fims";
 import { getFimsUserInfo } from "./utils/UserInfo";
+import { generateFimsJwtPayload, generateSessionToken } from "./utils/TokenGenerator";
 import { validateFimsIdToken } from "./validation/TokenValidation";
-import { FimsSessionData, FimsTokenRequestBody } from "../../models/FimsToken";
+import { FimsTokenRequestBody } from "../../models/FimsToken";
 import { auditLog } from "../../utils/AuditLog";
 
 // Module-level variable: persists across warm Lambda invocations, avoiding a Secrets Manager call on every request.
-// On cold start it is undefined and gets populated on the first invocation.
 let cachedFimsCredentials: FimsAwsSecretObject | undefined;
 export const clearCredentialsCache = () => {
   cachedFimsCredentials = undefined;
@@ -30,12 +30,13 @@ export const fimsTokenHandler = async (
   const fimsSecretName = retrieveEnvVariable("FIMS_SECRET_NAME");
 
   try {
-    const { code, state, iss } = JSON.parse(event.body!) as FimsTokenRequestBody;
+    const { code, state, iss } = (event.queryStringParameters ??
+      {}) as unknown as FimsTokenRequestBody;
 
     // 1. Check issuer
     if (iss !== fimsIssuerUrl) {
       auditLog({ message: "Invalid issuer", status: "KO", request_id }).warn("warn");
-      return generateKoResponse("Invalid issuer");
+      return generateKoResponse(new ValidationException("Invalid issuer"));
     }
 
     // 2. Retrieve nonce from Redis (implicitly validates state)
@@ -44,7 +45,7 @@ export const fimsTokenHandler = async (
     try {
       const stateData = await RedisHandler.getJson<FimsStateData>(getFimsStateRedisKey(state));
       if (!stateData) {
-        throw new Error("Fims state not found");
+        throw new ValidationException("Fims state not found");
       }
       nonce = stateData.nonce;
     } finally {
@@ -77,6 +78,7 @@ export const fimsTokenHandler = async (
       headers: event.headers,
       expectedNonce: state,
       expectedSignedHeaders: {
+        "x-pagopa-lollipop-original-method": "GET",
         "x-pagopa-lollipop-custom-code": code,
         "x-pagopa-lollipop-custom-state": state,
         "x-pagopa-lollipop-custom-iss": iss,
@@ -92,31 +94,36 @@ export const fimsTokenHandler = async (
       },
     });
 
-    // 7. Store a one-time session in Redis and redirect the frontend with the opaque fimsId.
-    const fimsId = randomUUID();
-    const sessionData: FimsSessionData = {
-      family_name: userInfo.family_name ?? "",
-      given_name: userInfo.given_name ?? "",
-      fiscal_code: userInfo.fiscal_code,
-    };
-    const sessionTtl = Number(retrieveEnvVariable("FIMS_REDIS_STATE_TTL"));
-    await RedisHandler.connectRedis();
-    try {
-      await RedisHandler.setJson(getFimsSessionRedisKey(fimsId), sessionData, { EX: sessionTtl });
-    } finally {
-      await RedisHandler.disconnectRedis();
-    }
+    // 7. Resolve the internal cx id (uid) from pn-data-vault, then sign a
+    // self-contained session token (KMS/RS256) and redirect the frontend.
+    const uid = await getCxId(userInfo.fiscal_code);
+    const fimsJwtPayload = generateFimsJwtPayload({
+      uid,
+      fiscalCode: userInfo.fiscal_code,
+      givenName: userInfo.given_name ?? "",
+      familyName: userInfo.family_name ?? "",
+      state,
+    });
+    const fimsToken = await generateSessionToken(fimsJwtPayload);
 
     auditLog({
-      message: `Fims token successful verified and session created with fimsId: ${fimsId}`,
+      message: "Fims token successfully verified and fims session token created",
       status: "OK",
       cx_type: "PF",
+      uid,
       jti: state,
       request_id,
     }).info("success");
 
     const frontendBaseUrl = retrieveEnvVariable("FIMS_FRONTEND_BASEURL");
-    return generateRedirectResponse(`${frontendBaseUrl}#fimsId=${fimsId}`);
+
+    const redirectUrl = new URL(frontendBaseUrl);
+    redirectUrl.searchParams.set("utm_source", "ioapp");
+    redirectUrl.searchParams.set("utm_medium", "app");
+    redirectUrl.searchParams.set("utm_campaign", "visita_send");
+    redirectUrl.hash = `fimsToken=${fimsToken}`;
+
+    return generateRedirectResponse(redirectUrl.toString());
   } catch (err) {
     const responseError = err instanceof LollipopValidationError ? new ValidationException("Invalid FIMS callback") : (err as Error);
 

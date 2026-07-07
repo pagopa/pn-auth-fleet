@@ -45,7 +45,13 @@ export const exchangeFimsCode = async ({
     return response.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-      const errorMessage = `Error during code exchange with FIMS: ${err.response.data}`;
+      // err.response.data is often a JSON object; serialize it so the real FIMS
+      // error is visible instead of "[object Object]".
+      const data =
+        typeof err.response.data === "string"
+          ? err.response.data
+          : JSON.stringify(err.response.data);
+      const errorMessage = `Error during code exchange with FIMS (status ${err.response.status}): ${data}`;
       if (err.response.status === 400) {
         throw new ValidationException(errorMessage);
       }
