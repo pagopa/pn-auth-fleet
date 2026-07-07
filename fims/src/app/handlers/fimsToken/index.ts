@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { LollipopValidationError, RedisHandler, validateLollipop } from "pn-auth-common";
-import { getAWSSecret, ValidationException } from "pn-auth-common-ts";
+import { getAWSSecret, maskString, ValidationException } from "pn-auth-common-ts";
 import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { retrieveEnvVariable } from "../../config";
@@ -67,7 +67,7 @@ export const fimsTokenHandler = async (
 
     // 5. Fetch the citizen's claims (assertion, public_key, assertion_ref, fiscal_code, ...)
     const userInfo = await getFimsUserInfo({ accessToken: tokens.access_token });
-    console.debug("FIMS user info received", { assertionRef: userInfo.assertion_ref });
+    console.debug("FIMS user info received", { assertionRef: maskString(userInfo.assertion_ref) });
 
     // 6. Validate the Lollipop proof of possession before creating a SEND session/handoff.
     await validateLollipop({
@@ -125,9 +125,14 @@ export const fimsTokenHandler = async (
 
     return generateRedirectResponse(redirectUrl.toString());
   } catch (err) {
-    const responseError = err instanceof LollipopValidationError ? new ValidationException("Invalid FIMS callback") : (err as Error);
+    const responseError = err instanceof LollipopValidationError ? new ValidationException("Lollipop validation failed") : (err as Error);
 
-    auditLog({ message: `fims-token error: ${responseError.message}`, status: "KO", request_id }).error("error");
+    const auditMessage = err instanceof LollipopValidationError
+        ? `fims-token Lollipop validation failed [${err.errorCode}]: ${err.message}`
+        : `fims-token error: ${responseError.message}`;
+
+    auditLog({ message: auditMessage, status: "KO", request_id }).error("error");
+
     return generateKoResponse(responseError);
   }
 };

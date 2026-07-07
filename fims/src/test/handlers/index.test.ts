@@ -201,7 +201,7 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(generateSessionToken).toHaveBeenCalledTimes(1);
   });
 
-  it("should return a generic validation error and not create a session when Lollipop validation fails", async () => {
+  it("should return a generic Lollipop error, log the technical detail and not create a session when Lollipop validation fails", async () => {
     (RedisHandler.getJson as jest.Mock).mockResolvedValue({
       nonce: "fake-nonce",
     });
@@ -228,9 +228,19 @@ describe("Main handler - routing (no origin validation)", () => {
 
     expect(result.statusCode).toBe(400);
     expect(JSON.parse(result.body)).toMatchObject({
-      error: "Invalid FIMS callback",
+      error: "Lollipop validation failed",
       status: 400,
     });
+
+    expect(result.body).not.toContain("The assertion signature is not valid");
+
+    expect(auditLogSpy).toHaveBeenCalledWith({
+      message:
+        "fims-token Lollipop validation failed [INVALID_SIGNATURE]: The assertion signature is not valid",
+      status: "KO",
+      request_id: mockRequestId,
+    });
+    expect(mockAuditLog.error).toHaveBeenCalledWith("error");
 
     expect(getCxId).not.toHaveBeenCalled();
     expect(generateFimsJwtPayload).not.toHaveBeenCalled();
