@@ -30,8 +30,11 @@
   },
   "dependencies": {
     "@aws-lambda-powertools/metrics": "^2.2.0",
+    "@xmldom/xmldom": "^0.8.11",
     "axios": "^1.6.7",
     "jsonwebtoken": "^9.0.0",
-    "redis": "^4.6.14"
+    "redis": "^4.6.14",
+    "xml-crypto": "^6.0.0",
+    "xml2js": "^0.6.2"
   }
 }

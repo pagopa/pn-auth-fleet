@@ -8,6 +8,14 @@ jest.mock("pn-auth-common", () => ({
   COMMON_CONSTANTS: {
     REDIS_PN_SESSION_PREFIX: "pn-session::",
   },
+  validateLollipop: jest.fn(),
+  LollipopValidationError: class LollipopValidationError extends Error {
+    constructor(errorCode: string, message: string) {
+      super(message);
+      this.name = "LollipopValidationError";
+      Object.assign(this, { errorCode });
+    }
+  },
 }));
 
 jest.mock("pn-auth-common-ts", () => ({
@@ -59,7 +67,11 @@ jest.mock("../../app/utils/DataVault", () => ({
   getCxId: jest.fn().mockResolvedValue("fake-cx-id"),
 }));
 
-import { RedisHandler } from "pn-auth-common";
+import {
+  LollipopValidationError,
+  RedisHandler,
+  validateLollipop,
+} from "pn-auth-common";
 import { handler } from "../../app/index";
 import * as AuditLog from "../../app/utils/AuditLog";
 import { getFimsStateRedisKey } from "../../app/utils/Constants";
@@ -91,7 +103,9 @@ describe("Main handler - routing (no origin validation)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupEnv();
-    auditLogSpy = jest.spyOn(AuditLog, "auditLog").mockReturnValue(mockAuditLog as any);
+    auditLogSpy = jest
+      .spyOn(AuditLog, "auditLog")
+      .mockReturnValue(mockAuditLog as any);
   });
 
   afterEach(() => {
@@ -108,7 +122,9 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
 
     const location = new URL(result.headers.Location);
-    expect(location.origin + location.pathname).toBe("https://oauth.io.pagopa.it/authorize");
+    expect(location.origin + location.pathname).toBe(
+      "https://oauth.io.pagopa.it/authorize",
+    );
     expect(location.searchParams.get("client_id")).toBe("fake-client-id");
     expect(location.searchParams.get("response_type")).toBe("code");
     expect(location.searchParams.get("scope")).toBe("openid profile lollipop");
@@ -121,13 +137,19 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(nonce).toBeTruthy();
 
     // state/nonce are persisted in Redis with a TTL
-    expect(RedisHandler.setJson).toHaveBeenCalledWith(getFimsStateRedisKey(state), { nonce }, { EX: 60 });
+    expect(RedisHandler.setJson).toHaveBeenCalledWith(
+      getFimsStateRedisKey(state),
+      { nonce },
+      { EX: 60 },
+    );
     expect(RedisHandler.connectRedis).toHaveBeenCalledTimes(1);
     expect(RedisHandler.disconnectRedis).toHaveBeenCalledTimes(1);
   });
 
   it("should route GET /fims-token and redirect to the frontend with the token in the fragment", async () => {
-    (RedisHandler.getJson as jest.Mock).mockResolvedValue({ nonce: "fake-nonce" });
+    (RedisHandler.getJson as jest.Mock).mockResolvedValue({
+      nonce: "fake-nonce",
+    });
 
     const event = {
       ...baseEvent,
@@ -150,6 +172,21 @@ describe("Main handler - routing (no origin validation)", () => {
     // No CORS header is set for FIMS
     expect(result.headers["Access-Control-Allow-Origin"]).toBeUndefined();
 
+    expect(validateLollipop).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assertion: "<fake-saml-assertion/>",
+        assertionRef: "sha256-fake",
+        publicKey: "fake-public-key",
+        fiscalCode: "LVLDAA85T50G702B",
+        expectedNonce: "fake-state",
+        expectedSignedHeaders: {
+          "x-pagopa-lollipop-original-method": "GET",
+          "x-pagopa-lollipop-custom-code": "fake-code",
+          "x-pagopa-lollipop-custom-state": "fake-state",
+          "x-pagopa-lollipop-custom-iss": "https://oauth.io.pagopa.it",
+        },
+      }),
+    );
     // The cx id (uid) is resolved from pn-data-vault using the fiscal code
     expect(getCxId).toHaveBeenCalledWith("LVLDAA85T50G702B");
 
@@ -164,8 +201,59 @@ describe("Main handler - routing (no origin validation)", () => {
     expect(generateSessionToken).toHaveBeenCalledTimes(1);
   });
 
+  it("should return a generic Lollipop error, log the technical detail and not create a session when Lollipop validation fails", async () => {
+    (RedisHandler.getJson as jest.Mock).mockResolvedValue({
+      nonce: "fake-nonce",
+    });
+
+    (validateLollipop as jest.Mock).mockRejectedValueOnce(
+      new LollipopValidationError(
+        "INVALID_SIGNATURE",
+        "The assertion signature is not valid",
+      ),
+    );
+
+    const event = {
+      ...baseEvent,
+      resource: "/token",
+      httpMethod: "GET",
+      queryStringParameters: {
+        code: "fake-code",
+        state: "fake-state",
+        iss: "https://oauth.io.pagopa.it",
+      },
+    };
+
+    const result: any = await handler(event, mockContext, () => {});
+
+    expect(result.statusCode).toBe(400);
+    expect(JSON.parse(result.body)).toMatchObject({
+      error: "Lollipop validation failed",
+      status: 400,
+    });
+
+    expect(result.body).not.toContain("The assertion signature is not valid");
+
+    expect(auditLogSpy).toHaveBeenCalledWith({
+      message:
+        "fims-token Lollipop validation failed [INVALID_SIGNATURE]: The assertion signature is not valid",
+      status: "KO",
+      request_id: mockRequestId,
+    });
+    expect(mockAuditLog.error).toHaveBeenCalledWith("error");
+
+    expect(getCxId).not.toHaveBeenCalled();
+    expect(generateFimsJwtPayload).not.toHaveBeenCalled();
+    expect(generateSessionToken).not.toHaveBeenCalled();
+  });
+
   it("should not require an Origin header", async () => {
-    const event = { ...baseEvent, resource: "/authorize", httpMethod: "GET", headers: {} };
+    const event = {
+      ...baseEvent,
+      resource: "/authorize",
+      httpMethod: "GET",
+      headers: {},
+    };
 
     const result: any = await handler(event, mockContext, () => {});
 
@@ -175,6 +263,8 @@ describe("Main handler - routing (no origin validation)", () => {
   it("should throw on an unsupported resource", async () => {
     const event = { ...baseEvent, resource: "/unknown" };
 
-    await expect(handler(event, mockContext, () => {})).rejects.toThrow("Unsupported resource: /unknown");
+    await expect(handler(event, mockContext, () => {})).rejects.toThrow(
+      "Unsupported resource: /unknown",
+    );
   });
 });

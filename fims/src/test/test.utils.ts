@@ -9,6 +9,11 @@ export function setupEnv() {
     FIMS_REDIRECT_URI: "https://webapi.dev.notifichedigitali.it/fims/token",
     FIMS_FRONTEND_BASEURL: "https://cittadini.dev.notifichedigitali.it",
     FIMS_SECRET_NAME: "pn-auth-fleet/fims-credentials",
+    ASSERTION_EXPIRE_IN_DAYS: "365",
+    IDP_CONFIG_BASE_URI: "https://api.is.eng.pagopa.it",
+    IDP_CLIENT_CIEIDD:
+      "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO",
+    IDP_HTTP_TIMEOUT_MS: "10000",
     FIMS_REDIS_STATE_TTL: "60",
     CACHE_TTL: "300",
     KEY_ALIAS: "SessionKey",

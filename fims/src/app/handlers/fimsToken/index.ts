@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
-import { RedisHandler } from "pn-auth-common";
-import { getAWSSecret, ValidationException } from "pn-auth-common-ts";
+import { LollipopValidationError, RedisHandler, validateLollipop } from "pn-auth-common";
+import { getAWSSecret, maskString, ValidationException } from "pn-auth-common-ts";
 import { FimsAwsSecretObject } from "../../models/Aws";
 import type { FimsStateData } from "../../models/FimsState";
 import { retrieveEnvVariable } from "../../config";
@@ -67,10 +67,34 @@ export const fimsTokenHandler = async (
 
     // 5. Fetch the citizen's claims (assertion, public_key, assertion_ref, fiscal_code, ...)
     const userInfo = await getFimsUserInfo({ accessToken: tokens.access_token });
-    console.debug("FIMS user info received", { assertionRef: userInfo.assertion_ref });
-    // TODO verify Lollipop (checks 1-6 via lollipopAuthorizer) + check 7 (nonce == state) using userInfo
+    console.debug("FIMS user info received", { assertionRef: maskString(userInfo.assertion_ref) });
 
-    // 6. Resolve the internal cx id (uid) from pn-data-vault, then sign a
+    // 6. Validate the Lollipop proof of possession before creating a SEND session/handoff.
+    await validateLollipop({
+      assertion: userInfo.assertion,
+      assertionRef: userInfo.assertion_ref,
+      publicKey: userInfo.public_key,
+      fiscalCode: userInfo.fiscal_code,
+      headers: event.headers,
+      expectedNonce: state,
+      expectedSignedHeaders: {
+        "x-pagopa-lollipop-original-method": "GET",
+        "x-pagopa-lollipop-custom-code": code,
+        "x-pagopa-lollipop-custom-state": state,
+        "x-pagopa-lollipop-custom-iss": iss,
+      },
+      assertionExpireInDays: Number(retrieveEnvVariable("ASSERTION_EXPIRE_IN_DAYS", "365")),
+      idpConfig: {
+        baseUrl: retrieveEnvVariable("IDP_CONFIG_BASE_URI"),
+        cieEntityIds: retrieveEnvVariable("IDP_CLIENT_CIEIDD")
+          .split(";")
+          .map((entityId) => entityId.trim())
+          .filter(Boolean),
+        timeoutMs: Number(retrieveEnvVariable("IDP_HTTP_TIMEOUT_MS", "10000")),
+      },
+    });
+
+    // 7. Resolve the internal cx id (uid) from pn-data-vault, then sign a
     // self-contained session token (KMS/RS256) and redirect the frontend.
     const uid = await getCxId(userInfo.fiscal_code);
     const fimsJwtPayload = generateFimsJwtPayload({
@@ -101,7 +125,14 @@ export const fimsTokenHandler = async (
 
     return generateRedirectResponse(redirectUrl.toString());
   } catch (err) {
-    auditLog({ message: `fims-token error: ${(err as Error).message}`, status: "KO", request_id }).error("error");
-    return generateKoResponse(err as Error);
+    const responseError = err instanceof LollipopValidationError ? new ValidationException("Lollipop validation failed") : (err as Error);
+
+    const auditMessage = err instanceof LollipopValidationError
+        ? `fims-token Lollipop validation failed [${err.errorCode}]: ${err.message}`
+        : `fims-token error: ${responseError.message}`;
+
+    auditLog({ message: auditMessage, status: "KO", request_id }).error("error");
+
+    return generateKoResponse(responseError);
   }
 };

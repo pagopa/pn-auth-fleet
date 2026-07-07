@@ -2139,6 +2139,11 @@ Resources:
           FIMS_REDIRECT_URI: !Ref FimsRedirectUri
           FIMS_FRONTEND_BASEURL: !Ref FimsFrontendBaseUrl
           FIMS_SECRET_NAME: !Ref FimsSecretName
+          ### Lollipop assertion validation ###
+          ASSERTION_EXPIRE_IN_DAYS: !Ref AssertionExpireInDays
+          IDP_CONFIG_BASE_URI: !Ref IdpProviderConfigBaseUri
+          IDP_CLIENT_CIEIDD: !Ref IdpCieEntityId
+          IDP_HTTP_TIMEOUT_MS: !Ref IdpHttpTimeoutMs
           ### fimsToken signing (short-lived handoff): same KMS key as oidc, dedicated short TTL ###
           KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
           FIMS_TOKEN_TTL: !Ref FimsTokenTtl
