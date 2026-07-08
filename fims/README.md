@@ -48,7 +48,7 @@ query string (`response_mode=query`). L'handler:
 6. risolve il **cx id** (`uid`) chiamando **pn-data-vault** con il codice fiscale;
 7. firma un **`fimsToken`** breve (KMS/RS256, alias `KEY_ALIAS`) con payload
    `{ uid, fiscal_code, given_name, family_name, state, iss, iat, exp }` e TTL `FIMS_TOKEN_TTL`;
-8. risponde `302` verso `FIMS_FRONTEND_BASEURL/?utm_…#fimsToken=<JWT>` (il token viaggia nel **fragment**, non arriva al server).
+8. risponde `302` verso `FIMS_FRONTEND_BASEURL/?utm_…#fimsToken=<JWT>`.
 
 > **Lollipop**: la verifica Proof-of-Possession (checks 1‑7 della guida) è
 > **parcheggiata** — vedi il `TODO` nell'handler.
