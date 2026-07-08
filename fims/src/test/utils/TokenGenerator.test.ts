@@ -42,6 +42,7 @@ describe("FIMS TokenGenerator", () => {
         given_name: "Giuseppe Maria",
         family_name: "Garibaldi",
         state: "fake-state",
+        iss: "https://webapi.dev.notifichedigitali.it", // ISSUER from setupEnv
         iat: 1649686749,
         exp: 1649686809, // iat + 60 (FIMS_TOKEN_TTL from setupEnv)
       });
@@ -55,6 +56,7 @@ describe("FIMS TokenGenerator", () => {
       given_name: "Giuseppe Maria",
       family_name: "Garibaldi",
       state: "fake-state",
+      iss: "https://webapi.dev.notifichedigitali.it",
       iat: 1649686749,
       exp: 1649686809,
     };

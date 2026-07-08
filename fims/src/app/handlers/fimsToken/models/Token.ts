@@ -24,6 +24,7 @@ export interface FimsJwtPayload {
   given_name: string;
   family_name: string;
   state: string;
+  iss: string;
   iat: number;
   exp: number;
 }

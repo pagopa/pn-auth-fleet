@@ -28,6 +28,7 @@ export const generateFimsJwtPayload = ({
   familyName,
   state,
 }: GenerateFimsJwtPayloadProps): FimsJwtPayload => {
+  const issuer = retrieveEnvVariable("ISSUER");
   const ttl = Number(retrieveEnvVariable("FIMS_TOKEN_TTL"));
   const iat = Math.floor(Date.now() / 1000);
 
@@ -37,6 +38,7 @@ export const generateFimsJwtPayload = ({
     given_name: givenName,
     family_name: familyName,
     state,
+    iss: issuer,
     iat,
     exp: iat + ttl,
   };
