@@ -2258,7 +2258,7 @@ Resources:
           - REGIONAL
 
   # Deployment
-  FimsRestApiDeployment:
+  FimsRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment
     Condition: EnableFimsApi
     DependsOn:
@@ -2279,7 +2279,7 @@ Resources:
       RestApiId: !Ref FimsRestApi
       StageName: unique
       TracingEnabled: true
-      DeploymentId: !Ref FimsRestApiDeployment
+      DeploymentId: !Ref FimsRestApiDeploymentPnPlaceholderEpochSeconds
       AccessLogSetting:
         DestinationArn: !GetAtt "FimsApiLogGroup.Arn"
         Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","resourcePath":"$context.resourcePath","status":$context.status,"responseLatency":$context.responseLatency,"xrayTraceId":"$context.xrayTraceId","errorMessage":"$context.error.message","validationError":"$context.error.validationErrorString","integrationRequestId":"$context.integration.requestId","functionResponseStatus":"$context.integration.status","integrationLatency":"$context.integration.latency","integrationServiceStatus":"$context.integration.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}'
