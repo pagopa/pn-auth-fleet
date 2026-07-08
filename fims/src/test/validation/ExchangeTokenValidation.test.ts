@@ -15,6 +15,7 @@ const validClaims = {
   given_name: "Giuseppe Maria",
   family_name: "Garibaldi",
   state: "fake-state",
+  iss: "https://webapi.dev.notifichedigitali.it", // ISSUER from setupEnv
   iat: 1649686749,
   exp: 1649686809,
 };
@@ -38,6 +39,12 @@ describe("validateFimsToken", () => {
     validationMock.mockResolvedValue({ given_name: "Giuseppe" });
 
     await expect(validateFimsToken("a.b.c")).rejects.toThrow(ValidationException);
+  });
+
+  it("should throw when the issuer does not match", async () => {
+    validationMock.mockResolvedValue({ ...validClaims, iss: "https://evil.example.com" });
+
+    await expect(validateFimsToken("a.b.c")).rejects.toThrow("Invalid issuer");
   });
 
   it("should wrap verification errors (bad signature / expired) in a ValidationException", async () => {
