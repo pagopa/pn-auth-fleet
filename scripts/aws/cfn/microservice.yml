@@ -285,7 +285,7 @@ Parameters:
 
   OidcAuthorizeRedirectUri:
     Type: String
-    Description: 'Redirect URI for oidc-authorize endpoint'
+    Description: 'Redirect URI for authorize endpoint'
 
   OidcSecretName:
     Type: String
@@ -1664,7 +1664,7 @@ Resources:
           - REGIONAL
 
   # Deployment
-  OidcRestApiDeployment:
+  OidcRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment
     Condition: EnableOidcApi
     DependsOn:
@@ -1685,7 +1685,7 @@ Resources:
       RestApiId: !Ref OidcRestApi
       StageName: unique
       TracingEnabled: true
-      DeploymentId: !Ref OidcRestApiDeployment
+      DeploymentId: !Ref OidcRestApiDeploymentPnPlaceholderEpochSeconds
       AccessLogSetting:
         DestinationArn: !GetAtt "OidcApiLogGroup.Arn"
         Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","resourcePath":"$context.resourcePath","status":$context.status,"responseLatency":$context.responseLatency,"xrayTraceId":"$context.xrayTraceId","errorMessage":"$context.error.message","validationError":"$context.error.validationErrorString","integrationRequestId":"$context.integration.requestId","functionResponseStatus":"$context.integration.status","integrationLatency":"$context.integration.latency","integrationServiceStatus":"$context.integration.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}'
@@ -1708,11 +1708,12 @@ Resources:
     Type: AWS::ApiGateway::BasePathMapping
     Condition: EnableOidcApi
     Properties:
+      BasePath: "oidc"
       DomainName: !Ref WebApiDnsName
       RestApiId: !Ref OidcRestApi
       Stage: !Ref OidcRestApiStage
 
-  # Lambda access right for POST method (oidc-token)
+  # Lambda access right for POST method (token)
   OidcTokenLambdaPermission:
     Type: AWS::Lambda::Permission
     Condition: EnableOidcApi
@@ -1723,10 +1724,10 @@ Resources:
       FunctionName: !Ref OidcLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/POST/oidc-token"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/POST/token"
       SourceAccount: !Ref AWS::AccountId
 
-  # Lambda access right for GET method (oidc-authorize)
+  # Lambda access right for GET method (authorize)
   OidcAuthorizeLambdaPermission:
     Type: AWS::Lambda::Permission
     Condition: EnableOidcApi
@@ -1737,7 +1738,7 @@ Resources:
       FunctionName: !Ref OidcLambdaName
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/GET/oidc-authorize"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OidcRestApi}/*/GET/authorize"
       SourceAccount: !Ref AWS::AccountId
 
   # Token Exchange OIDC Body model
@@ -1770,7 +1771,7 @@ Resources:
     Properties:
       RestApiId: !Ref OidcRestApi
       ParentId: !GetAtt OidcRestApi.RootResourceId
-      PathPart: "oidc-authorize"
+      PathPart: "authorize"
 
   OidcTokenResource:
     Type: AWS::ApiGateway::Resource
@@ -1778,9 +1779,9 @@ Resources:
     Properties:
       RestApiId: !Ref OidcRestApi
       ParentId: !GetAtt OidcRestApi.RootResourceId
-      PathPart: "oidc-token"
+      PathPart: "token"
 
-  # Token Exchange OIDC POST method (oidc-token)
+  # Token Exchange OIDC POST method (token)
   OidcTokenPostMethod:
     DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
@@ -1805,7 +1806,7 @@ Resources:
         ContentHandling: CONVERT_TO_TEXT
         TimeoutInMillis: 29000
 
-  # Token Exchange OIDC GET method (oidc-authorize)
+  # Token Exchange OIDC GET method (authorize)
   OidcAuthorizeGetMethod:
     DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
@@ -1837,7 +1838,7 @@ Resources:
       ValidateRequestBody: true
       ValidateRequestParameters: true
 
-  # Token Exchange OIDC OPTIONS method (oidc-token)
+  # Token Exchange OIDC OPTIONS method (token)
   OidcTokenOptionsMethod:
     DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
@@ -1872,7 +1873,7 @@ Resources:
             ResponseTemplates:
               "application/json": ""
 
-  # Token Exchange OIDC OPTIONS method (oidc-authorize)
+  # Token Exchange OIDC OPTIONS method (authorize)
   OidcAuthorizeOptionsMethod:
     DependsOn: OidcLambda
     Type: AWS::ApiGateway::Method
