@@ -2,68 +2,106 @@ const { GetPublicKeyCommand, KMS } = require("@aws-sdk/client-kms");
 const jsonwebtoken = require("jsonwebtoken");
 
 const ValidationException = require("../exception/ValidationException");
+const { maskString } = require("../utils/stringUtils");
 
 const kms = new KMS();
 const cachedPublicKeyMap = new Map();
+
+const noop = () => {};
+
+// Console-like logger. When debug is false every method is a no-op so the
+// verifier stays completely silent; when true it forwards to console.
+function createLogger(debug) {
+  return {
+    log: debug ? console.log.bind(console) : noop,
+    info: debug ? console.info.bind(console) : noop,
+    debug: debug ? console.debug.bind(console) : noop,
+    warn: debug ? console.warn.bind(console) : noop,
+  };
+}
+
+const SENSITIVE_FIELDS = new Set([
+  "name",
+  "given_name",
+  "fiscal_number",
+  "family_name",
+  "fiscal_code",
+  "fiscalCode",
+  "givenName",
+  "familyName",
+  "fiscalNumber",
+]);
+
+const maskTokenPayload = (token) => ({
+  ...token,
+  payload: Object.fromEntries(
+    Object.entries(token.payload).map(([key, value]) => [
+      key,
+      SENSITIVE_FIELDS.has(key) && typeof value === "string"
+        ? maskString(value)
+        : value,
+    ]),
+  ),
+});
 
 /**
  * Verify a JWT: resolve the signing public key from its `kid` via KMS (cached)
  * and check the signature. Returns the decoded payload.
  *
- * @param {Object} params
- * @param {string} params.jwtToken - the JWT to verify
- * @param {number} params.cacheTTL - public-key cache TTL in seconds
- * @param {boolean} [params.debug=false] - when true, log every step; otherwise stay silent
+ * @param {string} jwtToken - the JWT to verify
+ * @param {number} cacheTTL - public-key cache TTL in seconds
+ * @param {boolean} [debug=false] - when true, log every step; otherwise stay silent
  */
-async function validation({ jwtToken, cacheTTL, debug = false }) {
+async function validation(jwtToken, cacheTTL, debug = false) {
+  const logger = createLogger(debug);
   if (jwtToken) {
-    const decodedToken = await jwtValidator(jwtToken, cacheTTL, debug);
-    if (debug) console.info("token is valid");
+    const decodedToken = await jwtValidator(jwtToken, cacheTTL, logger);
+    logger.info("token is valid");
     return decodedToken;
   } else {
     throw new ValidationException("token is not valid");
   }
 }
 
-async function jwtValidator(jwtToken, cacheTTL, debug) {
+async function jwtValidator(jwtToken, cacheTTL, logger) {
   const token = decodeToken(jwtToken);
 
-  if (debug) console.log("token ", token);
+  logger.log("token ", maskTokenPayload(token));
   const keyId = token.header.kid;
-  if (debug) console.debug("header keyId ", keyId);
+  logger.debug("header keyId ", keyId);
   let decodedPublicKey;
   const cachedPublicKey = searchInCache(keyId);
   if (cachedPublicKey) {
-    if (debug) console.log("Using cached public key");
+    logger.log("Using cached public key");
     decodedPublicKey = cachedPublicKey;
   } else {
-    const encodedPublicKey = await retrievePublicKey(keyId, debug);
+    const encodedPublicKey = await retrievePublicKey(keyId, logger);
     decodedPublicKey = Buffer.from(encodedPublicKey.PublicKey, "binary").toString("base64");
-    if (debug) console.debug("decodedPublicKey", decodedPublicKey);
-    setCachedData(keyId, decodedPublicKey, cacheTTL, debug);
+    logger.debug("decodedPublicKey", decodedPublicKey);
+    setCachedData(keyId, decodedPublicKey, cacheTTL, logger);
   }
   try {
     const publicKeyPem = "-----BEGIN PUBLIC KEY-----\n" + decodedPublicKey + "\n-----END PUBLIC KEY-----";
-    if (debug) console.debug("publicKeyPem", publicKeyPem);
+    logger.debug("publicKeyPem", publicKeyPem);
     jsonwebtoken.verify(jwtToken, publicKeyPem);
   } catch (err) {
-    if (debug) console.warn("Validation error ", err);
+    logger.warn("Validation error ", err);
     throw new ValidationException(JSON.stringify(err));
   }
-  if (debug) console.log("success!");
+  logger.log("success!");
   return token.payload;
 }
 
-function setCachedData(keyId, val, cacheTTL, debug) {
-  if (debug) console.debug("Set cached public key");
+function setCachedData(keyId, val, cacheTTL, logger) {
+  logger.debug("Set cached public key");
   cachedPublicKeyMap.set(keyId, {
     expiresOn: Date.now() + cacheTTL * 1000,
     value: val,
   });
 }
 
-async function retrievePublicKey(keyId, debug) {
-  if (debug) console.debug("Retrieving public key from KMS");
+async function retrievePublicKey(keyId, logger) {
+  logger.debug("Retrieving public key from KMS");
   const command = new GetPublicKeyCommand({ KeyId: keyId });
   const res = await kms.send(command);
   return res;
