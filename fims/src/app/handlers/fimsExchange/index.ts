@@ -57,7 +57,6 @@ export const fimsExchangeHandler = async (
       fiscal_number: claims.fiscal_code,
     });
 
-    console.log("fimsExchangeHandler response: ", response);
     return generateOkResponse<SessionTokenResponse>(response, eventOrigin);
   } catch (err) {
     auditLog({
