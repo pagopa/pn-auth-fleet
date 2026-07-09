@@ -8,6 +8,8 @@ import { fimsExchangeHandler } from "./handlers/fimsExchange";
 // Origin/CORS validation. /exchange is browser-facing (called by the citizen
 // frontend), so it validates the Origin and emits CORS headers (like OIDC).
 export const handler: APIGatewayProxyHandler = async (event, context) => {
+  console.info("New event received ", event);
+  
   event.headers = makeLower(event.headers);
 
   const resource = event.resource;
