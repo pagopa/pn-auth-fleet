@@ -63,8 +63,10 @@ jest.mock("../../app/handlers/fimsToken/utils/TokenGenerator", () => ({
 }));
 
 // pn-data-vault resolves the internal cx id; stub it to avoid the HTTP call.
+// It returns the id in the "PF-<uuid>" form, so the handler must strip the
+// "PF-" prefix before putting the bare uuid into the token payload.
 jest.mock("../../app/utils/DataVault", () => ({
-  getCxId: jest.fn().mockResolvedValue("fake-cx-id"),
+  getCxId: jest.fn().mockResolvedValue("PF-8d0c83f3-bb80-4534-b0ba-f35a59563cc5"),
 }));
 
 import {
@@ -190,9 +192,11 @@ describe("Main handler - routing (no origin validation)", () => {
     // The cx id (uid) is resolved from pn-data-vault using the fiscal code
     expect(getCxId).toHaveBeenCalledWith("LVLDAA85T50G702B");
 
-    // The session token is built from the UserInfo claims, the cx id and the OIDC state
+    // The session token is built from the UserInfo claims, the cx id and the OIDC
+    // state. The "PF-" prefix returned by pn-data-vault is stripped: the payload
+    // gets the bare uuid, not "PF-8d0c83f3-...".
     expect(generateFimsJwtPayload).toHaveBeenCalledWith({
-      uid: "fake-cx-id",
+      uid: "8d0c83f3-bb80-4534-b0ba-f35a59563cc5",
       fiscalCode: "LVLDAA85T50G702B",
       givenName: "Ada",
       familyName: "Lovelace",
