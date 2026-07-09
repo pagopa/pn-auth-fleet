@@ -58,4 +58,10 @@ declare module "pn-auth-common" {
   export class ValidationException extends Error {
     constructor(message: string);
   }
+
+  /**
+   * Masks a string by showing only the first 2 and last 2 characters.
+   * Strings shorter than 6 characters are completely masked.
+   */
+  export function maskString(stringToMask: string): string;
 }

@@ -9,6 +9,7 @@ jest.mock("pn-auth-common", () => ({
     REDIS_PN_SESSION_PREFIX: "pn-session::",
   },
   validateLollipop: jest.fn(),
+  maskString: jest.fn((value: string) => value),
   LollipopValidationError: class LollipopValidationError extends Error {
     constructor(errorCode: string, message: string) {
       super(message);

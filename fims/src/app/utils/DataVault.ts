@@ -8,7 +8,7 @@ AWSXRay.captureHTTPsGlobal(https);
 
 import axios from "axios";
 import { retrieveEnvVariable } from "../config";
-import { maskString } from "pn-auth-common-ts";
+import { maskString } from "pn-auth-common";
 
 /**
  * Resolves the internal cx id for a physical person (PF) tax id by calling

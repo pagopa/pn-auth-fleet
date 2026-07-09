@@ -10,6 +10,7 @@ const { RADD_RESOLVER_NAME, ATTR_PREFIX, ISS_PREFIX, REDIS_PN_SESSION_PREFIX } =
 
 const { prepareJWKSRenewTimeMetric } = require("./app/modules/utils/metricsUtils");
 const apiGatewayUtils = require("./app/modules/utils/apiGatewayUtils");
+const { maskString } = require("./app/modules/utils/stringUtils");
 const KmsJwtVerifier = require("./app/modules/aws/KmsJwtVerifier");
 const ValidationException = require("./app/modules/exception/ValidationException");
 const { validateLollipop } = require("./app/modules/lollipop/validateLollipop");
@@ -27,6 +28,7 @@ module.exports = {
   COMMON_CONSTANTS: { RADD_RESOLVER_NAME, ATTR_PREFIX, ISS_PREFIX, REDIS_PN_SESSION_PREFIX },
   prepareJWKSRenewTimeMetric,
   apiGatewayUtils,
+  maskString,
   KmsJwtVerifier,
   ValidationException,
   validateLollipop,
