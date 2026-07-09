@@ -17,7 +17,7 @@ export async function validateFimsToken(fimsToken: string): Promise<FimsJwtPaylo
 
   let payload: FimsJwtPayload;
   try {
-    payload = await KmsJwtVerifier.validation<FimsJwtPayload>(fimsToken, cacheTTL);
+    payload = await KmsJwtVerifier.validation<FimsJwtPayload>({ jwtToken: fimsToken, cacheTTL });
   } catch (err) {
     // Normalize the shared verifier error to a ValidationException (-> HTTP 400).
     throw new ValidationException((err as Error).message);

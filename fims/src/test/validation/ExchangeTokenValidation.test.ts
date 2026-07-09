@@ -31,7 +31,7 @@ describe("validateFimsToken", () => {
 
     const claims = await validateFimsToken("a.b.c");
 
-    expect(validationMock).toHaveBeenCalledWith("a.b.c", 300);
+    expect(validationMock).toHaveBeenCalledWith({ jwtToken: "a.b.c", cacheTTL: 300 });
     expect(claims).toEqual(validClaims);
   });
 

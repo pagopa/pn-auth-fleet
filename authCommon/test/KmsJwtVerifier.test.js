@@ -47,7 +47,7 @@ describe("test KmsJwtVerifier validation", () => {
   });
 
   it("validation without authorization token", async () => {
-    await expect(validation(null, CACHE_TTL)).to.be.rejectedWith(
+    await expect(validation({ jwtToken: null, cacheTTL: CACHE_TTL })).to.be.rejectedWith(
         ValidationException,
         "token is not valid"
     );
@@ -55,10 +55,10 @@ describe("test KmsJwtVerifier validation", () => {
 
   it("validation with expired JWT token", async () => {
     await expect(
-        validation(
-            "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEYiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY1MTc0NzY0NiwiZXhwIjoxNjUxNzUxMjQ2LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMkE2VjBCMTNCSE5DUEVaMzJTN0tRM1kifQ.EcnBt1ZHD8Or00SgAP528lY4GcInWv3JfvtTER7_ago9Ef_patWOF1V38OZoUxKzaUrc-dZM7bQMS1PsinCcACyjZdf3D0lWiesftbBGTc221waF9vs7XOyvc1ckFSf7Qx9a1xWUPKETSqrMD7yZl7dHrWnsGLq-X_B7SQWNqd-kPFhXaD12ZYqKSRlMg35XNv2Ww491QqlzferTMBzyzUVf5JMoRjiTixdOaX420ncbRcs1jk91wiGCEqj7bTlGhQ-WIPlCcJRkLgrnj4jx6RAF8ncylfJGcp4NrIKarP82wIBglgTGZHC5TRsQbO_jFakXC8yX3Cvu8eN_T_XgPg",
-            CACHE_TTL
-        )
+        validation({
+            jwtToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imh1Yi1zcGlkLWxvZ2luLXRlc3QifQ.eyJlbWFpbCI6ImluZm9AYWdpZC5nb3YuaXQiLCJmYW1pbHlfbmFtZSI6IlJvc3NpIiwiZmlzY2FsX251bWJlciI6IkdETk5XQTEySDgxWTg3NEYiLCJtb2JpbGVfcGhvbmUiOiIzMzMzMzMzMzQiLCJuYW1lIjoiTWFyaW8iLCJmcm9tX2FhIjpmYWxzZSwidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwibGV2ZWwiOiJMMiIsImlhdCI6MTY1MTc0NzY0NiwiZXhwIjoxNjUxNzUxMjQ2LCJhdWQiOiJwb3J0YWxlLXBmLWRldmVsb3AuZmUuZGV2LnBuLnBhZ29wYS5pdCIsImlzcyI6Imh0dHBzOi8vc3BpZC1odWItdGVzdC5kZXYucG4ucGFnb3BhLml0IiwianRpIjoiMDFHMkE2VjBCMTNCSE5DUEVaMzJTN0tRM1kifQ.EcnBt1ZHD8Or00SgAP528lY4GcInWv3JfvtTER7_ago9Ef_patWOF1V38OZoUxKzaUrc-dZM7bQMS1PsinCcACyjZdf3D0lWiesftbBGTc221waF9vs7XOyvc1ckFSf7Qx9a1xWUPKETSqrMD7yZl7dHrWnsGLq-X_B7SQWNqd-kPFhXaD12ZYqKSRlMg35XNv2Ww491QqlzferTMBzyzUVf5JMoRjiTixdOaX420ncbRcs1jk91wiGCEqj7bTlGhQ-WIPlCcJRkLgrnj4jx6RAF8ncylfJGcp4NrIKarP82wIBglgTGZHC5TRsQbO_jFakXC8yX3Cvu8eN_T_XgPg",
+            cacheTTL: CACHE_TTL,
+        })
     ).to.be.rejectedWith(
         ValidationException,
         JSON.stringify({"name":"TokenExpiredError", "message":"jwt expired", "expiredAt":"2022-05-05T11:47:26.000Z"})
@@ -67,7 +67,7 @@ describe("test KmsJwtVerifier validation", () => {
 
   it("validation token with invalid structure", async () => {
     await expect(
-      validation("eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsInVzZSI6InNpZyIsImtpZCI6IjMyZDhhMzIxLTE1NjgtNDRmNS05NTU4LWE5MDcyZjUxOWQyZCJ9", CACHE_TTL)
+      validation({ jwtToken: "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsInVzZSI6InNpZyIsImtpZCI6IjMyZDhhMzIxLTE1NjgtNDRmNS05NTU4LWE5MDcyZjUxOWQyZCJ9", cacheTTL: CACHE_TTL })
     ).to.be.rejectedWith(ValidationException, "Unable to decode input JWT string");
   });
 });
