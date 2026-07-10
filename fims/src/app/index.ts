@@ -25,8 +25,6 @@ export const handler: APIGatewayProxyHandler = async (event, context) => {
     ),
   });
 
-  event.headers = makeLower(event.headers);
-
   const resource = event.resource;
   if (resource === "/authorize") {
     return fimsAuthorizeHandler(event, context);
