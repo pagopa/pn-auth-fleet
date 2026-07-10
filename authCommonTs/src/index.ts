@@ -6,7 +6,6 @@ export { getAWSSecret, getAWSParameterStore } from "./AwsParameters";
 export { createAuditLogger, AUD_TYPE, type AuditLogStatus, type AuditLogProps } from "./AuditLog";
 export {
   makeLower,
-  maskString,
   removeFiscalNumberPrefix,
   generateRandomUniqueString,
   isValidUUID,
