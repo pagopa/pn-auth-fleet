@@ -9,12 +9,20 @@ if (process.env.PR_NUM) {
   options["sonar.pullrequest.key"] = process.env.PR_NUM;
 }
 
-import scanner from "sonarqube-scanner";
+import sonarqubeScanner from "sonarqube-scanner";
+
+const scanner = sonarqubeScanner.default;
 
 scanner(
   {
     serverUrl: "https://sonarcloud.io",
     options: options,
   },
-  () => process.exit()
+  (error) => {
+    if (error) {
+      console.error(error);
+      process.exit(1);
+    }
+    process.exit();
+  }
 );

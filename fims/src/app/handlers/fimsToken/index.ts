@@ -96,7 +96,8 @@ export const fimsTokenHandler = async (
 
     // 7. Resolve the internal cx id (uid) from pn-data-vault, then sign a
     // self-contained session token (KMS/RS256) and redirect the frontend.
-    const uid = await getCxId(userInfo.fiscal_code);
+    const cxId = await getCxId(userInfo.fiscal_code);
+    const uid = cxId.replace("PF-", ""); // Remove the "PF-" prefix from the cxId
     const fimsJwtPayload = generateFimsJwtPayload({
       uid,
       fiscalCode: userInfo.fiscal_code,
