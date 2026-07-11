@@ -35,10 +35,10 @@ export const handler: APIGatewayProxyHandler = async (event, context) => {
   }
 
   const resource = event.resource;
-  if (resource === "/oidc-authorize") {
+  if (resource === "/authorize") {
     return oidcAuthorizeHandler(event, context);
   }
-  if (resource === "/oidc-token") {
+  if (resource === "/token") {
     return oidcTokenHandler(event, context);
   }
 

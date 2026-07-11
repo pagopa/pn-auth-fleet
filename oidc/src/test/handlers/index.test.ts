@@ -53,7 +53,7 @@ describe("Main handler - Origin validation", () => {
   it("should return error when event has no origin", async () => {
     const eventWithoutOrigin = {
       ...mockTokenExchangeEvent,
-      resource: "/oidc-token",
+      resource: "/token",
       headers: { origin: undefined },
     };
 
@@ -78,7 +78,7 @@ describe("Main handler - Origin validation", () => {
 
     const eventWithInvalidOrigin = {
       ...mockTokenExchangeEvent,
-      resource: "/oidc-token",
+      resource: "/token",
       headers: { origin: "invalid-origin" },
     };
 
