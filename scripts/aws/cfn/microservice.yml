@@ -159,6 +159,11 @@ Parameters:
     Default: 15
     Description: "Timeout in secondi per la Lambda LollipopAuthorizer."
 
+  LollipopAuthorizerLambdaMemorySize:
+    Type: Number
+    Default: 512
+    Description: "Memory size for lollipop authorizer lambda"
+
   LollipopAuthorizerConfig:
     Type: AWS::SSM::Parameter::Value<String>
     Description: "Path SSM del parametro contenente la configurazione per-microservizio del LollipopAuthorizer."
@@ -870,6 +875,7 @@ Resources:
             SubnetIds: !Ref VpcEgressSubnetsIds
           - !Ref AWS::NoValue
       Timeout: !Ref LollipopAuthorizerLambdaTimeout
+      MemorySize: !Ref LollipopAuthorizerLambdaMemorySize
       TracingConfig:
         Mode: Active
       Tags:

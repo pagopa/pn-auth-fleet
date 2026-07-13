@@ -28,6 +28,7 @@
     "AssertionExpireInDays": "365",
     "AssertionHttpTimeoutMs": "1000",
     "LollipopAuthorizerLambdaTimeout": "15",
+    "LollipopAuthorizerLambdaMemorySize": "512",
     "ExpectedFirstLcOriginalMethod": "POST;GET",
     "IdpCieEntityId": "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO",
     "IdpProviderConfigBaseUri": "https://api.is.eng.pagopa.it",
