@@ -29,6 +29,8 @@ export const fimsTokenHandler = async (
   const fimsIssuerUrl = retrieveEnvVariable("FIMS_ISSUER_URL");
   const fimsSecretName = retrieveEnvVariable("FIMS_SECRET_NAME");
 
+  let cxId: string | undefined;
+
   try {
     const { code, state, iss } = (event.queryStringParameters ??
       {}) as unknown as FimsTokenRequestBody;
@@ -96,7 +98,7 @@ export const fimsTokenHandler = async (
 
     // 7. Resolve the internal cx id (uid) from pn-data-vault, then sign a
     // self-contained session token (KMS/RS256) and redirect the frontend.
-    const cxId = await getCxId(userInfo.fiscal_code);
+    cxId = await getCxId(userInfo.fiscal_code);
     const uid = cxId.replace("PF-", ""); // Remove the "PF-" prefix from the cxId
     const fimsJwtPayload = generateFimsJwtPayload({
       uid,
@@ -112,6 +114,7 @@ export const fimsTokenHandler = async (
       status: "OK",
       cx_type: "PF",
       uid,
+      cx_id: cxId,
       jti: state,
       request_id,
     }).info("success");
@@ -132,7 +135,7 @@ export const fimsTokenHandler = async (
         ? `fims-token Lollipop validation failed [${err.errorCode}]: ${err.message}`
         : `fims-token error: ${responseError.message}`;
 
-    auditLog({ message: auditMessage, status: "KO", request_id }).error("error");
+    auditLog({ message: auditMessage, status: "KO", cx_id: cxId, request_id }).error("error");
 
     return generateKoResponse(responseError);
   }

@@ -27,11 +27,15 @@ export const fimsExchangeHandler = async (
     return generateKoResponse(new ValidationException("Origin not allowed"), eventOrigin);
   }
 
+  let cxId: string | undefined;
+
   try {
     const { authorizationToken } = JSON.parse(event.body!) as FimsExchangeRequestBody;
 
     // 1. Validate the fimsToken (KMS signature + expiry), like jwtAuthorizer.
     const claims = await validateFimsToken(authorizationToken);
+
+    cxId = `PF-${claims.uid}`;
 
     // 2. Sign the long-lived session token (oidc-style payload).
     const sessionPayload = generateSessionPayload({ uid: claims.uid, state: claims.state });
@@ -42,7 +46,7 @@ export const fimsExchangeHandler = async (
       aud_orig: eventOrigin,
       status: "OK",
       cx_type: "PF",
-      cx_id: `PF-${claims.uid}`,
+      cx_id: cxId,
       uid: claims.uid,
       jti: claims.state,
       request_id,
@@ -62,6 +66,7 @@ export const fimsExchangeHandler = async (
     auditLog({
       message: `fims-exchange error: ${(err as Error).message}`,
       status: "KO",
+      cx_id: cxId,
       request_id,
     }).error("error");
     return generateKoResponse(err as Error, eventOrigin);
