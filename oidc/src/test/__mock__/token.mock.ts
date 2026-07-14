@@ -1,5 +1,5 @@
+import { SessionTokenPayload } from "pn-auth-common-ts";
 import {
-  JwtPayload,
   OIDecodedIdToken,
   OIDecodedToken,
 } from "../../app/handlers/oidcToken/models/Token";
@@ -28,7 +28,7 @@ export const oneIdentityDecodedTokenMock: OIDecodedToken = {
 };
 
 // Mock JWT Payload for session token generation
-export const payloadMock: JwtPayload = {
+export const payloadMock: SessionTokenPayload = {
   iat: 1649686749,
   exp: 1649693949,
   uid: userIdMock,

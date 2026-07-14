@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ValidationException } from "../../../exception/validationException";
+import { ValidationException } from "pn-auth-common-ts";
 import { OneIdentityAwsSecretObject } from "../../../models/Aws";
 import { retrieveEnvVariable } from "../../../config";
 import { OIExchangeCodeResponse } from "../models/Token";
