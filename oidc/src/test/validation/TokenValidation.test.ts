@@ -1,6 +1,5 @@
 import { decode, verify } from "jsonwebtoken";
-import { ValidationException } from "../../app/exception/validationException";
-import { getAWSParameterStore } from "../../app/handlers/oidcToken/utils/AwsParameters";
+import { ValidationException, getAWSParameterStore } from "pn-auth-common-ts";
 import { getPublicKey } from "../../app/handlers/oidcToken/utils/PublicKey";
 import {
     isIssuerValid,
@@ -13,7 +12,11 @@ import { oneIdentityDecodedTokenMock } from "../__mock__/token.mock";
 import { setupEnv } from "../test.utils";
 
 jest.mock("jsonwebtoken");
-jest.mock("../../app/handlers/oidcToken/utils/AwsParameters.ts");
+jest.mock("pn-auth-common-ts", () => ({
+  __esModule: true,
+  ...jest.requireActual("pn-auth-common-ts"),
+  getAWSParameterStore: jest.fn(),
+}));
 jest.mock("../../app/handlers/oidcToken/utils/PublicKey.ts");
 
 const mockDecode = decode as jest.MockedFunction<typeof decode>;

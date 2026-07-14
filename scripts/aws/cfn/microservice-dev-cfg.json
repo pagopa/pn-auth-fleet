@@ -39,6 +39,11 @@
     "OidcSecretName": "pn-auth-fleet/one-identity-credentials",
     "OidcBaseURL": "https://uat.oneid.pagopa.it",
     "OidcAuthorizeRedirectUri": "https://cittadini.dev.notifichedigitali.it/auth/callback",
-    "LollipopSecretsKey": "pn-Lollipop-Secrets-Key"
+    "LollipopSecretsKey": "pn-Lollipop-Secrets-Key",
+    "EnableFimsApi": "true",
+    "FimsBaseURL": "https://oauth.io.pagopa.it",
+    "FimsRedirectUri": "https://webapi.dev.notifichedigitali.it/fims/token",
+    "FimsFrontendBaseUrl": "https://cittadini.dev.notifichedigitali.it",
+    "FimsSecretName": "pn-auth-fleet/fims-credentials"
   }
 }

@@ -313,6 +313,54 @@ Parameters:
       - true
       - false
 
+  # - FIMS Lambda Parameters
+  FimsLambdaName:
+    Type: String
+    Description: 'Name for Fims Lambda function'
+
+  FimsBaseURL:
+    Type: String
+    Description: 'Base URL of the FIMS OAuth provider'
+
+  FimsRedirectUri:
+    Type: String
+    Description: 'Redirect URI for the FIMS authorize flow (token endpoint)'
+
+  FimsFrontendBaseUrl:
+    Type: String
+    Description: 'Base URL of the citizen frontend the FIMS token endpoint redirects to (token passed in the URL fragment)'
+
+  FimsSecretName:
+    Type: String
+    Description: 'AWS secret name for FIMS credentials (client_id / client-secret)'
+
+  FimsRedisStateTtl:
+    Type: Number
+    Default: 60
+    Description: 'TTL in seconds for the FIMS state stored in Redis'
+
+  FimsTokenTtl:
+    Type: Number
+    Default: 60
+    Description: 'TTL in seconds for the short-lived FIMS session token returned to the frontend'
+
+  FimsLatencyLimit:
+    Type: Number
+    Default: 2000
+    Description: Default latency limit for fims api
+
+  FimsWafLimit:
+    Type: Number
+    Default: 600000
+
+  EnableFimsApi:
+    Type: String
+    Default: false
+    Description: Enable API Gateway for Fims (feature flag for gradual rollout)
+    AllowedValues:
+      - true
+      - false
+
   TokenExchangeWafLimit:
     Type: Number
     Default: "600000"
@@ -662,6 +710,10 @@ Conditions:
   EnableOidcApi: !Equals ["true", !Ref EnableOidcApi]
   EnableOidcApiAndSendLogToKinesis: !And
     - !Condition EnableOidcApi
+    - !Condition SendLogToKinesis
+  EnableFimsApi: !Equals ["true", !Ref EnableFimsApi]
+  EnableFimsApiAndSendLogToKinesis: !And
+    - !Condition EnableFimsApi
     - !Condition SendLogToKinesis
 
 Resources:
@@ -2057,6 +2109,498 @@ Resources:
         - Id: e1
           Expression: IF(m3>=10 AND (m1/m3>=0.9 OR m2/m3>=0.1), 1, 0)
           Label: !Sub "${ProjectName}-oidc-api-ErrorMetric-OnCall"
+
+  ###                     FIMS LAMBDA                     ###
+  ###########################################################
+
+  FimsLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${ProjectName}-fims-SecGrp
+      VpcId: !Ref VpcId
+
+  # Lambda function
+  FimsLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref FimsLambdaName
+      Runtime: nodejs22.x
+      Handler: "index.handler"
+      MemorySize: 256
+      Code:
+        S3Bucket: !Ref LambdasBucketName
+        S3Key: !Sub "${BucketBasePath}/fims.zip"
+      Environment:
+        Variables:
+          ### variables valorized by FimsLambda specific parameters ###
+          FIMS_REDIS_STATE_TTL: !Ref FimsRedisStateTtl
+          FIMS_BASEURL: !Ref FimsBaseURL
+          # The OIDC issuer of this provider matches its base URL.
+          FIMS_ISSUER_URL: !Ref FimsBaseURL
+          FIMS_REDIRECT_URI: !Ref FimsRedirectUri
+          FIMS_FRONTEND_BASEURL: !Ref FimsFrontendBaseUrl
+          FIMS_SECRET_NAME: !Ref FimsSecretName
+          ### Lollipop assertion validation ###
+          ASSERTION_EXPIRE_IN_DAYS: !Ref AssertionExpireInDays
+          IDP_CONFIG_BASE_URI: !Ref IdpProviderConfigBaseUri
+          IDP_CLIENT_CIEIDD: !Ref IdpCieEntityId
+          IDP_HTTP_TIMEOUT_MS: !Ref IdpHttpTimeoutMs
+          ### fimsToken signing (short-lived handoff): same KMS key as oidc, dedicated short TTL ###
+          KEY_ALIAS: !Ref PnAuthFleetJwtSignKeyAlias
+          FIMS_TOKEN_TTL: !Ref FimsTokenTtl
+          ### /exchange session token: same issuer / audience / TTL as oidc ###
+          ISSUER: !Ref TokenExchangeLambdaEnvironmentIssuer
+          AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
+          TOKEN_TTL: !Ref TokenExchangeLambdaEnvironmentTokenTtl
+          ### /exchange is browser-facing: authorize the citizen frontend origin ###
+          ALLOWED_ORIGIN: !Ref FimsFrontendBaseUrl
+          ### public-key cache TTL (JWKS / KMS) in seconds ###
+          CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
+          ### data-vault (confidential) reached inside the VPC, like lollipopAuthorizer ###
+          PN_DATA_VAULT_BASEURL: http://alb.confidential.pn.internal:8080
+          REDIS_ENDPOINT: !Ref RedisEndpoint
+          USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
+          REDIS_SERVER_NAME: !Ref RedisServerlessName
+      Role: !GetAtt FimsLambdaRole.Arn
+      Timeout: 10
+      TracingConfig:
+        Mode: Active
+      VpcConfig:
+        Fn::If:
+          - HaveToDefineVpcs
+          - SecurityGroupIds:
+              - !Ref FimsLambdaSecurityGroup
+              - !Ref ElasticacheSecurityGroup
+              - !GetAtt DataVaultServiceSecurityGroup.GroupId
+            SubnetIds: !Ref VpcEgressSubnetsIds
+          - !Ref AWS::NoValue
+      Layers:
+        - "arn:aws:lambda:eu-south-1:325218067255:layer:AWS-Parameters-and-Secrets-Lambda-Extension:17"
+      Tags:
+        - Key: "pn-eni-related"
+          Value: "true"
+        - Key: "pn-eni-related-groupName-regexp"
+          Value: !Base64 "^pn-auth-fleet-microsvc-prod-DataVaultServiceSecurityGroup.*$"
+
+  # Lambda function role
+  FimsLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-fimsLambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  # Lambda function IAM policy
+  FimsLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${ProjectName}-fimsLambdaPolicy
+      Roles:
+        - !Ref FimsLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "kms:Sign"
+              - "kms:DescribeKey"
+              - "kms:GetPublicKey"
+            Resource: "*"
+          - Sid: AllowLambdaToCreateLogs
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${FimsLambdaName}:*
+          - Sid: AllowLambdaToReadSecretsManager
+            Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${FimsSecretName}*"
+          - Sid: RedisAuth
+            Action:
+              - elasticache:Connect
+            Effect: Allow
+            Resource:
+              - !Ref RedisServerlessArn
+              - !Ref ElasticCacheAuthFleetSessionsUserArn
+
+  FimsLambdaAlarms:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
+      Parameters:
+        FunctionName: !Ref FimsLambdaName
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  ###                  FIMS API SERVICE                   ###
+  ###########################################################
+
+  # API definition
+  FimsRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Condition: EnableFimsApi
+    Properties:
+      Name: !Sub "${ProjectName}-fims-api"
+      FailOnWarnings: true
+      DisableExecuteApiEndpoint: true
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  # Deployment
+  FimsRestApiDeploymentPnPlaceholderEpochSeconds:
+    Type: AWS::ApiGateway::Deployment
+    Condition: EnableFimsApi
+    DependsOn:
+      - FimsTokenGetMethod
+      - FimsAuthorizeGetMethod
+      - FimsExchangePostMethod
+      - FimsExchangeOptionsMethod
+      - FimsExchangeModel
+    Properties:
+      RestApiId: !Ref FimsRestApi
+      Description: "Deployment for FIMS API"
+
+  # Stage
+  FimsRestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Condition: EnableFimsApi
+    Properties:
+      RestApiId: !Ref FimsRestApi
+      StageName: unique
+      TracingEnabled: true
+      DeploymentId: !Ref FimsRestApiDeploymentPnPlaceholderEpochSeconds
+      AccessLogSetting:
+        DestinationArn: !GetAtt "FimsApiLogGroup.Arn"
+        Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","resourcePath":"$context.resourcePath","status":$context.status,"responseLatency":$context.responseLatency,"xrayTraceId":"$context.xrayTraceId","errorMessage":"$context.error.message","validationError":"$context.error.validationErrorString","integrationRequestId":"$context.integration.requestId","functionResponseStatus":"$context.integration.status","integrationLatency":"$context.integration.latency","integrationServiceStatus":"$context.integration.integrationStatus","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}'
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          MetricsEnabled: "true"
+          DataTraceEnabled: "false"
+          LoggingLevel: "INFO"
+
+  # Log Group
+  FimsApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: EnableFimsApi
+    Properties:
+      RetentionInDays: !Ref LogRetention
+
+  # Expose API to custom domain
+  FimsAPIMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Condition: EnableFimsApi
+    Properties:
+      BasePath: "fims" # base path dedicato: la radice del dominio è già occupata da OidcAPIMapping
+      DomainName: !Ref WebApiDnsName
+      RestApiId: !Ref FimsRestApi
+      Stage: !Ref FimsRestApiStage
+
+  # Lambda access right for GET method (token) - FIMS redirects here (redirect_uri) via GET
+  FimsTokenLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Condition: EnableFimsApi
+    DependsOn:
+      - FimsLambda
+      - FimsRestApi
+    Properties:
+      FunctionName: !Ref FimsLambdaName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/GET/token"
+      SourceAccount: !Ref AWS::AccountId
+
+  # Lambda access right for GET method (authorize)
+  FimsAuthorizeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Condition: EnableFimsApi
+    DependsOn:
+      - FimsLambda
+      - FimsRestApi
+    Properties:
+      FunctionName: !Ref FimsLambdaName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/GET/authorize"
+      SourceAccount: !Ref AWS::AccountId
+
+  # Lambda access right for POST method (exchange)
+  FimsExchangeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Condition: EnableFimsApi
+    DependsOn:
+      - FimsLambda
+      - FimsRestApi
+    Properties:
+      FunctionName: !Ref FimsLambdaName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FimsRestApi}/*/POST/exchange"
+      SourceAccount: !Ref AWS::AccountId
+
+  # FIMS exchange body model (fimsToken carried in authorizationToken, like tokenExchange)
+  FimsExchangeModel:
+    Type: "AWS::ApiGateway::Model"
+    Condition: EnableFimsApi
+    Properties:
+      RestApiId: !Ref FimsRestApi
+      ContentType: application/json
+      Description: Schema for FIMS exchange body
+      Name: FimsExchangeModel
+      Schema:
+        type: object
+        additionalProperties: false
+        required:
+          - authorizationToken
+        properties:
+          authorizationToken:
+            type: string
+
+  # FIMS resources
+  FimsAuthorizeResource:
+    Type: AWS::ApiGateway::Resource
+    Condition: EnableFimsApi
+    Properties:
+      RestApiId: !Ref FimsRestApi
+      ParentId: !GetAtt FimsRestApi.RootResourceId
+      PathPart: "authorize"
+
+  FimsTokenResource:
+    Type: AWS::ApiGateway::Resource
+    Condition: EnableFimsApi
+    Properties:
+      RestApiId: !Ref FimsRestApi
+      ParentId: !GetAtt FimsRestApi.RootResourceId
+      PathPart: "token"
+
+  FimsExchangeResource:
+    Type: AWS::ApiGateway::Resource
+    Condition: EnableFimsApi
+    Properties:
+      RestApiId: !Ref FimsRestApi
+      ParentId: !GetAtt FimsRestApi.RootResourceId
+      PathPart: "exchange"
+
+  FimsRequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Condition: EnableFimsApi
+    Properties:
+      RestApiId: !Ref FimsRestApi
+      ValidateRequestBody: true
+      ValidateRequestParameters: true
+
+  # FIMS GET method (token) - FIMS redirects here (redirect_uri) with code/state/iss
+  # in the query string (OIDC code flow). No Origin/CORS validation (server-to-browser redirect).
+  FimsTokenGetMethod:
+    DependsOn: FimsLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableFimsApi
+    Properties:
+      OperationName: "Proxy to FIMS Lambda - token"
+      RestApiId: !Ref FimsRestApi
+      ResourceId: !Ref FimsTokenResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestValidatorId: !Ref FimsRequestValidator
+      RequestParameters:
+        "method.request.querystring.code": true
+        "method.request.querystring.state": true
+        "method.request.querystring.iss": true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FimsLambda.Arn}/invocations"
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  # FIMS GET method (authorize) - no Origin/CORS validation (native app)
+  FimsAuthorizeGetMethod:
+    DependsOn: FimsLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableFimsApi
+    Properties:
+      OperationName: "Proxy to FIMS Lambda - authorize"
+      RestApiId: !Ref FimsRestApi
+      ResourceId: !Ref FimsAuthorizeResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FimsLambda.Arn}/invocations"
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  # FIMS POST method (exchange) - browser-facing: requires Origin header, validated inside the lambda
+  FimsExchangePostMethod:
+    DependsOn: FimsLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableFimsApi
+    Properties:
+      OperationName: "Proxy to FIMS Lambda - exchange"
+      RestApiId: !Ref FimsRestApi
+      ResourceId: !Ref FimsExchangeResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestValidatorId: !Ref FimsRequestValidator
+      RequestParameters:
+        "method.request.header.Origin": true
+      RequestModels:
+        "application/json": !Ref FimsExchangeModel
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FimsLambda.Arn}/invocations"
+        PassthroughBehavior: WHEN_NO_MATCH
+        ContentHandling: CONVERT_TO_TEXT
+        TimeoutInMillis: 29000
+
+  # FIMS OPTIONS method (exchange) - CORS preflight handled by API Gateway (MOCK)
+  FimsExchangeOptionsMethod:
+    DependsOn: FimsLambda
+    Type: AWS::ApiGateway::Method
+    Condition: EnableFimsApi
+    Properties:
+      OperationName: "Options for FIMS Lambda - exchange"
+      RestApiId: !Ref FimsRestApi
+      ResourceId: !Ref FimsExchangeResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          ResponseModels:
+            "application/json": "Empty"
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          "application/json": '{"statusCode": 200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates:
+              "application/json": ""
+
+  FimsApiSubscriptionFilter:
+    Condition: EnableFimsApiAndSendLogToKinesis
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      RoleArn: !GetAtt SubscriptionFilterServiceRole.Arn
+      LogGroupName: !Ref FimsApiLogGroup
+      FilterPattern: !Ref CloudwatchFilterPattern
+      DestinationArn: !Ref LogsKinesisSourceStreamArn
+
+  FimsApiWaf:
+    Condition: EnableFimsApi
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/api-gw-waf-acl.yaml"
+      Parameters:
+        WAFName: !Sub "${ProjectName}-fims-web"
+        IntendedUsage: WEB
+        APIGatewayARNs: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${FimsRestApi}/stages/${FimsRestApiStage}"
+        Limit: !Ref FimsWafLimit
+        EnhancedWebSecurityEnabled: !Ref EnhancedWebSecurityEnabled
+        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
+
+  FimsAPIGatewayApiLatencyAlarm:
+    Condition: EnableFimsApi
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "oncall-${ProjectName}-fims-api-LatencyAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway FIMS latency exceeds the limit."
+      AlarmActions:
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 15
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 20
+      Period: 60
+      Threshold: !Ref FimsLatencyLimit
+      TreatMissingData: notBreaching
+      Namespace: "AWS/ApiGateway"
+      MetricName: "Latency"
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub "${ProjectName}-fims-api"
+      ExtendedStatistic: "p90"
+
+  FimsAPIGatewayApiErrorAlarm:
+    Condition: EnableFimsApi
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ProjectName}-fims-api-ErrorAlarm"
+      AlarmDescription: "CloudWatch alarm for when API Gateway FIMS has 4xx or 5xx error."
+      AlarmActions:
+        - !Ref AlarmSNSTopicArn
+      InsufficientDataActions:
+        - !Ref AlarmSNSTopicArn
+      OKActions:
+        - !Ref AlarmSNSTopicArn
+      DatapointsToAlarm: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 5
+      Threshold: 1
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: m1
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-fims-api
+              MetricName: 4XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: m2
+          MetricStat:
+            Metric:
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub ${ProjectName}-fims-api
+              MetricName: 5XXError
+              Namespace: AWS/ApiGateway
+            Period: 60
+            Stat: Sum
+          ReturnData: False
+        - Id: e2
+          Expression: "m1*(0.1)"
+          Label: "4XXError-weight-adjust"
+          ReturnData: False
+        - Id: e1
+          Expression: SUM([e2,m2])
+          Label: !Sub "${ProjectName}-fims-api-ErrorMetric"
 
   ###          JWKS CACHE FORCE REFRESH LAMBDA          ###
   #########################################################

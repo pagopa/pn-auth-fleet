@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import { ValidationException } from "../../app/exception/validationException";
+import { ValidationException } from "pn-auth-common-ts";
 import { exchangeOneIdentityCode } from "../../app/handlers/oidcToken/utils/OneIdentity";
 import {
   oneIdentityCredentialsMock,

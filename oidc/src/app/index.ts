@@ -2,7 +2,7 @@ import { APIGatewayProxyHandler } from "aws-lambda";
 import { auditLog } from "./utils/AuditLog";
 import { isOriginAllowed } from "./utils/Origin";
 import { generateKoResponse } from "./utils/Responses";
-import { makeLower } from "./utils/String";
+import { makeLower } from "pn-auth-common-ts";
 import { oidcAuthorizeHandler } from "./handlers/oidcAuthorize";
 import { oidcTokenHandler } from "./handlers/oidcToken";
 
