@@ -1,5 +1,9 @@
-const { expect } = require("chai");
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
 const sinon = require("sinon");
+
+chai.use(chaiAsPromised);
+const expect = chai.expect;
 
 const dynamoFunctions = require("../app/dynamoFunctions");
 const lambda = require("../../index");
@@ -40,7 +44,6 @@ describe("index tests", function () {
 
   it("test fail", async () => {
     getApiKeyByIndexStub.throws();
-    const res = await lambda.handler(event, null);
-    expect(res.policyDocument.Statement[0].Effect).equal("Deny");
+    await expect(lambda.handler(event, null)).to.be.rejected;
   });
 });

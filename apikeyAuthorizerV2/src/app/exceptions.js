@@ -26,6 +26,13 @@ class ItemNotFoundException extends Error {
   }
 }
 
+class JwksRetrievalException extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "JwksRetrievalException";
+  }
+}
+
 class TooManyItemsFoundException extends Error {
   constructor(tableName) {
     super(`Too many items found on table ${tableName}`);
@@ -36,6 +43,7 @@ class TooManyItemsFoundException extends Error {
 module.exports = {
   AudienceValidationException,
   ItemNotFoundException,
+  JwksRetrievalException,
   KeyStatusException,
   TooManyItemsFoundException,
   ValidationException,
