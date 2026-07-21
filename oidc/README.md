@@ -5,15 +5,15 @@ Lambda Node.js che implementa il flusso OIDC con One Identity per l'autenticazio
 ## Flusso
 
 ```text
-Frontend → GET /oidc-authorize → redirect a One Identity
-One Identity → POST /oidc-token → scambia il codice OIDC con un JWT SEND
+Frontend → GET /oidc/authorize → redirect a One Identity
+One Identity → POST /oidc/token → scambia il codice OIDC con un JWT SEND
 ```
 
-### GET /oidc-authorize
+### GET /oidc/authorize
 
 Riceve `idp` (obbligatorio), `aar` e `retrievalId` (opzionali) come query string. Genera `state` e `nonce` come UUID v4, li salva in Redis con TTL configurabile, e restituisce la URL di redirect verso One Identity.
 
-### POST /oidc-token
+### POST /oidc/token
 
 Riceve `code` e `state` (obbligatori, validati da API Gateway). Legge da Redis i dati associati allo `state` (`nonce`, `idp`, `aar`, `retrievalId`): se lo state non esiste risponde 400. Esegue la token exchange con One Identity, valida l'`id_token` usando il `nonce` letto da Redis, genera il JWT SEND e invalida la chiave Redis dello state. In caso di errore la chiave Redis viene comunque eliminata (nel `finally`).
 

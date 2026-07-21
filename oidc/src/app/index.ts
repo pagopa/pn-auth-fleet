@@ -2,7 +2,7 @@ import { APIGatewayProxyHandler } from "aws-lambda";
 import { auditLog } from "./utils/AuditLog";
 import { isOriginAllowed } from "./utils/Origin";
 import { generateKoResponse } from "./utils/Responses";
-import { makeLower } from "./utils/String";
+import { makeLower } from "pn-auth-common-ts";
 import { oidcAuthorizeHandler } from "./handlers/oidcAuthorize";
 import { oidcTokenHandler } from "./handlers/oidcToken";
 
@@ -35,10 +35,10 @@ export const handler: APIGatewayProxyHandler = async (event, context) => {
   }
 
   const resource = event.resource;
-  if (resource === "/oidc-authorize") {
+  if (resource === "/authorize") {
     return oidcAuthorizeHandler(event, context);
   }
-  if (resource === "/oidc-token") {
+  if (resource === "/token") {
     return oidcTokenHandler(event, context);
   }
 

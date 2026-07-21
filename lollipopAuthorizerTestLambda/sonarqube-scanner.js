@@ -1,4 +1,4 @@
-const scanner = require('sonarqube-scanner');
+const scanner = require('sonarqube-scanner').default;
 
 scanner(
     {
@@ -15,7 +15,11 @@ scanner(
             'sonar.coverage.exclusions': 'src/test/**'
         }
     },
-    () => {
+    (error) => {
+        if (error) {
+            console.error(error);
+            process.exit(1);
+        }
         console.log('SonarQube scan completed');
         process.exit();
     }

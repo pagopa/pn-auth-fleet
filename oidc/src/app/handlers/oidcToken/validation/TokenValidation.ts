@@ -1,8 +1,8 @@
 import { decode, verify } from "jsonwebtoken";
-import { ValidationException } from "../../../exception/validationException";
+import { maskString } from "pn-auth-common";
+import { ValidationException, getAWSParameterStore } from "pn-auth-common-ts";
 import { copyAndMaskObject } from "../../../utils/Object";
 import { OIDecodedIdToken, OIDecodedToken } from "../models/Token";
-import { getAWSParameterStore } from "../utils/AwsParameters";
 import { getPublicKey } from "../utils/PublicKey";
 import { retrieveEnvVariable } from "../../../config";
 
@@ -85,7 +85,7 @@ export async function validateOneIdentityIdToken({
 
   // Validate tax ID
   if (!(await isTaxIdValid(fiscalNumber))) {
-    console.warn("TaxId=%s not allowed", fiscalNumber);
+    console.warn("TaxId=%s not allowed", maskString(fiscalNumber));
     throw new ValidationException("TaxId not allowed");
   }
 
