@@ -8,6 +8,8 @@ AWSXRay.captureHTTPsGlobal(https);
 // the axios import must be after the xray capture, otherwise the xray tracking will not work
 const axios = require("axios");
 
+const { JwksRetrievalException } = require("./exceptions.js");
+
 // function to retry async function with a delay
 async function retryWithDelay(fn, delay, retries) {
   try {
@@ -30,7 +32,7 @@ async function innerGetJwks(issuer) {
     return response.data;
   } catch (err) {
     console.error("Error in get key ", err);
-    throw new Error("Error in get pub key");
+    throw new JwksRetrievalException("Error in get pub key", { cause: err });
   }
 }
 

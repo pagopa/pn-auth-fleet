@@ -115,10 +115,10 @@ function handleError(error) {
     error instanceof ItemNotFoundException
   ) {
     console.warn("Error generating IAM policy with error ", error);
-  } else {
-    console.error("Error generating IAM policy with error ", error);
+    return defaultDenyAllPolicy;
   }
-  return defaultDenyAllPolicy;
+  console.error("Error generating IAM policy with error ", error);
+  throw error;
 }
 
 module.exports = { eventHandler };
