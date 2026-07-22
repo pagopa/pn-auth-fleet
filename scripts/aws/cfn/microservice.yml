@@ -791,14 +791,6 @@ Resources:
               - "kms:Decrypt"
             Resource: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${ApiKeyTablesEncryptKeyId}
 
-  ApiKeyAuthorizerV2LambdaAlarms:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub "${TemplateBucketBaseUrl}/fragments/lambda-alarms.yaml"
-      Parameters:
-        FunctionName: !Ref ApiKeyAuthorizerV2LambdaName
-        AlarmSNSTopicArn: !Ref AlarmSNSTopicArn
-
   ###               IO AUTHORIZER LAMBDA                ###
   #########################################################
 
@@ -3524,8 +3516,7 @@ Resources:
             - !If [EnableOidcApi, !Ref OidcRestApiStage, !Ref AWS::NoValue]
         AlarmArns: !Join
           - ","
-          - - !GetAtt ApiKeyAuthorizerV2LambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
-            - !GetAtt IoAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
+          - - !GetAtt IoAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt LollipopAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt JwtAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
             - !GetAtt BackofficeAuthorizerLambdaAlarms.Outputs.LambdaInvocationErrorLogsMetricAlarm
