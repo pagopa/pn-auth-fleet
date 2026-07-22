@@ -32,7 +32,7 @@ async function getAssertionDoc(jwt, assertionRef) {
         if (e instanceof OidcAssertionNotSupported) {
             throw new ErrorRetrievingAssertionException(ASSERTION_ERROR_CODES.OIDC_ASSERTION_TYPE_NOT_SUPPORTED, e.message);
         }
-        if (e instanceof LollipopssertionNotFoundException) {
+        if (e instanceof LollipopAssertionNotFoundException) {
             throw new ErrorRetrievingAssertionException(ASSERTION_ERROR_CODES.SAML_ASSERTION_NOT_FOUND, e.message);
         }
         throw e;
