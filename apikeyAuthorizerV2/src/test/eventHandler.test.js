@@ -139,7 +139,10 @@ describe("eventHandler test ", function () {
     );
 
     try {
-      await expect(eventHandler(eventPdnd, null)).to.be.rejected;
+      await expect(eventHandler(eventPdnd, null)).to.be.rejectedWith(
+        JwksRetrievalException,
+        "Error in get pub key"
+      );
     } finally {
       isCacheActiveStub.restore();
       retrieverPdndJwks.getJwks.callsFake(() => jwksFromPdnd);
@@ -147,21 +150,29 @@ describe("eventHandler test ", function () {
   });
 
   it("error thrown", async () => {
-    getApiKeyByIndexStub.throws();
-    await expect(eventHandler(event, null)).to.be.rejected;
+    getApiKeyByIndexStub.throws(new Error("unexpected internal error"));
+    await expect(eventHandler(event, null)).to.be.rejectedWith(
+      Error,
+      "unexpected internal error"
+    );
   });
 
   it("dynamo raw error thrown", async () => {
     getApiKeyByIndexStub.throws(
       new Error("ProvisionedThroughputExceededException")
     );
-    await expect(eventHandler(event, null)).to.be.rejected;
+    await expect(eventHandler(event, null)).to.be.rejectedWith(
+      Error,
+      "ProvisionedThroughputExceededException"
+    );
   });
 
   it("too many items found exception thrown", async () => {
     getApiKeyByIndexStub.throws(
       new TooManyItemsFoundException("apiKeyDynamo")
     );
-    await expect(eventHandler(event, null)).to.be.rejected;
+    await expect(eventHandler(event, null)).to.be.rejectedWith(
+      TooManyItemsFoundException
+    );
   });
 });

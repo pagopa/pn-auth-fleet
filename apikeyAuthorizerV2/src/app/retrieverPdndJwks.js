@@ -32,7 +32,7 @@ async function innerGetJwks(issuer) {
     return response.data;
   } catch (err) {
     console.error("Error in get key ", err);
-    throw new JwksRetrievalException("Error in get pub key");
+    throw new JwksRetrievalException("Error in get pub key", { cause: err });
   }
 }
 

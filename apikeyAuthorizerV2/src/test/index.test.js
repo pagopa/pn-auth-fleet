@@ -43,7 +43,10 @@ describe("index tests", function () {
   });
 
   it("test fail", async () => {
-    getApiKeyByIndexStub.throws();
-    await expect(lambda.handler(event, null)).to.be.rejected;
+    getApiKeyByIndexStub.throws(new Error("unexpected internal error"));
+    await expect(lambda.handler(event, null)).to.be.rejectedWith(
+      Error,
+      "unexpected internal error"
+    );
   });
 });

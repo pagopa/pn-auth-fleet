@@ -27,8 +27,8 @@ class ItemNotFoundException extends Error {
 }
 
 class JwksRetrievalException extends Error {
-  constructor(message) {
-    super(message);
+  constructor(message, options) {
+    super(message, options);
     this.name = "JwksRetrievalException";
   }
 }
