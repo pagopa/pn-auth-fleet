@@ -1,5 +1,4 @@
-import { ValidationException } from "../exception/validationException";
-import { ErrorResponseBody } from "../models/Responses";
+import { ValidationException, type ErrorResponseBody } from "pn-auth-common-ts";
 
 export function generateOkResponse<T>(response: T, allowedOrigin: string) {
   return {

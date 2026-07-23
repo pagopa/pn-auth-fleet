@@ -28,6 +28,7 @@
     "AssertionExpireInDays": "365",
     "AssertionHttpTimeoutMs": "1000",
     "LollipopAuthorizerLambdaTimeout": "15",
+    "LollipopAuthorizerLambdaMemorySize": "512",
     "ExpectedFirstLcOriginalMethod": "POST;GET",
     "IdpCieEntityId": "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO",
     "IdpProviderConfigBaseUri": "https://api.is.eng.pagopa.it",
@@ -39,6 +40,11 @@
     "OidcSecretName": "pn-auth-fleet/one-identity-credentials",
     "OidcBaseURL": "https://uat.oneid.pagopa.it",
     "OidcAuthorizeRedirectUri": "https://cittadini.dev.notifichedigitali.it/auth/callback",
-    "LollipopSecretsKey": "pn-Lollipop-Secrets-Key"
+    "LollipopSecretsKey": "pn-Lollipop-Secrets-Key",
+    "EnableFimsApi": "true",
+    "FimsBaseURL": "https://oauth.io.pagopa.it",
+    "FimsRedirectUri": "https://webapi.dev.notifichedigitali.it/fims/token",
+    "FimsFrontendBaseUrl": "https://cittadini.dev.notifichedigitali.it",
+    "FimsSecretName": "pn-auth-fleet/fims-credentials"
   }
 }

@@ -1,4 +1,5 @@
-const { expect } = require("chai");
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
 const sinon = require("sinon");
 const fs = require("fs");
 const jsonwebtoken = require("jsonwebtoken");
@@ -6,6 +7,11 @@ const jsonwebtoken = require("jsonwebtoken");
 const { eventHandler } = require("../app/eventHandler");
 const retrieverPdndJwks = require("../app/retrieverPdndJwks");
 const dynamoFunctions = require("../app/dynamoFunctions");
+const jwksCache = require("../app/jwksCache");
+const {
+  JwksRetrievalException,
+  TooManyItemsFoundException,
+} = require("../app/exceptions.js");
 const event = require("../../event.json");
 const eventPdndFromJson = require("../../event-PDND.json");
 const eventPdnd = {
@@ -23,6 +29,9 @@ const {
   mockVirtualKey,
   mockDecodedJwt,
 } = require("./mocks.js");
+
+chai.use(chaiAsPromised);
+const expect = chai.expect;
 
 describe("eventHandler test ", function () {
   const jwksFromPdnd = JSON.parse(
@@ -118,10 +127,52 @@ describe("eventHandler test ", function () {
     expect(res.usageIdentifierKey).to.be.undefined;
   });
 
+  it("jwks retrieval error thrown - pdnd", async () => {
+    getApiKeyByIndexStub.callsFake(() => ({ ...mockVirtualKey, pdnd: true }));
+    getPaAggregationByIdStub.callsFake(() => mockPaAggregationFound);
+    getPaAggregateByIdStub.callsFake(() => mockAggregateFound);
+    const isCacheActiveStub = sinon
+      .stub(jwksCache, "isCacheActive")
+      .callsFake(() => false);
+    retrieverPdndJwks.getJwks.throws(
+      new JwksRetrievalException("Error in get pub key")
+    );
+
+    try {
+      await expect(eventHandler(eventPdnd, null)).to.be.rejectedWith(
+        JwksRetrievalException,
+        "Error in get pub key"
+      );
+    } finally {
+      isCacheActiveStub.restore();
+      retrieverPdndJwks.getJwks.callsFake(() => jwksFromPdnd);
+    }
+  });
+
   it("error thrown", async () => {
-    getApiKeyByIndexStub.throws();
-    const res = await eventHandler(event, null);
-    expect(res.policyDocument.Statement[0].Effect).equal("Deny");
-    expect(res.usageIdentifierKey).to.be.undefined;
+    getApiKeyByIndexStub.throws(new Error("unexpected internal error"));
+    await expect(eventHandler(event, null)).to.be.rejectedWith(
+      Error,
+      "unexpected internal error"
+    );
+  });
+
+  it("dynamo raw error thrown", async () => {
+    getApiKeyByIndexStub.throws(
+      new Error("ProvisionedThroughputExceededException")
+    );
+    await expect(eventHandler(event, null)).to.be.rejectedWith(
+      Error,
+      "ProvisionedThroughputExceededException"
+    );
+  });
+
+  it("too many items found exception thrown", async () => {
+    getApiKeyByIndexStub.throws(
+      new TooManyItemsFoundException("apiKeyDynamo")
+    );
+    await expect(eventHandler(event, null)).to.be.rejectedWith(
+      TooManyItemsFoundException
+    );
   });
 });

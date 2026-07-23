@@ -1,8 +1,5 @@
-// Outcoming source for frontend
-export enum SourceChannel {
-  WEB = "WEB",
-  TPP = "TPP",
-}
+// Outgoing source for the frontend: shared with fims so both responses match.
+export { SourceChannel, type Source } from "pn-auth-common-ts";
 
 // Incoming source as request body of the Token Exchange
 export enum SourceEventType {
@@ -14,13 +11,6 @@ export enum SourceEventType {
 export interface SourceEvent {
   type: SourceEventType;
   id: string;
-}
-
-// The outcome object to put in the token exchange response
-export interface Source {
-  channel: SourceChannel;
-  details: string;
-  retrievalId?: string;
 }
 
 export type GetRetrievalPayloadResponse = {

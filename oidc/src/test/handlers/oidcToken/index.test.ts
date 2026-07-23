@@ -1,5 +1,5 @@
 import { RedisHandler } from "pn-auth-common";
-import { ValidationException } from "../../../app/exception/validationException";
+import { ValidationException, getAWSSecret } from "pn-auth-common-ts";
 import { clearCredentialsCache, oidcTokenHandler as handler } from "../../../app/handlers/oidcToken";
 
 jest.mock("pn-auth-common", () => ({
@@ -11,7 +11,12 @@ jest.mock("pn-auth-common", () => ({
   },
   COMMON_CONSTANTS: { REDIS_PN_SESSION_PREFIX: "test::" },
 }));
-import * as AwsParameters from "../../../app/handlers/oidcToken/utils/AwsParameters";
+
+jest.mock("pn-auth-common-ts", () => ({
+  __esModule: true,
+  ...jest.requireActual("pn-auth-common-ts"),
+  getAWSSecret: jest.fn(),
+}));
 import * as EmdIntegrationClient from "../../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import * as OneIdentity from "../../../app/handlers/oidcToken/utils/OneIdentity";
 import * as Responses from "../../../app/handlers/oidcToken/utils/Responses";
@@ -47,7 +52,7 @@ const parseResponse = (result: any) => ({
 
 describe("Event Handler tests", () => {
   let auditLogSpy: jest.SpyInstance;
-  let getAWSSecretSpy: jest.SpyInstance;
+  let getAWSSecretSpy: jest.Mock;
   let exchangeOneIdentityCodeSpy: jest.SpyInstance;
   let validateOneIdentityIdTokenSpy: jest.SpyInstance;
   let generateTokenExchangeResponseSpy: jest.SpyInstance;
@@ -69,9 +74,8 @@ describe("Event Handler tests", () => {
       .spyOn(AuditLog, "auditLog")
       .mockReturnValue(mockAuditLog as any);
 
-    getAWSSecretSpy = jest
-      .spyOn(AwsParameters, "getAWSSecret")
-      .mockResolvedValue(oneIdentityCredentialsMock as any);
+    getAWSSecretSpy = getAWSSecret as jest.Mock;
+    getAWSSecretSpy.mockResolvedValue(oneIdentityCredentialsMock as any);
 
     exchangeOneIdentityCodeSpy = jest
       .spyOn(OneIdentity, "exchangeOneIdentityCode")
@@ -88,7 +92,6 @@ describe("Event Handler tests", () => {
 
   afterEach(() => {
     auditLogSpy.mockRestore();
-    getAWSSecretSpy.mockRestore();
     exchangeOneIdentityCodeSpy.mockRestore();
     validateOneIdentityIdTokenSpy.mockRestore();
     generateTokenExchangeResponseSpy.mockRestore();
