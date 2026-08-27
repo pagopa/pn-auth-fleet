@@ -19,7 +19,7 @@ const disconnectRedis = async () => {
   try {
     await RedisHandler.disconnectRedis();
   } catch (error) {
-    console.error("Error disconnecting from Redis:", error);
+    console.warn("Error disconnecting from Redis:", error);
   }
 };
 

@@ -144,6 +144,7 @@ async function getParameterFromStore(parameterName) {
 module.exports = {
   checkOrigin,
   copyAndMaskObject,
+  maskString,
   enrichDecodedToken,
   addSourceChannelInfo,
   getParameterFromStore,

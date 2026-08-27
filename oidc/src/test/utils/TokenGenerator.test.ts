@@ -1,12 +1,4 @@
-import {
-  DescribeKeyCommand,
-  KMSClient,
-  KMSClientResolvedConfig,
-  ServiceInputTypes,
-  ServiceOutputTypes,
-  SignCommand,
-} from "@aws-sdk/client-kms";
-import { AwsStub, mockClient } from "aws-sdk-client-mock";
+import { signKmsJwt } from "pn-auth-common-ts";
 import { SourceChannel } from "../../app/handlers/oidcToken/models/Source";
 import { getRetrievalPayload } from "../../app/handlers/oidcToken/utils/EmdIntegrationClient";
 import {
@@ -21,20 +13,27 @@ import { OidcStateData } from "../../app/models/OidcState";
 
 jest.mock("../../app/handlers/oidcToken/utils/EmdIntegrationClient.ts");
 
-describe("TokenGenerator", () => {
-  let kmsClientMock: AwsStub<ServiceInputTypes, ServiceOutputTypes, KMSClientResolvedConfig>;
+// The KMS signing itself lives in pn-auth-common-ts (tested there); here we only
+// verify that oidc delegates with the right payload and KEY_ALIAS.
+jest.mock("pn-auth-common-ts", () => ({
+  __esModule: true,
+  ...jest.requireActual("pn-auth-common-ts"),
+  signKmsJwt: jest.fn(),
+}));
 
+const signKmsJwtMock = signKmsJwt as jest.Mock;
+
+describe("TokenGenerator", () => {
   beforeEach(() => {
     setupEnv();
-    kmsClientMock = mockClient(KMSClient);
 
     // Mock Date.now() for consistent testing
     jest.spyOn(Date, "now").mockReturnValue(1649686749000);
   });
 
   afterEach(() => {
-    kmsClientMock.reset();
     jest.restoreAllMocks();
+    signKmsJwtMock.mockReset();
   });
 
   describe("generateJwtPayload", () => {
@@ -125,188 +124,21 @@ describe("TokenGenerator", () => {
   });
 
   describe("generateSessionToken", () => {
-    it("should generate a valid JWT token with correct structure", async () => {
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: "test-key-id",
-        },
-      });
-
-      const binarySignature = new Uint8Array([115, 105, 103, 110, 97, 116, 117, 114, 101]);
-      kmsClientMock.on(SignCommand).resolves({
-        KeyId: "test-key-id",
-        Signature: binarySignature,
-        SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
-      });
+    it("should delegate to signKmsJwt with the payload and KEY_ALIAS from env", async () => {
+      signKmsJwtMock.mockResolvedValue("signed.session.token");
 
       const token = await generateSessionToken(payloadMock);
 
-      // JWT should have three parts separated by dots
-      const parts = token.split(".");
-      expect(parts).toHaveLength(3);
-
-      // Each part should be base64url encoded (no padding, URL-safe)
-      parts.forEach((part) => {
-        expect(part).toMatch(/^[A-Za-z0-9_-]+$/);
+      expect(token).toBe("signed.session.token");
+      expect(signKmsJwtMock).toHaveBeenCalledTimes(1);
+      expect(signKmsJwtMock).toHaveBeenCalledWith({
+        payload: { ...payloadMock },
+        keyAlias: "SessionKey", // KEY_ALIAS from setupEnv
       });
     });
 
-    it("should call DescribeKeyCommand with correct alias", async () => {
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: "test-key-id",
-        },
-      });
-
-      kmsClientMock.on(SignCommand).resolves({
-        Signature: new Uint8Array([1, 2, 3]),
-      });
-
-      await generateSessionToken(payloadMock);
-
-      expect(kmsClientMock.commandCalls(DescribeKeyCommand)).toHaveLength(1);
-      expect(kmsClientMock.commandCalls(DescribeKeyCommand)[0].args[0].input).toEqual({
-        KeyId: "SessionKey", // KEY_ALIAS from setupEnv
-      });
-    });
-
-    it("should call SignCommand with correct parameters", async () => {
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: "test-key-id",
-        },
-      });
-
-      kmsClientMock.on(SignCommand).resolves({
-        Signature: new Uint8Array([1, 2, 3]),
-      });
-
-      await generateSessionToken(payloadMock);
-
-      const signCalls = kmsClientMock.commandCalls(SignCommand);
-      expect(signCalls).toHaveLength(1);
-
-      const signInput = signCalls[0].args[0].input;
-      expect(signInput.KeyId).toBe("test-key-id");
-      expect(signInput.SigningAlgorithm).toBe("RSASSA_PKCS1_V1_5_SHA_256");
-      expect(signInput.MessageType).toBe("RAW");
-      expect(signInput.Message).toBeInstanceOf(Buffer);
-    });
-
-    it("should throw error when KMS does not return KeyId", async () => {
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: undefined,
-        },
-      });
-
-      await expect(generateSessionToken(payloadMock)).rejects.toThrow("Unable to resolve KMS keyId for alias");
-    });
-
-    it("should throw error when KMS does not return a signature", async () => {
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: "test-key-id",
-        },
-      });
-
-      kmsClientMock.on(SignCommand).resolves({
-        KeyId: "test-key-id",
-      });
-
-      await expect(generateSessionToken(payloadMock)).rejects.toThrow("KMS returned an empty signature");
-    });
-
-    it("should include correct header in JWT", async () => {
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: "test-key-id",
-        },
-      });
-
-      kmsClientMock.on(SignCommand).resolves({
-        Signature: new Uint8Array([1, 2, 3]),
-      });
-
-      const token = await generateSessionToken(payloadMock);
-      const headerPart = token.split(".")[0];
-
-      // Decode base64url
-      const headerJson = Buffer.from(headerPart, "base64url").toString();
-      const header = JSON.parse(headerJson);
-
-      expect(header).toEqual({
-        alg: "RS256",
-        typ: "JWT",
-        kid: "test-key-id",
-      });
-    });
-
-    it("should include correct payload in JWT", async () => {
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: "test-key-id",
-        },
-      });
-
-      kmsClientMock.on(SignCommand).resolves({
-        Signature: new Uint8Array([1, 2, 3]),
-      });
-
-      const token = await generateSessionToken(payloadMock);
-      const payloadPart = token.split(".")[1];
-
-      // Decode base64url
-      const payloadJson = Buffer.from(payloadPart, "base64url").toString();
-      const payload = JSON.parse(payloadJson);
-
-      expect(payload).toEqual(payloadMock);
-    });
-
-    it("should produce consistent signature for same input", async () => {
-      const mockSignature = new Uint8Array([115, 105, 103, 110, 97, 116, 117, 114, 101]);
-
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: "test-key-id",
-        },
-      });
-
-      kmsClientMock.on(SignCommand).resolves({
-        Signature: mockSignature,
-      });
-
-      const token1 = await generateSessionToken(payloadMock);
-
-      kmsClientMock.reset();
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: "test-key-id",
-        },
-      });
-      kmsClientMock.on(SignCommand).resolves({
-        Signature: mockSignature,
-      });
-
-      const token2 = await generateSessionToken(payloadMock);
-
-      expect(token1).toBe(token2);
-    });
-
-    it("should handle KMS client errors gracefully", async () => {
-      kmsClientMock.on(DescribeKeyCommand).rejects(new Error("KMS service unavailable"));
-
-      await expect(generateSessionToken(payloadMock)).rejects.toThrow("KMS service unavailable");
-    });
-
-    it("should handle SignCommand errors gracefully", async () => {
-      kmsClientMock.on(DescribeKeyCommand).resolves({
-        KeyMetadata: {
-          KeyId: "test-key-id",
-        },
-      });
-
-      kmsClientMock.on(SignCommand).rejects(new Error("Signing failed"));
+    it("should propagate errors from signKmsJwt", async () => {
+      signKmsJwtMock.mockRejectedValue(new Error("Signing failed"));
 
       await expect(generateSessionToken(payloadMock)).rejects.toThrow("Signing failed");
     });

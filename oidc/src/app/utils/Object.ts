@@ -1,4 +1,4 @@
-import { maskString } from "./String";
+import { maskString } from "pn-auth-common";
 
 export function copyAndMaskObject<T extends Record<string, any>>(
   originalObject: T,

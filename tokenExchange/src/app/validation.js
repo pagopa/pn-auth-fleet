@@ -17,10 +17,7 @@ async function jwtValidator(jwtToken) {
 
   if (decodedToken) {
     const sensitiveFields = ["email", "family_name", "fiscal_number", "name"];
-    const decodedTokenMaskedPayload = utils.copyAndMaskObject(
-      decodedToken.payload,
-      sensitiveFields
-    );
+    const decodedTokenMaskedPayload = utils.copyAndMaskObject(decodedToken.payload, sensitiveFields);
     const decodedTokenMasked = {
       header: decodedToken.header,
       payload: decodedTokenMaskedPayload,
@@ -57,7 +54,7 @@ async function jwtValidator(jwtToken) {
             console.debug("payload", decodedTokenMaskedPayload);
             return tokenPayload;
           } else {
-            console.warn("TaxId=%s not allowed", aud);
+            console.warn("TaxId=%s not allowed", utils.maskString(fiscalNumber));
             throw new ValidationException("TaxId not allowed");
           }
         } else {
@@ -84,10 +81,7 @@ function checkIssuer(iss) {
   if (allowedIssuers != 0) {
     return allowedIssuers.indexOf(iss);
   } else {
-    console.error(
-      "Invalid env vars ALLOWED_ISSUER ",
-      process.env.ALLOWED_ISSUER
-    );
+    console.error("Invalid env vars ALLOWED_ISSUER ", process.env.ALLOWED_ISSUER);
     return -1;
   }
 }
@@ -98,10 +92,7 @@ function checkAudience(aud) {
   if (allowedAudiences != 0) {
     return allowedAudiences.indexOf(aud);
   } else {
-    console.error(
-      "Invalid env vars ACCEPTED_AUDIENCE",
-      process.env.ACCEPTED_AUDIENCE
-    );
+    console.error("Invalid env vars ACCEPTED_AUDIENCE", process.env.ACCEPTED_AUDIENCE);
     return -1;
   }
 }
@@ -110,9 +101,7 @@ async function checkTaxIdCode(taxIdCode) {
   //verifica taxIdCode nel decoded token fa parte dei tax id permessi
   if (process.env.ALLOWED_TAXIDS_PARAMETER) {
     try {
-      const allowedTaxIdsFromStore = await utils.getParameterFromStore(
-        process.env.ALLOWED_TAXIDS_PARAMETER
-      );
+      const allowedTaxIdsFromStore = await utils.getParameterFromStore(process.env.ALLOWED_TAXIDS_PARAMETER);
       if (allowedTaxIdsFromStore.length === 0) {
         return 0;
       }
