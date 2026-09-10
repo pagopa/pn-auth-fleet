@@ -38,7 +38,7 @@
     "mocha": {
       "minimatch": "4.2.6",
       "glob": {
-        "minimatch": "3.1.5"
+        "minimatch": "10.2.5"
       }
     }
   },
