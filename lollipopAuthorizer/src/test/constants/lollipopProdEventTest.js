@@ -15,7 +15,7 @@ const PROD_ORIGINAL_URL =
 
 const PROD_ASSERTION_TYPE = "SAML";
 const PROD_AUTH_JWT = "aValidJWT";
-const PROD_TAX_ID = "BRNMRA80A01H501Y";
+const PROD_TAX_ID = "AAAAAA89S20I111X";
 
 const PROD_PATH = "/io/v1/notification-disclaimer/XJKT-NXWT-DYXE-202609-J-1";
 const PROD_METHOD_ARN =

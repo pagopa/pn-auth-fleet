@@ -90,7 +90,7 @@ describe(`Caso produzione ${PROD_REQUEST_ID} - alg mismatch JWK/signature-input`
   it("handleEvent: il context della policy IAM deve riportare l'esito di validazione positivo", async function () {
     this.timeout(15000);
     const validateLollipopAssertion = assertionSuccessStub();
-    const getCxId = sinon.stub().resolves("PF-c2f92c30-f865-48c5-868f-7f5272e21294");
+    const getCxId = sinon.stub().resolves("PF-00000000-0000-0000-0000-000000000000");
 
     const { handleEvent } = await esmock(
       "../app/eventHandler.js",
