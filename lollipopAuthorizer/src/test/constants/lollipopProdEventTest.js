@@ -11,7 +11,7 @@ const PROD_ASSERTION_REF = "sha256-3c42r3lxSt_xTd-dzaQBnWYzAsQkw6dqJly0wpYWSFE";
 const PROD_ORIGINAL_METHOD = "GET";
 
 const PROD_ORIGINAL_URL =
-  "https://api-app.io.pagopa.it/api/v1/third-party-messages/01J8ZQ7M3K9XW2VB4NRTYC6HDE/precondition";
+  "https://api-app.io.pagopa.it/api/communication/v1/third-party-messages/01M22ER19NFWQBMY0N4RSKT4XK/precondition";
 
 const PROD_ASSERTION_TYPE = "SAML";
 const PROD_AUTH_JWT = "aValidJWT";

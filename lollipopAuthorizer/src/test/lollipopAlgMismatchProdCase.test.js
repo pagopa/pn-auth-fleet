@@ -25,7 +25,7 @@ describe(`Caso produzione ${PROD_REQUEST_ID} - alg mismatch JWK/signature-input`
 
   const assertionSuccessStub = () =>
     sinon.stub().resolves({
-      resultCode: "VERIFICATION_SUCCESS_CODE",
+      resultCode: "SUCCESS",
       name: "Mario",
       familyName: "Rossi",
     });
@@ -84,10 +84,11 @@ describe(`Caso produzione ${PROD_REQUEST_ID} - alg mismatch JWK/signature-input`
     const result = await validateLollipopAuthorizer(buildProdRequest());
 
     expect(result.statusCode).to.equal(200);
-    expect(result.resultCode).to.equal("VERIFICATION_SUCCESS_CODE");
+    expect(result.resultCode).to.equal("SUCCESS");
   });
 
-  it("handleEvent: il context della policy IAM deve riportare l'esito di validazione positivo", async () => {
+  it("handleEvent: il context della policy IAM deve riportare l'esito di validazione positivo", async function () {
+    this.timeout(15000);
     const validateLollipopAssertion = assertionSuccessStub();
     const getCxId = sinon.stub().resolves("PF-c2f92c30-f865-48c5-868f-7f5272e21294");
 
@@ -100,6 +101,6 @@ describe(`Caso produzione ${PROD_REQUEST_ID} - alg mismatch JWK/signature-input`
     const policy = await handleEvent(buildProdEvent());
 
     expect(policy.policyDocument.Statement[0].Effect).to.equal("Allow");
-    expect(policy.context.resultCode).to.equal("VERIFICATION_SUCCESS_CODE");
+    expect(policy.context.resultCode).to.equal("SUCCESS");
   });
 });

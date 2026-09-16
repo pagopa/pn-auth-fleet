@@ -124,10 +124,34 @@ async function verifyHttpSignature(signature, signatureInput, headers) {
           ["verify"]
         );
       } catch (err) {
-        throw new LollipopRequestContentValidationException(
-          VERIFY_HTTP_ERROR_CODES.INVALID_JWK,
-          `Error importing JWK: ${err.message}`
+        const { alg: declaredKeyAlg, ...keyMaterial } = jwk;
+
+        if (!declaredKeyAlg) {
+          throw new LollipopRequestContentValidationException(
+            VERIFY_HTTP_ERROR_CODES.INVALID_JWK,
+            `Error importing JWK: ${err.message}`
+          );
+        }
+
+        console.warn(
+          `[verifyHttpSignature] Import JWK fallito con alg "${declaredKeyAlg}" dichiarato nella chiave`
+          + ` e "${jwsAlg}" da signature-input (${err.message}): nuovo tentativo senza il campo alg`
         );
+
+        try {
+          publicKey = await subtle.importKey(
+            "jwk",
+            keyMaterial,
+            wc.import,
+            false,
+            ["verify"]
+          );
+        } catch (fallbackErr) {
+          throw new LollipopRequestContentValidationException(
+            VERIFY_HTTP_ERROR_CODES.INVALID_JWK,
+            `Error importing JWK: ${err.message}`
+          );
+        }
       }
 
       // recupero dei componenti e creazione della canonical base
