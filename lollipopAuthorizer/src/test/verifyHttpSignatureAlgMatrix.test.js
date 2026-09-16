@@ -13,14 +13,14 @@ const METHOD = "GET";
 const URL = "https://api-app.io.pagopa.it/x";
 
 const SPECS = {
-  ES256: { id: "ecdsa-p256-sha256", curve: "prime256v1", hash: "sha256" },
-  ES384: { id: "ecdsa-p384-sha384", curve: "secp384r1", hash: "sha384" },
-  PS256: { id: "rsa-pss-sha256", salt: 32, hash: "sha256" },
-  PS384: { id: "rsa-pss-sha384", salt: 48, hash: "sha384" },
-  PS512: { id: "rsa-pss-sha512", salt: 64, hash: "sha512" },
-  RS256: { id: "rsa-v1_5-sha256", hash: "sha256" },
-  RS384: { id: "rsa-v1_5-sha384", hash: "sha384" },
-  RS512: { id: "rsa-v1_5-sha512", hash: "sha512" },
+  ES256: { id: "ecdsa-p256-sha256", curve: "prime256v1", hash: "sha256", mismatchedAlg: "ES384" },
+  ES384: { id: "ecdsa-p384-sha384", curve: "secp384r1", hash: "sha384", mismatchedAlg: "ES256" },
+  PS256: { id: "rsa-pss-sha256", salt: 32, hash: "sha256", mismatchedAlg: "RS256" },
+  PS384: { id: "rsa-pss-sha384", salt: 48, hash: "sha384", mismatchedAlg: "RS384" },
+  PS512: { id: "rsa-pss-sha512", salt: 64, hash: "sha512", mismatchedAlg: "RS512" },
+  RS256: { id: "rsa-v1_5-sha256", hash: "sha256", mismatchedAlg: "PS256" },
+  RS384: { id: "rsa-v1_5-sha384", hash: "sha384", mismatchedAlg: "PS384" },
+  RS512: { id: "rsa-v1_5-sha512", hash: "sha512", mismatchedAlg: "PS512" },
 };
 
 function signatureInput(algId) {
@@ -112,6 +112,26 @@ describe("verifyHttpSignature - matrice degli algoritmi supportati", () => {
       )
         .to.be.rejectedWith(LollipopRequestContentValidationException)
         .and.to.eventually.have.property("errorCode", VERIFY_HTTP_ERROR_CODES.INVALID_SIGNATURE);
+    });
+
+    const isRs256LabelOnPs256Signature = alg === "PS256" && spec.mismatchedAlg === "RS256";
+
+    it(`${alg}: JWK etichettata ${spec.mismatchedAlg}, incoerente con il signature-input${isRs256LabelOnPs256Signature ? " (caso di produzione): firma verificata" : ": INVALID_JWK"}`, async () => {
+      const { header } = sign(spec);
+      const outcome = verifyHttpSignature(
+        header,
+        signatureInput(spec.id),
+        headers(publicKeyHeader(spec, spec.mismatchedAlg))
+      );
+
+      if (isRs256LabelOnPs256Signature) {
+        expect(await outcome).to.be.true;
+        return;
+      }
+
+      await expect(outcome)
+        .to.be.rejectedWith(LollipopRequestContentValidationException)
+        .and.to.eventually.have.property("errorCode", VERIFY_HTTP_ERROR_CODES.INVALID_JWK);
     });
   });
 

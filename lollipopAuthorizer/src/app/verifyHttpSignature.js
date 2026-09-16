@@ -125,8 +125,9 @@ async function verifyHttpSignature(signature, signatureInput, headers) {
         );
       } catch (err) {
         const { alg: declaredKeyAlg, ...keyMaterial } = jwk;
+        const isRs256LabelOnPs256Signature = declaredKeyAlg === "RS256" && jwsAlg === "PS256"; //PN-21467
 
-        if (!declaredKeyAlg) {
+        if (!isRs256LabelOnPs256Signature) {
           throw new LollipopRequestContentValidationException(
             VERIFY_HTTP_ERROR_CODES.INVALID_JWK,
             `Error importing JWK: ${err.message}`
