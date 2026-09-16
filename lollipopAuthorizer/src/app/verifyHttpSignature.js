@@ -150,7 +150,7 @@ async function verifyHttpSignature(signature, signatureInput, headers) {
         } catch (fallbackErr) {
           throw new LollipopRequestContentValidationException(
             VERIFY_HTTP_ERROR_CODES.INVALID_JWK,
-            `Error importing JWK: ${err.message}`
+            `Error importing JWK: ${fallbackErr.message}`
           );
         }
       }
