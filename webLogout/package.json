@@ -6,9 +6,8 @@
   "scripts": {
     "build": "npm run prune && npm run zip",
     "prune": "(cd ../../authCommon && npm --silent prune --production) && npm --silent prune --production",
-    "zip": "rm -f ./function.zip && zip -q -r ./function.zip .  -x './src/test/*' -x '*.gitignore' -x 'coverage/*' -x '.nyc_output/*' -x '.scannerwork/*' -x '.env*'",
-    "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}",
-    "test-build": "(cd ../../authCommon && npm install) && npm run test && npm run coverage && npm run sonar && npm run build",
+    "zip": "rm -f ./function.zip && zip -q -r ./function.zip .  -x './src/test/*' -x '*.gitignore' -x 'coverage/*' -x '.nyc_output/*' -x '.env*'",
+    "test-build": "(cd ../../authCommon && npm install) && npm run test && npm run coverage && npm run build",
     "coverage": "jest --coverage",
     "test": "jest --coverage --runInBand --silent"
   },
@@ -24,7 +23,6 @@
   "devDependencies": {
     "dotenv": "^16.5.0",
     "jest": "^30.0.2",
-    "nyc": "^17.1.0",
-    "sonarqube-scanner": "^4.3.8"
+    "nyc": "^17.1.0"
   }
 }
