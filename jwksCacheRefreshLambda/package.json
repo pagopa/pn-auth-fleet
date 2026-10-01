@@ -4,16 +4,15 @@
   "description": "lambda che esegue il refresh della cache dei jwks",
   "main": "index.js",
   "scripts": {
-    "test-build": "(cd ../../authCommon && npm ci) && npm run-script test && npm run-script coverage && npm run-script sonar && npm run-script build",
+    "test-build": "(cd ../../authCommon && npm ci) && npm run-script test && npm run-script coverage && npm run-script build",
     "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config",
-    "zip:full": "zip -q -r ./function.zip . -x './src/test/*' -x '*.md' -x './nodejs/*' -x './.nyc_output/*' -x './.scannerwork/*' -x './coverage/*' -x '*.env' -x '*.zip'  -x '*.gitignore'",
-    "zip:code": "zip -q -r ./code_layer.zip . -x './src/test/*' -x '*.md' -x './nodejs/*' -x './.nyc_output/*' -x './.scannerwork/*' -x './coverage/*' -x '*.env' -x '*.zip'  -x '*.gitignore' -x './node_modules/*'",
+    "zip:full": "zip -q -r ./function.zip . -x './src/test/*' -x '*.md' -x './nodejs/*' -x './.nyc_output/*' -x './coverage/*' -x '*.env' -x '*.zip'  -x '*.gitignore'",
+    "zip:code": "zip -q -r ./code_layer.zip . -x './src/test/*' -x '*.md' -x './nodejs/*' -x './.nyc_output/*' -x './coverage/*' -x '*.env' -x '*.zip'  -x '*.gitignore' -x './node_modules/*'",
     "zip:libs": "zip -q -r ./lib_layer.zip nodejs -x '*.md'",
     "build:single": "(cd ../../authCommon && npm --silent prune --production) && npm --silent prune --production && rm -f ./function.zip && npm run-script zip:full",
     "build:multiLayer": "(cd ../../authCommon && npm --silent prune --production) && rm -rf nodejs && mkdir -p nodejs && npm --silent prune --production  && cp -Lrf node_modules nodejs && rm -f ./code_layer.zip && npm run-script zip:code && rm -f ./lib_layer.zip && npm run-script zip:libs",
     "build": "npm run-script build:single && npm run-script build:multiLayer",
-    "coverage": "nyc report --reporter=lcov",
-    "sonar": "node sonarqube-scanner.js -Dsonar.login=${SONAR_TOKEN}"
+    "coverage": "nyc report --reporter=lcov"
   },
   "author": "",
   "license": "ISC",
@@ -25,7 +24,6 @@
     "mocha": "^9.2.2",
     "mocha-lcov-reporter": "^1.3.0",
     "nyc": "^15.1.0",
-    "sonarqube-scanner": "^4.3.8",
     "rewire": "^7.0.0"
   },
   "dependencies": {

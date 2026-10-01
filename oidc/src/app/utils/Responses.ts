@@ -17,8 +17,6 @@ export function generateKoResponse(
   err: ValidationException | string | Error,
   allowedOrigin: string,
 ) {
-  console.debug("GenerateKoResponse this err", err);
-
   let statusCode: number;
   const responseBody: ErrorResponseBody = {};
   const traceId = process.env._X_AMZN_TRACE_ID;
@@ -27,6 +25,8 @@ export function generateKoResponse(
     "TaxId not allowed": 451,
   };
   const errorMessage = typeof err === "string" ? err : err.message;
+
+  console.debug("GenerateKoResponse this err: %s", errorMessage);
 
   if (err instanceof ValidationException) {
     statusCode = statusMap[errorMessage] ?? 400;

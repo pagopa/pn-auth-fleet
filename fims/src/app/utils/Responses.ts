@@ -41,12 +41,12 @@ export function generateKoResponse(
   err: ValidationException | string | Error,
   allowedOrigin?: string,
 ) {
-  console.debug("GenerateKoResponse this err", err);
-
   let statusCode: number;
   const responseBody: ErrorResponseBody = {};
   const traceId = process.env._X_AMZN_TRACE_ID;
   const errorMessage = typeof err === "string" ? err : err.message;
+
+  console.debug("GenerateKoResponse this err: %s", errorMessage);
 
   if (err instanceof ValidationException) {
     statusCode = 400;
