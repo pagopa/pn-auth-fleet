@@ -33,11 +33,11 @@
     "mocha": {
       "minimatch": "4.2.6",
       "glob": {
-        "minimatch": "3.1.5"
+        "minimatch": "5.0.0"
       }
     },
     "test-exclude": {
-      "minimatch": "3.1.5"
+      "minimatch": "5.0.0"
     }
   }
 }
