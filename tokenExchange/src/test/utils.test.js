@@ -4,6 +4,7 @@ const MockAdapter = require("axios-mock-adapter");
 
 const {
   getParameterFromStore,
+  getSecretFromStore,
   copyAndMaskObject,
   checkOrigin,
   makeLower,
@@ -119,13 +120,17 @@ describe("utils tests", () => {
   });
 
   it("checks that user is PG type", () => {
-    const result = getUserType(pgToken);
+    const result = getUserType({
+      organization: { ...pgToken.organization, institutionType: "PG" },
+    });
 
     expect(result).to.eq("PG");
   });
 
   it("checks that user is PA type", () => {
-    const result = getUserType(paToken);
+    const result = getUserType({
+      organization: { ...paToken.organization, institutionType: "PA" },
+    });
 
     expect(result).to.eq("PA");
   });
@@ -136,10 +141,45 @@ describe("utils tests", () => {
     expect(result).to.eq("BS");
   });
 
+  it("checks that user is PT type from institutionType", () => {
+    const result = getUserType({
+      organization: { ...paToken.organization, institutionType: "PT" },
+    });
+
+    expect(result).to.eq("PT");
+  });
+
+  it("checks that support user is BS type regardless of institutionType", () => {
+    const result = getUserType({
+      organization: { ...supportToken.organization, institutionType: "PT" },
+    });
+
+    expect(result).to.eq("BS");
+  });
+
   it("enrichDecodedToken", () => {
-    const result = enrichDecodedToken(paToken);
+    const result = enrichDecodedToken({
+      organization: { ...paToken.organization },
+    });
 
     expect(result.organization.hasGroups).to.eq(true);
+    expect(result.organization.institutionType).to.be.undefined;
+  });
+
+  it("enrichDecodedToken with institutionType", () => {
+    const result = enrichDecodedToken(
+      { organization: { ...paToken.organization } },
+      "PT"
+    );
+
+    expect(result.organization.hasGroups).to.eq(true);
+    expect(result.organization.institutionType).to.eq("PT");
+  });
+
+  it("enrichDecodedToken without organization", () => {
+    const result = enrichDecodedToken({ uid: "uid" }, undefined);
+
+    expect(result).to.eql({ uid: "uid" });
   });
 
   it("getParameterFromStore - success", async () => {
@@ -167,6 +207,34 @@ describe("utils tests", () => {
     await expect(
       getParameterFromStore("/fake-path/fake-param")
     ).to.be.rejectedWith(Error, "Error in get parameter");
+  });
+
+  it("getSecretFromStore - success", async () => {
+    const secretName = "fake-secret";
+    mock
+      .onGet(
+        `http://localhost:2773/secretsmanager/get?secretId=${encodeURIComponent(
+          secretName
+        )}`
+      )
+      .reply(200, { SecretString: '{"key":"value"}' });
+    const result = await getSecretFromStore(secretName);
+    expect(result).to.eq('{"key":"value"}');
+  });
+
+  it("getSecretFromStore - fail", async () => {
+    const secretName = "fake-secret";
+    mock
+      .onGet(
+        `http://localhost:2773/secretsmanager/get?secretId=${encodeURIComponent(
+          secretName
+        )}`
+      )
+      .reply(500);
+    await expect(getSecretFromStore(secretName)).to.be.rejectedWith(
+      Error,
+      "Error in get secret"
+    );
   });
 
   it("add source channel info TPP - ok", async () => {
