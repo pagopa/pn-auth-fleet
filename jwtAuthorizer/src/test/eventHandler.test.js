@@ -7,6 +7,32 @@ const authCommon = require("pn-auth-common");
 const { handleEvent } = require("../app/eventHandler");
 const { denyAllPolicy } = require("../policies");
 
+// unsigned token: signature verification is stubbed in these tests
+const buildToken = (payload) =>
+  [
+    Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT", kid: "keyId" })).toString("base64url"),
+    Buffer.from(JSON.stringify(payload)).toString("base64url"),
+    "c2lnbmF0dXJl",
+  ].join(".");
+
+const orgTokenPayload = (organization) => ({
+  iat: 1739533537,
+  exp: 2739540737,
+  uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
+  iss: "pn-develop.pn.pagopa.it",
+  aud: "webapi.dev.pn.pagopa.it",
+  jti: "01G0CFW80HGTTW0RH54WQD6F6S",
+  organization: {
+    id: "026e8c72-7944-4dcd-8668-f596447fec6d",
+    groups: ["62e941d313b0fc6edad4535a"],
+    fiscal_code: "01199250158",
+    ...organization,
+  },
+});
+
+const methodArn =
+  "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/bff/v1/pt/institutions";
+
 describe("test eventHandler", () => {
   let validationStub;
   let isJtiRevokedStub;
@@ -138,6 +164,82 @@ describe("test eventHandler", () => {
     expect(result.context.cx_id).to.equal("026e8c72-7944-4dcd-8668-f596447fec6d");
     expect(result.context.cx_role).to.equal("support");
 
+  });
+
+  it("handle event with institutionType PT - cx_id without prefix", async () => {
+    const result = await handleEvent({
+      type: "TOKEN",
+      authorizationToken: buildToken(orgTokenPayload({ role: "admin", institutionType: "PT" })),
+      methodArn,
+    });
+
+    expect(result.context.cx_type).to.equal("PT");
+    expect(result.context.cx_id).to.equal("026e8c72-7944-4dcd-8668-f596447fec6d");
+    expect(result.context.cx_role).to.equal("admin");
+    expect(result.policyDocument.Statement).to.be.eql([
+      {
+        Action: "execute-api:Invoke",
+        Effect: "Allow",
+        Resource: ["arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/*/v1/pt/*"],
+      },
+    ]);
+  });
+
+  it("handle event with institutionType PA", async () => {
+    const result = await handleEvent({
+      type: "TOKEN",
+      authorizationToken: buildToken(orgTokenPayload({ role: "admin", institutionType: "PA" })),
+      methodArn,
+    });
+
+    expect(result.context.cx_type).to.equal("PA");
+    expect(result.context.cx_id).to.equal("026e8c72-7944-4dcd-8668-f596447fec6d");
+  });
+
+  it("handle event with institutionType PG - cx_id with prefix", async () => {
+    const result = await handleEvent({
+      type: "TOKEN",
+      authorizationToken: buildToken(orgTokenPayload({ role: "pg-admin", institutionType: "PG" })),
+      methodArn,
+    });
+
+    expect(result.context.cx_type).to.equal("PG");
+    expect(result.context.cx_id).to.equal("PG-026e8c72-7944-4dcd-8668-f596447fec6d");
+    expect(result.context.cx_role).to.equal("admin");
+  });
+
+  it("handle event without institutionType and pg- role (legacy token)", async () => {
+    const result = await handleEvent({
+      type: "TOKEN",
+      authorizationToken: buildToken(orgTokenPayload({ role: "pg-operator" })),
+      methodArn,
+    });
+
+    expect(result.context.cx_type).to.equal("PG");
+    expect(result.context.cx_id).to.equal("PG-026e8c72-7944-4dcd-8668-f596447fec6d");
+  });
+
+  it("handle event with support role and institutionType - BS", async () => {
+    sinon.stub(authCommon.apiGatewayUtils, "getApiGatewayTags").resolves({
+      apiName: undefined,
+    });
+    const result = await handleEvent({
+      type: "TOKEN",
+      authorizationToken: buildToken(orgTokenPayload({ role: "support", institutionType: "PA" })),
+      methodArn,
+    });
+
+    expect(result.context.cx_type).to.equal("BS");
+  });
+
+  it("handle event with unsupported institutionType - deny all", async () => {
+    const result = await handleEvent({
+      type: "TOKEN",
+      authorizationToken: buildToken(orgTokenPayload({ role: "admin", institutionType: "GSP" })),
+      methodArn,
+    });
+
+    expect(result).to.be.equal(denyAllPolicy);
   });
 
   it("handle event with jti revoked", async () => {

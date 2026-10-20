@@ -3,7 +3,8 @@ const policies = require("../policies");
 
 const API_LOGOUT = "logout";
 
-const getSupportPolicy = async (event, contextAttrs) => {
+// the logout api has its own gateway: on that gateway the logout policy is returned instead of the given one
+const getPolicyWithLogout = async (event, contextAttrs, buildPolicy) => {
   const tmp = event.methodArn.split(":");
   const region = tmp[3];
   const awsAccountId = tmp[4];
@@ -29,7 +30,7 @@ const getSupportPolicy = async (event, contextAttrs) => {
     }
   }
 
-  return policies.buildSupportPolicy({
+  return buildPolicy({
     region,
     awsAccountId,
     restApiId,
@@ -38,6 +39,13 @@ const getSupportPolicy = async (event, contextAttrs) => {
   });
 };
 
+const getSupportPolicy = (event, contextAttrs) =>
+  getPolicyWithLogout(event, contextAttrs, (params) => policies.buildSupportPolicy(params));
+
+const getPtPolicy = (event, contextAttrs) =>
+  getPolicyWithLogout(event, contextAttrs, (params) => policies.buildPtPolicy(params));
+
 module.exports = {
   getSupportPolicy,
+  getPtPolicy,
 };
