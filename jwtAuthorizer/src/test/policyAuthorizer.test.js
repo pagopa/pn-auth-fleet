@@ -3,26 +3,30 @@ const sinon = require("sinon");
 const { apiGatewayUtils } = require("pn-auth-common");
 const policies = require("../policies");
 
-const { getSupportPolicy } = require("../app/backstageAuthorizer");
+const { getSupportPolicy, getPtPolicy } = require("../app/policyAuthorizer");
 
-describe("test backstageAuthorizer", () => {
+describe("test policyAuthorizer", () => {
   let getApiGatewayTagsStub;
   let buildSupportPolicyStub;
   let buildLogoutPolicyStub;
+  let buildPtPolicyStub;
 
   const supportPolicyResult = { principalId: "user", policyDocument: {}, context: {} };
   const logoutPolicyResult = { principalId: "user", policyDocument: {}, context: {} };
+  const ptPolicyResult = { principalId: "user", policyDocument: {}, context: {} };
 
   before(() => {
     getApiGatewayTagsStub = sinon.stub(apiGatewayUtils, "getApiGatewayTags");
     buildSupportPolicyStub = sinon.stub(policies, "buildSupportPolicy").returns(supportPolicyResult);
     buildLogoutPolicyStub = sinon.stub(policies, "buildLogoutPolicy").returns(logoutPolicyResult);
+    buildPtPolicyStub = sinon.stub(policies, "buildPtPolicy").returns(ptPolicyResult);
   });
 
   afterEach(() => {
     getApiGatewayTagsStub.reset();
     buildSupportPolicyStub.resetHistory();
     buildLogoutPolicyStub.resetHistory();
+    buildPtPolicyStub.resetHistory();
   });
 
   after(() => {
@@ -107,5 +111,39 @@ describe("test backstageAuthorizer", () => {
 
     expect(getApiGatewayTagsStub.called).to.be.false;
     expect(buildSupportPolicyStub.calledOnce).to.be.true;
+  });
+
+  it("getPtPolicy should call buildPtPolicy for GET requests", async () => {
+    const event = {
+      methodArn:
+        "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/v1/pt/institutions",
+    };
+    const contextAttrs = { uid: "user-1", cx_type: "PT", cx_role: "admin" };
+
+    const result = await getPtPolicy(event, contextAttrs);
+
+    expect(result).to.equal(ptPolicyResult);
+    expect(getApiGatewayTagsStub.called).to.be.false;
+    expect(buildPtPolicyStub.firstCall.args[0]).to.deep.equal({
+      region: "eu-south-1",
+      awsAccountId: "123456789012",
+      restApiId: "abc123def",
+      stage: "prod",
+      contextAttrs,
+    });
+    expect(buildSupportPolicyStub.called).to.be.false;
+  });
+
+  it("getPtPolicy should call buildLogoutPolicy for POST requests when apiName is logout", async () => {
+    getApiGatewayTagsStub.resolves({ apiName: "logout" });
+
+    const event = {
+      methodArn: "arn:aws:execute-api:eu-south-1:123456789012:abc123def/unique/POST/",
+    };
+
+    const result = await getPtPolicy(event, { cx_type: "PT", cx_role: "operator" });
+
+    expect(result).to.equal(logoutPolicyResult);
+    expect(buildPtPolicyStub.called).to.be.false;
   });
 });
