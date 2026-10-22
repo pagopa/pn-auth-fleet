@@ -61,6 +61,8 @@ describe("test policies", () => {
       expect(result.policyDocument.Statement[0].Effect).to.equal("Allow");
       expect(result.policyDocument.Statement[0].Resource).to.deep.equal([
         "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/*/v1/pt/*",
+        "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/v1/institutions",
+        "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/v1/institutions/products"
       ]);
     });
 

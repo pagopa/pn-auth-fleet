@@ -180,7 +180,11 @@ describe("test eventHandler", () => {
       {
         Action: "execute-api:Invoke",
         Effect: "Allow",
-        Resource: ["arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/*/v1/pt/*"],
+        Resource: [
+          "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/*/v1/pt/*",
+          "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/institutions",
+          "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/institutions/products"
+        ],
       },
     ]);
   });
