@@ -182,6 +182,7 @@ components:
         - 'RADD'
         - 'BO'
         - 'BS'
+        - 'PT'
     CxLanguage:
       type: string
       enum:
