@@ -6,6 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
+const config = require("./config.json");
 
 const CX_TYPES_EXTENSION = "x-pn-allowed-cx-types";
 const RESOURCE_PREFIX = "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}";
@@ -64,7 +65,6 @@ const buildPolicies = (openapiDoc, cxTypes) => {
 
 const main = async () => {
   const rootDir = path.join(__dirname, "..");
-  const config = JSON.parse(fs.readFileSync(path.join(__dirname, "config.json"), "utf8"));
 
   const response = await fetch(config.openapiUrl);
   if (!response.ok) {
