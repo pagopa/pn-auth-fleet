@@ -1,8 +1,8 @@
-const { generateIAMPolicy } = require("./iamPolicyGen.js");
 const { validation } = require("./validation.js");
 const Redis = require("./redis.js");
-const { getSupportPolicy } = require("./backstageAuthorizer.js");
-const { denyAllPolicy } = require("../policies");
+const { parseMethodArn, isLogoutRequest } = require("./methodArn.js");
+const policies = require("../policies");
+const { denyAllPolicy } = policies;
 
 async function handleEvent(event) {
   // Declare Policy
@@ -45,10 +45,12 @@ async function handleEvent(event) {
     console.log("contextAttrs ", contextAttrs);
 
     // Generate IAM Policy
-    if (contextAttrs.cx_type === "BS") {
-      iamPolicy = await getSupportPolicy(event, contextAttrs);
+    const policyParams = { ...parseMethodArn(event.methodArn), contextAttrs };
+    if (isLogoutRequest(event.methodArn)) {
+      // La logout è consentita a tutti i cx_type
+      iamPolicy = policies.buildLogoutPolicy(policyParams);
     } else {
-      iamPolicy = await generateIAMPolicy(event.methodArn, contextAttrs);
+      iamPolicy = policies.buildCxTypePolicy(contextAttrs.cx_type, policyParams);
     }
     console.log("IAM Policy", JSON.stringify(iamPolicy));
     return iamPolicy;

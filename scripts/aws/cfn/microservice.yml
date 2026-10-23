@@ -991,6 +991,7 @@ Resources:
           REDIS_ENDPOINT: !Ref RedisEndpoint
           USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
           REDIS_SERVER_NAME: !Ref RedisServerlessName
+          WEB_LOGOUT_REST_API_ID: !Ref WebLogoutRestApi
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
       Timeout: !Ref JwtAuthorizerLambdaTimeout
       TracingConfig:
@@ -1054,12 +1055,6 @@ Resources:
                 Resource:
                   - !Ref RedisServerlessArn
                   - !Ref ElasticCacheAuthFleetSessionsUserArn
-              - Effect: Allow
-                Action:
-                  - "apigateway:GET"
-                Resource:
-                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}"
-                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*${WebLogoutRestApi}"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
@@ -3209,9 +3204,6 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
-      Tags:
-        - Key: ApiName
-          Value: "logout"
   # Deployment
   WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment
