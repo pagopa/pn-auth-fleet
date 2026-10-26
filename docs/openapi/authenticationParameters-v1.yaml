@@ -6,10 +6,7 @@ components:
       description: User Identifier
       required: true
       schema:
-        type: string
-        # ASCII printable characters
-        pattern: ^[ -~]*$
-        maxLength: 64
+        $ref: '#/components/schemas/UidAuthFleet'
     cxTypeAuthFleet:
       name: x-pagopa-pn-cx-type
       in: header
@@ -23,10 +20,7 @@ components:
       description: Customer/Receiver Identifier
       required: true
       schema:
-        type: string
-        # ASCII printable characters
-        pattern: ^[ -~]*$
-        maxLength: 64
+        $ref: '#/components/schemas/CxIdAuthFleet'
     cxGroupsAuthFleet:
       name: x-pagopa-pn-cx-groups
       in: header
@@ -173,6 +167,16 @@ components:
       schema:
         type: string
   schemas:
+    UidAuthFleet:
+      type: string
+      # ASCII printable characters
+      pattern: ^[ -~]*$
+      maxLength: 64
+    CxIdAuthFleet:
+      type: string
+      # ASCII printable characters
+      pattern: ^[ -~]*$
+      maxLength: 64
     CxTypeAuthFleet:
       type: string
       enum:
@@ -182,6 +186,7 @@ components:
         - 'RADD'
         - 'BO'
         - 'BS'
+        - 'SD'
     CxLanguage:
       type: string
       enum:
