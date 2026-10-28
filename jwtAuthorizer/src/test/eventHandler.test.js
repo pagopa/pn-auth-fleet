@@ -69,8 +69,8 @@ describe("test eventHandler", () => {
     });
     expect(result.principalId).to.be.equal("user");
     const pfResources = result.policyDocument.Statement[0].Resource;
-    expect(pfResources).to.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/addresses");
-    expect(pfResources).to.not.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/api-keys");
+    expect(pfResources).to.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/test-pf");
+    expect(pfResources).to.not.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/test-pa");
     expect(result.context).to.be.eql({
       uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
       cx_id: "PF-ed84b8c9-444e-410d-80d7-cfad6aa12070",
@@ -94,8 +94,8 @@ describe("test eventHandler", () => {
     });
     expect(result.principalId).to.be.equal("user");
     const paResources = result.policyDocument.Statement[0].Resource;
-    expect(paResources).to.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/api-keys");
-    expect(paResources).to.not.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/addresses");
+    expect(paResources).to.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/test-pa");
+    expect(paResources).to.not.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/test-pf");
     expect(result.context).to.be.eql({
       uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
       cx_id: "026e8c72-7944-4dcd-8668-f596447fec6d",
