@@ -1,9 +1,17 @@
-/** Le policy per cx_type sono generate in postinstall da scripts/generatePolicies.js */
+const path = require("path");
+
+/**
+ * Le policy per cx_type arrivano da pn-bff (docs/openapi/policies/generated): la pipeline di deploy
+ * le copia in resource/policies/generated. POLICIES_DIR permette ai test di usare delle fixture.
+ */
+const policiesDir = path.resolve(
+  process.env.POLICIES_DIR ?? path.join(__dirname, "../../resource/policies/generated")
+);
 const cxTypePolicies = {
-  PF: require("./generated/pfPolicy.json"),
-  PA: require("./generated/paPolicy.json"),
-  PG: require("./generated/pgPolicy.json"),
-  BS: require("./generated/bsPolicy.json"),
+  PF: require(path.join(policiesDir, "pfPolicy.json")),
+  PA: require(path.join(policiesDir, "paPolicy.json")),
+  PG: require(path.join(policiesDir, "pgPolicy.json")),
+  BS: require(path.join(policiesDir, "bsPolicy.json")),
 };
 const logoutPolicy = require("./logoutPolicy.json");
 const denyAllPolicy = require("./denyAllPolicy.json");

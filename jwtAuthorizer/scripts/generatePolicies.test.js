@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 
-const { pathToResource, buildPolicies } = require("../../scripts/generatePolicies");
+const { pathToResource, buildPolicies } = require("./generatePolicies");
 
 const PREFIX = "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}";
 

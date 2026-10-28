@@ -4,11 +4,10 @@
   "description": "lambda che decodifica e valida i token JWT “Access Token” generati dal servizio di “Token Exchange” ed aggiunge eventuali attributi dell’utente collegati alla API Key impostati come header nelle chiamate ai micro-servizi di backend.",
   "main": "index.js",
   "scripts": {
-    "postinstall": "npm run generate-policies",
     "generate-policies": "node scripts/generatePolicies.js",
     "test-build": "(cd ../../authCommon && npm install) && npm run-script test && npm run-script coverage && npm run-script build",
     "build": "(cd ../../authCommon && npm --silent prune --production) && npm --silent prune --production && rm -f ./function.zip && zip -q -r ./function.zip . -x './src/test/*' -x './scripts/*' -x '*.md' -x '*.env'  -x '*.gitignore'",
-    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r dotenv/config",
+    "test": "nyc --reporter=html --reporter=text mocha './src/test/**/*.test.js' --recursive --timeout=3000 --exit -r ./src/test/setup.js",
     "coverage": "nyc report --reporter=lcov"
   },
   "author": "",

@@ -1,0 +1,45 @@
+{
+  "principalId": "user",
+  "policyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "execute-api:Invoke",
+        "Effect": "Allow",
+        "Resource": [
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/DELETE/v1/api-keys/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/api-keys",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/history",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/legal-facts/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/downtime/status",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/informal/campaigns/*/notifications/sent",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/institutions",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/institutions/products",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/informal/campaigns",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/informal/campaigns/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/informal/sent/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/informal/sent/*/attachments/documents/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/informal/sent/*/attachments/payment/*/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/informal/sent/*/timeline",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*/documents/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*/payments/*/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/sent/*/timeline",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/pa/additional-languages",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/pa/groups",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/sender-dashboard/dashboard-data-request/*/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v2/tos-privacy",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/POST/v1/api-keys",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/POST/v1/notifications/sent",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/POST/v1/notifications/sent/documents/preload",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/PUT/v1/api-keys/*/status",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/PUT/v1/notifications/sent/*/cancel",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/PUT/v1/pa/additional-languages",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/PUT/v2/tos-privacy"
+        ]
+      }
+    ]
+  },
+  "context": {}
+}
