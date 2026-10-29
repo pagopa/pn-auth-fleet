@@ -22,6 +22,11 @@ Parameters:
     Type: String
     Description: "The S3 bucket base path where lambda functions are stored"
 
+  JwtAuthorizerCodeS3Key:
+    Type: String
+    Default: ""
+    Description: "S3 key of the JWT authorizer deployment package"
+
   CognitoUserPoolArn:
     Type: String
     Default: ""
@@ -706,6 +711,7 @@ Parameters:
     Description: "Parameter of excluded JTI for skip invalidation"
 
 Conditions:
+  HasJwtAuthorizerCodeS3Key: !Not [!Equals [!Ref JwtAuthorizerCodeS3Key, ""]]
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
   HasToRefreshJWKSCache: !Not [!Equals [!Ref JWKSRefreshIntervalMinutes, 0]]
@@ -984,7 +990,10 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/jwtAuthorizer.zip"
+        S3Key: !If
+          - HasJwtAuthorizerCodeS3Key
+          - !Ref JwtAuthorizerCodeS3Key
+          - !Sub "${BucketBasePath}/jwtAuthorizer.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
