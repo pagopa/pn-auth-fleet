@@ -84,6 +84,19 @@ Parameters:
     Type: String
     Description: Audience value for token generation
 
+  TokenExchangeSelfcareBaseUrl:
+    Type: String
+    Description: Selfcare external API base URL for PA institutions (e.g. https://api.selfcare.pagopa.it/external/v2)
+
+  TokenExchangeSelfcarePgBaseUrl:
+    Type: String
+    Description: Selfcare external API base URL for PG institutions (e.g. https://api.selfcare.pagopa.it/external/pn-pg/v2)
+
+  TokenExchangeSelfcareSecretName:
+    Type: String
+    Default: "pn-ExternalRegistries-Secrets"
+    Description: Secret containing Selfcare API keys (SelfCareApiKey, SelfCarePgApiKey)
+
   TokenExchangeLatencyLimit:
     Type: Number
     Default: 2000
@@ -1512,6 +1525,9 @@ Resources:
           AUDIENCE: !Ref TokenExchangeLambdaEnvironmentAudience
           SSM_PARAMETER_STORE_TIMEOUT_MILLIS: 5000
           PN_EMD_INTEGRATION_BASEURL: !Sub "http://${ApplicationLoadBalancerDomain}:8080"
+          SELFCARE_BASEURL: !Ref TokenExchangeSelfcareBaseUrl
+          SELFCARE_PG_BASEURL: !Ref TokenExchangeSelfcarePgBaseUrl
+          SELFCARE_SECRET_NAME: !Ref TokenExchangeSelfcareSecretName
       Role: !GetAtt TokenExchangeLambdaRole.Arn
       Timeout: 10
       TracingConfig:
@@ -1567,6 +1583,11 @@ Resources:
               - ssm:GetParameter
             Effect: Allow
             Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/pn-auth-fleet/allowedLoginTaxids"
+          - Sid: AllowLambdaToReadSecretsManager
+            Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${TokenExchangeSelfcareSecretName}*"
 
   TokenExchangeLambdaAlarms:
     Type: AWS::CloudFormation::Stack

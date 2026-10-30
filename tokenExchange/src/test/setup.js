@@ -10,6 +10,10 @@ process.env.ACCEPTED_AUDIENCE = "portale-pa-develop.fe.dev.pn.pagopa.it,portale-
 process.env.AUDIENCE = "webapi.dev.pn.pagopa.it";
 process.env._X_AMZN_TRACE_ID = "my_trace_id";
 process.env.PN_EMD_INTEGRATION_BASEURL = "http://${ApplicationLoadBalancerDomain}:8080";
+process.env.SELFCARE_BASEURL = "https://api.selfcare.test/external/v2";
+process.env.SELFCARE_PG_BASEURL = "https://api.selfcare.test/external/pn-pg/v2";
+process.env.SELFCARE_SECRET_NAME = "fake-selfcare-secret";
+process.env.AWS_SESSION_TOKEN = "fake-session-token";
 
 console.log = () => {};
 console.info = () => {};
