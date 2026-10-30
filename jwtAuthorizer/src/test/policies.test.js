@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 
-const { buildSupportPolicy, buildLogoutPolicy } = require("../policies");
+const { buildSupportPolicy, buildPtPolicy, buildLogoutPolicy } = require("../policies");
 
 const defaultParams = {
   region: "eu-south-1",
@@ -50,6 +50,26 @@ describe("test policies", () => {
       expect(result1.policyDocument.Statement[0].Resource[0]).to.include("eu-south-1");
       expect(result2.policyDocument.Statement[0].Resource[0]).to.include("us-east-1");
       expect(result1.context).to.not.deep.equal(result2.context);
+    });
+  });
+
+  describe("buildPtPolicy", () => {
+    it("should allow only the PT backoffice apis", () => {
+      const result = buildPtPolicy(defaultParams);
+
+      expect(result.policyDocument.Statement).to.have.length(1);
+      expect(result.policyDocument.Statement[0].Effect).to.equal("Allow");
+      expect(result.policyDocument.Statement[0].Resource).to.deep.equal([
+        "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/*/v1/pt/*",
+        "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/v1/institutions",
+        "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/v1/institutions/products"
+      ]);
+    });
+
+    it("should set context attributes", () => {
+      const result = buildPtPolicy(defaultParams);
+
+      expect(result.context).to.deep.equal(defaultParams.contextAttrs);
     });
   });
 

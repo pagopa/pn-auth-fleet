@@ -187,6 +187,7 @@ components:
         - 'BO'
         - 'BS'
         - 'SD'
+        - 'PT'
     CxLanguage:
       type: string
       enum:

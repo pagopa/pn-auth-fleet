@@ -56,20 +56,24 @@ function makeLower(headers) {
 
 function getUserType(token) {
   const role = token.organization?.roles[0]?.role;
+  const institutionType = token.organization?.institutionType;
 
   if (!token.organization) return "PF";
-  if (role?.startsWith("pg-")) return "PG";
   if (role === "support") return "BS";
-  if (token.organization) return "PA";
+  
+  return institutionType;
 }
 
-function enrichDecodedToken(decodedToken) {
+function enrichDecodedToken(decodedToken, institutionType) {
   const enrichedToken = decodedToken;
   // enrichedToken adds additional information
   if (enrichedToken.organization) {
     enrichedToken.organization.hasGroups = Boolean(
       enrichedToken.organization.groups?.length
     );
+    if (institutionType) {
+      enrichedToken.organization.institutionType = institutionType;
+    }
   }
 
   return enrichedToken;
@@ -141,6 +145,33 @@ async function getParameterFromStore(parameterName) {
   );
 }
 
+async function innerGetSecretFromStore(secretName) {
+  try {
+    const response = await axios.get(
+      `http://localhost:2773/secretsmanager/get?secretId=${encodeURIComponent(
+        secretName
+      )}`,
+      {
+        headers: {
+          "X-Aws-Parameters-Secrets-Token": process.env.AWS_SESSION_TOKEN,
+        },
+      }
+    );
+    return response.data.SecretString;
+  } catch (err) {
+    console.warn("Error in get secret ", err);
+    throw new Error("Error in get secret");
+  }
+}
+
+async function getSecretFromStore(secretName) {
+  return await retryWithDelay(
+    () => innerGetSecretFromStore(secretName),
+    1000,
+    3
+  );
+}
+
 module.exports = {
   checkOrigin,
   copyAndMaskObject,
@@ -148,6 +179,7 @@ module.exports = {
   enrichDecodedToken,
   addSourceChannelInfo,
   getParameterFromStore,
+  getSecretFromStore,
   getUserType,
   makeLower,
 };
