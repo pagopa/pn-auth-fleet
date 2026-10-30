@@ -68,6 +68,49 @@ describe("test policies", () => {
     });
   });
 
+  describe("buildCxTypePolicy - routes covered by path param wildcards", () => {
+    const methodArnPrefix = "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod";
+    // Valutazione IAM: "*" corrisponde a qualunque sequenza di caratteri ("/" compreso) e il Deny prevale sull'Allow
+    const matches = (statement, methodArn) =>
+      [statement.Resource].flat().some((resource) =>
+        new RegExp(
+          "^" + resource.split("*").map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + "$"
+        ).test(methodArn)
+      );
+    const isAllowed = (policy, methodArn) => {
+      const statements = policy.policyDocument.Statement.filter((statement) => matches(statement, methodArn));
+      return statements.some((s) => s.Effect === "Allow") && !statements.some((s) => s.Effect === "Deny");
+    };
+
+    for (const cxType of ["PF", "PG"]) {
+      it(`should allow ${cxType} on the parametrized route`, () => {
+        const policy = buildCxTypePolicy(cxType, defaultParams);
+
+        expect(isAllowed(policy, `${methodArnPrefix}/GET/v1/notifications/received/IUN-123`)).to.be.true;
+      });
+    }
+
+    it("should deny PF on GET /v1/notifications/received/delegated (PG only)", () => {
+      const policy = buildCxTypePolicy("PF", defaultParams);
+
+      expect(isAllowed(policy, `${methodArnPrefix}/GET/v1/notifications/received/delegated`)).to.be.false;
+    });
+
+    it("should deny PG on GET /v1/notifications/received/check-tpp (PF only)", () => {
+      const policy = buildCxTypePolicy("PG", defaultParams);
+
+      expect(isAllowed(policy, `${methodArnPrefix}/GET/v1/notifications/received/check-tpp`)).to.be.false;
+    });
+
+    it("should replace placeholders in deny statements", () => {
+      const policy = buildCxTypePolicy("PF", defaultParams);
+
+      expect(policy.policyDocument.Statement[1].Resource).to.deep.equal([
+        `${methodArnPrefix}/GET/v1/notifications/received/delegated`,
+      ]);
+    });
+  });
+
   describe("buildLogoutPolicy", () => {
     it("should replace all placeholders", () => {
       const result = buildLogoutPolicy(defaultParams);

@@ -8,7 +8,15 @@
         "Effect": "Allow",
         "Resource": [
           "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/test-pf",
-          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/DELETE/v1/test-pf/*"
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/DELETE/v1/test-pf/*",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/received/*"
+        ]
+      },
+      {
+        "Action": "execute-api:Invoke",
+        "Effect": "Deny",
+        "Resource": [
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/notifications/received/delegated"
         ]
       }
     ]
