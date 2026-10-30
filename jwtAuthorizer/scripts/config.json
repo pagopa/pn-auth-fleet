@@ -1,0 +1,5 @@
+{
+  "openapiUrl": "https://raw.githubusercontent.com/pagopa/pn-bff/a6fa6953729666bda887adcfae906876163163b4/docs/openapi/aws/api-bff-WEB-aws.yaml",
+  "cxTypes": ["PF", "PA", "PG", "BS"],
+  "outputDir": "resource/policies/generated"
+}

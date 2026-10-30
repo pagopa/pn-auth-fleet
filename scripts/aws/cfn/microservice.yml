@@ -22,6 +22,11 @@ Parameters:
     Type: String
     Description: "The S3 bucket base path where lambda functions are stored"
 
+  JwtAuthorizerCodeS3Key:
+    Type: String
+    Default: ""
+    Description: "S3 key of the JWT authorizer deployment package"
+
   CognitoUserPoolArn:
     Type: String
     Default: ""
@@ -706,6 +711,7 @@ Parameters:
     Description: "Parameter of excluded JTI for skip invalidation"
 
 Conditions:
+  HasJwtAuthorizerCodeS3Key: !Not [!Equals [!Ref JwtAuthorizerCodeS3Key, ""]]
   HaveToDefineVpcs: !Equals ["true", !Ref PutIntoVpc]
   SendLogToKinesis: !Not [!Equals [!Ref LogsKinesisSourceStreamArn, ""]]
   HasToRefreshJWKSCache: !Not [!Equals [!Ref JWKSRefreshIntervalMinutes, 0]]
@@ -984,13 +990,17 @@ Resources:
       Handler: "index.handler"
       Code:
         S3Bucket: !Ref LambdasBucketName
-        S3Key: !Sub "${BucketBasePath}/jwtAuthorizer.zip"
+        S3Key: !If
+          - HasJwtAuthorizerCodeS3Key
+          - !Ref JwtAuthorizerCodeS3Key
+          - !Sub "${BucketBasePath}/jwtAuthorizer.zip"
       Environment:
         Variables:
           CACHE_TTL: !Ref JwtAuthorizerLambdaEnvironmentCacheTtl
           REDIS_ENDPOINT: !Ref RedisEndpoint
           USER_ID_REDIS: !Ref ElasticCacheAuthFleetSessionsUserId
           REDIS_SERVER_NAME: !Ref RedisServerlessName
+          WEB_LOGOUT_REST_API_ID: !Ref WebLogoutRestApi
       Role: !GetAtt JwtAuthorizerLambdaRole.Arn
       Timeout: !Ref JwtAuthorizerLambdaTimeout
       TracingConfig:
@@ -1054,12 +1064,6 @@ Resources:
                 Resource:
                   - !Ref RedisServerlessArn
                   - !Ref ElasticCacheAuthFleetSessionsUserArn
-              - Effect: Allow
-                Action:
-                  - "apigateway:GET"
-                Resource:
-                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${WebLogoutRestApi}"
-                  - !Sub "arn:aws:apigateway:${AWS::Region}::/tags/*${WebLogoutRestApi}"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         # - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
@@ -3209,9 +3213,6 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
-      Tags:
-        - Key: ApiName
-          Value: "logout"
   # Deployment
   WebLogoutRestApiDeploymentPnPlaceholderEpochSeconds:
     Type: AWS::ApiGateway::Deployment
