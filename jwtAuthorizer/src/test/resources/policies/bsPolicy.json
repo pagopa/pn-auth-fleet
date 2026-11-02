@@ -1,0 +1,17 @@
+{
+  "principalId": "user",
+  "policyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "execute-api:Invoke",
+        "Effect": "Allow",
+        "Resource": [
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/GET/v1/test-bs",
+          "arn:aws:execute-api:{region}:{awsAccountId}:{restApiId}/{stage}/PUT/v1/test-bs/*"
+        ]
+      }
+    ]
+  },
+  "context": {}
+}
