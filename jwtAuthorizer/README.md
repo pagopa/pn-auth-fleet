@@ -1,11 +1,7 @@
 ## Policy per cx_type
 Le policy (`pfPolicy.json`, `paPolicy.json`, `pgPolicy.json`, `bsPolicy.json`) vengono da pn-bff (`docs/openapi/policies/generated`). La pipeline di deploy le copia in `resource/policies/generated`, cartella non versionata.
 
-Per generarle in locale dall'OpenAPI indicato in `scripts/config.json`:
-
-```
-    npm run generate-policies
-```
+Le policy sono generate dal `policyGenerator` di pn-codegen a partire dal tag `x-pn-allowed-cx-types` dell'OpenAPI del BFF.
 
 I test usano le fixture in `src/test/resources/policies`, configurate in `src/test/setup.js`.
 
