@@ -24,6 +24,9 @@ const revert = tokenGen.__set__({
 
 const eventHandler = proxyquire.noCallThru().load("../app/eventHandler.js", {
   "./tokenGen.js": tokenGen,
+  "./institutions.js": {
+    getInstitutionType: async (organization) => (organization ? "PA" : undefined),
+  },
 });
 
 const lambda = proxyquire.noCallThru().load("../../index.js", {

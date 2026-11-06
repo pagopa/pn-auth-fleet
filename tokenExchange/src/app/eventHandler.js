@@ -12,6 +12,7 @@ const {
 } = require("./utils.js");
 const { validation } = require("./validation.js");
 const { getRetrievalPayload } = require("./emdIntegrationClient.js");
+const { getInstitutionType } = require("./institutions.js");
 
 async function handleEvent(event, context) {
   const request_id = context?.awsRequestId;
@@ -40,7 +41,8 @@ async function handleEvent(event, context) {
       if (encodedToken) {
         try {
           const decodedToken = await validation(encodedToken);
-          let enrichedToken = enrichDecodedToken(decodedToken);
+          const institutionType = await getInstitutionType(decodedToken.organization);
+          let enrichedToken = enrichDecodedToken(decodedToken, institutionType);
           if(source) {
             console.info("Add source channel info")
             let tppId;

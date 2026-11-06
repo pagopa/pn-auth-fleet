@@ -54,7 +54,7 @@ describe("test policies", () => {
   });
 
   describe("buildCxTypePolicy - cx_types", () => {
-    for (const cxType of ["PF", "PA", "PG", "BS"]) {
+    for (const cxType of ["PF", "PA", "PG", "BS", "PT"]) {
       it(`should build an allow policy for ${cxType}`, () => {
         const result = buildCxTypePolicy(cxType, defaultParams);
 
@@ -108,6 +108,26 @@ describe("test policies", () => {
       expect(policy.policyDocument.Statement[1].Resource).to.deep.equal([
         `${methodArnPrefix}/GET/v1/notifications/received/delegated`,
       ]);
+    });
+  });
+
+  describe("buildCxTypePolicy - PT", () => {
+    it("should allow only the PT backoffice apis", () => {
+      const result = buildCxTypePolicy("PT", defaultParams);
+
+      expect(result.policyDocument.Statement).to.have.length(1);
+      expect(result.policyDocument.Statement[0].Effect).to.equal("Allow");
+      expect(result.policyDocument.Statement[0].Resource).to.deep.equal([
+        "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/*/v1/pt/*",
+        "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/v1/institutions",
+        "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/GET/v1/institutions/products"
+      ]);
+    });
+
+    it("should set context attributes", () => {
+      const result = buildCxTypePolicy("PT", defaultParams);
+
+      expect(result.context).to.deep.equal(defaultParams.contextAttrs);
     });
   });
 

@@ -1,6 +1,6 @@
 # TokenExchange
 
-Lambda che implementa il flusso di token exchange per Piattaforma Notifiche. Riceve un token di autenticazione esterno (emesso da SPID Hub o SelfCare), ne valida issuer, audience, algoritmo e ruolo, arricchisce il payload con le informazioni dell'utente e genera un session token firmato tramite KMS da restituire al frontend. Supporta anche il canale TPP, recuperando il payload di retrieval da pn-emd-integration prima di generare il token.
+Lambda che implementa il flusso di token exchange per Piattaforma Notifiche. Riceve un token di autenticazione esterno (emesso da SPID Hub o SelfCare), ne valida issuer, audience, algoritmo e ruolo, arricchisce il payload con le informazioni dell'utente (per gli utenti con `organization`, il tipo di ente `organization.institutionType` letto da Selfcare `GET /institutions/{id}`) e genera un session token firmato tramite KMS da restituire al frontend. Supporta anche il canale TPP, recuperando il payload di retrieval da pn-emd-integration prima di generare il token.
 
 ## Variabili d'ambiente
 
@@ -10,6 +10,9 @@ Lambda che implementa il flusso di token exchange per Piattaforma Notifiche. Ric
 | --- | --- | --- |
 | `CACHE_TTL` | `TokenExchangeLambdaEnvironmentCacheTtl` | TTL in secondi della cache JWKS (default: 300) |
 | `TOKEN_TTL` | `TokenExchangeLambdaEnvironmentTokenTtl` | Durata in secondi del session token generato |
+| `SELFCARE_BASEURL` | `TokenExchangeSelfcareBaseUrl` | Base URL delle API external di Selfcare per gli enti PA/PT, usato per leggere l'`institutionType` (es. `https://api.selfcare.pagopa.it/external/v2`). Nessun default: va valorizzato per ogni ambiente |
+| `SELFCARE_PG_BASEURL` | `TokenExchangeSelfcarePgBaseUrl` | Base URL delle API external di Selfcare per le PG, usato per i ruoli `pg-*` (es. `https://api.selfcare.pagopa.it/external/pn-pg/v2`). Nessun default: va valorizzato per ogni ambiente |
+| `SELFCARE_SECRET_NAME` | `TokenExchangeSelfcareSecretName` | Nome del secret in Secrets Manager con le API key Selfcare (`SelfCareApiKey`, `SelfCarePgApiKey`). Default: `pn-ExternalRegistries-Secrets` |
 
 ### Iniettate da `pn-infra-core` (output Terraform)
 

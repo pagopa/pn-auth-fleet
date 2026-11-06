@@ -75,4 +75,25 @@ describe("test tokenGen", () => {
     const tokenRegexp = new RegExp(`.*\..*\.${base64Signature}`, "i");
     expect(token).to.match(tokenRegexp);
   });
+
+  it("adds institutionType to the organization claim", async () => {
+    kmsClientMock.on(DescribeKeyCommand).resolves({
+      KeyMetadata: {
+        KeyId: "keyId",
+      },
+    });
+    kmsClientMock.on(SignCommand).resolves({
+      KeyId: "KeyId",
+      Signature: new Uint8Array([73, 69, 67]),
+      SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
+    });
+    const token = await generateToken({
+      ...decodedToken,
+      organization: { ...decodedToken.organization, institutionType: "PT" },
+    });
+    const payload = JSON.parse(
+      Buffer.from(token.split(".")[1], "base64url").toString()
+    );
+    expect(payload.organization.institutionType).to.eq("PT");
+  });
 });
