@@ -1,12 +1,9 @@
-## Creazione file .env
-Creare il file _.env_ nella root del progetto settando le seguenti variabili d'ambiente:
-- KEY_ID
-- CACHE_TTL
+## Policy per cx_type
+Le policy (`pfPolicy.json`, `paPolicy.json`, `pgPolicy.json`, `bsPolicy.json`) vengono da pn-bff (`docs/openapi/policies/generated`). La pipeline di deploy le copia in `resource/policies/generated`, cartella non versionata.
 
-Esempio file .env:
-```
-    CACHE_TTL=3600
-```
+Le policy sono generate dal `policyGenerator` di pn-codegen a partire dal tag `x-pn-allowed-cx-types` dell'OpenAPI del BFF.
+
+I test usano le fixture in `src/test/resources/policies`, configurate in `src/test/setup.js`.
 
 ## Esecuzione build
 

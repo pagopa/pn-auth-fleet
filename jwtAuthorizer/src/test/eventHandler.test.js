@@ -68,14 +68,9 @@ describe("test eventHandler", () => {
         "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/received",
     });
     expect(result.principalId).to.be.equal("user");
-    expect(result.policyDocument.Statement).to.be.eql([
-      {
-        Action: "execute-api:Invoke",
-        Effect: "Allow",
-        Resource:
-          "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/*",
-      },
-    ]);
+    const pfResources = result.policyDocument.Statement[0].Resource;
+    expect(pfResources).to.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/test-pf");
+    expect(pfResources).to.not.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/test-pa");
     expect(result.context).to.be.eql({
       uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
       cx_id: "PF-ed84b8c9-444e-410d-80d7-cfad6aa12070",
@@ -98,14 +93,9 @@ describe("test eventHandler", () => {
         "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/POST/delivery/notifications/received",
     });
     expect(result.principalId).to.be.equal("user");
-    expect(result.policyDocument.Statement).to.be.eql([
-      {
-        Action: "execute-api:Invoke",
-        Effect: "Allow",
-        Resource:
-          "arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/*",
-      },
-    ]);
+    const paResources = result.policyDocument.Statement[0].Resource;
+    expect(paResources).to.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/test-pa");
+    expect(paResources).to.not.include("arn:aws:execute-api:us-west-2:123456789012:ymy8tbxw7b/beta/GET/v1/test-pf");
     expect(result.context).to.be.eql({
       uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
       cx_id: "026e8c72-7944-4dcd-8668-f596447fec6d",
@@ -122,10 +112,6 @@ describe("test eventHandler", () => {
   });
 
   it("handle event with no errors (BS) - cx_id without prefix", async () => {
-    sinon.stub(authCommon.apiGatewayUtils, "getApiGatewayTags").resolves({
-      apiName: undefined,
-    });
-
     const bsToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJpYXQiOjE3Mzk1MzM1MzcsImV4cCI6MTczOTU0MDczNywidWlkIjoiZWQ4NGI4YzktNDQ0ZS00MTBkLTgwZDctY2ZhZDZhYTEyMDcwIiwiaXNzIjoicG4tZGV2ZWxvcC5wbi5wYWdvcGEuaXQiLCJhdWQiOiJ3ZWJhcGkuZGV2LnBuLnBhZ29wYS5pdCIsImp0aSI6IjAxRzBDRlc4MEhHVFRXMFJINTRXUUQ2RjZTIiwib3JnYW5pemF0aW9uIjp7ImlkIjoiMDI2ZThjNzItNzk0NC00ZGNkLTg2NjgtZjU5NjQ0N2ZlYzZkIiwicm9sZSI6InN1cHBvcnQiLCJncm91cHMiOlsiNjJlOTQxZDMxM2IwZmM2ZWRhZDQ1MzVhIl0sImZpc2NhbF9jb2RlIjoiMDExOTkyNTAxNTgifX0.c2lnbmF0dXJl";
     const result = await handleEvent({
       type: "TOKEN",
@@ -138,6 +124,33 @@ describe("test eventHandler", () => {
     expect(result.context.cx_id).to.equal("026e8c72-7944-4dcd-8668-f596447fec6d");
     expect(result.context.cx_role).to.equal("support");
 
+  });
+
+  it("handle event on logout rest api (PF) - logout policy", async () => {
+    process.env.WEB_LOGOUT_REST_API_ID = "logout123";
+    const pfToken = jsonwebtoken.sign(
+      { uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070", jti: "01G2A6V0B13BHNCPEZ32S7KQ3Y" },
+      "secret"
+    );
+
+    try {
+      const result = await handleEvent({
+        type: "TOKEN",
+        authorizationToken: pfToken,
+        methodArn: "arn:aws:execute-api:eu-south-1:123456789012:logout123/unique/POST/",
+      });
+
+      expect(result.context.cx_type).to.equal("PF");
+      expect(result.policyDocument.Statement).to.be.eql([
+        {
+          Action: "execute-api:Invoke",
+          Effect: "Allow",
+          Resource: "arn:aws:execute-api:eu-south-1:123456789012:logout123/unique/POST/",
+        },
+      ]);
+    } finally {
+      delete process.env.WEB_LOGOUT_REST_API_ID;
+    }
   });
 
   it("handle event with jti revoked", async () => {
