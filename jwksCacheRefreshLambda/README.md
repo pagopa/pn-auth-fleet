@@ -39,8 +39,8 @@ Per gli errori Axios con codice `ECONNREFUSED` o `ETIMEDOUT`, il campo
 Il contatore e unico per issuer anche quando i due codici si alternano; un campo
 assente equivale a zero.
 
-I primi cinque fallimenti producono log `WARN`; il sesto e i successivi producono
-`ERROR`. Ogni fallimento mantiene la ripianificazione e l'intervallo configurato
+Per default i primi tre fallimenti producono log `WARN`; il quarto e i successivi
+producono `ERROR`. Ogni fallimento mantiene la ripianificazione e l'intervallo configurato
 con `JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES`, senza tentativi immediati aggiuntivi.
 Il contatore viene incrementato atomicamente insieme alla ripianificazione.
 
@@ -50,3 +50,21 @@ Gli altri errori restano immediatamente `ERROR` e non modificano il contatore;
 altri codici di timeout, come `ECONNABORTED`, non sono inclusi nella soglia.
 I fallimenti della persistenza non vengono attenuati.
 
+### Soglia configurabile
+
+Il parametro CloudFormation `JWKSConnectionErrorWarningThreshold` in
+`scripts/aws/cfn/microservice.yml` viene passato alla Lambda come variabile
+`JWKS_CONNECTION_ERROR_WARNING_THRESHOLD`. Il default e `3`, anche quando la
+variabile non e presente.
+
+Il valore indica il numero di fallimenti tollerati con `WARN`: con `5`, ad
+esempio, `ERROR` inizia dal sesto fallimento. Deve essere un intero non negativo;
+`0` produce `ERROR` dal primo fallimento. Un valore vuoto, non numerico,
+negativo, frazionario o oltre il limite degli interi sicuri JavaScript causa
+un errore esplicito, non un ripristino silenzioso del default.
+
+Per cambiare la soglia usare il parametro dello stack nel normale percorso di
+configurazione del componente e aggiornare lo stack/Lambda tramite la pipeline.
+Non serve modificare o ricompilare il codice dopo questo rilascio, ma la
+configurazione deve essere applicata. Il contatore persistito non viene
+azzerato: la nuova soglia si applica al prossimo fallimento.

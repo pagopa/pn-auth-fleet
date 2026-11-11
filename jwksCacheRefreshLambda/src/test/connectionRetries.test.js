@@ -63,11 +63,13 @@ describe('Persistent connection retries', () => {
         env = {
             JWKS_REFRESH_INTERVAL_MINUTES: process.env.JWKS_REFRESH_INTERVAL_MINUTES,
             JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES: process.env.JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES,
-            JWKS_DYNAMO_CACHE_CONTENT_LIMIT: process.env.JWKS_DYNAMO_CACHE_CONTENT_LIMIT
+            JWKS_DYNAMO_CACHE_CONTENT_LIMIT: process.env.JWKS_DYNAMO_CACHE_CONTENT_LIMIT,
+            JWKS_CONNECTION_ERROR_WARNING_THRESHOLD: process.env.JWKS_CONNECTION_ERROR_WARNING_THRESHOLD
         };
         process.env.JWKS_REFRESH_INTERVAL_MINUTES = '5';
         process.env.JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES = '2';
         process.env.JWKS_DYNAMO_CACHE_CONTENT_LIMIT = '51200';
+        delete process.env.JWKS_CONNECTION_ERROR_WARNING_THRESHOLD;
         clock = Date.now;
         Date.now = () => now;
         dao = rewire('../../../authCommon/app/modules/dao/AllowedIssuerDao');
@@ -127,15 +129,15 @@ describe('Persistent connection retries', () => {
         ['ETIMEDOUT'],
         ['ECONNREFUSED', 'ETIMEDOUT']
     ]) {
-        it('uses WARN for attempts 1-5 and ERROR from 6 across invocations: ' + codes.join('/'), async () => {
+        it('defaults to WARN for attempts 1-3 and ERROR from 4 across invocations: ' + codes.join('/'), async () => {
             const record = addIssuer('issuer-a');
             for (let attempt = 1; attempt <= 7; attempt++) {
                 failures.set('issuer-a', connectionError(codes[(attempt - 1) % codes.length]));
                 await invoke('issuer-a');
                 expect(record.retryAttempt).to.equal(attempt);
-                expect(logs.warn).to.have.lengthOf(Math.min(attempt, 5));
-                expect(logs.error).to.have.lengthOf(Math.max(attempt - 5, 0));
-                const lastLog = attempt < 6 ? logs.warn[attempt - 1] : logs.error[attempt - 6];
+                expect(logs.warn).to.have.lengthOf(Math.min(attempt, 3));
+                expect(logs.error).to.have.lengthOf(Math.max(attempt - 3, 0));
+                const lastLog = attempt <= 3 ? logs.warn[attempt - 1] : logs.error[attempt - 4];
                 expect(lastLog[0]).to.include('issuer-a, retryAttempt ' + attempt);
                 expect(updates).to.have.lengthOf(attempt);
                 expect(record.jwksCacheExpireSlot).to.equal('2026-11-11T16:02Z');
@@ -146,10 +148,10 @@ describe('Persistent connection retries', () => {
 
     for (const code of ['ECONNREFUSED', 'ETIMEDOUT']) {
         it('resets after success and restarts at 1 for ' + code, async () => {
-            const record = addIssuer('issuer-a', 5);
+            const record = addIssuer('issuer-a', 3);
             failures.set('issuer-a', connectionError(code));
             await invoke('issuer-a');
-            expect(record.retryAttempt).to.equal(6);
+            expect(record.retryAttempt).to.equal(4);
             failures.delete('issuer-a');
             await invoke('issuer-a');
             expect(record.retryAttempt).to.equal(0);
@@ -163,12 +165,12 @@ describe('Persistent connection retries', () => {
     }
 
     it('keeps counters independent when issuers are interleaved', async () => {
-        const first = addIssuer('issuer-a', 5);
+        const first = addIssuer('issuer-a', 3);
         const second = addIssuer('issuer-b');
         failures.set('issuer-a', connectionError('ECONNREFUSED'));
         failures.set('issuer-b', connectionError('ETIMEDOUT'));
         await invoke('issuer-a', 'issuer-b');
-        expect(first.retryAttempt).to.equal(6);
+        expect(first.retryAttempt).to.equal(4);
         expect(second.retryAttempt).to.equal(1);
         expect(logs.error[0][0]).to.include('issuer-a');
         expect(logs.warn[0][0]).to.include('issuer-b');
@@ -177,6 +179,62 @@ describe('Persistent connection retries', () => {
         expect(first.retryAttempt).to.equal(0);
         expect(second.retryAttempt).to.equal(2);
     });
+
+    for (const threshold of [0, 1, 3, 5]) {
+        for (const code of ['ECONNREFUSED', 'ETIMEDOUT']) {
+            it('honors configured threshold ' + threshold + ' for ' + code, async () => {
+                process.env.JWKS_CONNECTION_ERROR_WARNING_THRESHOLD = String(threshold);
+                const record = addIssuer('issuer-a');
+                failures.set('issuer-a', connectionError(code));
+                for (let attempt = 1; attempt <= threshold + 2; attempt++) {
+                    await invoke('issuer-a');
+                    expect(record.retryAttempt).to.equal(attempt);
+                    expect(logs.warn).to.have.lengthOf(Math.min(attempt, threshold));
+                    expect(logs.error).to.have.lengthOf(Math.max(attempt - threshold, 0));
+                }
+            });
+        }
+    }
+
+    it('applies changed thresholds to the existing counter without resetting it', async () => {
+        const record = addIssuer('issuer-a', 3);
+        failures.set('issuer-a', connectionError('ECONNREFUSED'));
+        process.env.JWKS_CONNECTION_ERROR_WARNING_THRESHOLD = '5';
+        await invoke('issuer-a');
+        expect(record.retryAttempt).to.equal(4);
+        expect(logs.warn).to.have.lengthOf(1);
+        expect(logs.error).to.have.lengthOf(0);
+        process.env.JWKS_CONNECTION_ERROR_WARNING_THRESHOLD = '1';
+        failures.set('issuer-a', connectionError('ETIMEDOUT'));
+        await invoke('issuer-a');
+        expect(record.retryAttempt).to.equal(5);
+        expect(logs.warn).to.have.lengthOf(1);
+        expect(logs.error).to.have.lengthOf(1);
+    });
+
+    for (const threshold of ['', ' ', '-1', '1.5', 'invalid', '3oops', 'Infinity', '9007199254740992']) {
+        it('rejects invalid configured threshold ' + JSON.stringify(threshold), async () => {
+            process.env.JWKS_CONNECTION_ERROR_WARNING_THRESHOLD = threshold;
+            addIssuer('issuer-a');
+            let queried = false;
+            const invocation = newInvocation(['issuer-a']);
+            invocation.__set__('AllowedIssuerDao.listJwksCacheExpiringAtMinute', async () => {
+                queried = true;
+                return [];
+            });
+            let caught;
+            try {
+                await invocation.handleEvent({});
+            } catch (error) {
+                caught = error;
+            }
+            expect(caught).to.be.instanceOf(Error);
+            expect(caught.message).to.equal('JWKS_CONNECTION_ERROR_WARNING_THRESHOLD must be a non-negative safe integer');
+            expect(queried).to.equal(false);
+            expect(updates).to.have.lengthOf(0);
+            expect(transactions).to.have.lengthOf(0);
+        });
+    }
 
     it('does not reset or increment on an intervening non-selected error', async () => {
         const record = addIssuer('issuer-a');

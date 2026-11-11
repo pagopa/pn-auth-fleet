@@ -410,6 +410,12 @@ Parameters:
     Default: 2
     Description: "Interval in minutes to retry download JWKS cache"
 
+  JWKSConnectionErrorWarningThreshold:
+    Type: Number
+    Default: 3
+    MinValue: 0
+    Description: "Number of ECONNREFUSED or ETIMEDOUT failures logged as WARN before ERROR. Non-negative integer; 0 logs ERROR immediately"
+
   AuthJwtIssuersTableName:
     Type: String
     Description: "Name of dynamodb table containing auth jwt issuers data"
@@ -1329,6 +1335,7 @@ Resources:
         Variables:
           JWKS_REFRESH_INTERVAL_MINUTES: !Ref JWKSRefreshIntervalMinutes
           JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES: !Ref JWKSDownloadRetryIntervalMinutes
+          JWKS_CONNECTION_ERROR_WARNING_THRESHOLD: !Ref JWKSConnectionErrorWarningThreshold
           AUTH_JWT_ISSUER_TABLE: !Ref AuthJwtIssuersTableName
           FOLLOW_REDIRECT: !Ref JwksDownloaderFollowRedirect
           JWKS_CONTENT_LIMIT_BYTES: !Ref JwksDownloaderContentLimitBytes

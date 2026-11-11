@@ -3,6 +3,11 @@ const { UrlDownloader, MetricsHandler, AllowedIssuerDao, prepareJWKSRenewTimeMet
 const metricsHandler = new MetricsHandler();
 
 async function handleEvent(event) {
+    const configuredWarningThreshold = process.env.JWKS_CONNECTION_ERROR_WARNING_THRESHOLD ?? '3';
+    const connectionErrorWarningThreshold = Number(configuredWarningThreshold);
+    if(configuredWarningThreshold.trim() === '' || !Number.isSafeInteger(connectionErrorWarningThreshold) || connectionErrorWarningThreshold < 0){
+        throw new Error('JWKS_CONNECTION_ERROR_WARNING_THRESHOLD must be a non-negative safe integer');
+    }
     const minimumMinutesInThePast = parseInt(process.env.JWKS_REFRESH_INTERVAL_MINUTES) + 1;
     const jwksDownloadRetryIntervalMinutes = parseInt(process.env.JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES);
     const date = Date.now();
@@ -34,7 +39,7 @@ async function handleEvent(event) {
                             throw new Error('Invalid retryAttempt after rescheduling issuer ' + allowedIssuerId)
                         }
                         const message = 'Error during addJwksCacheEntry for issuer ' + allowedIssuerId + ', retryAttempt ' + retryAttempt
-                        if(retryAttempt < 6){
+                        if(retryAttempt <= connectionErrorWarningThreshold){
                             console.warn(message, e)
                         } else {
                             console.error(message, e)
