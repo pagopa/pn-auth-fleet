@@ -3,6 +3,11 @@ const { UrlDownloader, MetricsHandler, AllowedIssuerDao, prepareJWKSRenewTimeMet
 const metricsHandler = new MetricsHandler();
 
 async function handleEvent(event) {
+    const configuredWarningThreshold = process.env.JWKS_CONNECTION_ERROR_WARNING_THRESHOLD ?? '3';
+    const connectionErrorWarningThreshold = Number(configuredWarningThreshold);
+    if(configuredWarningThreshold.trim() === '' || !Number.isSafeInteger(connectionErrorWarningThreshold) || connectionErrorWarningThreshold < 0){
+        throw new Error('JWKS_CONNECTION_ERROR_WARNING_THRESHOLD must be a non-negative safe integer');
+    }
     const minimumMinutesInThePast = parseInt(process.env.JWKS_REFRESH_INTERVAL_MINUTES) + 1;
     const jwksDownloadRetryIntervalMinutes = parseInt(process.env.JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES);
     const date = Date.now();
@@ -22,9 +27,27 @@ async function handleEvent(event) {
                     console.log('JWKS cache entry added for issuer ' + allowedIssuerId)
                 }
                 catch (e) {
-                    console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
                     const rescheduleTime = Date.now() + (jwksDownloadRetryIntervalMinutes * 60 * 1000);
-                    await AllowedIssuerDao.postponeJwksCacheEntryValidation(allowedIssuerId, transformInDate(rescheduleTime))
+                    const downloadError = e?.isAxiosError === true ? e : e?.cause
+                    const isConnectionError = downloadError?.isAxiosError === true &&
+                        (downloadError.code === 'ECONNREFUSED' || downloadError.code === 'ETIMEDOUT')
+
+                    if(isConnectionError){
+                        const result = await AllowedIssuerDao.postponeJwksCacheEntryValidation(allowedIssuerId, transformInDate(rescheduleTime), true)
+                        const retryAttempt = result?.Attributes?.retryAttempt
+                        if(!Number.isInteger(retryAttempt) || retryAttempt < 1){
+                            throw new Error('Invalid retryAttempt after rescheduling issuer ' + allowedIssuerId)
+                        }
+                        const message = 'Error during addJwksCacheEntry for issuer ' + allowedIssuerId + ', retryAttempt ' + retryAttempt
+                        if(retryAttempt <= connectionErrorWarningThreshold){
+                            console.warn(message, e)
+                        } else {
+                            console.error(message, e)
+                        }
+                    } else {
+                        console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
+                        await AllowedIssuerDao.postponeJwksCacheEntryValidation(allowedIssuerId, transformInDate(rescheduleTime))
+                    }
                 }
             }
             pivotTimeInMillis = removeSingleMinute(pivotTimeInMillis)

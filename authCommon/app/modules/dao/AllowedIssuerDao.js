@@ -181,11 +181,12 @@ function prepareTransactionInput(cfg, downloadUrl, jwksBinaryBody, modificationT
                         hashKey: buildHashKeyForAllowedIssuer(iss),
                         sortKey: CFG
                     },
-                    UpdateExpression: 'SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs, jwksCacheOriginalExpireEpochSeconds = :jwksCacheOriginalExpireEpochSeconds',
+                    UpdateExpression: 'SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs, jwksCacheOriginalExpireEpochSeconds = :jwksCacheOriginalExpireEpochSeconds, retryAttempt = :retryAttempt',
                     ExpressionAttributeValues: {
                         ':jwksCacheExpireSlot': jwksCacheExpireSlotWithMinutesPrecision,
                         ':modificationTimeEpochMs': modificationTimeEpochMs,
-                        ':jwksCacheOriginalExpireEpochSeconds': jwksCacheOriginalExpireEpochSeconds
+                        ':jwksCacheOriginalExpireEpochSeconds': jwksCacheOriginalExpireEpochSeconds,
+                        ':retryAttempt': 0
                     }
                 }
             },
@@ -248,7 +249,7 @@ async function listJwksCacheExpiringAtMinute(expiringMinute){
     return result.Items
 }
 
-async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
+async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot, incrementRetryAttempt = false){
     const updateItemInput = {
         TableName: process.env.AUTH_JWT_ISSUER_TABLE,
         Key: {
@@ -260,6 +261,13 @@ async function postponeJwksCacheEntryValidation(iss, jwksCacheExpireSlot){
             ':jwksCacheExpireSlot': jwksCacheExpireSlot,
             ':modificationTimeEpochMs': Date.now()
         }
+    }
+
+    if(incrementRetryAttempt){
+        updateItemInput.UpdateExpression += ', retryAttempt = if_not_exists(retryAttempt, :zero) + :one'
+        updateItemInput.ExpressionAttributeValues[':zero'] = 0
+        updateItemInput.ExpressionAttributeValues[':one'] = 1
+        updateItemInput.ReturnValues = 'UPDATED_NEW'
     }
 
     const updateCommand = new UpdateCommand(updateItemInput)

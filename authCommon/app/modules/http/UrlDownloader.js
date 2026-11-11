@@ -44,15 +44,15 @@ async function downloadUrl(url) {
         } catch(err){
             console.warn(err)
             // if AxiosError
-            if(err.name === 'AxiosError'){
+            if(err.isAxiosError === true){
                 if(err.message.indexOf('maxContentLength') > -1){
                     throw new ContentLengthExceededError(`Content length exceeded for URL: ${url}`, maxContentLength, url)
                 }
 
                 if(err.response){
-                    throw new Error(`Error downloading URL: ${url}, status: ${err.response.status}, statusText: ${err.response.statusText}`);
+                    throw new Error(`Error downloading URL: ${url}, status: ${err.response.status}, statusText: ${err.response.statusText}`, { cause: err });
                 } else {
-                    throw new Error(`Error downloading URL: ${url}, message: ${err.message}`);
+                    throw new Error(`Error downloading URL: ${url}, message: ${err.message}`, { cause: err });
                 }
             } else {
                 throw err;
