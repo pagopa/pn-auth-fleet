@@ -14,6 +14,57 @@ const getFilaAsByteArray = (fileName) => {
 
 describe('Url Downloader Testing', () => {
 
+    for (const code of ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNABORTED', 'ENOTFOUND']) {
+        it('preserves the Axios cause and code for ' + code, async () => {
+            const downloader = rewire('../app/modules/http/UrlDownloader');
+            const original = new AxiosError('connect ' + code, code);
+            downloader.__set__('axios', { get: async () => { throw original; } });
+            downloader.__set__('console', { warn: () => {} });
+            let caught;
+            try {
+                await downloader.downloadUrl('https://issuer-a/jwks');
+            } catch (error) {
+                caught = error;
+            }
+            expect(caught).to.be.instanceOf(Error);
+            expect(caught.message).to.equal('Error downloading URL: https://issuer-a/jwks, message: connect ' + code);
+            expect(caught.cause).to.equal(original);
+            expect(caught.cause.code).to.equal(code);
+            expect(caught.cause.isAxiosError).to.equal(true);
+        });
+    }
+
+    it('preserves an Axios network error whose name is Error', async () => {
+        const downloader = rewire('../app/modules/http/UrlDownloader');
+        const original = AxiosError.from(Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }));
+        downloader.__set__('axios', { get: async () => { throw original; } });
+        downloader.__set__('console', { warn: () => {} });
+        let caught;
+        try {
+            await downloader.downloadUrl('https://issuer-a/jwks');
+        } catch (error) {
+            caught = error;
+        }
+        expect(original.name).to.equal('Error');
+        expect(caught.cause).to.equal(original);
+        expect(caught.cause.code).to.equal('ECONNREFUSED');
+    });
+
+    it('preserves HTTP error messages and the original response cause', async () => {
+        const downloader = rewire('../app/modules/http/UrlDownloader');
+        const original = new AxiosError('HTTP failure', 'ERR_BAD_RESPONSE', {}, {}, { status: 503, statusText: 'Unavailable' });
+        downloader.__set__('axios', { get: async () => { throw original; } });
+        downloader.__set__('console', { warn: () => {} });
+        let caught;
+        try {
+            await downloader.downloadUrl('https://issuer-a/jwks');
+        } catch (error) {
+            caught = error;
+        }
+        expect(caught.message).to.equal('Error downloading URL: https://issuer-a/jwks, status: 503, statusText: Unavailable');
+        expect(caught.cause).to.equal(original);
+    });
+
     it('should download url', async () => {
         const response = getFilaAsByteArray('test/resources/jwks.json')
         const axiosMock = {

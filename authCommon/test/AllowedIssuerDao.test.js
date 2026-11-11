@@ -300,8 +300,10 @@ describe('AllowedIssuerDAO Testing', () => {
         expect(result.TransactItems[0].Update.ExpressionAttributeValues).to.deep.equal({
             ':jwksCacheExpireSlot': jwtExpireSlot,
             ':modificationTimeEpochMs': modificationTimeEpochMs,
-            ':jwksCacheOriginalExpireEpochSeconds': jwksCacheOriginalExpireEpochSeconds
+            ':jwksCacheOriginalExpireEpochSeconds': jwksCacheOriginalExpireEpochSeconds,
+            ':retryAttempt': 0
         })
+        expect(result.TransactItems[0].Update.UpdateExpression).to.include('retryAttempt = :retryAttempt')
 
         expect(result.TransactItems[1].Put.Item).to.deep.equal({
             hashKey: 'ISS~https://interop.pagopa.it',
@@ -435,5 +437,82 @@ describe('AllowedIssuerDAO Testing', () => {
         });
         const result = await AllowedIssuerDAO.postponeJwksCacheEntryValidation('ISS~https://interop.pagopa.it', dateString);
         expect(result).not.to.undefined;
+        const input = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+        expect(input.UpdateExpression).not.to.include('retryAttempt');
+        expect(input).not.to.have.property('ReturnValues');
+    });
+
+    it('increments retryAttempt atomically while rescheduling and returns the persisted value', async () => {
+        ddbMock.on(UpdateCommand).resolves({ Attributes: { retryAttempt: 6 } });
+        const slot = '2026-11-11T16:00Z';
+        const result = await AllowedIssuerDAO.postponeJwksCacheEntryValidation('issuer-a', slot, true);
+        const input = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+
+        expect(input.Key).to.deep.equal({ hashKey: 'ISS~issuer-a', sortKey: CFG });
+        expect(input.UpdateExpression).to.equal('SET jwksCacheExpireSlot = :jwksCacheExpireSlot, modificationTimeEpochMs = :modificationTimeEpochMs, retryAttempt = if_not_exists(retryAttempt, :zero) + :one');
+        expect(input.ExpressionAttributeValues).to.include({
+            ':jwksCacheExpireSlot': slot,
+            ':zero': 0,
+            ':one': 1
+        });
+        expect(input.ExpressionAttributeValues[':modificationTimeEpochMs']).to.be.a('number');
+        expect(input.ReturnValues).to.equal('UPDATED_NEW');
+        expect(result.Attributes.retryAttempt).to.equal(6);
+        expect(ddbMock.commandCalls(GetCommand)).to.have.lengthOf(0);
+    });
+
+    it('uses separate issuer keys for retry updates', async () => {
+        ddbMock.on(UpdateCommand).resolves({ Attributes: { retryAttempt: 1 } });
+        await AllowedIssuerDAO.postponeJwksCacheEntryValidation('issuer-a', 'slot', true);
+        await AllowedIssuerDAO.postponeJwksCacheEntryValidation('issuer-b', 'slot', true);
+        const keys = ddbMock.commandCalls(UpdateCommand).map(call => call.args[0].input.Key);
+        expect(keys).to.deep.equal([
+            { hashKey: 'ISS~issuer-a', sortKey: CFG },
+            { hashKey: 'ISS~issuer-b', sortKey: CFG }
+        ]);
+    });
+
+    it('propagates retry persistence failures', async () => {
+        const failure = new Error('DynamoDB unavailable');
+        ddbMock.on(UpdateCommand).rejects(failure);
+        let caught;
+        try {
+            await AllowedIssuerDAO.postponeJwksCacheEntryValidation('issuer-a', 'slot', true);
+        } catch (error) {
+            caught = error;
+        }
+        expect(caught).to.equal(failure);
+    });
+
+    it('does not perform a reset transaction when downloading fails', async () => {
+        const dao = rewire('../app/modules/dao/AllowedIssuerDao');
+        const failure = new Error('Download failed');
+        dao.__set__('getConfigByISS', async () => ({ JWKSUrl: 'https://issuer-a/jwks' }));
+        let caught;
+        try {
+            await dao.addJwksCacheEntry('issuer-a', async () => { throw failure; });
+        } catch (error) {
+            caught = error;
+        }
+        expect(caught).to.equal(failure);
+        expect(ddbMock.commandCalls(TransactWriteCommand)).to.have.lengthOf(0);
+    });
+
+    it('propagates a failed refresh transaction instead of reporting a successful reset', async () => {
+        const dao = rewire('../app/modules/dao/AllowedIssuerDao');
+        const failure = new Error('Transaction failed');
+        ddbMock.on(GetCommand).resolves({
+            Item: JSON.parse(fs.readFileSync('test/resources/issuerConfig.json'))
+        });
+        ddbMock.on(TransactWriteCommand).rejects(failure);
+        let caught;
+        try {
+            await dao.addJwksCacheEntry('https://interop.pagopa.it', async () => Buffer.from('{}'));
+        } catch (error) {
+            caught = error;
+        }
+        expect(caught).to.equal(failure);
+        const input = ddbMock.commandCalls(TransactWriteCommand)[0].args[0].input;
+        expect(input.TransactItems[0].Update.ExpressionAttributeValues[':retryAttempt']).to.equal(0);
     });
 });

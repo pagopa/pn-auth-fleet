@@ -22,9 +22,27 @@ async function handleEvent(event) {
                     console.log('JWKS cache entry added for issuer ' + allowedIssuerId)
                 }
                 catch (e) {
-                    console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
                     const rescheduleTime = Date.now() + (jwksDownloadRetryIntervalMinutes * 60 * 1000);
-                    await AllowedIssuerDao.postponeJwksCacheEntryValidation(allowedIssuerId, transformInDate(rescheduleTime))
+                    const downloadError = e?.isAxiosError === true ? e : e?.cause
+                    const isConnectionError = downloadError?.isAxiosError === true &&
+                        (downloadError.code === 'ECONNREFUSED' || downloadError.code === 'ETIMEDOUT')
+
+                    if(isConnectionError){
+                        const result = await AllowedIssuerDao.postponeJwksCacheEntryValidation(allowedIssuerId, transformInDate(rescheduleTime), true)
+                        const retryAttempt = result?.Attributes?.retryAttempt
+                        if(!Number.isInteger(retryAttempt) || retryAttempt < 1){
+                            throw new Error('Invalid retryAttempt after rescheduling issuer ' + allowedIssuerId)
+                        }
+                        const message = 'Error during addJwksCacheEntry for issuer ' + allowedIssuerId + ', retryAttempt ' + retryAttempt
+                        if(retryAttempt < 6){
+                            console.warn(message, e)
+                        } else {
+                            console.error(message, e)
+                        }
+                    } else {
+                        console.error("Error during addJwksCacheEntry for issuer " + allowedIssuerId, e)
+                        await AllowedIssuerDao.postponeJwksCacheEntryValidation(allowedIssuerId, transformInDate(rescheduleTime))
+                    }
                 }
             }
             pivotTimeInMillis = removeSingleMinute(pivotTimeInMillis)

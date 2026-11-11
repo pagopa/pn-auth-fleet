@@ -32,4 +32,21 @@ Il comando di seguito permette di eseguire la routine dei test per poi generare 
 ## Handler
 L'handler della lambda è presente nel file index.js
 
+## Errori di connessione durante il refresh
+
+Per gli errori Axios con codice `ECONNREFUSED` o `ETIMEDOUT`, il campo
+`retryAttempt` del record CFG dell'issuer conta i fallimenti in modo persistente.
+Il contatore e unico per issuer anche quando i due codici si alternano; un campo
+assente equivale a zero.
+
+I primi cinque fallimenti producono log `WARN`; il sesto e i successivi producono
+`ERROR`. Ogni fallimento mantiene la ripianificazione e l'intervallo configurato
+con `JWKS_DOWNLOAD_RETRY_INTERVAL_MINUTES`, senza tentativi immediati aggiuntivi.
+Il contatore viene incrementato atomicamente insieme alla ripianificazione.
+
+Un refresh riuscito azzera il contatore nella stessa transazione che salva la
+cache, anche se eseguito dal refresh forzato o dalla gestione degli issuer.
+Gli altri errori restano immediatamente `ERROR` e non modificano il contatore;
+altri codici di timeout, come `ECONNABORTED`, non sono inclusi nella soglia.
+I fallimenti della persistenza non vengono attenuati.
 
