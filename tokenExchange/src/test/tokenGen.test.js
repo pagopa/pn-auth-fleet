@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { mockClient } = require("aws-sdk-client-mock");
+const { createHash } = require("crypto");
 const {
   KMSClient,
   SignCommand,
@@ -74,5 +75,30 @@ describe("test tokenGen", () => {
     const base64Signature = "SUVDAD1KS0hB";
     const tokenRegexp = new RegExp(`.*\..*\.${base64Signature}`, "i");
     expect(token).to.match(tokenRegexp);
+  });
+
+  it("signs the SHA-256 digest with MessageType DIGEST, even for tokens over 4096 bytes", async () => {
+    kmsClientMock.resetHistory();
+    kmsClientMock.on(DescribeKeyCommand).resolves({ KeyMetadata: { KeyId: "keyId" } });
+    kmsClientMock.on(SignCommand).resolves({ Signature: new Uint8Array([1, 2, 3]) });
+    const bigDecodedToken = {
+      ...decodedToken,
+      organization: {
+        ...decodedToken.organization,
+        groups: Array.from({ length: 200 }, (_, i) => i.toString(16).padStart(24, "0")),
+      },
+    };
+
+    const token = await generateToken(bigDecodedToken);
+
+    const [header, payload] = token.split(".");
+    const signingInput = `${header}.${payload}`;
+    expect(signingInput.length).to.be.greaterThan(4096);
+    const signInput = kmsClientMock.commandCalls(SignCommand)[0].args[0].input;
+    expect(signInput.MessageType).to.equal("DIGEST");
+    expect(signInput.SigningAlgorithm).to.equal("RSASSA_PKCS1_V1_5_SHA_256");
+    expect(Buffer.from(signInput.Message)).to.deep.equal(
+      createHash("sha256").update(signingInput).digest()
+    );
   });
 });
