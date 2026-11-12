@@ -1,6 +1,7 @@
 const { DescribeKeyCommand, KMS, SignCommand } = require("@aws-sdk/client-kms");
 const AWSXRay = require("aws-xray-sdk-core");
 const base64url = require("base64url");
+const { createHash } = require("crypto");
 
 const kms = AWSXRay.captureAWSv3Client(new KMS());
 
@@ -74,12 +75,16 @@ function getExpDate() {
   return new Date(expDate);
 }
 
+// The SHA-256 digest is computed locally and sent with MessageType DIGEST:
+// with RAW, KMS rejects messages longer than 4096 bytes (e.g. tokens with many groups).
+// The resulting signature is identical to the RAW one.
 async function getSignature(message, keyId) {
+  const digest = createHash("sha256").update(message).digest();
   const command = new SignCommand({
-    Message: message,
+    Message: digest,
     KeyId: keyId,
     SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
-    MessageType: "RAW",
+    MessageType: "DIGEST",
   });
   const signature = await kms.send(command);
   return signature;
