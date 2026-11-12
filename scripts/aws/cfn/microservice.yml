@@ -3421,7 +3421,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${ProjectName}-web-logout-api-ErrorAlarm"
-      AlarmDescription: "CloudWatch alarm for when API Gateway has 4xx or 5xx error."
+      AlarmDescription: "CloudWatch alarm for when API Gateway has 5xx error."
       AlarmActions:
         - !Ref AlarmSNSTopicArn
       InsufficientDataActions:
@@ -3434,17 +3434,6 @@ Resources:
       Threshold: 1
       TreatMissingData: notBreaching
       Metrics:
-        - Id: m1
-          MetricStat:
-            Metric:
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub ${ProjectName}-web-logout-api
-              MetricName: 4XXError
-              Namespace: AWS/ApiGateway
-            Period: 60
-            Stat: Sum
-          ReturnData: False
         - Id: m2
           MetricStat:
             Metric:
@@ -3455,14 +3444,7 @@ Resources:
               Namespace: AWS/ApiGateway
             Period: 60
             Stat: Sum
-          ReturnData: False
-        - Id: e2
-          Expression: "m1*(0.1)"
-          Label: "4XXError-weight-adjust"
-          ReturnData: False
-        - Id: e1
-          Expression: SUM([e2,m2])
-          Label: !Sub "${ProjectName}-web-logout-api-ErrorMetric"
+          ReturnData: True
 
   WebLogoutAPIGatewayApiErrorAlarmWakeup:
     Type: AWS::CloudWatch::Alarm
