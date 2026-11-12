@@ -7,6 +7,9 @@ chai.use(chaiSubset);
 const JwtService = require("../app/modules/jwt");
 const { expect} = chai;
 const fs = require('fs');
+const { generateKeyPairSync } = require('node:crypto');
+const jsonwebtoken = require('jsonwebtoken');
+const AuthenticationError = require('../app/errors/AuthenticationError');
 
 // dev notes: if you need to refresh JWT token, you can use the following code with the key stored in secret of Dev Core "test/pn-auth-fleet-unit-test-radd-jwt-key":
 // https://github.com/pagopa/pn-troubleshooting/blob/main/jwt-auth/generate-jwt.js
@@ -14,6 +17,85 @@ const jwt1yearValid = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2lkI
 const JWT_MAX_AGE_SECONDS_1_YEAR = 31536000;
 const JWT_MAX_AGE_SECONDS_1_MINUTE = 60;
 const JWT_CLOCK_TOLERANCE_SECONDS = 60;
+
+describe("JwtService JWK import tests", function () {
+    let privateKey;
+    let publicJwk;
+    let otherPublicJwk;
+    let jwtService;
+    let token;
+    let issuerInfo;
+    const domainName = 'test.example';
+    const lambdaEvent = { requestContext: { domainName } };
+
+    before(function () {
+        this.timeout(10000);
+        const keyPair = generateKeyPairSync('rsa', { modulusLength: 2048 });
+        const otherKeyPair = generateKeyPairSync('rsa', { modulusLength: 2048 });
+        privateKey = keyPair.privateKey;
+        publicJwk = { ...keyPair.publicKey.export({ format: 'jwk' }), kid: 'generated-kid' };
+        otherPublicJwk = { ...otherKeyPair.publicKey.export({ format: 'jwk' }), kid: publicJwk.kid };
+    });
+
+    beforeEach(function () {
+        jwtService = new JwtService(JWT_MAX_AGE_SECONDS_1_MINUTE, 0);
+        token = jsonwebtoken.sign({}, privateKey, {
+            algorithm: 'RS256',
+            keyid: publicJwk.kid,
+            issuer: 'generated-issuer',
+            audience: 'https://' + domainName,
+            expiresIn: 60
+        });
+        issuerInfo = {
+            cfg: { iss: 'generated-issuer' },
+            jwksCache: [{
+                JWKSBody: Buffer.from(JSON.stringify({ keys: [publicJwk] }))
+            }]
+        };
+    });
+
+    it('validates RS256 using an imported public JWK', function () {
+        expect(() => jwtService.validateToken(
+            issuerInfo, jwtService.decodeToken(token), token, lambdaEvent
+        )).not.to.throw();
+    });
+
+    it('tries the next key with the same kid after an invalid signature', function () {
+        issuerInfo.jwksCache[0].JWKSBody = Buffer.from(JSON.stringify({
+            keys: [otherPublicJwk, publicJwk]
+        }));
+        expect(() => jwtService.validateToken(
+            issuerInfo, jwtService.decodeToken(token), token, lambdaEvent
+        )).not.to.throw();
+    });
+
+    it('keeps an invalid signature retriable when no key succeeds', function () {
+        issuerInfo.jwksCache[0].JWKSBody = Buffer.from(JSON.stringify({
+            keys: [otherPublicJwk]
+        }));
+        expect(() => jwtService.validateToken(
+            issuerInfo, jwtService.decodeToken(token), token, lambdaEvent
+        )).to.throw(AuthenticationError, 'Unable to validate token with any of the keys')
+            .with.property('retriable', true);
+    });
+
+    it('keeps claim validation failures non-retriable', function () {
+        issuerInfo.cfg.iss = 'other-issuer';
+        expect(() => jwtService.validateToken(
+            issuerInfo, jwtService.decodeToken(token), token, lambdaEvent
+        )).to.throw(AuthenticationError, 'jwt issuer invalid. expected: other-issuer')
+            .with.property('retriable', false);
+    });
+
+    it('rejects a malformed public JWK', function () {
+        issuerInfo.jwksCache[0].JWKSBody = Buffer.from(JSON.stringify({
+            keys: [{ ...publicJwk, n: undefined }]
+        }));
+        expect(() => jwtService.validateToken(
+            issuerInfo, jwtService.decodeToken(token), token, lambdaEvent
+        )).to.throw(TypeError);
+    });
+});
 
 describe("JwtService tests", function () {
     it("JWT Decode fail", function () {

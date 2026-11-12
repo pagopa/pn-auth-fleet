@@ -1,5 +1,5 @@
 const jsonwebtoken = require("jsonwebtoken");
-const jwkToPem = require("jwk-to-pem");
+const { createPublicKey } = require("node:crypto");
 const JwtEssentialFields = require('../../types/JwtEssentialFields');
 const AuthenticationError = require("../../errors/AuthenticationError");
 
@@ -72,9 +72,12 @@ class JwtService {
     let validated = false;
 
     for(let i=0; i<validKeys.length; i++){
-      const pem = jwkToPem(validKeys[i]);
+      const publicKey = createPublicKey({
+        key: validKeys[i],
+        format: "jwk"
+      });
       try {
-        jsonwebtoken.verify(jwt, pem, { 
+        jsonwebtoken.verify(jwt, publicKey, { 
           algorithms: ['RS256'],
           issuer: issuerInfo.cfg.iss,
           audience: 'https://'+lambdaEventDomain,
