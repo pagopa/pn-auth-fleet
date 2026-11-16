@@ -1,6 +1,6 @@
 const { validation } = require("./validation.js");
 const Redis = require("./redis.js");
-const { parseMethodArn, isLogoutRequest } = require("./methodArn.js");
+const { parseMethodArn, isLogoutRequest, isZendeskRequest } = require("./methodArn.js");
 const policies = require("../policies");
 const { denyAllPolicy } = policies;
 const ValidationException = require("./exception/validationException.js");
@@ -50,6 +50,11 @@ async function handleEvent(event) {
     if (isLogoutRequest(event.methodArn)) {
       // La logout è consentita a tutti i cx_type
       iamPolicy = policies.buildLogoutPolicy(policyParams);
+    } else if (isZendeskRequest(event.methodArn)) {
+      // La richiesta di supporto Zendesk è consentita solo ai PF
+      iamPolicy = contextAttrs.cx_type === "PF"
+        ? policies.buildZendeskPolicy(policyParams)
+        : denyAllPolicy;
     } else {
       iamPolicy = policies.buildCxTypePolicy(contextAttrs.cx_type, policyParams);
     }

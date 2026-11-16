@@ -179,6 +179,50 @@ describe("test eventHandler", () => {
     }
   });
 
+  describe("zendesk support request (PN-22357)", () => {
+    const zendeskMethodArn =
+      "arn:aws:execute-api:eu-south-1:123456789012:zendesk789/unique/POST/new-support-request";
+
+    it("PF - zendesk policy", async () => {
+      const result = await handleEvent({
+        type: "TOKEN",
+        authorizationToken: buildToken({
+          uid: "ed84b8c9-444e-410d-80d7-cfad6aa12070",
+          jti: "01G2A6V0B13BHNCPEZ32S7KQ3Y",
+        }),
+        methodArn: zendeskMethodArn,
+      });
+
+      expect(result.context.cx_type).to.equal("PF");
+      expect(result.context.cx_id).to.equal("PF-ed84b8c9-444e-410d-80d7-cfad6aa12070");
+      expect(result.policyDocument.Statement).to.be.eql([
+        {
+          Action: "execute-api:Invoke",
+          Effect: "Allow",
+          Resource: zendeskMethodArn,
+        },
+      ]);
+    });
+
+    const otherCxTypes = [
+      { cxType: "PA", organization: { role: "admin", institutionType: "PA" } },
+      { cxType: "PG", organization: { role: "pg-admin", institutionType: "PG" } },
+      { cxType: "PT", organization: { role: "admin", institutionType: "PT" } },
+      { cxType: "BS", organization: { role: "support" } },
+    ];
+    for (const { cxType, organization } of otherCxTypes) {
+      it(`${cxType} - deny all`, async () => {
+        const result = await handleEvent({
+          type: "TOKEN",
+          authorizationToken: buildToken(orgTokenPayload(organization)),
+          methodArn: zendeskMethodArn,
+        });
+
+        expect(result).to.be.equal(denyAllPolicy);
+      });
+    }
+  });
+
   it("handle event with institutionType PT - cx_id without prefix", async () => {
     const result = await handleEvent({
       type: "TOKEN",
