@@ -16,7 +16,7 @@ const isLogoutRequest = (methodArn) =>
   parseMethodArn(methodArn).restApiId === process.env.WEB_LOGOUT_REST_API_ID;
 
 /**
- * L'API di richiesta supporto Zendesk (pn-zendesk-auth) ha un gateway  dedicato e non è coperta dalle policy generate dal BFF.
+ * L'API di richiesta supporto Zendesk (pn-zendesk-auth) ha un gateway dedicato e non è coperta dalle policy generate dal BFF.
  * La si riconosce dal metodo e dal path, che sono univoci tra i gateway WEB.
  */
 const isZendeskRequest = (methodArn) => {
