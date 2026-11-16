@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 
-const { buildCxTypePolicy, buildLogoutPolicy } = require("../policies");
+const { buildCxTypePolicy, buildLogoutPolicy, buildZendeskPolicy } = require("../policies");
 
 const defaultParams = {
   region: "eu-south-1",
@@ -148,6 +148,26 @@ describe("test policies", () => {
 
     it("should set context attributes", () => {
       const result = buildLogoutPolicy(defaultParams);
+
+      expect(result.context).to.deep.equal(defaultParams.contextAttrs);
+    });
+  });
+
+  describe("buildZendeskPolicy", () => {
+    it("should allow only POST /new-support-request", () => {
+      const result = buildZendeskPolicy(defaultParams);
+
+      expect(result.policyDocument.Statement).to.deep.equal([
+        {
+          Action: "execute-api:Invoke",
+          Effect: "Allow",
+          Resource: "arn:aws:execute-api:eu-south-1:123456789012:abc123def/prod/POST/new-support-request",
+        },
+      ]);
+    });
+
+    it("should set context attributes", () => {
+      const result = buildZendeskPolicy(defaultParams);
 
       expect(result.context).to.deep.equal(defaultParams.contextAttrs);
     });

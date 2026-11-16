@@ -26,6 +26,7 @@ if (Object.keys(cxTypePolicies).length === 0) {
 console.log("Loaded policies for cx_types:", Object.keys(cxTypePolicies));
 
 const logoutPolicy = require("./logoutPolicy.json");
+const zendeskPolicy = require("./zendeskPolicy.json");
 const denyAllPolicy = require("./denyAllPolicy.json");
 
 const buildPolicy = (template, { region, awsAccountId, restApiId, stage, contextAttrs }) => {
@@ -61,8 +62,12 @@ const buildCxTypePolicy = (cxType, params) => {
 /** L'api di logout è una lambda con il suo gateway, non fa parte del gateway del BFF */
 const buildLogoutPolicy = (params) => buildPolicy(logoutPolicy, params);
 
+/** L'api di Zendesk ha il suo gateway, non fa parte del gateway del BFF */
+const buildZendeskPolicy = (params) => buildPolicy(zendeskPolicy, params);
+
 module.exports = {
   buildCxTypePolicy,
   buildLogoutPolicy,
+  buildZendeskPolicy,
   denyAllPolicy,
 };
