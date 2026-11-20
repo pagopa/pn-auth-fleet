@@ -1,12 +1,22 @@
 const axios = require("axios");
 
+const INSTITUTION_TYPES = ["PA", "PG", "PT"];
+
 const getCxType = (token) => {
   const { organization } = token;
   if (!organization) {
     return "PF";
   }
 
-  const { role = "" } = organization;
+  const { role = "", institutionType } = organization;
+  if (role === "support") {
+    return "BS";
+  }
+  if (INSTITUTION_TYPES.includes(institutionType)) {
+    return institutionType;
+  }
+
+  /* Retrocompatibility for tokens issued before institutionType was added to the session token */
   return role.startsWith("pg-") ? "PG" : "PA";
 };
 
