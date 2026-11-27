@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-    
+
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR EXIT
 
@@ -10,20 +10,23 @@ cleanup() {
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
-
 usage() {
       cat <<EOF
-    Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-p <aws-profile>] -r <aws-region> -e <env-type>  -u <user-id>
-        
+    Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-p <aws-profile>] -r <aws-region> -e <env-type>  -u <user-id> [-c <channel>] [-d <details>] [-i <retrieval-id>]
+
     [-h]                           : this help message
     [-v]                           : verbose mode
     [-p <aws-profile>]             : aws cli profile (optional)
     -r <aws-region>                : aws region as eu-south-1
     -e <env-type>                  : one of dev / uat / svil / coll / cert / prod
     -u <user-id>                   : the id returned by SPID-HUB
+    [-c <channel>]                 : source channel (default: "WEB")
+    [-d <details>]                 : source details (optional)
+    [-i <retrieval-id>]            : source retrieval id (optional)
 EOF
   exit 1
 }
+
 parse_params() {
   # default values of variables set from params
   aws_profile=""
@@ -31,25 +34,40 @@ parse_params() {
   env_type=""
   keyIdAlias="alias/pn-jwt-sign-key"
   uid=""
-  
+  channel="WEB"  # Valore di default per channel
+  details=""
+  retrieval_id=""
+
   while :; do
     case "${1-}" in
     -h | --help) usage ;;
     -v | --verbose) set -x ;;
-    -p | --profile) 
+    -p | --profile)
       aws_profile="${2-}"
       shift
       ;;
-    -r | --region) 
+    -r | --region)
       aws_region="${2-}"
       shift
       ;;
-    -e | --env-name) 
+    -e | --env-name)
       env_type="${2-}"
       shift
       ;;
-    -u | --uid) 
+    -u | --uid)
       uid="${2-}"
+      shift
+      ;;
+    -c | --channel)
+      channel="${2-}"
+      shift
+      ;;
+    -d | --details)
+      details="${2-}"
+      shift
+      ;;
+    -i | --retrieval-id)
+      retrieval_id="${2-}"
       shift
       ;;
     -?*) die "Unknown option: $1" ;;
@@ -61,7 +79,7 @@ parse_params() {
   args=("$@")
 
   # check required params and arguments
-  [[ -z "${env_type-}" ]] && usage 
+  [[ -z "${env_type-}" ]] && usage
   [[ -z "${aws_region-}" ]] && usage
   [[ -z "${uid-}" ]] && usage
   return 0
@@ -76,18 +94,18 @@ dump_params(){
   echo "AWS profile:        ${aws_profile}"
   echo "User Id:            ${uid}"
   echo "Key Alias:          ${keyIdAlias}"
+  echo "Channel:            ${channel}"
+  echo "Details:            ${details}"
+  echo "Retrieval Id:       ${retrieval_id}"
 }
-
 
 # START SCRIPT
 
 parse_params "$@"
 dump_params
 
-
 iss="https://webapi.${env_type}.notifichedigitali.it"
 aud="webapi.${env_type}.notifichedigitali.it"
-
 
 echo ""
 echo "=== Base AWS command parameters"
@@ -99,7 +117,6 @@ if ( [ ! -z "${aws_region}" ] ) then
   aws_command_base_args="${aws_command_base_args} --region  $aws_region"
 fi
 echo ${aws_command_base_args}
-
 
 base64_encode()
 {
@@ -121,10 +138,14 @@ next_year_date=$(date -v +1y +%s)
 echo "Date now epoch: ${date_now}"
 echo "Next year date epoch: ${next_year_date}"
 
-
 header="{\"alg\": \"RS256\",\"typ\": \"JWT\",\"kid\": \"${keyId}\"}"
 dot="."
 payload="{\"iat\": ${date_now},\"exp\": ${next_year_date}, \"uid\": \"${uid}\",\"iss\": \"${iss}\",\"aud\": \"${aud}\"}"
+
+# Aggiungi l'oggetto source solo se i parametri sono stati forniti
+if [ ! -z "${details}" ] && [ ! -z "${retrieval_id}" ]; then
+  payload="{\"iat\": ${date_now},\"exp\": ${next_year_date}, \"uid\": \"${uid}\",\"iss\": \"${iss}\",\"aud\": \"${aud}\", \"source\": {\"channel\": \"${channel}\",\"details\": \"${details}\",\"retrievalId\": \"${retrieval_id}\"}}"
+fi
 
 header_base64=$(echo "${header}" | base64_encode)
 payload_base64=$(echo "${payload}" | base64_encode)
