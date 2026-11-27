@@ -20,6 +20,33 @@ describe("getCxType", () => {
     const result = getCxType(token);
     expect(result).toEqual("PF");
   });
+
+  it("should return 'BS' when role is support", () => {
+    const token = { organization: { role: "support", institutionType: "PA" } };
+    expect(getCxType(token)).toEqual("BS");
+  });
+
+  it.each(["PA", "PG", "PT"])(
+    "should return institutionType '%s' when present",
+    (institutionType) => {
+      const token = { organization: { role: "admin", institutionType } };
+      expect(getCxType(token)).toEqual(institutionType);
+    }
+  );
+
+  it("should prefer institutionType over the pg- role prefix", () => {
+    const token = { organization: { role: "pg-admin", institutionType: "PT" } };
+    expect(getCxType(token)).toEqual("PT");
+  });
+
+  it("should fall back to role prefix when institutionType is unknown", () => {
+    expect(
+      getCxType({ organization: { role: "pg-admin", institutionType: "XX" } })
+    ).toEqual("PG");
+    expect(
+      getCxType({ organization: { role: "admin", institutionType: "XX" } })
+    ).toEqual("PA");
+  });
 });
 
 describe("getCxId", () => {
